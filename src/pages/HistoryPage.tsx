@@ -119,28 +119,28 @@ const HistoryPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="px-6 pt-12">
+      <main className="px-6 pt-12" id="main-content" role="main" aria-label="Historique des transactions">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate(-1)} className="text-muted-foreground">
-            <ArrowLeft size={24} />
+          <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Retour">
+            <ArrowLeft size={24} aria-hidden="true" />
           </button>
           <h1 className="text-2xl font-bold text-foreground flex-1">Historique</h1>
         </div>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-3 mb-6 foldable-grid" role="region" aria-label="Résumé financier">
           <div className="bg-primary/10 rounded-2xl p-3 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase font-medium">Gains</p>
-            <p className="text-lg font-black text-primary">+{totalGains.toFixed(0)}€</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold">Gains</p>
+            <p className="text-lg font-black text-primary" aria-label={`Gains: ${totalGains.toFixed(0)} euros`}>+{totalGains.toFixed(0)}€</p>
           </div>
           <div className="bg-destructive/10 rounded-2xl p-3 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase font-medium">Dépenses</p>
-            <p className="text-lg font-black text-destructive">-{totalExpenses.toFixed(0)}€</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold">Dépenses</p>
+            <p className="text-lg font-black text-destructive" aria-label={`Dépenses: ${totalExpenses.toFixed(0)} euros`}>-{totalExpenses.toFixed(0)}€</p>
           </div>
-          <div className={`rounded-2xl p-3 text-center ${netBalance >= 0 ? "bg-green-50" : "bg-destructive/10"}`}>
-            <p className="text-[10px] text-muted-foreground uppercase font-medium">Net</p>
-            <p className={`text-lg font-black ${netBalance >= 0 ? "text-green-600" : "text-destructive"}`}>
+          <div className={`rounded-2xl p-3 text-center ${netBalance >= 0 ? "bg-primary/5" : "bg-destructive/10"}`}>
+            <p className="text-xs text-muted-foreground uppercase font-semibold">Net</p>
+            <p className={`text-lg font-black ${netBalance >= 0 ? "text-primary" : "text-destructive"}`} aria-label={`Solde net: ${netBalance.toFixed(0)} euros`}>
               {netBalance >= 0 ? "+" : ""}{netBalance.toFixed(0)}€
             </p>
           </div>
@@ -165,10 +165,10 @@ const HistoryPage = () => {
         </Tabs>
 
         {/* Charts section */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-3 mb-6 foldable-grid" role="region" aria-label="Graphiques">
           {/* Pie chart */}
           <div className="bg-card rounded-2xl border border-border p-3">
-            <p className="text-[10px] text-muted-foreground uppercase font-medium mb-1">Répartition</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Répartition</p>
             <ResponsiveContainer width="100%" height={120}>
               <PieChart>
                 <Pie
@@ -194,7 +194,7 @@ const HistoryPage = () => {
               {pieData.map((d, i) => (
                 <div key={d.name} className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full" style={{ background: PIE_COLORS[i] }} />
-                  <span className="text-[9px] text-muted-foreground">{d.name}</span>
+                  <span className="text-xs text-muted-foreground">{d.name}</span>
                 </div>
               ))}
             </div>
@@ -202,7 +202,7 @@ const HistoryPage = () => {
 
           {/* Bar chart */}
           <div className="bg-card rounded-2xl border border-border p-3">
-            <p className="text-[10px] text-muted-foreground uppercase font-medium mb-1">Timeline</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Timeline</p>
             <ResponsiveContainer width="100%" height={120}>
               <BarChart data={barData} barSize={10}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -218,12 +218,12 @@ const HistoryPage = () => {
             </ResponsiveContainer>
             <div className="flex gap-3 mt-1">
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-                <span className="text-[9px] text-muted-foreground">Gains</span>
+                <div className="w-2 h-2 rounded-full bg-primary" aria-hidden="true" />
+                <span className="text-xs text-muted-foreground">Gains</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-coly-purple" />
-                <span className="text-[9px] text-muted-foreground">Dépenses</span>
+                <div className="w-2 h-2 rounded-full bg-coly-purple" aria-hidden="true" />
+                <span className="text-xs text-muted-foreground">Dépenses</span>
               </div>
             </div>
           </div>
@@ -231,12 +231,13 @@ const HistoryPage = () => {
 
         {/* Search + AI filters */}
         <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mb-3">
-          <Search size={16} className="text-muted-foreground shrink-0" />
+          <Search size={16} className="text-muted-foreground shrink-0" aria-hidden="true" />
           <input
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             placeholder="Rechercher par ref, type..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            aria-label="Rechercher des transactions"
           />
         </div>
 
@@ -273,24 +274,25 @@ const HistoryPage = () => {
         </div>
 
         {/* Transaction list */}
-        <div className="space-y-2">
+        <ul className="space-y-2" role="list" aria-label="Liste des transactions">
           {filtered.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-sm">Aucune transaction trouvée</p>
-            </div>
+            <li className="text-center py-12">
+              <p className="text-muted-foreground text-sm" role="status">Aucune transaction trouvée</p>
+            </li>
           ) : (
             filtered.map((item) => (
-              <div
+              <li
                 key={item.id}
                 className="flex items-center gap-3 bg-card rounded-xl border border-border p-3.5 hover:shadow-sm transition-shadow"
+                aria-label={`${item.type} ${item.ref}, ${item.amount >= 0 ? "+" : ""}${item.amount.toFixed(1)} euros, ${item.date}`}
               >
-                <div className={`w-10 h-10 rounded-lg ${iconBgMap[item.icon]} flex items-center justify-center shrink-0`}>
+                <div className={`w-10 h-10 rounded-lg ${iconBgMap[item.icon]} flex items-center justify-center shrink-0`} aria-hidden="true">
                   {iconMap[item.icon]}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <p className="font-semibold text-foreground text-sm">{item.type}</p>
-                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-full ${
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
                       item.category === "voyageur" ? "bg-primary/10 text-primary" :
                       item.category === "coly" ? "bg-coly-purple/10 text-coly-purple" :
                       "bg-accent/10 text-accent"
@@ -298,19 +300,19 @@ const HistoryPage = () => {
                       {item.category}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{item.ref}</p>
+                  <p className="text-sm text-muted-foreground">{item.ref}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className={`font-bold text-sm ${item.amount >= 0 ? "text-green-600" : "text-destructive"}`}>
+                  <p className={`font-bold text-sm ${item.amount >= 0 ? "text-primary" : "text-destructive"}`}>
                     {item.amount >= 0 ? "+" : ""}{item.amount.toFixed(1)}€
                   </p>
-                  <p className="text-[10px] text-muted-foreground">{item.date}</p>
+                  <p className="text-xs text-muted-foreground">{item.date}</p>
                 </div>
-              </div>
+              </li>
             ))
           )}
-        </div>
-      </div>
+        </ul>
+      </main>
       <BottomNav />
     </div>
   );
