@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
 const menuItems = [
+  { label: "Tableau de bord Historique", path: "/history/all" },
   { label: "Mon historique Voyageur", path: "/history/voyageur" },
   { label: "Mon historique Coly", path: "/history/coly" },
   { label: "Mon historique Needit", path: "/history/needit" },
