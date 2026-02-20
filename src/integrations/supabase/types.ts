@@ -301,6 +301,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_pending_needit_missions: {
+        Args: never
+        Returns: {
+          category_path: string[]
+          city: string
+          country: string
+          created_at: string
+          dimension: string
+          id: string
+          is_unlisted: boolean
+          photo_url: string
+          poids: string
+          prix_max: string
+          product_name: string
+          ref_number: string
+          status: string
+          timing: string
+          unlisted_description: string
+        }[]
+      }
       get_pending_shipments: {
         Args: never
         Returns: {
@@ -314,6 +334,7 @@ export type Database = {
           insured: boolean
           is_international: boolean
           photo_url: string
+          ref_number: string
           size: string
           status: string
           tarif: string
