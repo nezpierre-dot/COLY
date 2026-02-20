@@ -167,13 +167,13 @@ const Dashboard = () => {
     let error: any = null;
 
     if (type === "voyage") {
-      const res = await supabase.from("voyages").delete().eq("id", id);
+      const res = await supabase.from("voyages").update({ status: "cancelled" }).eq("id", id);
       error = res.error;
     } else if (type === "shipment") {
       const res = await supabase.from("shipments").update({ status: "cancelled" } as any).eq("id", id);
       error = res.error;
     } else if (type === "mission") {
-      const res = await supabase.from("needit_missions").delete().eq("id", id);
+      const res = await supabase.from("needit_missions").update({ status: "cancelled" }).eq("id", id);
       error = res.error;
     }
 
@@ -193,8 +193,8 @@ const Dashboard = () => {
     if (isVoyageur || !user) return;
     const loadDemandeurData = async () => {
       const [shipRes, missRes] = await Promise.all([
-        supabase.from("shipments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("needit_missions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("shipments").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
+        supabase.from("needit_missions").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
       ]);
       if (shipRes.data) setDemandeurShipments(shipRes.data);
       if (missRes.data) setDemandeurMissions(missRes.data);
@@ -213,6 +213,7 @@ const Dashboard = () => {
         .from("voyages")
         .select("*")
         .eq("user_id", user.id)
+        .neq("status", "cancelled")
         .order("departure_date", { ascending: true });
       if (data) {
         setVoyages(data);
