@@ -2,13 +2,23 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package,
-  Image, Ruler, CreditCard, Shield, Sparkles, Users, Truck, Zap
+  Image, Ruler, CreditCard, Shield, Sparkles, Users, Truck, Zap,
+  AlertTriangle, Globe, Info, X, ShieldCheck, Lock
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+// — Constants —
 
 const SIZES = [
   { id: "S", label: "S — Max 1kg", dim: "217×150×50", icon: "📦" },
@@ -31,11 +41,143 @@ const TARIF_OPTIONS = [
   { id: "custom", label: "Personnalisé", price: "Sur devis", desc: "Négociez votre tarif", icon: CreditCard, popular: false },
 ];
 
+const DOMESTIC_COUNTRIES = ["france", "fr"];
+
+const TAX_ESTIMATES: Record<string, { tva: string; douane: string; total: string; note: string }> = {
+  default: { tva: "20%", douane: "0-4.5%", total: "~3.80€ – 8.50€", note: "Estimation basée sur le tarif RITA UE" },
+  senegal: { tva: "18%", douane: "5-20%", total: "~5.20€ – 14.00€", note: "Zone CEDEAO — droits de douane variables" },
+  maroc: { tva: "20%", douane: "2.5-40%", total: "~4.50€ – 18.00€", note: "Accord d'association UE-Maroc applicable" },
+  cameroun: { tva: "19.25%", douane: "5-30%", total: "~5.00€ – 16.00€", note: "Zone CEMAC — tarif extérieur commun" },
+  usa: { tva: "0%", douane: "0-6%", total: "~0€ – 5.00€", note: "De minimis $800 — souvent exonéré" },
+};
+
 const ErrorHint = ({ message }: { message: string }) => (
   <p className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1 duration-200">{message}</p>
 );
 
 const STEP_TITLES = ["Trajet", "Colis", "Tarif", "Récap"];
+
+// — Trust Badge Component —
+
+const TrustBadge = ({ variant = "inline" }: { variant?: "inline" | "card" }) => {
+  if (variant === "card") {
+    return (
+      <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-3">
+        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center shrink-0">
+          <ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Sécurisé par AXA</p>
+          <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">Assurance & protection des envois</p>
+        </div>
+        <Lock size={12} className="text-emerald-500 ml-auto shrink-0" />
+      </div>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+      <ShieldCheck size={10} /> AXA Sécurisé
+    </span>
+  );
+};
+
+// — Customs Info Dialog —
+
+const CustomsInfoDialog = ({
+  open,
+  onOpenChange,
+  country,
+  sizeLabel,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  country: string;
+  sizeLabel: string;
+}) => {
+  const countryKey = country.toLowerCase().trim();
+  const taxInfo = TAX_ESTIMATES[countryKey] || TAX_ESTIMATES.default;
+  const [estimating, setEstimating] = useState(true);
+
+  useEffect(() => {
+    if (open) {
+      setEstimating(true);
+      const t = setTimeout(() => setEstimating(false), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm mx-auto rounded-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <Globe size={18} className="text-primary" />
+            Envoi international — {country || "Destination"}
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Estimation des frais de douane et taxes pour votre colis.
+          </DialogDescription>
+        </DialogHeader>
+
+        {estimating ? (
+          <div className="space-y-3 py-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Sparkles size={14} className="text-accent animate-pulse" />
+              Analyse IA en cours (base RITA)...
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 bg-muted rounded animate-pulse" />
+              <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+              <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4 py-2">
+            {/* AI estimation result */}
+            <div className="bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/15 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles size={14} className="text-accent" />
+                <span className="text-xs font-semibold text-accent">Estimation IA (RITA)</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">TVA locale</p>
+                  <p className="text-sm font-bold text-foreground">{taxInfo.tva}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Droits douane</p>
+                  <p className="text-sm font-bold text-foreground">{taxInfo.douane}</p>
+                </div>
+              </div>
+              <div className="border-t border-border pt-2">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Estimation totale taxes</p>
+                <p className="text-lg font-bold text-primary">{taxInfo.total}</p>
+                <p className="text-[10px] text-muted-foreground mt-1 italic">Pour colis {sizeLabel}</p>
+              </div>
+            </div>
+
+            {/* Note */}
+            <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+              <Info size={14} className="shrink-0 mt-0.5 text-primary" />
+              <span>{taxInfo.note}</span>
+            </div>
+
+            {/* Prohibited items warning */}
+            <div className="flex items-start gap-2 text-xs bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-lg p-3">
+              <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+              <span>Certains articles sont interdits à l'export (denrées périssables, matières dangereuses, contrefaçons). Vérifiez la réglementation locale.</span>
+            </div>
+
+            {/* Trust badge */}
+            <TrustBadge variant="card" />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// — Main Component —
 
 const SendColy = () => {
   const navigate = useNavigate();
@@ -63,6 +205,15 @@ const SendColy = () => {
   const [tarif, setTarif] = useState<string>("");
   const [insured, setInsured] = useState<boolean | null>(null);
 
+  // Customs dialog
+  const [showCustomsDialog, setShowCustomsDialog] = useState(false);
+  const [customsShown, setCustomsShown] = useState(false);
+
+  const isInternational = useMemo(() => {
+    const c = arrCountry.toLowerCase().trim();
+    return c.length > 0 && !DOMESTIC_COUNTRIES.includes(c);
+  }, [arrCountry]);
+
   // AI suggestions
   const [aiLoaded, setAiLoaded] = useState(false);
   const aiSuggestion = useMemo(() => {
@@ -79,8 +230,18 @@ const SendColy = () => {
     }
   }, [step, aiLoaded]);
 
+  // Show customs dialog contextually when moving to step 2 with international destination
+  useEffect(() => {
+    if (step === 2 && isInternational && !customsShown) {
+      const t = setTimeout(() => {
+        setShowCustomsDialog(true);
+        setCustomsShown(true);
+      }, 500);
+      return () => clearTimeout(t);
+    }
+  }, [step, isInternational, customsShown]);
+
   const totalSteps = 4;
-  const progressPercent = (step / totalSteps) * 100;
 
   const inputClass = (field: string) =>
     `w-full border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none bg-background transition-all ${
@@ -143,6 +304,8 @@ const SendColy = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  const sizeLabel = SIZES.find(s => s.id === size)?.label || size;
 
   const renderStep = () => {
     switch (step) {
@@ -213,6 +376,19 @@ const SendColy = () => {
                   {errors.arrCountry && <ErrorHint message={errors.arrCountry} />}
                 </div>
               </div>
+
+              {/* International hint - contextual */}
+              {isInternational && (
+                <div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3 animate-in fade-in duration-300">
+                  <Globe size={14} className="text-primary shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-xs text-foreground font-medium">Envoi international détecté</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Des frais de douane peuvent s'appliquer. Une estimation vous sera proposée à l'étape suivante.</p>
+                  </div>
+                  <TrustBadge />
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <input className={inputClass("contactNom")} placeholder="Nom" value={contactNom} onChange={(e) => { setContactNom(e.target.value); clearError("contactNom"); }} />
@@ -232,6 +408,9 @@ const SendColy = () => {
                 {errors.contactMail && <ErrorHint message={errors.contactMail} />}
               </div>
             </div>
+
+            {/* Trust footer */}
+            <TrustBadge variant="card" />
           </div>
         );
 
@@ -283,12 +462,28 @@ const SendColy = () => {
               <p className="text-xs text-muted-foreground mb-1">Aperçu</p>
               <div className="flex items-center gap-3">
                 {photo && <img src={photo} alt="" className="w-12 h-12 rounded-lg object-cover" />}
-                <div>
-                  <p className="text-sm font-medium text-foreground">{SIZES.find(s => s.id === size)?.label || size}</p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">{sizeLabel}</p>
                   <p className="text-xs text-muted-foreground">{photo ? "Photo ajoutée ✓" : "Aucune photo"}</p>
                 </div>
+                <TrustBadge />
               </div>
             </div>
+
+            {/* International taxes quick link */}
+            {isInternational && (
+              <button
+                onClick={() => setShowCustomsDialog(true)}
+                className="w-full flex items-center gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-left transition-colors hover:bg-amber-100 dark:hover:bg-amber-950/50"
+              >
+                <Globe size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">Frais de douane estimés</p>
+                  <p className="text-[10px] text-amber-600/70 dark:text-amber-400/70">Appuyez pour voir l'estimation IA vers {arrCountry}</p>
+                </div>
+                <ArrowRight size={14} className="text-amber-500" />
+              </button>
+            )}
           </div>
         );
 
@@ -360,11 +555,28 @@ const SendColy = () => {
               <p className="text-[11px] text-muted-foreground text-center">*Le paiement est effectué à la remise du colis.</p>
             </div>
 
+            {/* International tax summary inline */}
+            {isInternational && (
+              <button
+                onClick={() => setShowCustomsDialog(true)}
+                className="w-full flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl px-4 py-3 text-left transition-colors hover:bg-primary/10"
+              >
+                <Globe size={16} className="text-primary shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-foreground">Taxes douanières estimées : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p>
+                  <p className="text-[10px] text-muted-foreground">Estimation IA basée RITA — appuyez pour détails</p>
+                </div>
+                <Sparkles size={12} className="text-accent shrink-0" />
+              </button>
+            )}
+
             {/* Assurance */}
             <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <Shield size={16} className="text-primary" /> Assurance AXA
+                <TrustBadge />
               </h3>
+              <p className="text-xs text-muted-foreground">Protégez votre colis contre la perte et les dommages pendant le transport.</p>
               {errors.insured && <ErrorHint message={errors.insured} />}
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => { setInsured(true); clearError("insured"); }}
@@ -386,19 +598,35 @@ const SendColy = () => {
 
       case 4: {
         const sizeObj = SIZES.find((s) => s.id === size);
+        const tarifObj = TARIF_OPTIONS.find(t => t.id === tarif);
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 size={20} className="text-primary" />
               <h3 className="text-lg font-bold text-foreground">Récapitulatif</h3>
+              <TrustBadge />
             </div>
 
             <SummaryRow icon={Calendar} label="Date" value={date ? new Date(date).toLocaleDateString("fr-FR") : "—"} onEdit={() => setStep(1)} />
             <SummaryRow icon={MapPin} label="Départ" value={DEPART_LABELS[departMethod] || "—"} detail={departMethod !== "main" ? departCity : undefined} onEdit={() => setStep(1)} />
-            <SummaryRow icon={MapPin} label="Destination" value={`${arrCity}, ${arrCountry}`} detail={`${contactPrenom} ${contactNom} — ${contactTel}`} onEdit={() => setStep(1)} />
+            <SummaryRow icon={MapPin} label="Destination" value={`${arrCity}, ${arrCountry}`} detail={`${contactPrenom} ${contactNom} — ${contactTel}`} onEdit={() => setStep(1)} badge={isInternational ? "international" : undefined} />
             <SummaryRow icon={Package} label="Colis" value={sizeObj?.label || size} detail={photo ? "Photo ajoutée ✓" : "Aucune photo"} onEdit={() => setStep(2)} />
-            <SummaryRow icon={CreditCard} label="Tarif" value={TARIF_OPTIONS.find(t => t.id === tarif)?.label + " — " + TARIF_OPTIONS.find(t => t.id === tarif)?.price || tarif} onEdit={() => setStep(3)} />
-            <SummaryRow icon={Shield} label="Assurance" value={insured ? "Oui — AXA" : "Non"} onEdit={() => setStep(3)} />
+            <SummaryRow icon={CreditCard} label="Tarif" value={tarifObj ? `${tarifObj.label} — ${tarifObj.price}` : tarif} onEdit={() => setStep(3)} />
+            <SummaryRow icon={Shield} label="Assurance" value={insured ? "Oui — AXA" : "Non"} onEdit={() => setStep(3)} badge={insured ? "axa" : undefined} />
+
+            {/* International taxes in summary */}
+            {isInternational && (
+              <button
+                onClick={() => setShowCustomsDialog(true)}
+                className="w-full flex items-center gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-left"
+              >
+                <Globe size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">Taxes douane estimées : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p>
+                  <p className="text-[10px] text-amber-600/70 dark:text-amber-400/70">Voir le détail</p>
+                </div>
+              </button>
+            )}
 
             {aiSuggestion && (
               <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-xl p-3 mt-2">
@@ -410,6 +638,9 @@ const SendColy = () => {
                 </div>
               </div>
             )}
+
+            {/* Final trust card */}
+            <TrustBadge variant="card" />
           </div>
         );
       }
@@ -465,20 +696,36 @@ const SendColy = () => {
         </div>
       </div>
 
+      {/* Customs dialog */}
+      <CustomsInfoDialog
+        open={showCustomsDialog}
+        onOpenChange={setShowCustomsDialog}
+        country={arrCountry}
+        sizeLabel={sizeLabel}
+      />
+
       <BottomNav />
     </div>
   );
 };
 
-const SummaryRow = ({ icon: Icon, label, value, detail, onEdit }: {
-  icon: React.ElementType; label: string; value: string; detail?: string; onEdit: () => void;
+const SummaryRow = ({ icon: Icon, label, value, detail, onEdit, badge }: {
+  icon: React.ElementType; label: string; value: string; detail?: string; onEdit: () => void; badge?: string;
 }) => (
   <div className="flex items-start justify-between py-3 border-b border-border last:border-0">
     <div className="flex items-start gap-3">
       <Icon size={16} className="text-primary mt-0.5" />
       <div>
         <p className="text-[11px] text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium text-foreground">{value}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-foreground">{value}</p>
+          {badge === "international" && (
+            <span className="inline-flex items-center gap-0.5 bg-primary/10 text-primary text-[9px] font-semibold px-1.5 py-0.5 rounded-full">
+              <Globe size={8} /> International
+            </span>
+          )}
+          {badge === "axa" && <TrustBadge />}
+        </div>
         {detail && <p className="text-xs text-muted-foreground mt-0.5">{detail}</p>}
       </div>
     </div>

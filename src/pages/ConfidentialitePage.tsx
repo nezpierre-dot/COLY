@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown, ShieldCheck, Lock, Eye, EyeOff, FileText } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BottomNav from "@/components/BottomNav";
@@ -30,12 +30,33 @@ const SERVICES = [
   { name: "Google Maps", category: "Essentiel", enabled: true },
 ];
 
+const POLICY_SECTIONS = [
+  {
+    title: "1. Informations collectées",
+    content: "Nous collectons des informations personnelles lorsque vous vous inscrivez sur l'application, lorsque vous utilisez nos services ou lorsque vous nous contactez : nom, prénom, adresse email, numéro de téléphone, photo de profil, et informations de paiement nécessaires pour effectuer des transactions."
+  },
+  {
+    title: "2. Utilisation des données",
+    content: "Vos données sont utilisées pour fournir et améliorer nos services, personnaliser votre expérience, communiquer avec vous, et assurer la sécurité de votre compte et de vos transactions."
+  },
+  {
+    title: "3. Partage des données",
+    content: "Vos données ne sont jamais vendues. Elles peuvent être partagées avec nos partenaires de confiance (transporteurs, assureurs) uniquement dans le cadre de la prestation de service."
+  },
+  {
+    title: "4. Vos droits",
+    content: "Conformément au RGPD, vous disposez de droits d'accès, de rectification, de suppression et de portabilité de vos données. Contactez-nous à tout moment pour les exercer."
+  },
+];
+
 export default function ConfidentialitePage() {
   const navigate = useNavigate();
   const [receiveOffers, setReceiveOffers] = useState(true);
   const [categories, setCategories] = useState(CATEGORIES);
   const [services, setServices] = useState(SERVICES);
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
+  const [expandedPolicy, setExpandedPolicy] = useState<string | null>(null);
+  const [showPolicy, setShowPolicy] = useState(false);
 
   const toggleCategory = (name: string) => {
     setCategories((prev) =>
@@ -51,104 +72,136 @@ export default function ConfidentialitePage() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="px-6 pt-12">
-        <button onClick={() => navigate("/my-account")} className="text-muted-foreground mb-4">
-          <ArrowLeft size={24} />
-        </button>
-        <h1 className="text-3xl font-bold text-foreground mb-6">Mon Compte</h1>
+      {/* Header */}
+      <div className="bg-primary px-6 pt-10 pb-6 relative overflow-hidden">
+        <div className="absolute top-8 right-0 w-28 h-28 rounded-full bg-primary-foreground/5" />
+        <div className="relative z-10">
+          <button onClick={() => navigate("/my-account")} className="text-primary-foreground/70 mb-3">
+            <ArrowLeft size={22} />
+          </button>
+          <h1 className="text-2xl font-bold text-primary-foreground">Confidentialité</h1>
+          <p className="text-primary-foreground/60 text-sm mt-1">Gérez vos données et votre vie privée</p>
+        </div>
+      </div>
 
-        {/* Section header */}
-        <div className="w-full py-4 rounded-2xl bg-coly-purple/20 text-center mb-6">
-          <span className="text-lg font-bold text-foreground">Confidentialité</span>
+      <div className="px-5 pt-6 space-y-6">
+
+        {/* Trust banner */}
+        <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-3">
+          <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center shrink-0">
+            <ShieldCheck size={18} className="text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Données protégées par AXA</p>
+            <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">Chiffrement de bout en bout • Conforme RGPD</p>
+          </div>
+          <Lock size={14} className="text-emerald-500 shrink-0" />
         </div>
 
-        {/* Annonces personnalisés */}
-        <section className="mb-8">
-          <h2 className="text-lg font-bold text-foreground mb-2">Annonces personnalisés</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Vos données nous aident à nous améliorer et, lorsque l'option est activée, elle permet de vous montrer des offres et promotions pertinentes.
+        {/* Annonces personnalisés — compact card */}
+        <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
+          <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <Eye size={16} className="text-primary" /> Annonces personnalisées
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Activez pour recevoir des offres et promotions pertinentes. Vos données ne sont jamais vendues.
           </p>
-          <div className="rounded-2xl bg-coly-purple/10 border border-coly-purple/20 p-4 mb-4">
-            <p className="text-sm text-foreground/80">
-              Coly peut partager les données des utilisateurs (comme leur adresse e-mail, leur numéro de téléphone ou l'identifiant de leur appareil) avec la SNCF ou d'autres plateformes de ce type, afin de personnaliser les publicités et le contenu, d'évaluer les publicités et de créer des audiences. Vous pouvez vous désengager à tout moment de ces communications.
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-lg font-bold text-foreground">Recevoir les offres<br />et promotions</p>
+          <div className="flex items-center justify-between bg-background rounded-xl px-4 py-3 border border-border">
+            <span className="text-sm font-medium text-foreground">Recevoir les offres</span>
             <Switch checked={receiveOffers} onCheckedChange={setReceiveOffers} />
           </div>
-        </section>
+        </div>
 
-        {/* Politique de Confidentialité */}
-        <section className="mb-8">
-          <h2 className="text-lg font-bold text-foreground mb-3">Politique de Confidentialité</h2>
-          <div className="text-sm text-muted-foreground space-y-3">
-            <p>Date de mise à jour : 20/02/2026</p>
-            <p>
-              La présente politique de confidentialité décrit la manière dont Coly (ci-après "nous", "notre" ou "l'application") collecte, utilise, protège et partage les informations personnelles des utilisateurs (ci-après "vous" ou "utilisateur"). Cette politique s'applique à toutes les informations collectées lors de l'utilisation de notre application, que ce soit via un appareil mobile, un site web ou tout autre support.
-            </p>
-            <p className="font-semibold text-foreground">1. Informations collectées</p>
-            <p>
-              Nous collectons des informations personnelles lorsque vous vous inscrivez sur l'application, lorsque vous utilisez nos services ou lorsque vous nous contactez. Les informations suivantes peuvent être collectées :
-            </p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Informations d'identification : Nom, prénom, adresse email, numéro de téléphone, photo de profil, etc.</li>
-              <li>Informations de paiement : Détails de votre carte bancaire ou autres informations de paiement nécessaires pour effectuer des transactions.</li>
-            </ul>
-          </div>
-        </section>
+        {/* Politique de Confidentialité — collapsible */}
+        <div className="bg-muted/50 rounded-2xl overflow-hidden">
+          <button
+            onClick={() => setShowPolicy(!showPolicy)}
+            className="w-full flex items-center justify-between px-4 py-4"
+          >
+            <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <FileText size={16} className="text-primary" /> Politique de Confidentialité
+            </h2>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground">Mise à jour : 20/02/2026</span>
+              <ChevronDown size={16} className={`text-muted-foreground transition-transform ${showPolicy ? "rotate-180" : ""}`} />
+            </div>
+          </button>
+
+          {showPolicy && (
+            <div className="px-4 pb-4 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+              {POLICY_SECTIONS.map((section) => (
+                <div key={section.title} className="border border-border rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setExpandedPolicy(expandedPolicy === section.title ? null : section.title)}
+                    className="w-full flex items-center justify-between px-3 py-3 text-left"
+                  >
+                    <span className="text-xs font-semibold text-foreground">{section.title}</span>
+                    <ChevronDown size={14} className={`text-muted-foreground transition-transform ${expandedPolicy === section.title ? "rotate-180" : ""}`} />
+                  </button>
+                  {expandedPolicy === section.title && (
+                    <p className="text-xs text-muted-foreground px-3 pb-3 animate-in fade-in duration-200">
+                      {section.content}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Paramètres de confidentialité */}
-        <section className="mb-8">
-          <h2 className="text-lg font-bold text-foreground mb-2">Paramètres de confidentialité</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Cet outil vous aide à gérer le consentement à la collecte et au traitement de données personnelles par des technologies tierces.
+        <div className="space-y-3">
+          <h2 className="text-sm font-bold text-foreground flex items-center gap-2 px-1">
+            <EyeOff size={16} className="text-primary" /> Paramètres de consentement
+          </h2>
+          <p className="text-xs text-muted-foreground px-1">
+            Gérez le consentement à la collecte de données par des technologies tierces.
           </p>
 
           <Tabs defaultValue="categories">
-            <TabsList className="w-full bg-transparent border-b border-border rounded-none p-0 h-auto">
+            <TabsList className="w-full bg-muted/50 rounded-xl p-1 h-auto">
               <TabsTrigger
                 value="categories"
-                className="flex-1 rounded-none border-b-2 border-transparent py-3 text-sm font-semibold data-[state=active]:border-green-500 data-[state=active]:text-green-600 data-[state=active]:shadow-none"
+                className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 Catégories
               </TabsTrigger>
               <TabsTrigger
                 value="services"
-                className="flex-1 rounded-none border-b-2 border-transparent py-3 text-sm font-semibold data-[state=active]:border-green-500 data-[state=active]:text-green-600 data-[state=active]:shadow-none"
+                className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 Services
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="categories" className="mt-4">
-              <div className="border border-border rounded-2xl divide-y divide-border overflow-hidden">
+            <TabsContent value="categories" className="mt-3">
+              <div className="space-y-2">
                 {categories.map((cat) => (
-                  <div key={cat.name} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-foreground text-sm">{cat.name}</p>
+                  <div key={cat.name} className="bg-muted/50 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <span className="text-sm font-medium text-foreground">{cat.name}</span>
                       <div className="flex items-center gap-2">
                         <Switch checked={cat.enabled} onCheckedChange={() => toggleCategory(cat.name)} />
                         <button onClick={() => setExpandedCat(expandedCat === cat.name ? null : cat.name)}>
-                          <ChevronDown size={18} className={`text-muted-foreground transition-transform ${expandedCat === cat.name ? "rotate-180" : ""}`} />
+                          <ChevronDown size={16} className={`text-muted-foreground transition-transform ${expandedCat === cat.name ? "rotate-180" : ""}`} />
                         </button>
                       </div>
                     </div>
                     {expandedCat === cat.name && (
-                      <p className="text-xs text-muted-foreground mt-2">{cat.desc}</p>
+                      <p className="text-xs text-muted-foreground px-4 pb-3 animate-in fade-in duration-200">{cat.desc}</p>
                     )}
                   </div>
                 ))}
               </div>
             </TabsContent>
 
-            <TabsContent value="services" className="mt-4">
-              <div className="border border-border rounded-2xl divide-y divide-border overflow-hidden">
+            <TabsContent value="services" className="mt-3">
+              <div className="space-y-2">
                 {services.map((svc) => (
-                  <div key={svc.name} className="p-4 flex items-center justify-between">
+                  <div key={svc.name} className="bg-muted/50 rounded-xl px-4 py-3 flex items-center justify-between">
                     <div>
-                      <p className="font-semibold text-foreground text-sm">{svc.name}</p>
-                      <p className="text-xs text-muted-foreground">{svc.category}</p>
+                      <p className="text-sm font-medium text-foreground">{svc.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{svc.category}</p>
                     </div>
                     <Switch checked={svc.enabled} onCheckedChange={() => toggleService(svc.name)} />
                   </div>
@@ -158,17 +211,26 @@ export default function ConfidentialitePage() {
           </Tabs>
 
           {/* Action buttons */}
-          <div className="flex gap-3 mt-6">
-            <button className="flex-1 py-3 rounded-2xl bg-accent/80 text-accent-foreground font-bold text-sm hover:opacity-90 transition-opacity">
-              Refuser
+          <div className="flex gap-3 mt-4">
+            <button className="flex-1 py-3 rounded-xl border border-border text-foreground font-medium text-sm hover:bg-muted transition-colors">
+              Refuser tout
             </button>
-            <button className="flex-1 py-3 rounded-2xl bg-green-600 text-white font-bold text-sm hover:opacity-90 transition-opacity">
+            <button className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity">
               Accepter tout
             </button>
           </div>
-          <p className="text-center text-sm text-muted-foreground mt-3">Enregistrer les réglages</p>
-        </section>
+          <button className="w-full text-center text-xs text-primary font-medium py-2 hover:underline">
+            Enregistrer mes réglages
+          </button>
+        </div>
+
+        {/* Bottom trust */}
+        <div className="flex items-center justify-center gap-2 py-4 text-[10px] text-muted-foreground">
+          <ShieldCheck size={12} className="text-emerald-500" />
+          <span>Protégé par AXA • Chiffrement AES-256 • RGPD</span>
+        </div>
       </div>
+
       <BottomNav />
     </div>
   );
