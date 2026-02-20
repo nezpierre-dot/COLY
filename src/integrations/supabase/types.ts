@@ -301,6 +301,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_pending_shipments: {
+        Args: never
+        Returns: {
+          arrival_city: string
+          arrival_country: string
+          created_at: string
+          departure_city: string
+          departure_date: string
+          departure_method: string
+          id: string
+          insured: boolean
+          is_international: boolean
+          photo_url: string
+          size: string
+          status: string
+          tarif: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
