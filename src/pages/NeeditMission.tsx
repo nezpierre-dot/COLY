@@ -335,7 +335,7 @@ const NeeditMission = () => {
         const pathLabels = categoryPath.map((n) => n.label);
         if (selectedLeaf) pathLabels.push(selectedLeaf);
 
-        const { error } = await supabase.from("needit_missions").insert({
+        const { data: inserted, error } = await supabase.from("needit_missions").insert({
           user_id: user.id,
           country: pays,
           city: ville || null,
@@ -348,9 +348,13 @@ const NeeditMission = () => {
           dimension: dimension || null,
           poids: poids || null,
           prix_max: prixMax || null,
-        });
+        }).select("id").single();
 
         if (error) throw error;
+
+        // Trigger match notifications
+        supabase.functions.invoke("notify-match", { body: { type: "mission", record_id: inserted.id } }).catch(() => {});
+
         toast.success("Mission NeedIt créée !");
         navigate("/mes-missions-needit");
       } catch (err: any) {

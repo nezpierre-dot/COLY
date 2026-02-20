@@ -233,7 +233,7 @@ const NewTrip = () => {
   const handleSubmit = async () => {
     if (!user) return;
     setSubmitting(true);
-    const { error } = await supabase.from("voyages").insert({
+    const { data, error } = await supabase.from("voyages").insert({
       user_id: user.id,
       departure_country: departureCountry,
       departure_city: departureCity,
@@ -251,12 +251,14 @@ const NewTrip = () => {
       deliver_to_address: deliverToAddress,
       accept_needit: acceptNeedit,
       needit_budget: needitBudget || null,
-    });
+    }).select("id").single();
     setSubmitting(false);
     if (error) {
       toast.error("Erreur lors de la création du voyage");
     } else {
       toast.success("Voyage créé avec succès !");
+      // Trigger match notifications
+      supabase.functions.invoke("notify-match", { body: { type: "voyage", record_id: data.id } }).catch(() => {});
       navigate("/dashboard");
     }
   };
