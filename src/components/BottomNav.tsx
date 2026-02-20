@@ -15,7 +15,7 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/60 pb-safe z-50"
+      className="fixed bottom-0 left-0 right-0 glass-strong border-t border-border/40 pb-safe z-50"
       role="navigation"
       aria-label="Navigation principale"
     >
@@ -32,7 +32,7 @@ const BottomNav = () => {
                 aria-label="Menu principal"
                 className="relative -mt-7 group"
               >
-                <div className="w-[56px] h-[56px] rounded-2xl bg-primary shadow-[0_4px_20px_rgba(0,0,0,0.25)] flex items-center justify-center transition-transform active:scale-95">
+                <div className="w-[56px] h-[56px] rounded-2xl bg-gradient-to-br from-primary to-coly-blue-dark shadow-[0_4px_24px_hsl(214_80%_45%/0.4)] flex items-center justify-center transition-transform active:scale-95">
                   <Icon size={24} className="text-primary-foreground" aria-hidden="true" />
                 </div>
               </button>
