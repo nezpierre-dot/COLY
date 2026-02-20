@@ -619,7 +619,6 @@ const Dashboard = () => {
                   pendingShipments={pendingShipments}
                   pendingMissions={needitMissions}
                 />
-                <PublicMissionsMap />
                 {currentVoyage && (
                   <div className="bg-card rounded-xl border border-border p-3 shadow-sm">
                     <div className="flex items-center justify-between">
