@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, Truck } from "lucide-react";
+import { ArrowLeft, Search, Truck, ArrowUpCircle } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
 type HistoryType = "voyageur" | "coly" | "needit";
 
-const MOCK_DATA: Record<HistoryType, { id: string; type: string; ref: string; amount: number; date: string }[]> = {
+const MOCK_DATA: Record<HistoryType, { id: string; type: string; ref: string; amount: number; date: string; icon?: string }[]> = {
   voyageur: [
     { id: "1", type: "Transport", ref: "COLY N°224513", amount: 12.9, date: "30/01/2025" },
     { id: "2", type: "Transport", ref: "Needit N°142565", amount: 40.9, date: "12/01/2025" },
@@ -13,9 +13,8 @@ const MOCK_DATA: Record<HistoryType, { id: string; type: string; ref: string; am
     { id: "4", type: "Transport", ref: "COLY N°263214", amount: 13.0, date: "03/01/2025" },
   ],
   coly: [
-    { id: "1", type: "Transport", ref: "COLY N°224513", amount: 12.9, date: "30/01/2025" },
-    { id: "2", type: "Transport", ref: "COLY N°244365", amount: 9.2, date: "04/01/2025" },
-    { id: "3", type: "Transport", ref: "COLY N°263214", amount: 13.0, date: "03/01/2025" },
+    { id: "1", type: "Envoi", ref: "COLY N°263214", amount: -23.0, date: "03/01/2025", icon: "envoi" },
+    { id: "2", type: "Transport COLY", ref: "N°224513", amount: -14.2, date: "04/01/2025", icon: "envoi" },
   ],
   needit: [
     { id: "1", type: "Transport", ref: "Needit N°142565", amount: 40.9, date: "12/01/2025" },
@@ -80,7 +79,7 @@ const HistoryPage = () => {
         {/* Total */}
         <div className="text-center mb-6">
           <p className="text-2xl font-bold text-foreground">
-            TOTAL + {total.toFixed(2)}€
+            TOTAL {total >= 0 ? "+" : "-"} {Math.abs(total).toFixed(2)}€
           </p>
           <p className="text-sm text-muted-foreground">{month} {year}</p>
         </div>
@@ -96,14 +95,15 @@ const HistoryPage = () => {
                 className="flex items-center gap-4 bg-card rounded-2xl border border-border p-4"
               >
                 <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                  <Truck size={22} className="text-muted-foreground" />
+                  {item.icon === "envoi" ? <ArrowUpCircle size={22} className="text-muted-foreground" /> : <Truck size={22} className="text-muted-foreground" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-foreground text-sm">{item.type}</p>
                   <p className="text-xs text-muted-foreground">{item.ref}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="font-bold text-foreground text-sm">+{item.amount.toFixed(1)}€</p>
+                  <p className={`font-bold text-sm ${item.amount >= 0 ? "text-foreground" : "text-foreground"}`}>
+                    {item.amount >= 0 ? "+" : ""}{item.amount.toFixed(1)}€</p>
                   <p className="text-xs text-muted-foreground">{item.date}</p>
                 </div>
               </div>
