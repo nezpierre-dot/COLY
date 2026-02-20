@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -90,107 +91,128 @@ const Dashboard = () => {
 
         {isVoyageur ? (
           /* ============ VOYAGEUR / RELAYEUR ============ */
-          <div className="space-y-6">
-            {/* Trip selector tabs */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {MOCK_VOYAGES.map((v) => (
-                <button key={v.id} onClick={() => setSelectedVoyage(v.id)}
-                  className={`shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${selectedVoyage === v.id ? "bg-coly-blue text-white" : "bg-muted text-muted-foreground"}`}>
-                  {v.from} → {v.to}
-                </button>
-              ))}
-            </div>
+          <Tabs defaultValue="voyages" className="space-y-4">
+            <TabsList className="w-full bg-muted rounded-2xl p-1 h-auto">
+              <TabsTrigger value="voyages" className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Plane size={16} className="mr-1.5" /> Mes Voyages
+              </TabsTrigger>
+              <TabsTrigger value="demandes" className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-coly-purple data-[state=active]:text-primary-foreground">
+                <MapPin size={16} className="mr-1.5" /> Demandes
+              </TabsTrigger>
+            </TabsList>
 
-            <h2 className="text-lg text-muted-foreground text-center">Voyages en cours</h2>
+            {/* ---- Voyages tab ---- */}
+            <TabsContent value="voyages" className="space-y-4 mt-0">
+              <p className="text-sm text-muted-foreground text-center">Voyages en cours</p>
 
-            {/* Selected voyage card */}
-            {currentVoyage && (
-              <div className="rounded-2xl p-5 text-white relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(214 80% 52%), hsl(180 60% 60%))" }}>
-                <div className="absolute top-4 left-4 grid grid-cols-3 gap-1 opacity-30">
-                  {Array.from({ length: 9 }).map((_, i) => <div key={i} className="w-1.5 h-1.5 rounded-full bg-white" />)}
-                </div>
-                <div className="absolute bottom-8 left-1/2 w-32 h-32 rounded-full bg-white/10" />
+              {MOCK_VOYAGES.map((v) => {
+                const isSelected = selectedVoyage === v.id;
+                return (
+                  <button key={v.id} onClick={() => setSelectedVoyage(v.id)}
+                    className={`w-full text-left rounded-2xl p-5 text-primary-foreground relative overflow-hidden transition-shadow ${isSelected ? "ring-2 ring-primary shadow-lg" : "opacity-80"}`}
+                    style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--coly-purple)))" }}>
+                    {/* decorative dots */}
+                    <div className="absolute top-4 left-4 grid grid-cols-3 gap-1 opacity-20">
+                      {Array.from({ length: 9 }).map((_, i) => <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary-foreground" />)}
+                    </div>
+                    <div className="absolute bottom-6 left-1/2 w-28 h-28 rounded-full bg-primary-foreground/10" />
 
-                <h3 className="font-bold text-lg mb-1">{currentVoyage.from} &gt; {currentVoyage.to}</h3>
-                <p className="text-sm opacity-90">{currentVoyage.date} à {currentVoyage.time}</p>
-                <p className="text-sm opacity-90 mb-4">{currentVoyage.location}</p>
+                    <h3 className="font-bold text-lg">{v.from} → {v.to}</h3>
+                    <div className="flex items-center gap-1.5 text-sm opacity-90 mt-1">
+                      <Clock size={14} />
+                      <span>{v.date} à {v.time}</span>
+                    </div>
+                    <p className="text-xs opacity-80 mt-0.5">{v.location}</p>
 
-                {/* Progress bar */}
-                <div className="mb-2">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>Taux de remplissage</span>
-                    <span className="font-bold">{currentVoyage.fillRate}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-white/20">
-                    <div className="h-2 rounded-full bg-white transition-all duration-500" style={{ width: `${currentVoyage.fillRate}%` }} />
-                  </div>
-                </div>
+                    {/* Fill rate */}
+                    <div className="mt-4 flex items-center gap-3">
+                      <div className="flex-1">
+                        <div className="flex justify-between text-xs mb-1">
+                          <span>Taux de remplissage</span>
+                          <span className="font-bold">{v.fillRate}%</span>
+                        </div>
+                        <div className="w-full h-2 rounded-full bg-primary-foreground/20">
+                          <div className="h-2 rounded-full bg-primary-foreground transition-all duration-500" style={{ width: `${v.fillRate}%` }} />
+                        </div>
+                      </div>
+                      <div className="relative w-11 h-11 shrink-0">
+                        <svg className="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
+                          <circle cx="18" cy="18" r="15.9" fill="none" stroke="hsl(var(--coly-purple))" strokeWidth="3" opacity="0.3" />
+                          <circle cx="18" cy="18" r="15.9" fill="none" stroke="hsl(var(--coly-purple))" strokeWidth="3"
+                            strokeDasharray={`${v.fillRate} ${100 - v.fillRate}`} strokeLinecap="round" />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">{v.fillRate}%</span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
 
-                <div className="flex items-center justify-end">
-                  <div className="relative w-12 h-12">
-                    <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="hsl(270 60% 70%)" strokeWidth="3" strokeDasharray="100, 100" opacity="0.3" />
-                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="hsl(270 60% 70%)" strokeWidth="3" strokeDasharray={`${currentVoyage.fillRate}, 100`} strokeLinecap="round" />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold">{currentVoyage.fillRate}%</span>
-                  </div>
-                </div>
+              {/* New trip CTA */}
+              <button onClick={() => navigate("/new-trip")}
+                className="w-full py-4 rounded-2xl bg-coly-purple/20 border border-coly-purple/30 text-coly-purple font-medium text-lg flex items-center justify-center gap-2 hover:bg-coly-purple/30 transition-colors">
+                Je propose un nouveau voyage <ArrowRight size={20} />
+              </button>
+            </TabsContent>
+
+            {/* ---- Demandes tab ---- */}
+            <TabsContent value="demandes" className="space-y-4 mt-0">
+              {/* Filter pills */}
+              <div className="flex gap-2">
+                {([["all", "Tout"], ["accepted", "Acceptées"], ["pending", "En attente"]] as const).map(([key, label]) => (
+                  <button key={key} onClick={() => setDemandFilter(key)}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${demandFilter === key ? "bg-coly-purple text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                    {label}
+                  </button>
+                ))}
               </div>
-            )}
 
-            {/* Demand filter tabs */}
-            <div className="flex gap-2">
-              {([["all", "Tout"], ["accepted", "Acceptées"], ["pending", "En attente"]] as const).map(([key, label]) => (
-                <button key={key} onClick={() => setDemandFilter(key)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${demandFilter === key ? "bg-coly-purple text-white" : "bg-muted text-muted-foreground"}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Demandes list */}
-            <div className="rounded-2xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(214 80% 52%), hsl(180 60% 60%))" }}>
-              <div className="absolute bottom-12 right-0 w-40 h-40 rounded-full bg-white/10" />
+              {/* Trip context header */}
               {currentVoyage && (
-                <>
-                  <h3 className="font-bold text-white mb-1">{currentVoyage.from} &gt; {currentVoyage.to}</h3>
-                  <p className="text-sm text-white/80 mb-4">{currentVoyage.date} à {currentVoyage.time} — {currentVoyage.location}</p>
-                </>
+                <div className="rounded-2xl p-5 text-primary-foreground relative overflow-hidden"
+                  style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--coly-purple)))" }}>
+                  <div className="absolute bottom-12 right-0 w-40 h-40 rounded-full bg-primary-foreground/10" />
+                  <h3 className="font-bold">{currentVoyage.from} → {currentVoyage.to}</h3>
+                  <p className="text-sm opacity-80">{currentVoyage.date} à {currentVoyage.time} — {currentVoyage.location}</p>
+                </div>
               )}
+
+              {/* Demand cards */}
               <div className="space-y-2">
                 {filteredDemandes.length === 0 ? (
-                  <p className="text-white/60 text-sm text-center py-4">Aucune demande trouvée</p>
+                  <p className="text-muted-foreground text-sm text-center py-6">Aucune demande trouvée</p>
                 ) : (
                   filteredDemandes.map((d) => (
-                    <div key={d.id} className="flex items-center justify-between bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
+                    <div key={d.id} className="flex items-center justify-between bg-card rounded-xl px-4 py-3 border border-border shadow-sm">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{d.icon}</span>
                         <div>
-                          <p className="font-semibold text-white text-sm">{d.item}</p>
-                          <p className="text-xs text-white/70">{d.client}</p>
+                          <p className="font-semibold text-foreground text-sm">{d.item}</p>
+                          <p className="text-xs text-muted-foreground">{d.client} · {d.type}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-white">+{d.price}€</p>
-                        <p className={`text-xs ${d.status === "accepted" ? "text-green-300" : "text-yellow-300"}`}>
+                        <p className="font-bold text-foreground">+{d.price}€</p>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${d.status === "accepted" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
                           {d.status === "accepted" ? "Acceptée" : "En attente"}
-                        </p>
+                        </span>
                       </div>
                     </div>
                   ))
                 )}
               </div>
-              <button className="w-full text-center text-white font-bold text-sm mt-4 py-2 hover:opacity-80">
-                VOIR LES DEMANDES
-              </button>
-            </div>
 
-            {/* New trip */}
-            <button onClick={() => navigate("/new-trip")}
-              className="w-full py-4 rounded-2xl bg-coly-purple/20 border border-coly-purple/30 text-coly-purple font-medium text-lg flex items-center justify-center gap-2 hover:bg-coly-purple/30 transition-colors">
-              Je propose un nouveau voyage <ArrowRight size={20} />
-            </button>
-          </div>
+              {/* Trip selector (secondary) */}
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {MOCK_VOYAGES.map((v) => (
+                  <button key={v.id} onClick={() => setSelectedVoyage(v.id)}
+                    className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${selectedVoyage === v.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                    {v.from} → {v.to}
+                  </button>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         ) : (
           /* ============ DEMANDEUR ============ */
           <div className="space-y-4">
