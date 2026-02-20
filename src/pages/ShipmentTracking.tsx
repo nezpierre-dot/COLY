@@ -114,30 +114,41 @@ const ShipmentTracking = () => {
                 </span>
               </div>
 
-              {/* Progress bar */}
-              <div className="relative h-2 bg-primary-foreground/20 rounded-full mb-3">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPercent}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-                  className="absolute inset-y-0 left-0 bg-primary-foreground rounded-full"
-                />
-              </div>
-
-              {/* Step indicators */}
-              <div className="flex justify-between">
-                {statusSteps.map((step, i) => (
-                  <div key={step} className="flex flex-col items-center">
-                    <div className={`w-2.5 h-2.5 rounded-full mb-1 ${
-                      i <= currentStepIndex ? "bg-primary-foreground" : "bg-primary-foreground/30"
-                    }`} />
-                    <span className={`text-[8px] font-medium ${
-                      i <= currentStepIndex ? "text-primary-foreground" : "text-primary-foreground/40"
-                    }`}>
-                      {statusLabels[step]?.split(" ")[0]}
-                    </span>
-                  </div>
-                ))}
+              {/* Milestones */}
+              <div className="flex items-center justify-between mb-2">
+                {statusSteps.map((step, i) => {
+                  const isCompleted = i <= currentStepIndex && shipment.status !== "cancelled";
+                  const isCurrent = i === currentStepIndex && shipment.status !== "cancelled";
+                  return (
+                    <div key={step} className="flex flex-col items-center flex-1">
+                      {/* Connector + Circle */}
+                      <div className="flex items-center w-full">
+                        {i > 0 && (
+                          <div className={`h-0.5 flex-1 ${i <= currentStepIndex && shipment.status !== "cancelled" ? "bg-primary-foreground" : "bg-primary-foreground/20"}`} />
+                        )}
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
+                          isCompleted
+                            ? "bg-primary-foreground border-primary-foreground"
+                            : "bg-transparent border-primary-foreground/30"
+                        } ${isCurrent ? "ring-2 ring-primary-foreground/40 ring-offset-1 ring-offset-transparent" : ""}`}>
+                          {isCompleted ? (
+                            <svg viewBox="0 0 12 12" className="w-3 h-3 text-primary"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          ) : (
+                            <span className="w-2 h-2 rounded-full bg-primary-foreground/25" />
+                          )}
+                        </div>
+                        {i < statusSteps.length - 1 && (
+                          <div className={`h-0.5 flex-1 ${i < currentStepIndex && shipment.status !== "cancelled" ? "bg-primary-foreground" : "bg-primary-foreground/20"}`} />
+                        )}
+                      </div>
+                      <span className={`text-[8px] font-semibold mt-1.5 text-center leading-tight ${
+                        isCompleted ? "text-primary-foreground" : "text-primary-foreground/35"
+                      }`}>
+                        {statusLabels[step]}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </motion.div>
