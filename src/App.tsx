@@ -29,6 +29,8 @@ import ConfidentialitePage from "./pages/ConfidentialitePage";
 import PaymentMethods from "./pages/PaymentMethods";
 import NewTrip from "./pages/NewTrip";
 import ShipmentTracking from "./pages/ShipmentTracking";
+import ConversationsPage from "./pages/ConversationsPage";
+import ChatPage from "./pages/ChatPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
 import NotFound from "./pages/NotFound";
@@ -67,6 +69,8 @@ const App = () => (
             <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
             <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
             <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
+            <Route path="/conversations" element={<ProtectedRoute><ConversationsPage /></ProtectedRoute>} />
+            <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
