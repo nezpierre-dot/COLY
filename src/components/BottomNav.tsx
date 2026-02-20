@@ -6,7 +6,7 @@ const tabs = [
   { icon: Copy, path: "/dashboard", label: "Missions" },
   { icon: LayoutGrid, path: "/dashboard", label: "Menu", center: true },
   { icon: RefreshCw, path: "/dashboard", label: "Échanges" },
-  { icon: User, path: "/dashboard", label: "Profil" },
+  { icon: User, path: "/settings", label: "Profil" },
 ];
 
 const BottomNav = () => {
