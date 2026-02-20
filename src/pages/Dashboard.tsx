@@ -165,11 +165,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!isVoyageur) return;
     const loadNeedit = async () => {
-      const { data } = await supabase
-        .from("needit_missions")
-        .select("*")
-        .eq("status", "pending")
-        .order("created_at", { ascending: false });
+      const { data } = await supabase.rpc("get_pending_needit_missions");
       if (data) setNeeditMissions(data);
     };
     const loadShipments = async () => {
