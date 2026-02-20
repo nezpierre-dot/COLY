@@ -94,6 +94,7 @@ export type Database = {
           unlisted_description: string | null
           updated_at: string
           user_id: string
+          voyageur_id: string | null
         }
         Insert: {
           category_path?: string[]
@@ -112,6 +113,7 @@ export type Database = {
           unlisted_description?: string | null
           updated_at?: string
           user_id: string
+          voyageur_id?: string | null
         }
         Update: {
           category_path?: string[]
@@ -130,6 +132,7 @@ export type Database = {
           unlisted_description?: string | null
           updated_at?: string
           user_id?: string
+          voyageur_id?: string | null
         }
         Relationships: []
       }
@@ -390,6 +393,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_needit_mission: { Args: { _mission_id: string }; Returns: string }
+      accept_shipment: { Args: { _shipment_id: string }; Returns: string }
       admin_get_recent_shipments: {
         Args: { _limit?: number }
         Returns: {

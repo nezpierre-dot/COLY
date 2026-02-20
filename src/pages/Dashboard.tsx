@@ -161,6 +161,36 @@ const Dashboard = () => {
   // Cancel dialog state
   const [cancelDialog, setCancelDialog] = useState<{ type: "voyage" | "shipment" | "mission"; id: string; label: string } | null>(null);
 
+  // Accept dialog state
+  const [acceptDialog, setAcceptDialog] = useState<{ type: "shipment" | "mission"; id: string; label: string } | null>(null);
+  const [accepting, setAccepting] = useState(false);
+
+  const handleAcceptItem = async () => {
+    if (!acceptDialog || accepting) return;
+    setAccepting(true);
+    const { type, id } = acceptDialog;
+
+    try {
+      if (type === "shipment") {
+        const { data, error } = await supabase.rpc("accept_shipment", { _shipment_id: id });
+        if (error) throw error;
+        toast.success("Colis accepté ! Vous pouvez maintenant discuter.");
+        setAcceptDialog(null);
+        navigate(`/chat/${data}`);
+      } else {
+        const { data, error } = await supabase.rpc("accept_needit_mission", { _mission_id: id });
+        if (error) throw error;
+        toast.success("Mission acceptée ! Vous pouvez maintenant discuter.");
+        setAcceptDialog(null);
+        navigate(`/chat/${data}`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de l'acceptation");
+    } finally {
+      setAccepting(false);
+    }
+  };
+
   const handleCancelItem = async () => {
     if (!cancelDialog) return;
     const { type, id } = cancelDialog;
@@ -479,7 +509,8 @@ const Dashboard = () => {
                       <Zap size={12} className="text-accent" /> Correspondances ({matchedShipments.length})
                     </h3>
                     {matchedShipments.map((s: any) => (
-                      <div key={s.id} className="bg-accent/5 border border-accent/20 rounded-xl p-3 space-y-1.5">
+                      <button key={s.id} onClick={() => setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
+                        className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 space-y-1.5 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-[9px] font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">MATCH</span>
@@ -490,6 +521,7 @@ const Dashboard = () => {
                           <div className="flex items-center gap-1.5 shrink-0">
                             {s.insured && <span className="text-[9px]">🛡</span>}
                             <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-md">{s.size}</span>
+                            <ChevronRight size={14} className="text-accent" />
                           </div>
                         </div>
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -498,7 +530,7 @@ const Dashboard = () => {
                           </span>
                           <span className="font-medium text-foreground">{s.tarif === "custom" ? "Sur devis" : s.tarif}</span>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -582,7 +614,8 @@ const Dashboard = () => {
                       <Zap size={12} className="text-accent" /> Missions correspondantes ({matchedNeedit.length})
                     </h3>
                     {matchedNeedit.map((m: any) => (
-                      <div key={m.id} className="bg-accent/5 border border-accent/20 rounded-xl p-3">
+                      <button key={m.id} onClick={() => setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission" })}
+                        className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
                         <div className="flex items-start justify-between">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
@@ -595,9 +628,12 @@ const Dashboard = () => {
                               <MapPin size={10} /> {m.country}{m.city ? `, ${m.city}` : ""}
                             </p>
                           </div>
-                          {m.prix_max && <p className="text-sm font-bold text-foreground shrink-0">{m.prix_max}</p>}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {m.prix_max && <p className="text-sm font-bold text-foreground">{m.prix_max}</p>}
+                            <ChevronRight size={14} className="text-accent" />
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -956,6 +992,32 @@ const Dashboard = () => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Oui, annuler
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Accept Confirmation Dialog */}
+      <AlertDialog open={!!acceptDialog} onOpenChange={(open) => { if (!open && !accepting) setAcceptDialog(null); }}>
+        <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {acceptDialog?.type === "shipment" ? "Accepter ce colis ?" : "Accepter cette mission ?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Voulez-vous prendre en charge{" "}
+              <span className="font-semibold text-foreground">{acceptDialog?.label}</span> ?
+              Une conversation sera créée pour coordonner les détails avec le demandeur.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={accepting}>Non, passer</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleAcceptItem}
+              disabled={accepting}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {accepting ? "Acceptation..." : "Oui, accepter"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
