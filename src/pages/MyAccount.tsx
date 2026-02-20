@@ -132,8 +132,8 @@ const MyAccount = () => {
 
         {/* Sections */}
         <Section>
-          <Row label="MES INFORMATIONS" onClick={() => setEditing(true)} />
-          <Row label="RÉGLAGE VOYAGEUR" onClick={() => navigate("/settings")} />
+          <Row label="MES INFORMATIONS" onClick={() => navigate("/my-info")} />
+          <Row label="RÉGLAGE VOYAGEUR" onClick={() => navigate("/voyageur-settings")} />
           <Row label="RÉGLAGE EXPÉDITEUR" onClick={() => navigate("/settings")} />
         </Section>
 

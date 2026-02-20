@@ -15,6 +15,9 @@ import Settings from "./pages/Settings";
 import MyAccount from "./pages/MyAccount";
 import NeeditMission from "./pages/NeeditMission";
 import KycFlow from "./pages/KycFlow";
+import MyInfo from "./pages/MyInfo";
+import VoyageurSettings from "./pages/VoyageurSettings";
+import HistoryPage from "./pages/HistoryPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +40,9 @@ const App = () => (
             <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
             <Route path="/needit-mission" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
             <Route path="/kyc" element={<ProtectedRoute><KycFlow /></ProtectedRoute>} />
+            <Route path="/my-info" element={<ProtectedRoute><MyInfo /></ProtectedRoute>} />
+            <Route path="/voyageur-settings" element={<ProtectedRoute><VoyageurSettings /></ProtectedRoute>} />
+            <Route path="/history/:type" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
