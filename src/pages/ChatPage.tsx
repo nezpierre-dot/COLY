@@ -63,7 +63,7 @@ const ChatPage = () => {
   const [otherName, setOtherName] = useState("");
   const [shipmentRoute, setShipmentRoute] = useState("");
   const [itemDetail, setItemDetail] = useState<ItemDetail | null>(null);
-  const [showRecap, setShowRecap] = useState(true);
+  
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -229,7 +229,7 @@ const ChatPage = () => {
       </div>
 
       {/* Recap Card */}
-      {itemDetail && showRecap && (
+      {itemDetail && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -250,9 +250,7 @@ const ChatPage = () => {
                 {itemDetail.type === "shipment" ? "📦 Récap Colis" : "🛒 Récap Mission NeedIt"}
               </span>
             </div>
-            <button onClick={() => setShowRecap(false)} className="text-[10px] text-muted-foreground hover:text-foreground">
-              Masquer
-            </button>
+            
           </div>
 
           {itemDetail.type === "shipment" ? (
@@ -267,7 +265,7 @@ const ChatPage = () => {
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Ruler size={11} />
-                <span>Taille {itemDetail.size}</span>
+                <span>Taille : {itemDetail.size === "S" ? "Petit colis" : itemDetail.size === "M" ? "Colis moyen" : itemDetail.size === "L" ? "Grand colis" : itemDetail.size === "XL" ? "Très grand colis" : itemDetail.size}</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <DollarSign size={11} />
@@ -275,7 +273,7 @@ const ChatPage = () => {
               </div>
               <div className="col-span-2 flex items-center gap-1.5 text-muted-foreground">
                 <Package size={11} />
-                <span>{itemDetail.departure_method}{itemDetail.insured ? " • Assuré ✅" : ""}</span>
+                <span>Remise : {itemDetail.departure_method === "main" ? "En main propre" : itemDetail.departure_method === "relay" ? "Point relais" : itemDetail.departure_method === "address" ? "À domicile" : itemDetail.departure_method}{itemDetail.insured ? " • Assuré ✅" : ""}</span>
               </div>
             </div>
           ) : (
