@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { getCurrencyForCountry } from "@/hooks/useLocaleUnits";
 import BottomNav from "@/components/BottomNav";
 import VoyageMap from "@/components/VoyageMap";
+import PublicMissionsMap from "@/components/PublicMissionsMap";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -402,6 +403,14 @@ const Dashboard = () => {
             {/* Favorite Routes */}
             <FavoriteRoutes />
 
+            {/* Public Missions Map */}
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider mb-2">
+                <Map size={12} /> Missions en attente sur la carte
+              </h3>
+              <PublicMissionsMap />
+            </div>
+
             <Tabs defaultValue="voyages" className="space-y-3">
               <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto">
                 <TabsTrigger value="voyages" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
@@ -722,6 +731,14 @@ const Dashboard = () => {
 
             {/* Favorite Routes */}
             <FavoriteRoutes />
+
+            {/* Public Missions Map */}
+            <div>
+              <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider mb-2">
+                <Map size={12} /> Missions en attente sur la carte
+              </h3>
+              <PublicMissionsMap />
+            </div>
 
             <Tabs defaultValue="envois" className="space-y-3">
               <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto">
