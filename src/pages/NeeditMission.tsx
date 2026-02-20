@@ -5,6 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Popover,
   PopoverContent,
@@ -218,6 +220,9 @@ const SearchableDropdown = ({
 
 const NeeditMission = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   // Step management: 1=location/timing, 2=product category, 3=photo, 4=description
   const [step, setStep] = useState(1);
@@ -280,6 +285,7 @@ const NeeditMission = () => {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setPhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setPhotoPreview(reader.result as string);
       reader.readAsDataURL(file);
@@ -302,13 +308,55 @@ const NeeditMission = () => {
     return true;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1 && validateStep1()) setStep(2);
     else if (step === 2 && validateStep2()) setStep(3);
     else if (step === 3) setStep(4);
     else if (step === 4) {
-      toast.success("Mission NeedIt créée !");
-      navigate("/dashboard");
+      if (!user) { toast.error("Vous devez être connecté"); return; }
+      setSubmitting(true);
+      try {
+        // Upload photo if exists
+        let photo_url: string | null = null;
+        if (photoFile) {
+          const ext = photoFile.name.split(".").pop();
+          const path = `${user.id}/${Date.now()}.${ext}`;
+          const { error: uploadErr } = await supabase.storage
+            .from("shipment-photos")
+            .upload(path, photoFile);
+          if (!uploadErr) {
+            const { data: urlData } = supabase.storage.from("shipment-photos").getPublicUrl(path);
+            photo_url = urlData.publicUrl;
+          }
+        }
+
+        const pathLabels = categoryPath.map((n) => n.label);
+        if (selectedLeaf) pathLabels.push(selectedLeaf);
+
+        const { error } = await supabase.from("needit_missions").insert({
+          user_id: user.id,
+          country: pays,
+          city: ville || null,
+          timing,
+          category_path: pathLabels,
+          product_name: isUnlisted ? unlistedName : selectedLeaf,
+          is_unlisted: isUnlisted,
+          unlisted_description: isUnlisted ? unlistedName : null,
+          photo_url,
+          dimension: dimension || null,
+          poids: poids || null,
+          prix_max: prixMax || null,
+        });
+
+        if (error) throw error;
+        toast.success("Mission NeedIt créée !");
+        navigate("/mes-missions-needit");
+      } catch (err: any) {
+        console.error(err);
+        toast.error("Erreur lors de la création de la mission");
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -464,8 +512,8 @@ const NeeditMission = () => {
           <button onClick={handleBack} className="text-lg text-muted-foreground hover:text-foreground transition-colors">
             Retour
           </button>
-          <button onClick={handleNext} className="flex items-center gap-2 px-8 py-3 rounded-full bg-accent text-accent-foreground text-lg font-medium hover:opacity-90 transition-opacity shadow-lg">
-            Continuer <ArrowRight size={20} />
+          <button onClick={handleNext} disabled={submitting} className="flex items-center gap-2 px-8 py-3 rounded-full bg-accent text-accent-foreground text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50">
+            {submitting ? <Loader2 size={20} className="animate-spin" /> : <>{step === 4 ? "Valider" : "Continuer"} <ArrowRight size={20} /></>}
           </button>
         </div>
       </div>

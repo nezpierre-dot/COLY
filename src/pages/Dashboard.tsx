@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -104,6 +104,27 @@ const Dashboard = () => {
   const [filterEnCours, setFilterEnCours] = useState(true);
   const [filterEnAttente, setFilterEnAttente] = useState(true);
   const [filterTout, setFilterTout] = useState(false);
+
+  // NeedIt missions for voyageur view
+  const [needitMissions, setNeeditMissions] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!isVoyageur) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from("needit_missions")
+        .select("*")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (data) setNeeditMissions(data);
+    };
+    load();
+    const ch = supabase
+      .channel("voyageur-needit")
+      .on("postgres_changes", { event: "*", schema: "public", table: "needit_missions" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [isVoyageur]);
 
   const toggleRole = async () => {
     if (!user) return;
@@ -318,6 +339,35 @@ const Dashboard = () => {
                 )}
               </div>
 
+              {/* NeedIt Missions disponibles */}
+              {needitMissions.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                    <ShoppingBag size={16} className="text-accent" /> Missions NeedIt disponibles
+                  </h3>
+                  <div className="space-y-2">
+                    {needitMissions.map((m: any) => (
+                      <div key={m.id} className="bg-card rounded-xl px-4 py-3 border border-border shadow-sm">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-semibold text-foreground text-sm">
+                              {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Produit"}
+                            </p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <MapPin size={12} /> {m.country}{m.city ? `, ${m.city}` : ""}
+                            </p>
+                            {m.category_path?.length > 0 && (
+                              <p className="text-xs text-muted-foreground mt-0.5">{m.category_path.join(" → ")}</p>
+                            )}
+                          </div>
+                          {m.prix_max && <p className="text-sm font-bold text-foreground">{m.prix_max}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {MOCK_VOYAGES.map((v) => (
                   <button key={v.id} onClick={() => setSelectedVoyage(v.id)}
@@ -335,7 +385,8 @@ const Dashboard = () => {
               className="w-full py-4 rounded-2xl bg-primary/20 border border-primary/30 text-primary font-medium text-lg hover:bg-primary/30 transition-colors">
               Je propose une mission d'achat Needit
             </button>
-            <button className="w-full py-4 rounded-2xl bg-secondary/20 border border-secondary/30 text-secondary font-medium text-lg flex items-center justify-center gap-2 hover:bg-secondary/30 transition-colors">
+            <button onClick={() => navigate("/mes-missions-needit")}
+              className="w-full py-4 rounded-2xl bg-secondary/20 border border-secondary/30 text-secondary font-medium text-lg flex items-center justify-center gap-2 hover:bg-secondary/30 transition-colors">
               Mes Missions Needit <ArrowRight size={20} />
             </button>
 
