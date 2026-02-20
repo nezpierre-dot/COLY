@@ -807,22 +807,44 @@ const SendColy = () => {
                 <Shield size={16} className="text-primary" /> Assurance AXA
                 <TrustBadge />
               </h3>
-              <p className="text-xs text-muted-foreground">Protégez votre colis contre la perte et les dommages pendant le transport.</p>
+              <p className="text-xs text-muted-foreground">
+                Protégez votre colis contre la perte et les dommages pendant le transport.
+              </p>
+              <div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3">
+                <Info size={14} className="text-primary shrink-0 mt-0.5" />
+                <div className="text-xs text-foreground">
+                  <p className="font-medium">Option facultative — Frais : 2% du tarif</p>
+                  {tarif && (() => {
+                    const tarifObj = TARIF_OPTIONS.find(t => t.id === tarif);
+                    if (!tarifObj || tarif === "custom") return null;
+                    const price = parseFloat(tarifObj.price.replace(/[^\d.]/g, ""));
+                    if (isNaN(price)) return null;
+                    const insuranceCost = (price * 0.02).toFixed(2);
+                    const { symbol } = getCurrencyForCountry(arrCountry);
+                    return <p className="text-muted-foreground mt-0.5">Soit +{insuranceCost}{symbol} pour votre envoi {tarifObj.label}</p>;
+                  })()}
+                </div>
+              </div>
               {errors.insured && <ErrorHint message={errors.insured} />}
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => { setInsured(true); clearError("insured"); }}
-                  className={`py-3 rounded-xl border font-medium transition-all ${
+                  className={`py-3 rounded-xl border font-medium transition-all text-sm ${
                     insured === true ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"
                   }`}>
-                  Oui, assurer
+                  ✅ Oui, assurer
                 </button>
                 <button onClick={() => { setInsured(false); clearError("insured"); }}
-                  className={`py-3 rounded-xl border font-medium transition-all ${
+                  className={`py-3 rounded-xl border font-medium transition-all text-sm ${
                     insured === false ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"
                   }`}>
                   Non merci
                 </button>
               </div>
+              {insured === true && (
+                <p className="text-xs text-primary font-medium animate-in fade-in duration-200">
+                  ✓ Votre colis sera couvert par l'assurance AXA
+                </p>
+              )}
             </div>
           </div>
         );
