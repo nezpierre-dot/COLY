@@ -269,7 +269,7 @@ const ChatPage = () => {
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <DollarSign size={11} />
-                <span>{itemDetail.tarif} {getCurrencyForCountry(itemDetail.arrival_country)}</span>
+                <span>Tarif : {isNaN(Number(itemDetail.tarif)) ? "Tarif standard" : `${itemDetail.tarif} ${getCurrencyForCountry(itemDetail.arrival_country)}`}</span>
               </div>
               <div className="col-span-2 flex items-center gap-1.5 text-muted-foreground">
                 <Package size={11} />
