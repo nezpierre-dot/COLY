@@ -608,154 +608,279 @@ const Dashboard = () => {
           </div>
         ) : (
           /* ============ DEMANDEUR ============ */
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            className="space-y-4"
-          >
-            {/* Summary Stats */}
-            <motion.div variants={staggerItem} className="grid grid-cols-3 gap-2">
+          <div className="space-y-4">
+            <motion.div
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="grid grid-cols-3 gap-2 mb-4"
+            >
               {[
-                { value: demandeurShipments.length, label: "Envois", icon: Send, color: "primary" },
-                { value: demandeurMissions.length, label: "Missions", icon: ShoppingBag, color: "secondary" },
-                { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", icon: Clock, color: "accent" },
+                { value: demandeurShipments.length, label: "Envois", color: "primary" },
+                { value: demandeurMissions.length, label: "Missions", color: "secondary" },
+                { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", color: "accent" },
               ].map((stat) => (
                 <motion.div
                   key={stat.label}
+                  variants={staggerItem}
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.97 }}
                   className={`bg-${stat.color}/10 border border-${stat.color}/20 rounded-2xl p-3 text-center cursor-default`}
                 >
-                  <stat.icon size={16} className={`text-${stat.color} mx-auto mb-1`} />
-                  <p className={`text-xl font-bold text-${stat.color}`}>{stat.value}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">{stat.label}</p>
+                  <motion.p
+                    key={stat.value}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className={`text-xl font-bold text-${stat.color}`}
+                  >
+                    {stat.value}
+                  </motion.p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{stat.label}</p>
                 </motion.div>
               ))}
             </motion.div>
 
             {/* AI Recommendation */}
-            <motion.div variants={staggerItem}>
-              <AiRecommendation isVoyageur={false} />
-            </motion.div>
+            <AiRecommendation isVoyageur={false} />
 
             {/* Favorite Routes */}
             <FavoriteRoutes />
 
-            {/* Quick Actions */}
-            <motion.div variants={staggerItem}>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Actions rapides</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate("/send-coly")}
-                  className="flex flex-col items-center gap-2 py-5 rounded-2xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors"
-                >
-                  <div className="w-11 h-11 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <Send size={20} className="text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold text-primary">Envoyer un colis</span>
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate("/needit-mission")}
-                  className="flex flex-col items-center gap-2 py-5 rounded-2xl bg-secondary/10 border border-secondary/20 hover:bg-secondary/15 transition-colors"
-                >
-                  <div className="w-11 h-11 rounded-xl bg-secondary/20 flex items-center justify-center">
-                    <ShoppingBag size={20} className="text-secondary" />
-                  </div>
-                  <span className="text-sm font-semibold text-secondary">Mission NeedIt</span>
-                </motion.button>
-              </div>
-            </motion.div>
-
-            {/* Shortcut links */}
-            <motion.div variants={staggerItem} className="space-y-2">
-              {[
-                { label: "Mes Missions NeedIt", count: demandeurMissions.length, icon: ShoppingBag, path: "/mes-missions-needit", color: "secondary" },
-                { label: "Historique", icon: Receipt, path: "/history/coly", color: "primary" },
-                { label: "Mon solde", icon: Wallet, path: "/solde", color: "accent" },
-              ].map((link) => (
-                <motion.button
-                  key={link.path}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => navigate(link.path)}
-                  className="w-full flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3 hover:shadow-sm transition-shadow"
-                >
-                  <div className={`w-9 h-9 rounded-lg bg-${link.color}/10 flex items-center justify-center shrink-0`}>
-                    <link.icon size={18} className={`text-${link.color}`} />
-                  </div>
-                  <span className="text-sm font-medium text-foreground flex-1 text-left">{link.label}</span>
-                  {"count" in link && typeof link.count === "number" && link.count > 0 && (
-                    <span className={`text-xs font-bold text-${link.color} bg-${link.color}/10 px-2 py-0.5 rounded-full`}>{link.count}</span>
+            <Tabs defaultValue="envois" className="space-y-3">
+              <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto">
+                <TabsTrigger value="envois" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+                  <Send size={13} className="mr-1" /> Envois
+                </TabsTrigger>
+                <TabsTrigger value="missions" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative transition-all">
+                  <ShoppingBag size={13} className="mr-1" /> NeedIt
+                  {demandeurMissions.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
+                      {demandeurMissions.length}
+                    </span>
                   )}
-                  <ChevronRight size={16} className="text-muted-foreground" />
-                </motion.button>
-              ))}
-            </motion.div>
+                </TabsTrigger>
+                <TabsTrigger value="actions" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+                  <Zap size={13} className="mr-1" /> Actions
+                </TabsTrigger>
+                <TabsTrigger value="activite" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground transition-all">
+                  <TrendingUp size={13} className="mr-1" /> Activité
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Recent Activity */}
-            <motion.div variants={staggerItem}>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Activité récente</h3>
-              {demandeurShipments.length === 0 && demandeurMissions.length === 0 ? (
-                <div className="bg-muted/50 rounded-2xl p-6 text-center">
-                  <Package size={24} className="text-muted-foreground mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Aucune activité pour le moment</p>
-                  <p className="text-xs text-muted-foreground mt-1">Vos envois et missions apparaîtront ici</p>
+              {/* ---- Envois tab ---- */}
+              <TabsContent value="envois" className="space-y-3 mt-0">
+                {demandeurShipments.length === 0 ? (
+                  <EmptyState
+                    icon={Send}
+                    title="Aucun envoi enregistré"
+                    description="Commencez par envoyer votre premier colis"
+                    action={
+                      <button onClick={() => navigate("/send-coly")} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+                        <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Envoyer un colis
+                      </button>
+                    }
+                  />
+                ) : (
+                  demandeurShipments.map((s) => (
+                    <button key={s.id} onClick={() => navigate(`/tracking/${s.id}`)}
+                      className="w-full text-left rounded-2xl p-4 relative overflow-hidden transition-all hover:opacity-100 ring-1 ring-primary/20 hover:ring-2 hover:ring-primary hover:shadow-lg"
+                      style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}>
+                      <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-primary-foreground/8" />
+                      <div className="flex items-start justify-between relative z-10">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-base">📦</span>
+                            <h3 className="font-bold text-base text-primary-foreground truncate">
+                              {s.departure_city || "—"} → {s.arrival_city}
+                            </h3>
+                          </div>
+                          <div className="flex items-center gap-3 text-primary-foreground/80">
+                            <span className="flex items-center gap-1 text-xs">
+                              <Calendar size={11} />
+                              {formatDate(s.created_at)}
+                            </span>
+                            <span className="flex items-center gap-1 text-xs">
+                              <Package size={11} />
+                              Taille {s.size}
+                            </span>
+                          </div>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          s.status === "pending" ? "bg-primary-foreground/20 text-primary-foreground" :
+                          s.status === "accepted" ? "bg-accent/30 text-accent-foreground" :
+                          "bg-primary-foreground/15 text-primary-foreground/80"
+                        }`}>
+                          {s.status === "pending" ? "En attente" : s.status === "accepted" ? "Accepté" : s.status}
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                )}
+
+                <button onClick={() => navigate("/send-coly")}
+                  className="w-full py-3.5 rounded-2xl border-2 border-dashed border-secondary/40 text-secondary font-medium text-sm flex items-center justify-center gap-2 hover:bg-secondary/10 transition-colors">
+                  <Plus size={18} /> Envoyer un colis
+                </button>
+              </TabsContent>
+
+              {/* ---- Missions NeedIt tab ---- */}
+              <TabsContent value="missions" className="space-y-3 mt-0">
+                {demandeurMissions.length === 0 ? (
+                  <EmptyState
+                    icon={ShoppingBag}
+                    title="Aucune mission NeedIt"
+                    description="Créez une mission d'achat pour vos besoins"
+                    action={
+                      <button onClick={() => navigate("/needit-mission")} className="px-5 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+                        <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Créer une mission
+                      </button>
+                    }
+                  />
+                ) : (
+                  demandeurMissions.map((m) => (
+                    <div key={m.id} className="bg-card rounded-xl p-3 border border-border space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-base">🛒</span>
+                          <p className="font-semibold text-foreground text-sm truncate">
+                            {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission"}
+                          </p>
+                        </div>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          m.status === "pending" ? "bg-accent/15 text-accent" : "bg-muted text-muted-foreground"
+                        }`}>
+                          {m.status === "pending" ? "En attente" : m.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <MapPin size={10} /> {m.country}{m.city ? `, ${m.city}` : ""}
+                        </span>
+                        {m.prix_max && <span className="font-medium text-foreground">{m.prix_max}</span>}
+                      </div>
+                    </div>
+                  ))
+                )}
+
+                <button onClick={() => navigate("/needit-mission")}
+                  className="w-full py-3.5 rounded-2xl border-2 border-dashed border-secondary/40 text-secondary font-medium text-sm flex items-center justify-center gap-2 hover:bg-secondary/10 transition-colors">
+                  <Plus size={18} /> Créer une mission
+                </button>
+              </TabsContent>
+
+              {/* ---- Actions tab ---- */}
+              <TabsContent value="actions" className="space-y-3 mt-0">
+                <div className="grid grid-cols-2 gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate("/send-coly")}
+                    className="flex flex-col items-center gap-2 py-5 rounded-2xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-primary/20 flex items-center justify-center">
+                      <Send size={20} className="text-primary" />
+                    </div>
+                    <span className="text-sm font-semibold text-primary">Envoyer un colis</span>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => navigate("/needit-mission")}
+                    className="flex flex-col items-center gap-2 py-5 rounded-2xl bg-secondary/10 border border-secondary/20 hover:bg-secondary/15 transition-colors"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-secondary/20 flex items-center justify-center">
+                      <ShoppingBag size={20} className="text-secondary" />
+                    </div>
+                    <span className="text-sm font-semibold text-secondary">Mission NeedIt</span>
+                  </motion.button>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {[...demandeurShipments.slice(0, 3).map(s => ({
-                    id: s.id,
-                    type: "coly" as const,
-                    title: `${s.departure_city || "—"} → ${s.arrival_city}`,
-                    subtitle: `Taille ${s.size} · ${s.tarif}`,
-                    status: s.status,
-                    date: s.created_at,
-                  })),
-                  ...demandeurMissions.slice(0, 2).map(m => ({
-                    id: m.id,
-                    type: "needit" as const,
-                    title: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission",
-                    subtitle: `${m.country}${m.city ? `, ${m.city}` : ""}`,
-                    status: m.status,
-                    date: m.created_at,
-                  }))]
-                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                  .slice(0, 4)
-                  .map((item) => (
-                    <motion.div
-                      key={item.id}
+
+                <div className="space-y-2 mt-2">
+                  {[
+                    { label: "Mes Missions NeedIt", count: demandeurMissions.length, icon: ShoppingBag, path: "/mes-missions-needit", color: "secondary" },
+                    { label: "Historique", icon: Receipt, path: "/history/coly", color: "primary" },
+                    { label: "Mon solde", icon: Wallet, path: "/solde", color: "accent" },
+                  ].map((link) => (
+                    <motion.button
+                      key={link.path}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => item.type === "coly" ? navigate(`/tracking/${item.id}`) : undefined}
-                      className={`flex items-center gap-3 bg-card border border-border rounded-xl px-3.5 py-3 ${item.type === "coly" ? "cursor-pointer hover:shadow-sm" : ""}`}
+                      onClick={() => navigate(link.path)}
+                      className="w-full flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3 hover:shadow-sm transition-shadow"
                     >
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-                        item.type === "coly" ? "bg-primary/10" : "bg-secondary/10"
-                      }`}>
-                        {item.type === "coly"
-                          ? <Send size={16} className="text-primary" />
-                          : <ShoppingBag size={16} className="text-secondary" />}
+                      <div className={`w-9 h-9 rounded-lg bg-${link.color}/10 flex items-center justify-center shrink-0`}>
+                        <link.icon size={18} className={`text-${link.color}`} />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                        <p className="text-xs text-muted-foreground">{item.subtitle}</p>
-                      </div>
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                        item.status === "pending" ? "bg-accent/15 text-accent" :
-                        item.status === "accepted" ? "bg-primary/15 text-primary" :
-                        "bg-muted text-muted-foreground"
-                      }`}>
-                        {item.status === "pending" ? "En attente" : item.status === "accepted" ? "Accepté" : item.status}
-                      </span>
-                    </motion.div>
+                      <span className="text-sm font-medium text-foreground flex-1 text-left">{link.label}</span>
+                      {"count" in link && typeof link.count === "number" && link.count > 0 && (
+                        <span className={`text-xs font-bold text-${link.color} bg-${link.color}/10 px-2 py-0.5 rounded-full`}>{link.count}</span>
+                      )}
+                      <ChevronRight size={16} className="text-muted-foreground" />
+                    </motion.button>
                   ))}
                 </div>
-              )}
-            </motion.div>
-          </motion.div>
+              </TabsContent>
+
+              {/* ---- Activité tab ---- */}
+              <TabsContent value="activite" className="space-y-3 mt-0">
+                {demandeurShipments.length === 0 && demandeurMissions.length === 0 ? (
+                  <EmptyState
+                    icon={Package}
+                    title="Aucune activité"
+                    description="Vos envois et missions apparaîtront ici"
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    {[...demandeurShipments.slice(0, 3).map(s => ({
+                      id: s.id,
+                      type: "coly" as const,
+                      title: `${s.departure_city || "—"} → ${s.arrival_city}`,
+                      subtitle: `Taille ${s.size} · ${s.tarif}`,
+                      status: s.status,
+                      date: s.created_at,
+                    })),
+                    ...demandeurMissions.slice(0, 2).map(m => ({
+                      id: m.id,
+                      type: "needit" as const,
+                      title: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission",
+                      subtitle: `${m.country}${m.city ? `, ${m.city}` : ""}`,
+                      status: m.status,
+                      date: m.created_at,
+                    }))]
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .slice(0, 4)
+                    .map((item) => (
+                      <motion.div
+                        key={item.id}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => item.type === "coly" ? navigate(`/tracking/${item.id}`) : undefined}
+                        className={`flex items-center gap-3 bg-card border border-border rounded-xl px-3.5 py-3 ${item.type === "coly" ? "cursor-pointer hover:shadow-sm" : ""}`}
+                      >
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                          item.type === "coly" ? "bg-primary/10" : "bg-secondary/10"
+                        }`}>
+                          {item.type === "coly"
+                            ? <Send size={16} className="text-primary" />
+                            : <ShoppingBag size={16} className="text-secondary" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
+                          <p className="text-xs text-muted-foreground">{item.subtitle}</p>
+                        </div>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                          item.status === "pending" ? "bg-accent/15 text-accent" :
+                          item.status === "accepted" ? "bg-primary/15 text-primary" :
+                          "bg-muted text-muted-foreground"
+                        }`}>
+                          {item.status === "pending" ? "En attente" : item.status === "accepted" ? "Accepté" : item.status}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
         )}
       </main>
       </PageTransition>
