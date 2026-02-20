@@ -265,7 +265,7 @@ const ChatPage = () => {
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Ruler size={11} />
-                <span>Taille : {itemDetail.size === "S" ? "Petit colis" : itemDetail.size === "M" ? "Colis moyen" : itemDetail.size === "L" ? "Grand colis" : itemDetail.size === "XL" ? "Très grand colis" : itemDetail.size}</span>
+                <span>Taille : {itemDetail.size === "S" ? "Petit colis" : itemDetail.size === "M" ? "Colis moyen" : itemDetail.size === "L" ? "Grand colis" : itemDetail.size === "XL" ? "Très grand colis" : itemDetail.size === "standard" || itemDetail.size === "Standard" ? "Taille standard" : itemDetail.size}</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <DollarSign size={11} />
