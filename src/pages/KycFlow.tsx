@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Camera, ArrowRight, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +12,8 @@ const STEPS_ORDER: KycStep[] = ["intro", "scan", "review", "selfie", "done"];
 
 const KycFlow = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as any)?.returnTo || "/dashboard";
   const { user, roles } = useAuth();
   const isVoyageur = roles.includes("voyageur");
   const [step, setStep] = useState<KycStep>("intro");
@@ -82,7 +84,7 @@ const KycFlow = () => {
 
   const handleSkipKyc = () => {
     toast.info("Vous pourrez compléter la vérification plus tard depuis Mon Compte");
-    navigate("/dashboard");
+    navigate(returnTo === "/send-coly" ? "/dashboard" : "/dashboard");
   };
 
   return (
@@ -309,16 +311,18 @@ const KycFlow = () => {
                 <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle size={40} className="text-green-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-foreground">Votre Envoi est validé !</h2>
+                <h2 className="text-2xl font-bold text-foreground">Votre identité est vérifiée !</h2>
                 <p className="text-foreground mt-4 text-sm leading-relaxed">
-                  Vous recevrez une notification lorsqu'un voyageur acceptera votre demande.
+                  {returnTo === "/send-coly"
+                    ? "Vous pouvez maintenant procéder à votre envoi de colis."
+                    : "Vous recevrez une notification lorsqu'un voyageur acceptera votre demande."}
                 </p>
               </div>
               <button
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate(returnTo)}
                 className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
               >
-                Tableau de bord <ArrowRight size={20} />
+                {returnTo === "/send-coly" ? "Continuer l'envoi" : "Tableau de bord"} <ArrowRight size={20} />
               </button>
             </div>
           )}
