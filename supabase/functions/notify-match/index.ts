@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -12,13 +12,39 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Authenticate the caller
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const anonClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const userId = claimsData.claims.sub;
+
+    // Use service role client for data operations
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const { type, record_id } = await req.json();
 
     if (type === "voyage") {
-      // A new voyage was created — find matching pending shipments & needit missions
       const { data: voyage } = await supabase
         .from("voyages")
         .select("*")
@@ -27,7 +53,14 @@ Deno.serve(async (req) => {
 
       if (!voyage) throw new Error("Voyage not found");
 
-      // Match shipments by destination
+      // Verify the caller owns this voyage
+      if (voyage.user_id !== userId) {
+        return new Response(
+          JSON.stringify({ error: "Forbidden" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       const { data: shipments } = await supabase
         .from("shipments")
         .select("id, user_id, arrival_city, arrival_country")
@@ -41,7 +74,6 @@ Deno.serve(async (req) => {
         return cityMatch;
       });
 
-      // Match needit missions by destination
       const { data: missions } = await supabase
         .from("needit_missions")
         .select("id, user_id, city, country")
@@ -56,11 +88,8 @@ Deno.serve(async (req) => {
       });
 
       const notifications: any[] = [];
-      const demandeurIds = new Set<string>();
 
       for (const s of matchedShipments) {
-        demandeurIds.add(s.user_id);
-        // Notify demandeur
         notifications.push({
           user_id: s.user_id,
           title: "🎯 Match trouvé !",
@@ -70,7 +99,6 @@ Deno.serve(async (req) => {
       }
 
       for (const m of matchedMissions) {
-        demandeurIds.add(m.user_id);
         notifications.push({
           user_id: m.user_id,
           title: "🎯 Match NeedIt !",
@@ -79,7 +107,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Notify voyageur if any matches found
       if (matchedShipments.length > 0 || matchedMissions.length > 0) {
         const total = matchedShipments.length + matchedMissions.length;
         notifications.push({
@@ -101,7 +128,6 @@ Deno.serve(async (req) => {
     }
 
     if (type === "shipment" || type === "mission") {
-      // A new shipment or mission was created — find matching voyages
       let destination_country = "";
       let destination_city = "";
       let demandeur_id = "";
@@ -113,6 +139,13 @@ Deno.serve(async (req) => {
           .eq("id", record_id)
           .single();
         if (!shipment) throw new Error("Shipment not found");
+        // Verify caller owns this shipment
+        if (shipment.user_id !== userId) {
+          return new Response(
+            JSON.stringify({ error: "Forbidden" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
         destination_country = shipment.arrival_country;
         destination_city = shipment.arrival_city;
         demandeur_id = shipment.user_id;
@@ -123,12 +156,18 @@ Deno.serve(async (req) => {
           .eq("id", record_id)
           .single();
         if (!mission) throw new Error("Mission not found");
+        // Verify caller owns this mission
+        if (mission.user_id !== userId) {
+          return new Response(
+            JSON.stringify({ error: "Forbidden" }),
+            { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
         destination_country = mission.country;
         destination_city = mission.city || "";
         demandeur_id = mission.user_id;
       }
 
-      // Find matching active voyages
       const { data: voyages } = await supabase
         .from("voyages")
         .select("id, user_id, arrival_city, arrival_country, departure_city")
@@ -145,7 +184,6 @@ Deno.serve(async (req) => {
       const notifications: any[] = [];
 
       if (matchedVoyages.length > 0) {
-        // Notify the demandeur
         notifications.push({
           user_id: demandeur_id,
           title: "🎯 Match trouvé !",
@@ -153,7 +191,6 @@ Deno.serve(async (req) => {
           type: "match",
         });
 
-        // Notify each matching voyageur
         for (const v of matchedVoyages) {
           notifications.push({
             user_id: v.user_id,

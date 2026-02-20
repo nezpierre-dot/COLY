@@ -329,9 +329,7 @@ const Dashboard = () => {
 
   const toggleRole = async () => {
     if (!user) return;
-    const newRole = isVoyageur ? "demandeur" : "voyageur";
-    await supabase.from("user_roles").delete().eq("user_id", user.id);
-    const { error } = await supabase.from("user_roles").insert({ user_id: user.id, role: newRole });
+    const { error } = await supabase.rpc("toggle_user_role", { _user_id: user.id });
     if (error) toast.error("Erreur lors du changement de rôle");
     else window.location.reload();
   };

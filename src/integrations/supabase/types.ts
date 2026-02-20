@@ -481,6 +481,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      toggle_user_role: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
       app_role: "demandeur" | "voyageur" | "admin"
