@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Check, Loader2, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getCurrencyForCountry, getUnitsForCountry } from "@/hooks/useLocaleUnits";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,88 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+
+/** Searchable dropdown that only renders visible items (max 50 shown) */
+const SearchableSelect = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled = false,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder: string;
+  disabled?: boolean;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filtered = useMemo(() => {
+    if (!search) return options.slice(0, 50);
+    const q = search.toLowerCase();
+    return options.filter((o) => o.toLowerCase().includes(q)).slice(0, 50);
+  }, [options, search]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => { if (!disabled) { setOpen(!open); setSearch(""); } }}
+        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <span className={value ? "text-foreground" : "text-muted-foreground"}>
+          {value || placeholder}
+        </span>
+        <ChevronDown className="h-4 w-4 opacity-50" />
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-card border border-border rounded-md shadow-lg">
+          <div className="p-2">
+            <Input
+              autoFocus
+              placeholder="Rechercher..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-muted-foreground">Aucun résultat</div>
+            ) : (
+              filtered.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => { onChange(item); setOpen(false); setSearch(""); }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-muted/80 transition-colors ${
+                    item === value ? "bg-primary/10 font-medium" : ""
+                  }`}
+                >
+                  {item}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const TRANSPORT_METHODS = [
   { value: "avion", label: "Avion", icon: Plane },
@@ -234,25 +316,11 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Pays de Départ</Label>
-                  <Select value={departureCountry} onValueChange={handleDepartureCountry}>
-                    <SelectTrigger><SelectValue placeholder="Sélectionner un pays" /></SelectTrigger>
-                    <SelectContent className="bg-card border border-border z-50 max-h-60">
-                      {countries.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder="Sélectionner un pays" />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Ville de Départ</Label>
-                  <Select value={departureCity} onValueChange={setDepartureCity} disabled={!departureCountry}>
-                    <SelectTrigger><SelectValue placeholder={departureCountry ? "Sélectionner une ville" : "Choisir un pays d'abord"} /></SelectTrigger>
-                    <SelectContent className="bg-card border border-border z-50 max-h-60">
-                      {departureCities.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? "Sélectionner une ville" : "Choisir un pays d'abord"} disabled={!departureCountry} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Adresse de Départ</Label>
@@ -277,25 +345,11 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Pays d'Arrivée</Label>
-                  <Select value={arrivalCountry} onValueChange={handleArrivalCountry}>
-                    <SelectTrigger><SelectValue placeholder="Sélectionner un pays" /></SelectTrigger>
-                    <SelectContent className="bg-card border border-border z-50 max-h-60">
-                      {countries.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect value={arrivalCountry} onChange={handleArrivalCountry} options={countries} placeholder="Sélectionner un pays" />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Ville d'Arrivée</Label>
-                  <Select value={arrivalCity} onValueChange={setArrivalCity} disabled={!arrivalCountry}>
-                    <SelectTrigger><SelectValue placeholder={arrivalCountry ? "Sélectionner une ville" : "Choisir un pays d'abord"} /></SelectTrigger>
-                    <SelectContent className="bg-card border border-border z-50 max-h-60">
-                      {arrivalCities.map((c) => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? "Sélectionner une ville" : "Choisir un pays d'abord"} disabled={!arrivalCountry} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Adresse d'Arrivée</Label>
