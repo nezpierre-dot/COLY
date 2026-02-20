@@ -28,11 +28,7 @@ type Voyage = {
   status: string;
 };
 
-// --- Mock data (demandeur) ---
-const MOCK_ENVOIS = [
-  { id: "147521", date: "16/08/25", time: "10h00", item: "Porte Documents", from: "Paris", to: "Marseille", station: "TGV PARIS GARE DE LYON", status: "accepted", voyageur: "215445" },
-  { id: "156324", date: "17/08/25", time: "14h10", item: "Porte Documents", from: "Marseille", to: "Paris", station: "TGV GARE SAINT CHARLES", status: "pending", voyageur: null },
-];
+// No mock data — only real DB data is displayed
 
 // --- Voyageur Quick Stats ---
 const QuickStats = ({ voyagesCount, colisCount, matchCount }: { voyagesCount: number; colisCount: number; matchCount: number }) => (
@@ -149,10 +145,6 @@ const Dashboard = () => {
   const { addFavorite, isFavorite } = useFavorites();
   const isVoyageur = roles.includes("voyageur");
 
-  const [searchCity, setSearchCity] = useState("");
-  const [filterEnCours, setFilterEnCours] = useState(true);
-  const [filterEnAttente, setFilterEnAttente] = useState(true);
-  const [filterTout, setFilterTout] = useState(false);
   const [voyages, setVoyages] = useState<Voyage[]>([]);
   const [selectedVoyage, setSelectedVoyage] = useState<string | null>(null);
 
@@ -274,14 +266,6 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  const filteredEnvois = MOCK_ENVOIS.filter((e) => {
-    const matchCity = !searchCity || e.from.toLowerCase().includes(searchCity.toLowerCase()) || e.to.toLowerCase().includes(searchCity.toLowerCase());
-    if (filterTout) return matchCity;
-    const matchStatus =
-      (filterEnCours && e.status === "accepted") ||
-      (filterEnAttente && e.status === "pending");
-    return matchCity && matchStatus;
-  });
 
   const currentVoyage = voyages.find((v) => v.id === selectedVoyage);
 
