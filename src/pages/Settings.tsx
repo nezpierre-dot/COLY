@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Bell, Shield, Globe, CreditCard, Plane, Package } from "lucide-react";
+import { ArrowLeft, User, Bell, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -10,15 +11,13 @@ import BottomNav from "@/components/BottomNav";
 const Settings = () => {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
+  const { theme, setTheme } = useTheme();
   const isVoyageur = roles.includes("voyageur");
-  const isDemandeur = roles.includes("demandeur");
 
   const [notifications, setNotifications] = useState(true);
   const [emailNotifs, setEmailNotifs] = useState(true);
-  // Voyageur-specific
   const [autoAccept, setAutoAccept] = useState(false);
   const [showItinerary, setShowItinerary] = useState(true);
-  // Demandeur-specific
   const [trackingAlerts, setTrackingAlerts] = useState(true);
   const [publicRequests, setPublicRequests] = useState(false);
 
@@ -44,6 +43,12 @@ const Settings = () => {
     </div>
   );
 
+  const themeOptions: { value: "light" | "dark" | "system"; icon: React.ElementType; label: string }[] = [
+    { value: "light", icon: Sun, label: "Clair" },
+    { value: "dark", icon: Moon, label: "Sombre" },
+    { value: "system", icon: Monitor, label: "Auto" },
+  ];
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="px-6 pt-12">
@@ -56,10 +61,39 @@ const Settings = () => {
         </div>
 
         {/* Role badge */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 ${isVoyageur ? "bg-coly-purple/20 text-coly-purple" : "bg-coly-blue/20 text-coly-blue"}`}>
+        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 ${isVoyageur ? "bg-secondary/20 text-secondary" : "bg-primary/20 text-primary"}`}>
           {isVoyageur ? <Plane size={14} /> : <Package size={14} />}
           {isVoyageur ? "Mode Voyageur" : "Mode Demandeur"}
         </div>
+
+        {/* Apparence */}
+        <Section title="Apparence">
+          <div className="px-4 py-3.5">
+            <div className="flex items-center gap-3 mb-3">
+              <Sun size={18} className="text-muted-foreground" />
+              <span className="text-foreground text-sm">Thème</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {themeOptions.map((opt) => {
+                const Icon = opt.icon;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTheme(opt.value)}
+                    className={`flex flex-col items-center gap-1.5 py-3 rounded-xl border transition-all ${
+                      theme === opt.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/30"
+                    }`}
+                  >
+                    <Icon size={20} />
+                    <span className="text-xs font-medium">{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </Section>
 
         {/* General settings */}
         <Section title="Général">
