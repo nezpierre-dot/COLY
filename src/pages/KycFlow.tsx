@@ -313,17 +313,23 @@ const KycFlow = () => {
                 </div>
                 <h2 className="text-2xl font-bold text-foreground">Votre identité est vérifiée !</h2>
                 <p className="text-foreground mt-4 text-sm leading-relaxed">
-                  {returnTo === "/send-coly"
-                    ? "Vous pouvez maintenant procéder à votre envoi de colis."
-                    : "Vous recevrez une notification lorsqu'un voyageur acceptera votre demande."}
+                  Vous pouvez maintenant accéder à votre tableau de bord ou envoyer un colis.
                 </p>
               </div>
-              <button
-                onClick={() => navigate(returnTo)}
-                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
-              >
-                {returnTo === "/send-coly" ? "Continuer l'envoi" : "Tableau de bord"} <ArrowRight size={20} />
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
+                >
+                  Tableau de bord <ArrowRight size={20} />
+                </button>
+                <button
+                  onClick={() => navigate("/send-coly")}
+                  className="w-full py-4 rounded-2xl bg-accent text-accent-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
+                >
+                  Envoyer un colis <ArrowRight size={20} />
+                </button>
+              </div>
             </div>
           )}
         </div>
