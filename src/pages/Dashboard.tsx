@@ -403,9 +403,6 @@ const Dashboard = () => {
             {/* Favorite Routes */}
             <FavoriteRoutes />
 
-            {/* Public Missions Map - subtle */}
-            <PublicMissionsMap />
-
             <Tabs defaultValue="voyages" className="space-y-3">
               <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto">
                 <TabsTrigger value="voyages" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
@@ -592,6 +589,7 @@ const Dashboard = () => {
                   pendingShipments={pendingShipments}
                   pendingMissions={needitMissions}
                 />
+                <PublicMissionsMap />
                 {currentVoyage && (
                   <div className="bg-card rounded-xl border border-border p-3 shadow-sm">
                     <div className="flex items-center justify-between">
@@ -727,9 +725,6 @@ const Dashboard = () => {
             {/* Favorite Routes */}
             <FavoriteRoutes />
 
-            {/* Public Missions Map - subtle */}
-            <PublicMissionsMap />
-
             <Tabs defaultValue="envois" className="space-y-3">
               <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto">
                 <TabsTrigger value="envois" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
@@ -743,11 +738,11 @@ const Dashboard = () => {
                     </span>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="carte" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+                  <Map size={13} className="mr-1" /> Carte
+                </TabsTrigger>
                 <TabsTrigger value="actions" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Zap size={13} className="mr-1" /> Actions
-                </TabsTrigger>
-                <TabsTrigger value="activite" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground transition-all">
-                  <TrendingUp size={13} className="mr-1" /> Activité
                 </TabsTrigger>
               </TabsList>
 
@@ -870,6 +865,11 @@ const Dashboard = () => {
                   className="w-full py-3.5 rounded-2xl border-2 border-dashed border-secondary/40 text-secondary font-medium text-sm flex items-center justify-center gap-2 hover:bg-secondary/10 transition-colors">
                   <Plus size={18} /> Créer une mission
                 </button>
+              </TabsContent>
+
+              {/* ---- Carte tab (demandeur) ---- */}
+              <TabsContent value="carte" className="mt-0">
+                <PublicMissionsMap />
               </TabsContent>
 
               {/* ---- Actions tab ---- */}
