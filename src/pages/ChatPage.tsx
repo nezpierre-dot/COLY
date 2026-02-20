@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send as SendIcon, Package } from "lucide-react";
+import { ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin, Calendar, Ruler, Weight, DollarSign } from "lucide-react";
 import { motion } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,45 @@ interface Message {
   is_read: boolean;
 }
 
+interface ShipmentDetail {
+  type: "shipment";
+  departure_city: string | null;
+  arrival_city: string;
+  arrival_country: string;
+  departure_date: string;
+  size: string;
+  tarif: string;
+  insured: boolean;
+  departure_method: string;
+}
+
+interface MissionDetail {
+  type: "mission";
+  product_name: string | null;
+  category_path: string[];
+  country: string;
+  city: string | null;
+  prix_max: string | null;
+  poids: string | null;
+  dimension: string | null;
+  timing: string;
+  is_unlisted: boolean;
+  unlisted_description: string | null;
+}
+
+type ItemDetail = ShipmentDetail | MissionDetail;
+
+const getCurrencyForCountry = (country: string) => {
+  const euroCountries = ["France", "Allemagne", "Espagne", "Italie", "Belgique", "Portugal", "Pays-Bas"];
+  if (euroCountries.some(c => country?.toLowerCase().includes(c.toLowerCase()))) return "€";
+  const cfaCountries = ["Sénégal", "Côte d'Ivoire", "Mali", "Cameroun", "Burkina", "Bénin", "Togo", "Niger", "Guinée-Bissau", "Tchad", "Congo", "Gabon", "Centrafrique"];
+  if (cfaCountries.some(c => country?.toLowerCase().includes(c.toLowerCase()))) return "FCFA";
+  if (country?.toLowerCase().includes("maroc")) return "MAD";
+  if (country?.toLowerCase().includes("tunis")) return "TND";
+  if (country?.toLowerCase().includes("algéri")) return "DZD";
+  return "€";
+};
+
 const ChatPage = () => {
   const navigate = useNavigate();
   const { id: conversationId } = useParams<{ id: string }>();
@@ -23,6 +62,8 @@ const ChatPage = () => {
   const [sending, setSending] = useState(false);
   const [otherName, setOtherName] = useState("");
   const [shipmentRoute, setShipmentRoute] = useState("");
+  const [itemDetail, setItemDetail] = useState<ItemDetail | null>(null);
+  const [showRecap, setShowRecap] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,12 +81,44 @@ const ChatPage = () => {
         const otherId = convo.demandeur_id === user.id ? convo.voyageur_id : convo.demandeur_id;
         const isOtherVoyageur = convo.voyageur_id === otherId;
         const otherRef = (isOtherVoyageur ? "VOY-" : "EXP-") + otherId.substring(0, 8).toUpperCase();
-        const [, shipRes] = await Promise.all([
-          Promise.resolve(),
-          supabase.from("shipments").select("departure_city, arrival_city").eq("id", convo.shipment_id).maybeSingle(),
-        ]);
         setOtherName(otherRef);
-        if (shipRes.data) setShipmentRoute(`${shipRes.data.departure_city || "—"} → ${shipRes.data.arrival_city}`);
+
+        // Try shipment first, then needit mission
+        const { data: shipData } = await supabase
+          .from("shipments")
+          .select("departure_city, arrival_city, arrival_country, departure_date, size, tarif, insured, departure_method")
+          .eq("id", convo.shipment_id)
+          .maybeSingle();
+
+        if (shipData) {
+          setShipmentRoute(`${shipData.departure_city || "—"} → ${shipData.arrival_city}`);
+          setItemDetail({
+            type: "shipment",
+            departure_city: shipData.departure_city,
+            arrival_city: shipData.arrival_city,
+            arrival_country: shipData.arrival_country,
+            departure_date: shipData.departure_date,
+            size: shipData.size,
+            tarif: shipData.tarif,
+            insured: shipData.insured,
+            departure_method: shipData.departure_method,
+          });
+        } else {
+          // It's a NeedIt mission
+          const { data: missionData } = await supabase
+            .from("needit_missions")
+            .select("product_name, category_path, country, city, prix_max, poids, dimension, timing, is_unlisted, unlisted_description")
+            .eq("id", convo.shipment_id)
+            .maybeSingle();
+
+          if (missionData) {
+            setShipmentRoute(`NeedIt → ${missionData.city || missionData.country}`);
+            setItemDetail({
+              type: "mission",
+              ...missionData,
+            });
+          }
+        }
       }
 
       // Load messages
@@ -154,6 +227,93 @@ const ChatPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Recap Card */}
+      {itemDetail && showRecap && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mt-3 bg-card border border-border rounded-xl p-3.5 shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              {itemDetail.type === "shipment" ? (
+                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Package size={14} className="text-primary" />
+                </div>
+              ) : (
+                <div className="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
+                  <ShoppingBag size={14} className="text-accent" />
+                </div>
+              )}
+              <span className="text-xs font-bold text-foreground">
+                {itemDetail.type === "shipment" ? "📦 Récap Colis" : "🛒 Récap Mission NeedIt"}
+              </span>
+            </div>
+            <button onClick={() => setShowRecap(false)} className="text-[10px] text-muted-foreground hover:text-foreground">
+              Masquer
+            </button>
+          </div>
+
+          {itemDetail.type === "shipment" ? (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <MapPin size={11} />
+                <span>{itemDetail.departure_city || "—"} → {itemDetail.arrival_city}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Calendar size={11} />
+                <span>{new Date(itemDetail.departure_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Ruler size={11} />
+                <span>Taille {itemDetail.size}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <DollarSign size={11} />
+                <span>{itemDetail.tarif} {getCurrencyForCountry(itemDetail.arrival_country)}</span>
+              </div>
+              <div className="col-span-2 flex items-center gap-1.5 text-muted-foreground">
+                <Package size={11} />
+                <span>{itemDetail.departure_method}{itemDetail.insured ? " • Assuré ✅" : ""}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+              <div className="col-span-2 flex items-center gap-1.5 text-foreground font-medium">
+                <ShoppingBag size={11} />
+                <span>{itemDetail.is_unlisted ? (itemDetail.unlisted_description || "Produit non référencé") : (itemDetail.product_name || itemDetail.category_path?.join(" > "))}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <MapPin size={11} />
+                <span>{itemDetail.city ? `${itemDetail.city}, ` : ""}{itemDetail.country}</span>
+              </div>
+              {itemDetail.prix_max && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <DollarSign size={11} />
+                  <span>Max {itemDetail.prix_max} {getCurrencyForCountry(itemDetail.country)}</span>
+                </div>
+              )}
+              {itemDetail.poids && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Weight size={11} />
+                  <span>{itemDetail.poids}</span>
+                </div>
+              )}
+              {itemDetail.dimension && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Ruler size={11} />
+                  <span>{itemDetail.dimension}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Calendar size={11} />
+                <span>{itemDetail.timing === "asap" ? "Dès que possible" : itemDetail.timing}</span>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
