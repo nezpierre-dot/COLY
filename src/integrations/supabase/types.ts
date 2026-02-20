@@ -41,6 +41,36 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_proofs: {
+        Row: {
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          photo_url: string
+          shipment_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          photo_url: string
+          shipment_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          photo_url?: string
+          shipment_id?: string
+          uploaded_by?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -196,6 +226,39 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rated_id: string
+          rater_id: string
+          rater_role: string
+          score: number
+          shipment_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rated_id: string
+          rater_id: string
+          rater_role: string
+          score: number
+          shipment_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rated_id?: string
+          rater_id?: string
+          rater_role?: string
+          score?: number
+          shipment_id?: string
         }
         Relationships: []
       }
@@ -483,6 +546,13 @@ export type Database = {
           departure_country: string
           id: string
           type: string
+        }[]
+      }
+      get_user_rating: {
+        Args: { _user_id: string }
+        Returns: {
+          average_score: number
+          total_ratings: number
         }[]
       }
       has_role: {
