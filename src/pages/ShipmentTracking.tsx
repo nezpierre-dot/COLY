@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, Package, Shield, Loader2, Send } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Package, Shield, Loader2, Send, Image, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import PageTransition, { staggerItem } from "@/components/PageTransition";
 import TrackingTimeline from "@/components/TrackingTimeline";
 import BottomNav from "@/components/BottomNav";
+import RatingDialog from "@/components/RatingDialog";
+import DeliveryProofUpload from "@/components/DeliveryProofUpload";
+import StarRating from "@/components/StarRating";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -22,35 +25,71 @@ const statusLabels: Record<string, string> = {
 const ShipmentTracking = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const isVoyageur = roles.includes("voyageur");
+
   const [shipment, setShipment] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deliveryProof, setDeliveryProof] = useState<any>(null);
+  const [hasRated, setHasRated] = useState(false);
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [voyageurRating, setVoyageurRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
 
   useEffect(() => {
     if (!id || !user) return;
 
     const loadData = async () => {
-      const [shipRes, eventsRes] = await Promise.all([
+      const [shipRes, eventsRes, proofRes] = await Promise.all([
         supabase.from("shipments").select("*").eq("id", id).maybeSingle(),
         supabase.from("tracking_events").select("*").eq("shipment_id", id).order("created_at", { ascending: false }),
+        supabase.from("delivery_proofs" as any).select("*").eq("shipment_id", id).maybeSingle(),
       ]);
-      if (shipRes.data) setShipment(shipRes.data);
+
+      if (shipRes.data) {
+        setShipment(shipRes.data);
+        // Load voyageur rating if voyageur is assigned
+        if (shipRes.data.voyageur_id) {
+          const { data: ratingData } = await supabase.rpc("get_user_rating" as any, { _user_id: shipRes.data.voyageur_id });
+          if (ratingData?.[0]) setVoyageurRating(ratingData[0]);
+        }
+      }
       if (eventsRes.data) setEvents(eventsRes.data);
+      if (proofRes.data) setDeliveryProof(proofRes.data);
       setLoading(false);
     };
     loadData();
 
-    // Realtime for tracking events
+    // Check if user already rated
+    const checkRating = async () => {
+      const { data } = await supabase
+        .from("ratings" as any)
+        .select("id")
+        .eq("shipment_id", id)
+        .eq("rater_id", user.id)
+        .maybeSingle();
+      if (data) setHasRated(true);
+    };
+    checkRating();
+
     const channel = supabase
       .channel(`tracking-${id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "tracking_events", filter: `shipment_id=eq.${id}` }, (payload) => {
         setEvents((prev) => [payload.new as any, ...prev]);
       })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "shipments", filter: `id=eq.${id}` }, (payload) => {
+        setShipment(payload.new);
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [id, user]);
+
+  const handleDeliveryConfirmed = () => {
+    setShipment((prev: any) => ({ ...prev, status: "delivered" }));
+    // Prompt rating after short delay
+    setTimeout(() => setShowRatingDialog(true), 1500);
+  };
 
   if (loading) {
     return (
@@ -75,7 +114,13 @@ const ShipmentTracking = () => {
   }
 
   const currentStepIndex = statusSteps.indexOf(shipment.status);
-  const progressPercent = shipment.status === "cancelled" ? 0 : Math.max(0, ((currentStepIndex) / (statusSteps.length - 1)) * 100);
+  const isDelivered = shipment.status === "delivered";
+  const isDemandeur = shipment.user_id === user?.id;
+  const isAssignedVoyageur = shipment.voyageur_id === user?.id;
+
+  // Who to rate: demandeur rates voyageur, voyageur rates demandeur
+  const ratedUserId = isDemandeur ? shipment.voyageur_id : shipment.user_id;
+  const raterRole = isDemandeur ? "demandeur" : "voyageur";
 
   const formatDate = (dateStr: string) => {
     try {
@@ -86,9 +131,9 @@ const ShipmentTracking = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <PageTransition>
-        <div className="px-6 pt-12">
+        <div className="px-6 pt-12 space-y-5">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground">
               <ArrowLeft size={24} />
             </button>
@@ -96,13 +141,18 @@ const ShipmentTracking = () => {
               <h1 className="text-xl font-bold text-foreground">Suivi du colis</h1>
               <p className="text-xs text-muted-foreground">COLY-{shipment.id.slice(0, 8).toUpperCase()}</p>
             </div>
+            {isDelivered && (
+              <span className="text-[10px] font-bold bg-green-500/15 text-green-700 px-2 py-1 rounded-full flex items-center gap-1">
+                <CheckCircle size={10} /> Livré
+              </span>
+            )}
           </div>
 
           {/* Status card */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl p-5 mb-6 relative overflow-hidden"
+            className="rounded-2xl p-5 relative overflow-hidden"
             style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}
           >
             <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-primary-foreground/8" />
@@ -114,22 +164,18 @@ const ShipmentTracking = () => {
                 </span>
               </div>
 
-              {/* Milestones */}
               <div className="flex items-center justify-between mb-2">
                 {statusSteps.map((step, i) => {
                   const isCompleted = i <= currentStepIndex && shipment.status !== "cancelled";
                   const isCurrent = i === currentStepIndex && shipment.status !== "cancelled";
                   return (
                     <div key={step} className="flex flex-col items-center flex-1">
-                      {/* Connector + Circle */}
                       <div className="flex items-center w-full">
                         {i > 0 && (
-                          <div className={`h-0.5 flex-1 ${i <= currentStepIndex && shipment.status !== "cancelled" ? "bg-primary-foreground" : "bg-primary-foreground/20"}`} />
+                          <div className={`h-0.5 flex-1 ${isCompleted ? "bg-primary-foreground" : "bg-primary-foreground/20"}`} />
                         )}
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
-                          isCompleted
-                            ? "bg-primary-foreground border-primary-foreground"
-                            : "bg-transparent border-primary-foreground/30"
+                          isCompleted ? "bg-primary-foreground border-primary-foreground" : "bg-transparent border-primary-foreground/30"
                         } ${isCurrent ? "ring-2 ring-primary-foreground/40 ring-offset-1 ring-offset-transparent" : ""}`}>
                           {isCompleted ? (
                             <svg viewBox="0 0 12 12" className="w-3 h-3 text-primary"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -141,9 +187,7 @@ const ShipmentTracking = () => {
                           <div className={`h-0.5 flex-1 ${i < currentStepIndex && shipment.status !== "cancelled" ? "bg-primary-foreground" : "bg-primary-foreground/20"}`} />
                         )}
                       </div>
-                      <span className={`text-[8px] font-semibold mt-1.5 text-center leading-tight ${
-                        isCompleted ? "text-primary-foreground" : "text-primary-foreground/35"
-                      }`}>
+                      <span className={`text-[8px] font-semibold mt-1.5 text-center leading-tight ${isCompleted ? "text-primary-foreground" : "text-primary-foreground/35"}`}>
                         {statusLabels[step]}
                       </span>
                     </div>
@@ -154,7 +198,7 @@ const ShipmentTracking = () => {
           </motion.div>
 
           {/* Shipment details */}
-          <motion.div {...staggerItem} className="bg-card border border-border rounded-2xl p-4 mb-6 space-y-3">
+          <motion.div {...staggerItem} className="bg-card border border-border rounded-2xl p-4 space-y-3">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Détails</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2">
@@ -188,14 +232,65 @@ const ShipmentTracking = () => {
                 </div>
               )}
             </div>
+            {/* Voyageur rating */}
+            {voyageurRating && voyageurRating.total_ratings > 0 && (
+              <div className="pt-2 border-t border-border">
+                <p className="text-[10px] text-muted-foreground mb-1">Note du voyageur</p>
+                <StarRating score={Number(voyageurRating.average_score)} total={Number(voyageurRating.total_ratings)} />
+              </div>
+            )}
           </motion.div>
 
+          {/* Delivery Proof — voyageur sees upload form when in_transit */}
+          {isAssignedVoyageur && shipment.status === "in_transit" && !deliveryProof && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <DeliveryProofUpload
+                shipmentId={shipment.id}
+                onProofUploaded={(url) => setDeliveryProof({ photo_url: url })}
+                onDeliveryConfirmed={handleDeliveryConfirmed}
+              />
+            </motion.div>
+          )}
+
+          {/* Delivery Proof — show photo when delivered */}
+          {isDelivered && deliveryProof && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-card border border-green-500/20 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Image size={14} className="text-green-600" />
+                <h3 className="text-sm font-bold text-foreground">Preuve de livraison</h3>
+              </div>
+              <img src={deliveryProof.photo_url} alt="Preuve de livraison" className="w-full rounded-xl object-cover max-h-48" />
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                {deliveryProof.created_at && (
+                  <span>📅 {new Date(deliveryProof.created_at).toLocaleString("fr-FR")}</span>
+                )}
+                {deliveryProof.latitude && deliveryProof.longitude && (
+                  <span>📍 {Number(deliveryProof.latitude).toFixed(4)}, {Number(deliveryProof.longitude).toFixed(4)}</span>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Rating CTA — shown after delivery if not yet rated */}
+          {isDelivered && !hasRated && ratedUserId && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Évaluer cette livraison</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Votre avis aide la communauté</p>
+              </div>
+              <button
+                onClick={() => setShowRatingDialog(true)}
+                className="shrink-0 px-4 py-2 rounded-xl bg-accent text-accent-foreground text-xs font-bold hover:opacity-90 transition-opacity"
+              >
+                ⭐ Noter
+              </button>
+            </motion.div>
+          )}
+
           {/* Timeline */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Historique de suivi</h3>
             {events.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">Aucun événement de suivi</p>
@@ -205,6 +300,18 @@ const ShipmentTracking = () => {
           </motion.div>
         </div>
       </PageTransition>
+
+      {/* Rating Dialog */}
+      {showRatingDialog && ratedUserId && (
+        <RatingDialog
+          open={showRatingDialog}
+          onClose={() => { setShowRatingDialog(false); setHasRated(true); }}
+          shipmentId={shipment.id}
+          ratedUserId={ratedUserId}
+          raterRole={raterRole as "demandeur" | "voyageur"}
+        />
+      )}
+
       <BottomNav />
     </div>
   );
