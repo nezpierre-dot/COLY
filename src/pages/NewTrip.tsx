@@ -101,6 +101,33 @@ const TRANSPORT_METHODS = [
   { value: "bus", label: "Bus", icon: Bus },
 ];
 
+const CURRENCIES = [
+  { code: "EUR", symbol: "€" },
+  { code: "USD", symbol: "$" },
+  { code: "GBP", symbol: "£" },
+  { code: "CAD", symbol: "CA$" },
+  { code: "CHF", symbol: "CHF" },
+  { code: "MAD", symbol: "MAD" },
+  { code: "XOF", symbol: "CFA" },
+  { code: "XAF", symbol: "CFA" },
+  { code: "DZD", symbol: "DZD" },
+  { code: "TND", symbol: "TND" },
+  { code: "INR", symbol: "₹" },
+  { code: "JPY", symbol: "¥" },
+  { code: "CNY", symbol: "¥" },
+  { code: "BRL", symbol: "R$" },
+  { code: "NGN", symbol: "₦" },
+  { code: "ZAR", symbol: "R" },
+  { code: "TRY", symbol: "₺" },
+  { code: "AED", symbol: "AED" },
+  { code: "SAR", symbol: "SAR" },
+  { code: "AUD", symbol: "A$" },
+  { code: "MXN", symbol: "MX$" },
+  { code: "KRW", symbol: "₩" },
+  { code: "RUB", symbol: "₽" },
+  { code: "THB", symbol: "฿" },
+];
+
 const TOTAL_STEPS = 5;
 
 const NewTrip = () => {
@@ -179,6 +206,16 @@ const NewTrip = () => {
   // Step 5 – NeedIt
   const [acceptNeedit, setAcceptNeedit] = useState(false);
   const [needitBudget, setNeeditBudget] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState(() => {
+    const c = getCurrencyForCountry(arrivalCountry);
+    return c.code;
+  });
+
+  // Update currency when arrival country changes
+  useEffect(() => {
+    const c = getCurrencyForCountry(arrivalCountry);
+    setSelectedCurrency(c.code);
+  }, [arrivalCountry]);
 
   const canContinue = () => {
     switch (step) {
@@ -428,24 +465,37 @@ const NewTrip = () => {
               </div>
 
               {acceptNeedit && (
-                <div>
-                  <Label className="text-muted-foreground text-sm">
-                    Montant du budget Needit pour ce trajet ({currency.code})
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      placeholder="Ex: 500"
-                      value={needitBudget}
-                      onChange={(e) => setNeeditBudget(e.target.value)}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
-                      {currency.symbol}
-                    </span>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-muted-foreground text-sm">Devise</Label>
+                    <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                      <SelectTrigger><SelectValue placeholder="Sélectionner une devise" /></SelectTrigger>
+                      <SelectContent className="bg-card border border-border z-50 max-h-60">
+                        {CURRENCIES.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>{c.code} ({c.symbol})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    *Je dois définir le plafond à ne pas dépasser qui correspond à mon budget.
-                  </p>
+                  <div>
+                    <Label className="text-muted-foreground text-sm">
+                      Montant du budget Needit pour ce trajet
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="Ex: 500"
+                        value={needitBudget}
+                        onChange={(e) => setNeeditBudget(e.target.value)}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
+                        {CURRENCIES.find(c => c.code === selectedCurrency)?.symbol || "$"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      *Je dois définir le plafond à ne pas dépasser qui correspond à mon budget.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
