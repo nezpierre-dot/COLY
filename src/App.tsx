@@ -18,6 +18,7 @@ import KycFlow from "./pages/KycFlow";
 import MyInfo from "./pages/MyInfo";
 import VoyageurSettings from "./pages/VoyageurSettings";
 import HistoryPage from "./pages/HistoryPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/my-info" element={<ProtectedRoute><MyInfo /></ProtectedRoute>} />
             <Route path="/voyageur-settings" element={<ProtectedRoute><VoyageurSettings /></ProtectedRoute>} />
             <Route path="/history/:type" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
