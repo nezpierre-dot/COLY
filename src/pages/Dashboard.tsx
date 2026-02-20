@@ -1,6 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus } from "lucide-react";
+import { motion } from "framer-motion";
+import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
+import EmptyState from "@/components/EmptyState";
 import NotificationBell from "@/components/NotificationBell";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -33,20 +36,37 @@ const MOCK_ENVOIS = [
 
 // --- Voyageur Quick Stats ---
 const QuickStats = ({ voyagesCount, colisCount, matchCount }: { voyagesCount: number; colisCount: number; matchCount: number }) => (
-  <div className="grid grid-cols-3 gap-2 mb-4">
-    <div className="bg-primary/10 border border-primary/20 rounded-2xl p-3 text-center">
-      <p className="text-xl font-bold text-primary">{voyagesCount}</p>
-      <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Voyages</p>
-    </div>
-    <div className="bg-secondary/10 border border-secondary/20 rounded-2xl p-3 text-center">
-      <p className="text-xl font-bold text-secondary">{colisCount}</p>
-      <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Colis dispo</p>
-    </div>
-    <div className="bg-accent/10 border border-accent/20 rounded-2xl p-3 text-center">
-      <p className="text-xl font-bold text-accent">{matchCount}</p>
-      <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Matchs</p>
-    </div>
-  </div>
+  <motion.div
+    variants={staggerContainer}
+    initial="initial"
+    animate="animate"
+    className="grid grid-cols-3 gap-2 mb-4"
+  >
+    {[
+      { value: voyagesCount, label: "Voyages", color: "primary" },
+      { value: colisCount, label: "Colis dispo", color: "secondary" },
+      { value: matchCount, label: "Matchs", color: "accent" },
+    ].map((stat) => (
+      <motion.div
+        key={stat.label}
+        variants={staggerItem}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.97 }}
+        className={`bg-${stat.color}/10 border border-${stat.color}/20 rounded-2xl p-3 text-center cursor-default`}
+      >
+        <motion.p
+          key={stat.value}
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className={`text-xl font-bold text-${stat.color}`}
+        >
+          {stat.value}
+        </motion.p>
+        <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{stat.label}</p>
+      </motion.div>
+    ))}
+  </motion.div>
 );
 
 // AI Recommendation Card
@@ -260,9 +280,15 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      <PageTransition>
       <main className="px-5 pt-10" id="main-content" role="main" aria-label="Tableau de bord">
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="flex items-center justify-between mb-5"
+        >
           <div>
             <h1 className="text-2xl font-bold text-foreground">
               {isVoyageur ? "Espace Voyageur" : "Espace Demandeur"}
@@ -281,7 +307,7 @@ const Dashboard = () => {
               <LogOut size={18} aria-hidden="true" />
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {isVoyageur ? (
           /* ============ VOYAGEUR ============ */
@@ -327,14 +353,17 @@ const Dashboard = () => {
 
               {/* ---- Voyages tab ---- */}
               <TabsContent value="voyages" className="space-y-3 mt-0">
-                {voyages.length === 0 ? (
-                  <div className="text-center py-10">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                      <Plane size={28} className="text-muted-foreground" />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">Aucun voyage enregistré</p>
-                    <p className="text-xs text-muted-foreground mt-1">Commencez par ajouter votre premier trajet</p>
-                  </div>
+              {voyages.length === 0 ? (
+                  <EmptyState
+                    icon={Plane}
+                    title="Aucun voyage enregistré"
+                    description="Commencez par ajouter votre premier trajet pour recevoir des colis"
+                    action={
+                      <button onClick={() => navigate("/new-trip")} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+                        <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Ajouter un voyage
+                      </button>
+                    }
+                  />
                 ) : (
                   voyages.map((v) => {
                     const isSelected = selectedVoyage === v.id;
@@ -453,13 +482,11 @@ const Dashboard = () => {
                 )}
 
                 {pendingShipments.length === 0 && (
-                  <div className="text-center py-10">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                      <Package size={28} className="text-muted-foreground" />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">Aucun colis disponible</p>
-                    <p className="text-xs text-muted-foreground mt-1">Les envois des demandeurs apparaîtront ici</p>
-                  </div>
+                  <EmptyState
+                    icon={Package}
+                    title="Aucun colis disponible"
+                    description="Les envois des demandeurs apparaîtront ici automatiquement"
+                  />
                 )}
               </TabsContent>
 
@@ -550,13 +577,11 @@ const Dashboard = () => {
                 )}
 
                 {needitMissions.length === 0 && (
-                  <div className="text-center py-10">
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-                      <ShoppingBag size={28} className="text-muted-foreground" />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">Aucune mission disponible</p>
-                    <p className="text-xs text-muted-foreground mt-1">Les missions NeedIt apparaîtront ici</p>
-                  </div>
+                  <EmptyState
+                    icon={ShoppingBag}
+                    title="Aucune mission disponible"
+                    description="Les missions NeedIt apparaîtront ici"
+                  />
                 )}
               </TabsContent>
             </Tabs>
@@ -652,6 +677,7 @@ const Dashboard = () => {
           </div>
         )}
       </main>
+      </PageTransition>
 
       <BottomNav />
     </div>

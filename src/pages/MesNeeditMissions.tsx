@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
+import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
@@ -60,6 +63,7 @@ const MesNeeditMissions = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      <PageTransition>
       <div className="px-6 pt-12">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -70,12 +74,14 @@ const MesNeeditMissions = () => {
         </div>
 
         {/* New mission button */}
-        <button
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => navigate("/needit-mission")}
           className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary/20 border border-primary/30 text-primary font-medium text-lg hover:bg-primary/30 transition-colors mb-6"
         >
           <Plus size={20} /> Nouvelle mission
-        </button>
+        </motion.button>
 
         {/* Missions list */}
         {loading ? (
@@ -83,17 +89,27 @@ const MesNeeditMissions = () => {
             <Loader2 size={32} className="animate-spin text-primary" />
           </div>
         ) : missions.length === 0 ? (
-          <div className="text-center py-12">
-            <Package size={48} className="mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">Aucune mission pour le moment</p>
-            <p className="text-sm text-muted-foreground mt-1">Créez votre première mission d'achat NeedIt</p>
-          </div>
+          <EmptyState
+            icon={Package}
+            title="Aucune mission pour le moment"
+            description="Créez votre première mission d'achat NeedIt"
+            action={
+              <button onClick={() => navigate("/needit-mission")} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
+                <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Créer une mission
+              </button>
+            }
+          />
         ) : (
-          <div className="space-y-3">
+          <motion.div
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="space-y-3"
+          >
             {missions.map((m) => {
               const st = statusLabels[m.status] || statusLabels.pending;
               return (
-                <div key={m.id} className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+                <motion.div key={m.id} variants={staggerItem} className="bg-card border border-border rounded-2xl p-4 shadow-sm">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <p className="font-semibold text-foreground">
@@ -130,12 +146,13 @@ const MesNeeditMissions = () => {
                   <p className="text-xs text-muted-foreground mt-2">
                     {new Date(m.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
                   </p>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </div>
+      </PageTransition>
       <BottomNav />
     </div>
   );
