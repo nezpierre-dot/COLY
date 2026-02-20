@@ -19,10 +19,11 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { getCurrencyForCountry, getUnitsForCountry, formatSizeLabel } from "@/hooks/useLocaleUnits";
 
 // — Constants —
 
-const SIZES = [
+const SIZES_BASE = [
   { id: "S", label: "S — Max 1kg", dim: "217×150×50", icon: "📦" },
   { id: "M", label: "M — Max 3kg", dim: "230×130×100", icon: "📦" },
   { id: "L", label: "L — Max 5kg", dim: "315×210×157", icon: "📦" },
@@ -31,17 +32,27 @@ const SIZES = [
   { id: "other", label: "Autres dimensions", dim: "", icon: "📐" },
 ];
 
+const getSizes = (country: string) =>
+  SIZES_BASE.map((s) => ({
+    ...s,
+    label: formatSizeLabel(s.label, country),
+    dim: s.dim ? formatSizeLabel(s.dim, country) : "",
+  }));
+
 const DEPART_LABELS: Record<string, string> = {
   main: "Remis en main propre",
   address: "Récupération à une adresse",
   relay: "Dépôt en point relais",
 };
 
-const TARIF_OPTIONS = [
-  { id: "standard", label: "Standard", price: "18.99€", desc: "Livraison 2-5 jours", icon: Truck, popular: true },
-  { id: "express", label: "Express", price: "24.99€", desc: "Livraison 12-48h", icon: Zap, popular: false },
-  { id: "custom", label: "Personnalisé", price: "Sur devis", desc: "Négociez votre tarif", icon: CreditCard, popular: false },
-];
+const getTarifOptions = (country: string) => {
+  const { symbol } = getCurrencyForCountry(country);
+  return [
+    { id: "standard", label: "Standard", price: `18.99${symbol}`, desc: "Livraison 2-5 jours", icon: Truck, popular: true },
+    { id: "express", label: "Express", price: `24.99${symbol}`, desc: "Livraison 12-48h", icon: Zap, popular: false },
+    { id: "custom", label: "Personnalisé", price: "Sur devis", desc: "Négociez votre tarif", icon: CreditCard, popular: false },
+  ];
+};
 
 const DOMESTIC_COUNTRIES = ["france", "fr"];
 
@@ -390,6 +401,9 @@ const SendColy = () => {
     }
   };
 
+  const SIZES = getSizes(arrCountry);
+  const TARIF_OPTIONS = getTarifOptions(arrCountry);
+  const localeUnits = getUnitsForCountry(arrCountry);
   const sizeLabel = SIZES.find(s => s.id === size)?.label || size;
 
   const renderStep = () => {
@@ -526,7 +540,7 @@ const SendColy = () => {
             {/* Dimensions */}
             <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Ruler size={16} className="text-primary" /> Dimensions <span className="text-xs text-muted-foreground font-normal">(mm)</span>
+                <Ruler size={16} className="text-primary" /> Dimensions <span className="text-xs text-muted-foreground font-normal">({localeUnits.dimensionSmall})</span>
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 {SIZES.map((s) => (
@@ -591,7 +605,7 @@ const SendColy = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-foreground">{aiSuggestion.prix}€</p>
+                    <p className="text-lg font-bold text-foreground">{aiSuggestion.prix}{getCurrencyForCountry(arrCountry).symbol}</p>
                     <p className="text-[11px] text-muted-foreground">prix estimé</p>
                   </div>
                 </div>
@@ -718,7 +732,7 @@ const SendColy = () => {
                 <div className="flex items-center gap-2">
                   <Sparkles size={14} className="text-accent" />
                   <span className="text-xs text-muted-foreground">
-                    {aiSuggestion.voyageurs} voyageurs disponibles — prix estimé {aiSuggestion.prix}€
+                    {aiSuggestion.voyageurs} voyageurs disponibles — prix estimé {aiSuggestion.prix}{getCurrencyForCountry(arrCountry).symbol}
                   </span>
                 </div>
               </div>

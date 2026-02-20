@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { getCurrencyForCountry, getUnitsForCountry } from "@/hooks/useLocaleUnits";
 import {
   Popover,
   PopoverContent,
@@ -143,62 +144,6 @@ const PRODUCT_CATEGORIES: CategoryNode[] = [
   },
 ];
 
-// ─── Locale Units Helper ───
-
-const IMPERIAL_COUNTRIES = ["United States", "United States of America", "USA", "Liberia", "Myanmar", "United Kingdom"];
-
-const getCurrencyForCountry = (country: string): { symbol: string; code: string } => {
-  const map: Record<string, { symbol: string; code: string }> = {
-    "France": { symbol: "€", code: "EUR" },
-    "Germany": { symbol: "€", code: "EUR" },
-    "Italy": { symbol: "€", code: "EUR" },
-    "Spain": { symbol: "€", code: "EUR" },
-    "Belgium": { symbol: "€", code: "EUR" },
-    "Netherlands": { symbol: "€", code: "EUR" },
-    "Portugal": { symbol: "€", code: "EUR" },
-    "Austria": { symbol: "€", code: "EUR" },
-    "Ireland": { symbol: "€", code: "EUR" },
-    "Finland": { symbol: "€", code: "EUR" },
-    "Greece": { symbol: "€", code: "EUR" },
-    "Luxembourg": { symbol: "€", code: "EUR" },
-    "United States": { symbol: "$", code: "USD" },
-    "United States of America": { symbol: "$", code: "USD" },
-    "United Kingdom": { symbol: "£", code: "GBP" },
-    "Japan": { symbol: "¥", code: "JPY" },
-    "China": { symbol: "¥", code: "CNY" },
-    "South Korea": { symbol: "₩", code: "KRW" },
-    "Canada": { symbol: "CA$", code: "CAD" },
-    "Australia": { symbol: "A$", code: "AUD" },
-    "Switzerland": { symbol: "CHF", code: "CHF" },
-    "Brazil": { symbol: "R$", code: "BRL" },
-    "India": { symbol: "₹", code: "INR" },
-    "Morocco": { symbol: "MAD", code: "MAD" },
-    "Senegal": { symbol: "CFA", code: "XOF" },
-    "Ivory Coast": { symbol: "CFA", code: "XOF" },
-    "Cameroon": { symbol: "CFA", code: "XAF" },
-    "Tunisia": { symbol: "TND", code: "TND" },
-    "Algeria": { symbol: "DZD", code: "DZD" },
-    "Turkey": { symbol: "₺", code: "TRY" },
-    "Russia": { symbol: "₽", code: "RUB" },
-    "Mexico": { symbol: "MX$", code: "MXN" },
-    "Nigeria": { symbol: "₦", code: "NGN" },
-    "South Africa": { symbol: "R", code: "ZAR" },
-    "Thailand": { symbol: "฿", code: "THB" },
-    "Saudi Arabia": { symbol: "SAR", code: "SAR" },
-    "United Arab Emirates": { symbol: "AED", code: "AED" },
-  };
-  return map[country] || { symbol: "$", code: "USD" };
-};
-
-const getUnitsForCountry = (country: string) => {
-  const isImperial = IMPERIAL_COUNTRIES.includes(country);
-  return {
-    weight: isImperial ? "oz" : "kg",
-    weightPlaceholder: isImperial ? "Poids (en onces)" : "Poids (en kg)",
-    dimension: isImperial ? "in" : "cm",
-    dimensionPlaceholder: isImperial ? "Dimensions (en pouces)" : "Dimensions (en cm)",
-  };
-};
 
 // ─── Country / City API helpers ───
 
