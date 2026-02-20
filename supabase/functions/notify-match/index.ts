@@ -42,7 +42,34 @@ Deno.serve(async (req) => {
     // Use service role client for data operations
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    const { type, record_id } = await req.json();
+    // Parse and validate input
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { type, record_id } = body;
+
+    const VALID_TYPES = ["voyage", "shipment", "mission"];
+    if (!type || !VALID_TYPES.includes(type)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid type. Must be voyage, shipment, or mission" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!record_id || !UUID_REGEX.test(record_id)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid record_id format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (type === "voyage") {
       const { data: voyage } = await supabase
@@ -216,8 +243,9 @@ Deno.serve(async (req) => {
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
+    console.error("notify-match error:", err);
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
