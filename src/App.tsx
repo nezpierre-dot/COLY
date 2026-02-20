@@ -28,6 +28,8 @@ import FacturationPage from "./pages/FacturationPage";
 import ConfidentialitePage from "./pages/ConfidentialitePage";
 import PaymentMethods from "./pages/PaymentMethods";
 import NewTrip from "./pages/NewTrip";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminRoute from "./components/AdminRoute";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +65,7 @@ const App = () => (
             <Route path="/confidentialite" element={<ProtectedRoute><ConfidentialitePage /></ProtectedRoute>} />
             <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
             <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
             </FavoritesProvider>
