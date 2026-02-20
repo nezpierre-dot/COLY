@@ -408,7 +408,7 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        <div className="px-5 -mt-4 relative z-10 space-y-4">
+        <div className="px-5 pt-2 relative z-10 space-y-4">
 
         {/* PWA Install Banner */}
         <AnimatePresence>
