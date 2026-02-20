@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import AuthLayout from "@/components/AuthLayout";
 
 interface FormData {
@@ -25,6 +27,7 @@ const Signup = () => {
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<FormData>({
     nom: "", prenom: "", email: "", telephone: "",
     pays: "", ville: "", codePostal: "", region: "", adresse: "",
@@ -95,9 +98,41 @@ const Signup = () => {
     }
   };
 
-  const handleNext = () => {
-    if (step < 3) setStep(step + 1);
-    else navigate("/terms");
+  const handleNext = async () => {
+    if (step < 3) {
+      setStep(step + 1);
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      toast.error("Les mots de passe ne correspondent pas");
+      return;
+    }
+    if (!form.acceptTerms) {
+      toast.error("Veuillez accepter les conditions d'utilisation");
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: {
+          full_name: `${form.prenom} ${form.nom}`,
+          phone: form.telephone,
+        },
+      },
+    });
+    setLoading(false);
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Vérifiez votre email pour confirmer votre inscription !");
+      navigate("/login");
+    }
   };
 
   const { title, subtitle } = titles[step];
@@ -116,9 +151,10 @@ const Signup = () => {
           </button>
           <button
             onClick={handleNext}
-            className="flex items-center gap-2 px-8 py-3 rounded-full bg-coly-orange text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg"
+            disabled={loading}
+            className="flex items-center gap-2 px-8 py-3 rounded-full bg-coly-orange text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
           >
-            {step === 3 ? "Finaliser" : "Continuer"} <ArrowRight size={20} />
+            {loading ? "..." : step === 3 ? "Finaliser" : "Continuer"} <ArrowRight size={20} />
           </button>
         </div>
       </div>
