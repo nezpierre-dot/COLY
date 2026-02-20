@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversations: {
+        Row: {
+          created_at: string
+          demandeur_id: string
+          id: string
+          last_message_at: string
+          shipment_id: string
+          voyageur_id: string
+        }
+        Insert: {
+          created_at?: string
+          demandeur_id: string
+          id?: string
+          last_message_at?: string
+          shipment_id: string
+          voyageur_id: string
+        }
+        Update: {
+          created_at?: string
+          demandeur_id?: string
+          id?: string
+          last_message_at?: string
+          shipment_id?: string
+          voyageur_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       needit_missions: {
         Row: {
           category_path: string[]

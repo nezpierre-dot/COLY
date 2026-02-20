@@ -1,11 +1,11 @@
-import { Home, Copy, LayoutGrid, RefreshCw, User } from "lucide-react";
+import { Home, Copy, LayoutGrid, MessageCircle, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const tabs = [
   { icon: Home, path: "/dashboard", label: "Accueil" },
   { icon: Copy, path: "/mes-missions-needit", label: "Missions" },
   { icon: LayoutGrid, path: "/dashboard", label: "", center: true },
-  { icon: RefreshCw, path: "/history/coly", label: "Échanges" },
+  { icon: MessageCircle, path: "/conversations", label: "Messages" },
   { icon: User, path: "/my-account", label: "Profil" },
 ];
 
