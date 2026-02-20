@@ -1,9 +1,9 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package,
   Image, Ruler, CreditCard, Shield, Sparkles, Users, Truck, Zap,
-  AlertTriangle, Globe, Info, X, ShieldCheck, Lock
+  AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,6 +17,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 // — Constants —
 
@@ -181,9 +183,16 @@ const CustomsInfoDialog = ({
 
 const SendColy = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const fileRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  // KYC check state
+  const [kycChecked, setKycChecked] = useState(false);
+  const [kycStatus, setKycStatus] = useState<string | null>(null);
+  const [hasExistingShipments, setHasExistingShipments] = useState(false);
 
   // Step 1 — Trajet
   const [date, setDate] = useState("");
@@ -199,6 +208,7 @@ const SendColy = () => {
 
   // Step 2 — Colis
   const [photo, setPhoto] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [size, setSize] = useState("S");
 
   // Step 3 — Tarif & Assurance
@@ -222,6 +232,30 @@ const SendColy = () => {
     const prix = (15 + Math.random() * 10).toFixed(2);
     return { voyageurs, prix };
   }, [arrCity, departCity]);
+
+  // Check KYC status & existing shipments on mount
+  useEffect(() => {
+    if (!user) return;
+    const check = async () => {
+      const [profileRes, shipmentsRes] = await Promise.all([
+        supabase.from("profiles").select("kyc_status").eq("user_id", user.id).maybeSingle(),
+        supabase.from("shipments").select("id").eq("user_id", user.id).limit(1),
+      ]);
+      setKycStatus(profileRes.data?.kyc_status || "pending");
+      setHasExistingShipments((shipmentsRes.data?.length || 0) > 0);
+      setKycChecked(true);
+    };
+    check();
+  }, [user]);
+
+  // If first shipment and KYC not done, redirect to KYC
+  useEffect(() => {
+    if (!kycChecked) return;
+    if (!hasExistingShipments && kycStatus !== "submitted" && kycStatus !== "verified") {
+      // First shipment → need KYC
+      navigate("/kyc", { state: { returnTo: "/send-coly" } });
+    }
+  }, [kycChecked, hasExistingShipments, kycStatus, navigate]);
 
   useEffect(() => {
     if (step === 3 && !aiLoaded) {
@@ -286,12 +320,62 @@ const SendColy = () => {
     return true;
   };
 
+  const uploadPhoto = async (): Promise<string | null> => {
+    if (!photoFile || !user) return null;
+    const path = `${user.id}/${Date.now()}-${photoFile.name}`;
+    const { error } = await supabase.storage.from("shipment-photos").upload(path, photoFile);
+    if (error) {
+      console.error("Photo upload error:", error);
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("shipment-photos").getPublicUrl(path);
+    return urlData.publicUrl;
+  };
+
+  const submitShipment = async () => {
+    if (!user) return;
+    setSubmitting(true);
+    try {
+      // Upload photo
+      const photoUrl = await uploadPhoto();
+
+      const { error } = await supabase.from("shipments").insert({
+        user_id: user.id,
+        departure_date: date,
+        departure_method: departMethod,
+        departure_city: departCity || null,
+        relay_point: relayPoint || null,
+        arrival_city: arrCity,
+        arrival_country: arrCountry,
+        contact_nom: contactNom,
+        contact_prenom: contactPrenom,
+        contact_tel: contactTel,
+        contact_email: contactMail || null,
+        photo_url: photoUrl,
+        size,
+        tarif,
+        insured: insured || false,
+        is_international: isInternational,
+        status: "pending",
+      } as any);
+
+      if (error) throw error;
+
+      toast.success("Envoi COLY créé avec succès ! Un voyageur sera bientôt assigné.");
+      navigate("/dashboard");
+    } catch (err: any) {
+      console.error("Shipment error:", err);
+      toast.error("Erreur lors de la création de l'envoi : " + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleNext = () => {
     if (!validateStep()) return;
     if (step < totalSteps) setStep(step + 1);
     else {
-      toast.success("Envoi COLY confirmé !");
-      navigate("/dashboard");
+      submitShipment();
     }
   };
 
@@ -299,6 +383,7 @@ const SendColy = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) { toast.error("Image trop volumineuse (max 10 Mo)"); return; }
+      setPhotoFile(file);
       const reader = new FileReader();
       reader.onload = () => { setPhoto(reader.result as string); clearError("photo"); };
       reader.readAsDataURL(file);
@@ -689,9 +774,14 @@ const SendColy = () => {
           </button>
           <button
             onClick={handleNext}
-            className="flex items-center gap-2 px-6 py-3 rounded-full bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity shadow-lg"
+            disabled={submitting}
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
           >
-            {step === 4 ? "Confirmer l'envoi" : "Continuer"} <ArrowRight size={18} />
+            {submitting ? (
+              <><Loader2 size={18} className="animate-spin" /> Envoi en cours...</>
+            ) : (
+              <>{step === 4 ? "Confirmer l'envoi" : "Continuer"} <ArrowRight size={18} /></>
+            )}
           </button>
         </div>
       </div>

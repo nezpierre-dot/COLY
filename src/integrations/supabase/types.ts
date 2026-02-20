@@ -77,6 +77,78 @@ export type Database = {
         }
         Relationships: []
       }
+      shipments: {
+        Row: {
+          arrival_city: string
+          arrival_country: string
+          contact_email: string | null
+          contact_nom: string
+          contact_prenom: string
+          contact_tel: string
+          created_at: string
+          departure_city: string | null
+          departure_date: string
+          departure_method: string
+          id: string
+          insured: boolean
+          is_international: boolean
+          photo_url: string | null
+          relay_point: string | null
+          size: string
+          status: string
+          tarif: string
+          updated_at: string
+          user_id: string
+          voyageur_id: string | null
+        }
+        Insert: {
+          arrival_city: string
+          arrival_country: string
+          contact_email?: string | null
+          contact_nom: string
+          contact_prenom: string
+          contact_tel: string
+          created_at?: string
+          departure_city?: string | null
+          departure_date: string
+          departure_method: string
+          id?: string
+          insured?: boolean
+          is_international?: boolean
+          photo_url?: string | null
+          relay_point?: string | null
+          size?: string
+          status?: string
+          tarif: string
+          updated_at?: string
+          user_id: string
+          voyageur_id?: string | null
+        }
+        Update: {
+          arrival_city?: string
+          arrival_country?: string
+          contact_email?: string | null
+          contact_nom?: string
+          contact_prenom?: string
+          contact_tel?: string
+          created_at?: string
+          departure_city?: string | null
+          departure_date?: string
+          departure_method?: string
+          id?: string
+          insured?: boolean
+          is_international?: boolean
+          photo_url?: string | null
+          relay_point?: string | null
+          size?: string
+          status?: string
+          tarif?: string
+          updated_at?: string
+          user_id?: string
+          voyageur_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
