@@ -164,6 +164,7 @@ const Dashboard = () => {
   // Accept dialog state
   const [acceptDialog, setAcceptDialog] = useState<{ type: "shipment" | "mission"; id: string; label: string } | null>(null);
   const [accepting, setAccepting] = useState(false);
+  const [actedIds, setActedIds] = useState<Set<string>>(new Set());
 
   const handleAcceptItem = async () => {
     if (!acceptDialog || accepting) return;
@@ -175,12 +176,14 @@ const Dashboard = () => {
         const { data, error } = await supabase.rpc("accept_shipment", { _shipment_id: id });
         if (error) throw error;
         toast.success("Colis accepté ! Vous pouvez maintenant discuter.");
+        setActedIds(prev => new Set(prev).add(id));
         setAcceptDialog(null);
         navigate(`/chat/${data}`);
       } else {
         const { data, error } = await supabase.rpc("accept_needit_mission", { _mission_id: id });
         if (error) throw error;
         toast.success("Mission acceptée ! Vous pouvez maintenant discuter.");
+        setActedIds(prev => new Set(prev).add(id));
         setAcceptDialog(null);
         navigate(`/chat/${data}`);
       }
@@ -509,8 +512,10 @@ const Dashboard = () => {
                       <Zap size={12} className="text-accent" /> Correspondances ({matchedShipments.length})
                     </h3>
                     {matchedShipments.map((s: any) => (
-                      <button key={s.id} onClick={() => setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
-                        className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 space-y-1.5 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
+                      <button key={s.id}
+                        disabled={actedIds.has(s.id)}
+                        onClick={() => !actedIds.has(s.id) && setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
+                        className={`w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 space-y-1.5 transition-colors ${actedIds.has(s.id) ? "opacity-40 cursor-not-allowed" : "hover:bg-accent/10 hover:border-accent/40 cursor-pointer"}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-[9px] font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">MATCH</span>
@@ -614,8 +619,10 @@ const Dashboard = () => {
                       <Zap size={12} className="text-accent" /> Missions correspondantes ({matchedNeedit.length})
                     </h3>
                     {matchedNeedit.map((m: any) => (
-                      <button key={m.id} onClick={() => setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission" })}
-                        className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
+                      <button key={m.id}
+                        disabled={actedIds.has(m.id)}
+                        onClick={() => !actedIds.has(m.id) && setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission" })}
+                        className={`w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 transition-colors ${actedIds.has(m.id) ? "opacity-40 cursor-not-allowed" : "hover:bg-accent/10 hover:border-accent/40 cursor-pointer"}`}>
                         <div className="flex items-start justify-between">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
@@ -1011,7 +1018,7 @@ const Dashboard = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={accepting}>Non, passer</AlertDialogCancel>
+            <AlertDialogCancel disabled={accepting} onClick={() => { if (acceptDialog) setActedIds(prev => new Set(prev).add(acceptDialog.id)); }}>Non, passer</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleAcceptItem}
               disabled={accepting}
