@@ -585,6 +585,8 @@ const Dashboard = () => {
                   voyages={voyages}
                   selectedVoyageId={selectedVoyage}
                   onSelectVoyage={setSelectedVoyage}
+                  pendingShipments={pendingShipments}
+                  pendingMissions={needitMissions}
                 />
                 {currentVoyage && (
                   <div className="bg-card rounded-xl border border-border p-3 shadow-sm">
