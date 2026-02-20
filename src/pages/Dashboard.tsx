@@ -403,13 +403,8 @@ const Dashboard = () => {
             {/* Favorite Routes */}
             <FavoriteRoutes />
 
-            {/* Public Missions Map */}
-            <div>
-              <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider mb-2">
-                <Map size={12} /> Missions en attente sur la carte
-              </h3>
-              <PublicMissionsMap />
-            </div>
+            {/* Public Missions Map - subtle */}
+            <PublicMissionsMap />
 
             <Tabs defaultValue="voyages" className="space-y-3">
               <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto">
@@ -732,13 +727,8 @@ const Dashboard = () => {
             {/* Favorite Routes */}
             <FavoriteRoutes />
 
-            {/* Public Missions Map */}
-            <div>
-              <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider mb-2">
-                <Map size={12} /> Missions en attente sur la carte
-              </h3>
-              <PublicMissionsMap />
-            </div>
+            {/* Public Missions Map - subtle */}
+            <PublicMissionsMap />
 
             <Tabs defaultValue="envois" className="space-y-3">
               <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto">

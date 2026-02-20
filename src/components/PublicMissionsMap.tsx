@@ -132,7 +132,7 @@ const PublicMissionsMap = () => {
 
   return (
     <div className="rounded-2xl overflow-hidden border border-border shadow-sm">
-      <div style={{ height: 260 }}>
+      <div style={{ height: 180 }}>
         <MapContainer center={center} zoom={3} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }} zoomControl={false}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
