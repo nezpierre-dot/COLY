@@ -1,18 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Bell, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor } from "lucide-react";
+import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import BottomNav from "@/components/BottomNav";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const { theme, setTheme } = useTheme();
   const isVoyageur = roles.includes("voyageur");
+  const { canInstall, isInstalled, promptInstall } = usePWAInstall();
+  const { permission, loading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
+  const isNotifGranted = permission === "granted";
 
   const [notifications, setNotifications] = useState(true);
   const [emailNotifs, setEmailNotifs] = useState(true);
@@ -105,14 +110,32 @@ const Settings = () => {
           </Row>
         </Section>
 
-        {/* Notifications */}
-        <Section title="Notifications">
-          <Row icon={Bell} label="Notifications push">
-            <Switch checked={notifications} onCheckedChange={setNotifications} />
+        {/* App & Notifications */}
+        <Section title="Application & Notifications">
+          <Row icon={isNotifGranted ? BellRing : Bell} label="Notifications push">
+            <Switch
+              checked={isNotifGranted}
+              onCheckedChange={(v) => v ? subscribe() : unsubscribe()}
+              disabled={pushLoading || permission === "denied" || permission === "unsupported"}
+            />
           </Row>
           <Row icon={Bell} label="Notifications email">
             <Switch checked={emailNotifs} onCheckedChange={setEmailNotifs} />
           </Row>
+          {(canInstall || !isInstalled) && (
+            <button
+              onClick={() => navigate("/install")}
+              className="flex items-center justify-between px-4 py-3.5 w-full hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Download size={18} className="text-muted-foreground" />
+                <span className="text-foreground text-sm">
+                  {isInstalled ? "Appli installée ✓" : "Installer l'application"}
+                </span>
+              </div>
+              <ChevronRight size={16} className="text-muted-foreground" />
+            </button>
+          )}
         </Section>
 
         {/* Role-specific settings */}
