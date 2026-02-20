@@ -25,7 +25,7 @@ const createColorIcon = (color: string, emoji?: string) =>
 const departIcon = createColorIcon("hsl(214, 80%, 52%)");
 const arriveIcon = createColorIcon("hsl(252, 40%, 75%)");
 const colisIcon = createColorIcon("hsl(38, 92%, 50%)", "📦");
-const needitIcon = createColorIcon("hsl(280, 70%, 55%)", "🛍️");
+const needitIcon = createColorIcon("hsl(280, 70%, 55%)");
 
 export interface Voyage {
   id: string;
