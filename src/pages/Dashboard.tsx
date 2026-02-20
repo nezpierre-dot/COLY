@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X } from "lucide-react";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
@@ -13,6 +13,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import VoyageMap from "@/components/VoyageMap";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Dynamic voyages type
 type Voyage = {
@@ -147,6 +157,33 @@ const Dashboard = () => {
 
   const [voyages, setVoyages] = useState<Voyage[]>([]);
   const [selectedVoyage, setSelectedVoyage] = useState<string | null>(null);
+
+  // Cancel dialog state
+  const [cancelDialog, setCancelDialog] = useState<{ type: "voyage" | "shipment" | "mission"; id: string; label: string } | null>(null);
+
+  const handleCancelItem = async () => {
+    if (!cancelDialog) return;
+    const { type, id } = cancelDialog;
+    let error: any = null;
+
+    if (type === "voyage") {
+      const res = await supabase.from("voyages").delete().eq("id", id);
+      error = res.error;
+    } else if (type === "shipment") {
+      const res = await supabase.from("shipments").update({ status: "cancelled" } as any).eq("id", id);
+      error = res.error;
+    } else if (type === "mission") {
+      const res = await supabase.from("needit_missions").delete().eq("id", id);
+      error = res.error;
+    }
+
+    if (error) {
+      toast.error("Erreur lors de l'annulation");
+    } else {
+      toast.success("Annulé avec succès");
+    }
+    setCancelDialog(null);
+  };
 
   // Demandeur stats
   const [demandeurShipments, setDemandeurShipments] = useState<any[]>([]);
@@ -403,14 +440,23 @@ const Dashboard = () => {
                               )}
                             </div>
                           </div>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleToggleFavorite(v.departure_city, v.arrival_city); }}
-                            className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors shrink-0 ${
-                              fav ? "bg-accent/30 text-accent" : "bg-primary-foreground/15 text-primary-foreground/60 hover:text-accent"
-                            }`}
-                          >
-                            <Heart size={12} fill={fav ? "currentColor" : "none"} />
-                          </button>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setCancelDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
+                              className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                              aria-label="Annuler ce voyage"
+                            >
+                              <X size={12} />
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleToggleFavorite(v.departure_city, v.arrival_city); }}
+                              className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                                fav ? "bg-accent/30 text-accent" : "bg-primary-foreground/15 text-primary-foreground/60 hover:text-accent"
+                              }`}
+                            >
+                              <Heart size={12} fill={fav ? "currentColor" : "none"} />
+                            </button>
+                          </div>
                         </div>
                       </button>
                     );
@@ -667,12 +713,11 @@ const Dashboard = () => {
                   />
                 ) : (
                   demandeurShipments.map((s) => (
-                    <button key={s.id} onClick={() => navigate(`/tracking/${s.id}`)}
-                      className="w-full text-left rounded-2xl p-4 relative overflow-hidden transition-all hover:opacity-100 ring-1 ring-primary/20 hover:ring-2 hover:ring-primary hover:shadow-lg"
+                    <div key={s.id} className="w-full text-left rounded-2xl p-4 relative overflow-hidden transition-all ring-1 ring-primary/20 hover:ring-2 hover:ring-primary hover:shadow-lg"
                       style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}>
                       <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-primary-foreground/8" />
                       <div className="flex items-start justify-between relative z-10">
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(`/tracking/${s.id}`)}>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-base">📦</span>
                             <h3 className="font-bold text-base text-primary-foreground truncate">
@@ -690,15 +735,27 @@ const Dashboard = () => {
                             </span>
                           </div>
                         </div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                          s.status === "pending" ? "bg-primary-foreground/20 text-primary-foreground" :
-                          s.status === "accepted" ? "bg-accent/30 text-accent-foreground" :
-                          "bg-primary-foreground/15 text-primary-foreground/80"
-                        }`}>
-                          {s.status === "pending" ? "En attente" : s.status === "accepted" ? "Accepté" : s.status}
-                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {s.status === "pending" && (
+                            <button
+                              onClick={() => setCancelDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
+                              className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                              aria-label="Annuler cet envoi"
+                            >
+                              <X size={12} />
+                            </button>
+                          )}
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            s.status === "pending" ? "bg-primary-foreground/20 text-primary-foreground" :
+                            s.status === "accepted" ? "bg-accent/30 text-accent-foreground" :
+                            s.status === "cancelled" ? "bg-destructive/20 text-destructive" :
+                            "bg-primary-foreground/15 text-primary-foreground/80"
+                          }`}>
+                            {s.status === "pending" ? "En attente" : s.status === "accepted" ? "Accepté" : s.status === "cancelled" ? "Annulé" : s.status}
+                          </span>
+                        </div>
                       </div>
-                    </button>
+                    </div>
                   ))
                 )}
 
@@ -731,11 +788,20 @@ const Dashboard = () => {
                             {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission"}
                           </p>
                         </div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                          m.status === "pending" ? "bg-accent/15 text-accent" : "bg-muted text-muted-foreground"
-                        }`}>
-                          {m.status === "pending" ? "En attente" : m.status}
-                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => setCancelDialog({ type: "mission", id: m.id, label: m.product_name || "cette mission" })}
+                            className="w-6 h-6 rounded-full bg-muted hover:bg-destructive/20 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
+                            aria-label="Annuler cette mission"
+                          >
+                            <X size={11} />
+                          </button>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            m.status === "pending" ? "bg-accent/15 text-accent" : "bg-muted text-muted-foreground"
+                          }`}>
+                            {m.status === "pending" ? "En attente" : m.status}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
@@ -870,6 +936,29 @@ const Dashboard = () => {
       </PageTransition>
 
       <BottomNav />
+
+      {/* Cancel Confirmation Dialog */}
+      <AlertDialog open={!!cancelDialog} onOpenChange={(open) => { if (!open) setCancelDialog(null); }}>
+        <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr d'annuler ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vous êtes sur le point d'annuler{" "}
+              <span className="font-semibold text-foreground">{cancelDialog?.label}</span>.
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Non, garder</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelItem}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Oui, annuler
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
