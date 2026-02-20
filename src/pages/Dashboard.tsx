@@ -173,11 +173,7 @@ const Dashboard = () => {
       if (data) setNeeditMissions(data);
     };
     const loadShipments = async () => {
-      const { data } = await supabase
-        .from("shipments")
-        .select("*")
-        .eq("status", "pending")
-        .order("created_at", { ascending: false });
+      const { data } = await supabase.rpc("get_pending_shipments");
       if (data) setPendingShipments(data);
     };
     loadNeedit();
