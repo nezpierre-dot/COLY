@@ -478,7 +478,7 @@ const SendColy = () => {
       // Upload photo
       const photoUrl = await uploadPhoto();
 
-      const { error } = await supabase.from("shipments").insert({
+      const { data: inserted, error } = await supabase.from("shipments").insert({
         user_id: user.id,
         departure_date: date,
         departure_method: departMethod,
@@ -496,9 +496,12 @@ const SendColy = () => {
         insured: insured || false,
         is_international: isInternational,
         status: "pending",
-      } as any);
+      } as any).select("id").single();
 
       if (error) throw error;
+
+      // Trigger match notifications
+      supabase.functions.invoke("notify-match", { body: { type: "shipment", record_id: inserted.id } }).catch(() => {});
 
       toast.success("Envoi COLY créé avec succès ! Un voyageur sera bientôt assigné.");
       navigate("/dashboard");
