@@ -138,8 +138,8 @@ const MyAccount = () => {
         </Section>
 
         <Section>
-          <Row label="COMPTABILITÉ" />
-          <Row label="CONFIDENTIALITÉ / MENTIONS LÉGALES" onClick={() => navigate("/terms")} />
+          <Row label="COMPTABILITÉ" onClick={() => navigate("/comptabilite")} />
+          <Row label="CONFIDENTIALITÉ / MENTIONS LÉGALES" onClick={() => navigate("/confidentialite")} />
           <Row label="PARAMETRES DE L'APPLICATION" onClick={() => navigate("/settings")} />
         </Section>
 
