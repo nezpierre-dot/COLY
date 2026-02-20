@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X } from "lucide-react";
 import { motion } from "framer-motion";
@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFavorites } from "@/hooks/useFavorites";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getCurrencyForCountry } from "@/hooks/useLocaleUnits";
 import BottomNav from "@/components/BottomNav";
 import VoyageMap from "@/components/VoyageMap";
 import {
@@ -164,10 +165,11 @@ const Dashboard = () => {
   // Accept dialog state
   const [acceptDialog, setAcceptDialog] = useState<{ type: "shipment" | "mission"; id: string; label: string } | null>(null);
   const [accepting, setAccepting] = useState(false);
-  const [actedIds, setActedIds] = useState<Set<string>>(new Set());
+  const actionInProgressRef = useRef(false);
 
   const handleAcceptItem = async () => {
-    if (!acceptDialog || accepting) return;
+    if (!acceptDialog || accepting || actionInProgressRef.current) return;
+    actionInProgressRef.current = true;
     setAccepting(true);
     const { type, id } = acceptDialog;
 
@@ -176,14 +178,15 @@ const Dashboard = () => {
         const { data, error } = await supabase.rpc("accept_shipment", { _shipment_id: id });
         if (error) throw error;
         toast.success("Colis accepté ! Vous pouvez maintenant discuter.");
-        setActedIds(prev => new Set(prev).add(id));
+        // Remove from local state immediately
+        setPendingShipments(prev => prev.filter(s => s.id !== id));
         setAcceptDialog(null);
         navigate(`/chat/${data}`);
       } else {
         const { data, error } = await supabase.rpc("accept_needit_mission", { _mission_id: id });
         if (error) throw error;
         toast.success("Mission acceptée ! Vous pouvez maintenant discuter.");
-        setActedIds(prev => new Set(prev).add(id));
+        setNeeditMissions(prev => prev.filter(m => m.id !== id));
         setAcceptDialog(null);
         navigate(`/chat/${data}`);
       }
@@ -191,6 +194,7 @@ const Dashboard = () => {
       toast.error(err.message || "Erreur lors de l'acceptation");
     } finally {
       setAccepting(false);
+      actionInProgressRef.current = false;
     }
   };
 
@@ -513,9 +517,8 @@ const Dashboard = () => {
                     </h3>
                     {matchedShipments.map((s: any) => (
                       <button key={s.id}
-                        disabled={actedIds.has(s.id)}
-                        onClick={() => !actedIds.has(s.id) && setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
-                        className={`w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 space-y-1.5 transition-colors ${actedIds.has(s.id) ? "opacity-40 cursor-not-allowed" : "hover:bg-accent/10 hover:border-accent/40 cursor-pointer"}`}>
+                        onClick={() => setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
+                        className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 space-y-1.5 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-[9px] font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">MATCH</span>
@@ -620,9 +623,8 @@ const Dashboard = () => {
                     </h3>
                     {matchedNeedit.map((m: any) => (
                       <button key={m.id}
-                        disabled={actedIds.has(m.id)}
-                        onClick={() => !actedIds.has(m.id) && setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission" })}
-                        className={`w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 transition-colors ${actedIds.has(m.id) ? "opacity-40 cursor-not-allowed" : "hover:bg-accent/10 hover:border-accent/40 cursor-pointer"}`}>
+                        onClick={() => setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission" })}
+                        className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
                         <div className="flex items-start justify-between">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
@@ -636,7 +638,7 @@ const Dashboard = () => {
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            {m.prix_max && <p className="text-sm font-bold text-foreground">{m.prix_max}</p>}
+                            {m.prix_max && <p className="text-sm font-bold text-foreground">{m.prix_max} {getCurrencyForCountry(m.country).symbol}</p>}
                             <ChevronRight size={14} className="text-accent" />
                           </div>
                         </div>
@@ -663,7 +665,7 @@ const Dashboard = () => {
                               <MapPin size={10} /> {m.country}{m.city ? `, ${m.city}` : ""}
                             </p>
                           </div>
-                          {m.prix_max && <p className="text-sm font-bold text-foreground shrink-0">{m.prix_max}</p>}
+                          {m.prix_max && <p className="text-sm font-bold text-foreground shrink-0">{m.prix_max} {getCurrencyForCountry(m.country).symbol}</p>}
                         </div>
                       </div>
                     ))}
@@ -1018,7 +1020,7 @@ const Dashboard = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={accepting} onClick={() => { if (acceptDialog) setActedIds(prev => new Set(prev).add(acceptDialog.id)); }}>Non, passer</AlertDialogCancel>
+            <AlertDialogCancel disabled={accepting}>Non, passer</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleAcceptItem}
               disabled={accepting}
