@@ -1,0 +1,285 @@
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Camera, ArrowRight, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import BottomNav from "@/components/BottomNav";
+
+type KycStep = "intro" | "scan" | "review" | "selfie" | "done";
+
+const KycFlow = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [step, setStep] = useState<KycStep>("intro");
+  const [idFront, setIdFront] = useState<File | null>(null);
+  const [idBack, setIdBack] = useState<File | null>(null);
+  const [selfie, setSelfie] = useState<File | null>(null);
+  const [frontPreview, setFrontPreview] = useState<string | null>(null);
+  const [backPreview, setBackPreview] = useState<string | null>(null);
+  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const frontRef = useRef<HTMLInputElement>(null);
+  const backRef = useRef<HTMLInputElement>(null);
+  const selfieRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (
+    file: File | undefined,
+    setter: (f: File | null) => void,
+    previewSetter: (s: string | null) => void
+  ) => {
+    if (!file) return;
+    setter(file);
+    const reader = new FileReader();
+    reader.onload = (e) => previewSetter(e.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const uploadToStorage = async (file: File, path: string) => {
+    const { error } = await supabase.storage
+      .from("kyc-documents")
+      .upload(path, file, { upsert: true });
+    if (error) throw error;
+  };
+
+  const handleFinalize = async () => {
+    if (!user || !idFront) return;
+    setUploading(true);
+    try {
+      await uploadToStorage(idFront, `${user.id}/id-front`);
+      if (idBack) await uploadToStorage(idBack, `${user.id}/id-back`);
+      setStep("selfie");
+    } catch (e: any) {
+      toast.error("Erreur lors de l'upload : " + e.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSelfieSubmit = async () => {
+    if (!user || !selfie) return;
+    setUploading(true);
+    try {
+      await uploadToStorage(selfie, `${user.id}/selfie`);
+      await supabase
+        .from("profiles")
+        .update({ kyc_status: "submitted" } as any)
+        .eq("user_id", user.id);
+      setStep("done");
+    } catch (e: any) {
+      toast.error("Erreur : " + e.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background pb-24">
+      {/* Blue header */}
+      <div
+        className="relative px-6 pt-12 pb-16 text-primary-foreground overflow-hidden"
+        style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--coly-blue-dark)))" }}
+      >
+        {/* Decorative elements */}
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full bg-primary-foreground/10" />
+        <div className="absolute top-16 right-6 grid grid-cols-4 gap-1.5 opacity-30">
+          {Array.from({ length: 16 }).map((_, i) => (
+            <div key={i} className="w-2 h-2 rounded-full bg-primary-foreground" />
+          ))}
+        </div>
+        <div className="absolute bottom-10 left-0 w-20 h-20 rounded-full bg-coly-blue-dark/50" />
+
+        <h1 className="text-3xl font-bold relative z-10">
+          {step === "intro" && "Plus qu'une\nétape !"}
+          {step === "scan" && "Plus qu'une\nétape !"}
+          {step === "review" && "Plus qu'une\nétape !"}
+          {step === "selfie" && "KYC"}
+          {step === "done" && "Félicitations"}
+        </h1>
+        <p className="text-sm mt-2 opacity-90 relative z-10">
+          {step === "intro" && ""}
+          {step === "scan" && "Veiller scanner un document d'identité valide.\nCNI / PASSEPORT"}
+          {step === "review" && "Créez votre compte pour commencer à partager le trajet."}
+          {step === "selfie" && "Créez votre compte pour commencer à utiliser nos services."}
+          {step === "done" && "Conditions générales d'utilisation"}
+        </p>
+      </div>
+
+      {/* Content card */}
+      <div className="px-6 -mt-8">
+        <div className="bg-card rounded-t-3xl p-6 min-h-[50vh] flex flex-col">
+          {/* === STEP: INTRO === */}
+          {step === "intro" && (
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="text-center mt-12">
+                <h2 className="text-xl font-bold text-foreground">C'EST VOTRE 1ER ENVOI !</h2>
+                <p className="text-foreground mt-6 text-sm leading-relaxed">
+                  POUR ASSURER LA SÉCURITÉ DE VOTRE ENVOI MERCI DE CONFIRMER VOTRE IDENTITÉ
+                </p>
+              </div>
+              <div className="flex items-center justify-between mt-12">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="text-muted-foreground font-medium text-lg"
+                >
+                  Retour
+                </button>
+                <button
+                  onClick={() => setStep("scan")}
+                  className="px-10 py-3.5 rounded-2xl bg-accent text-accent-foreground font-bold text-lg shadow-lg"
+                >
+                  Continuer
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* === STEP: SCAN ID === */}
+          {step === "scan" && (
+            <div className="flex-1 flex flex-col items-center justify-between">
+              <div
+                className="w-full aspect-[4/3] bg-muted rounded-2xl flex flex-col items-center justify-center mt-4 cursor-pointer overflow-hidden relative"
+                onClick={() => frontRef.current?.click()}
+              >
+                {frontPreview ? (
+                  <img src={frontPreview} alt="ID front" className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <Camera size={48} className="text-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">Touchez pour scanner</p>
+                  </>
+                )}
+                <input
+                  ref={frontRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => handleFile(e.target.files?.[0], setIdFront, setFrontPreview)}
+                />
+              </div>
+              <button
+                onClick={() => {
+                  if (idFront) setStep("review");
+                  else toast.error("Veuillez scanner votre document");
+                }}
+                className="w-full py-3.5 rounded-2xl bg-coly-purple text-primary-foreground font-bold text-lg mt-6 flex items-center justify-center gap-2"
+              >
+                Uploader une image <ArrowRight size={20} />
+              </button>
+            </div>
+          )}
+
+          {/* === STEP: REVIEW === */}
+          {step === "review" && (
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="space-y-4 mt-2">
+                {/* Front */}
+                {frontPreview && (
+                  <div className="rounded-2xl overflow-hidden border border-border">
+                    <img src={frontPreview} alt="ID Recto" className="w-full object-contain" />
+                  </div>
+                )}
+                {/* Back */}
+                <div
+                  className="rounded-2xl overflow-hidden border border-border bg-muted flex items-center justify-center min-h-[140px] cursor-pointer"
+                  onClick={() => backRef.current?.click()}
+                >
+                  {backPreview ? (
+                    <img src={backPreview} alt="ID Verso" className="w-full object-contain" />
+                  ) : (
+                    <div className="text-center py-6">
+                      <Camera size={32} className="mx-auto text-muted-foreground mb-1" />
+                      <p className="text-xs text-muted-foreground">Verso (optionnel)</p>
+                    </div>
+                  )}
+                  <input
+                    ref={backRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => handleFile(e.target.files?.[0], setIdBack, setBackPreview)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mt-8">
+                <button onClick={() => setStep("scan")} className="text-muted-foreground font-medium text-lg">
+                  Retour
+                </button>
+                <button
+                  onClick={handleFinalize}
+                  disabled={uploading}
+                  className="px-10 py-3.5 rounded-2xl bg-coly-purple text-primary-foreground font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50"
+                >
+                  {uploading ? "Envoi..." : "Finaliser"} <ArrowRight size={20} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* === STEP: SELFIE === */}
+          {step === "selfie" && (
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <h2 className="text-xl font-bold text-foreground mb-8">
+                Juste un selfie et c'est fini !
+              </h2>
+              <div
+                className="w-32 h-32 rounded-full bg-muted flex items-center justify-center cursor-pointer overflow-hidden mb-6"
+                onClick={() => selfieRef.current?.click()}
+              >
+                {selfiePreview ? (
+                  <img src={selfiePreview} alt="Selfie" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera size={48} className="text-foreground" />
+                )}
+                <input
+                  ref={selfieRef}
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  className="hidden"
+                  onChange={(e) => handleFile(e.target.files?.[0], setSelfie, setSelfiePreview)}
+                />
+              </div>
+              <button
+                onClick={() => {
+                  if (selfie) handleSelfieSubmit();
+                  else selfieRef.current?.click();
+                }}
+                disabled={uploading}
+                className="px-12 py-3.5 rounded-2xl bg-accent text-accent-foreground font-bold text-lg shadow-lg disabled:opacity-50"
+              >
+                {uploading ? "Envoi..." : "ID NOW"}
+              </button>
+            </div>
+          )}
+
+          {/* === STEP: DONE === */}
+          {step === "done" && (
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="mt-8">
+                <h2 className="text-2xl font-bold text-foreground">Votre Envoi est validé !</h2>
+                <p className="text-foreground mt-6 text-lg leading-relaxed">
+                  Vous recevrez une notification lorsqu'un voyageur acceptera votre demande.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
+              >
+                Tableau de bord <ArrowRight size={20} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <BottomNav />
+    </div>
+  );
+};
+
+export default KycFlow;

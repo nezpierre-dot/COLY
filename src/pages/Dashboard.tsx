@@ -254,7 +254,7 @@ const Dashboard = () => {
 
             <div className="h-4" />
 
-            <button onClick={() => navigate("/send-coly")}
+            <button onClick={() => navigate("/kyc")}
               className="w-full py-4 rounded-2xl bg-coly-blue/20 border border-coly-blue/30 text-coly-blue font-medium text-lg hover:bg-coly-blue/30 transition-colors">
               Je propose un envoi COLY
             </button>
