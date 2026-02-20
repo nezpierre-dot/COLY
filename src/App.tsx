@@ -16,6 +16,7 @@ import SendColy from "./pages/SendColy";
 import Settings from "./pages/Settings";
 import MyAccount from "./pages/MyAccount";
 import NeeditMission from "./pages/NeeditMission";
+import MesNeeditMissions from "./pages/MesNeeditMissions";
 import KycFlow from "./pages/KycFlow";
 import MyInfo from "./pages/MyInfo";
 import VoyageurSettings from "./pages/VoyageurSettings";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
             <Route path="/needit-mission" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
+            <Route path="/mes-missions-needit" element={<ProtectedRoute><MesNeeditMissions /></ProtectedRoute>} />
             <Route path="/kyc" element={<ProtectedRoute><KycFlow /></ProtectedRoute>} />
             <Route path="/my-info" element={<ProtectedRoute><MyInfo /></ProtectedRoute>} />
             <Route path="/voyageur-settings" element={<ProtectedRoute><VoyageurSettings /></ProtectedRoute>} />

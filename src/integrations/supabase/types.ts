@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      needit_missions: {
+        Row: {
+          category_path: string[]
+          city: string | null
+          country: string
+          created_at: string
+          dimension: string | null
+          id: string
+          is_unlisted: boolean
+          photo_url: string | null
+          poids: string | null
+          prix_max: string | null
+          product_name: string | null
+          status: string
+          timing: string
+          unlisted_description: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_path?: string[]
+          city?: string | null
+          country: string
+          created_at?: string
+          dimension?: string | null
+          id?: string
+          is_unlisted?: boolean
+          photo_url?: string | null
+          poids?: string | null
+          prix_max?: string | null
+          product_name?: string | null
+          status?: string
+          timing?: string
+          unlisted_description?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_path?: string[]
+          city?: string | null
+          country?: string
+          created_at?: string
+          dimension?: string | null
+          id?: string
+          is_unlisted?: boolean
+          photo_url?: string | null
+          poids?: string | null
+          prix_max?: string | null
+          product_name?: string | null
+          status?: string
+          timing?: string
+          unlisted_description?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
