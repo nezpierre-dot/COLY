@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Terms from "./pages/Terms";
 import Dashboard from "./pages/Dashboard";
 import SendColy from "./pages/SendColy";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/send-coly" element={<ProtectedRoute><SendColy /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
