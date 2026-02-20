@@ -470,7 +470,7 @@ const SendColy = () => {
     // Use signed URL for private bucket access
     const { data: signedData } = await supabase.storage
       .from("shipment-photos")
-      .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 year expiry for stored reference
+      .createSignedUrl(path, 60 * 60 * 24 * 90); // 90 days expiry
     return signedData?.signedUrl ?? null;
   };
 
