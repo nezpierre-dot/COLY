@@ -3,9 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 const tabs = [
   { icon: Home, path: "/dashboard", label: "Accueil" },
-  { icon: Copy, path: "/dashboard", label: "Missions" },
-  { icon: LayoutGrid, path: "/dashboard", label: "Menu", center: true },
-  { icon: RefreshCw, path: "/dashboard", label: "Échanges" },
+  { icon: Copy, path: "/mes-missions-needit", label: "Missions" },
+  { icon: LayoutGrid, path: "/dashboard", label: "", center: true },
+  { icon: RefreshCw, path: "/history/coly", label: "Échanges" },
   { icon: User, path: "/my-account", label: "Profil" },
 ];
 
@@ -14,25 +14,48 @@ const BottomNav = () => {
   const navigate = useNavigate();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border pb-safe z-50" role="navigation" aria-label="Navigation principale">
-      <div className="flex items-center justify-around py-2 max-w-lg mx-auto">
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/60 pb-safe z-50"
+      role="navigation"
+      aria-label="Navigation principale"
+    >
+      <div className="flex items-end justify-around pt-1.5 pb-1 max-w-lg mx-auto">
         {tabs.map((tab, i) => {
           const Icon = tab.icon;
+          const active = location.pathname === tab.path;
+
           if (tab.center) {
             return (
-              <button key={i} onClick={() => navigate(tab.path)} aria-label={tab.label}
-                className="-mt-6 w-14 h-14 rounded-2xl bg-coly-blue-dark flex items-center justify-center shadow-lg">
-                <Icon size={24} className="text-primary-foreground" aria-hidden="true" />
+              <button
+                key={i}
+                onClick={() => navigate(tab.path)}
+                aria-label="Menu principal"
+                className="relative -mt-7 group"
+              >
+                <div className="w-[56px] h-[56px] rounded-2xl bg-primary shadow-[0_4px_20px_rgba(0,0,0,0.25)] flex items-center justify-center transition-transform active:scale-95">
+                  <Icon size={24} className="text-primary-foreground" aria-hidden="true" />
+                </div>
               </button>
             );
           }
-          const active = location.pathname === tab.path && i === 0;
+
           return (
-            <button key={i} onClick={() => navigate(tab.path)} aria-label={tab.label} aria-current={active ? "page" : undefined}
-              className="flex flex-col items-center gap-0.5 px-3 py-1">
-              <Icon size={22} className={active ? "text-primary" : "text-muted-foreground"} aria-hidden="true" />
-              <span className="text-[10px] font-medium text-muted-foreground">{tab.label}</span>
-              {active && <div className="w-1.5 h-1.5 rounded-full bg-primary" aria-hidden="true" />}
+            <button
+              key={i}
+              onClick={() => navigate(tab.path)}
+              aria-label={tab.label}
+              aria-current={active ? "page" : undefined}
+              className="flex flex-col items-center gap-0.5 px-4 py-1 transition-colors"
+            >
+              <Icon
+                size={21}
+                strokeWidth={active ? 2.2 : 1.6}
+                className={`transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
+                aria-hidden="true"
+              />
+              <span className={`text-[10px] font-medium transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}>
+                {tab.label}
+              </span>
             </button>
           );
         })}
