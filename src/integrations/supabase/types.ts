@@ -474,6 +474,17 @@ export type Database = {
           tarif: string
         }[]
       }
+      get_public_pending_missions: {
+        Args: never
+        Returns: {
+          arrival_city: string
+          arrival_country: string
+          departure_city: string
+          departure_country: string
+          id: string
+          type: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
