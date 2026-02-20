@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -6,6 +6,8 @@ import PageTransition, { staggerContainer, staggerItem } from "@/components/Page
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import BottomNav from "@/components/BottomNav";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 type HistoryType = "voyageur" | "coly" | "needit";
 type AIFilter = "all" | "best" | "losses";
@@ -16,59 +18,154 @@ interface HistoryItem {
   ref: string;
   amount: number;
   date: string;
+  rawDate: Date;
   category: HistoryType;
   icon: string;
 }
 
-const ALL_DATA: HistoryItem[] = [
-  { id: "v1", type: "Transport", ref: "COLY N°224513", amount: 12.9, date: "30/01/2025", category: "voyageur", icon: "transport" },
-  { id: "v2", type: "Transport", ref: "Needit N°142565", amount: 40.9, date: "12/01/2025", category: "voyageur", icon: "transport" },
-  { id: "v3", type: "Transport", ref: "COLY N°244365", amount: 9.2, date: "04/01/2025", category: "voyageur", icon: "transport" },
-  { id: "v4", type: "Transport", ref: "COLY N°263214", amount: 13.0, date: "03/01/2025", category: "voyageur", icon: "transport" },
-  { id: "v5", type: "Transport", ref: "COLY N°198734", amount: 22.5, date: "15/12/2024", category: "voyageur", icon: "transport" },
-  { id: "c1", type: "Envoi", ref: "COLY N°263214", amount: -23.0, date: "03/01/2025", category: "coly", icon: "envoi" },
-  { id: "c2", type: "Transport COLY", ref: "N°224513", amount: -14.2, date: "04/01/2025", category: "coly", icon: "envoi" },
-  { id: "c3", type: "Envoi", ref: "COLY N°246531", amount: -44.4, date: "27/12/2024", category: "coly", icon: "envoi" },
-  { id: "c4", type: "Envoi Express", ref: "COLY N°251098", amount: -32.0, date: "18/12/2024", category: "coly", icon: "envoi" },
-  { id: "n1", type: "Mission NeedIt", ref: "Needit N°142565", amount: 32.9, date: "30/01/2025", category: "needit", icon: "needit" },
-  { id: "n2", type: "Mission NeedIt", ref: "Needit N°143200", amount: 18.5, date: "20/01/2025", category: "needit", icon: "needit" },
-  { id: "n3", type: "Mission NeedIt", ref: "Needit N°139800", amount: 55.0, date: "10/12/2024", category: "needit", icon: "needit" },
-];
-
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 
 const PIE_COLORS = [
-  "hsl(214, 80%, 52%)",   // coly-blue
-  "hsl(252, 40%, 75%)",   // coly-purple
-  "hsl(33, 90%, 62%)",    // coly-orange
+  "hsl(214, 80%, 52%)",
+  "hsl(252, 40%, 75%)",
+  "hsl(33, 90%, 62%)",
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
   transport: <Truck size={18} className="text-primary" />,
-  envoi: <ArrowUpCircle size={18} className="text-coly-purple" />,
+  envoi: <ArrowUpCircle size={18} className="text-secondary" />,
   needit: <ShoppingBag size={18} className="text-accent" />,
 };
 
 const iconBgMap: Record<string, string> = {
   transport: "bg-primary/10",
-  envoi: "bg-coly-purple/10",
+  envoi: "bg-secondary/10",
   needit: "bg-accent/10",
 };
+
+// Platform commission rate
+const PLATFORM_RATE = 0.18;
 
 const HistoryPage = () => {
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
-  const initialTab = (type as HistoryType) || "voyageur";
+  const { user, roles } = useAuth();
+  const isVoyageur = roles.includes("voyageur");
+  const initialTab = (type as HistoryType) || (isVoyageur ? "voyageur" : "coly");
 
   const [activeTab, setActiveTab] = useState<HistoryType | "all">(
     ["voyageur", "coly", "needit"].includes(initialTab) ? initialTab : "all"
   );
   const [search, setSearch] = useState("");
   const [aiFilter, setAiFilter] = useState<AIFilter>("all");
+  const [allData, setAllData] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Classic carrier price estimate for savings comparison (per kg, rough estimate in EUR)
+  const CLASSIC_RATE_PER_UNIT = 35;
+
+  useEffect(() => {
+    if (!user) return;
+
+    const load = async () => {
+      setLoading(true);
+
+      const [shipRes, missRes] = await Promise.all([
+        supabase
+          .from("shipments")
+          .select("*")
+          .or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`)
+          .neq("status", "cancelled")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("needit_missions")
+          .select("*")
+          .or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`)
+          .neq("status", "cancelled")
+          .order("created_at", { ascending: false }),
+      ]);
+
+      const items: HistoryItem[] = [];
+
+      // Shipments as demandeur (expenses)
+      shipRes.data?.filter(s => s.user_id === user.id).forEach((s) => {
+        const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
+        items.push({
+          id: `s-dem-${s.id}`,
+          type: "Envoi Coly",
+          ref: `COLY-${s.id.slice(0, 8).toUpperCase()}`,
+          amount: -raw,
+          date: new Date(s.created_at).toLocaleDateString("fr-FR"),
+          rawDate: new Date(s.created_at),
+          category: "coly",
+          icon: "envoi",
+        });
+      });
+
+      // Shipments as voyageur (gains after platform commission)
+      shipRes.data?.filter(s => s.voyageur_id === user.id).forEach((s) => {
+        const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
+        const gain = raw * (1 - PLATFORM_RATE);
+        if (gain > 0) {
+          items.push({
+            id: `s-voy-${s.id}`,
+            type: "Transport Coly",
+            ref: `COLY-${s.id.slice(0, 8).toUpperCase()}`,
+            amount: gain,
+            date: new Date(s.created_at).toLocaleDateString("fr-FR"),
+            rawDate: new Date(s.created_at),
+            category: "voyageur",
+            icon: "transport",
+          });
+        }
+      });
+
+      // NeedIt as demandeur (expenses)
+      missRes.data?.filter(m => m.user_id === user.id).forEach((m) => {
+        const raw = parseFloat(m.prix_max?.replace(/[^0-9.]/g, "") ?? "0") || 0;
+        if (raw > 0) {
+          items.push({
+            id: `n-dem-${m.id}`,
+            type: "Mission NeedIt",
+            ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`,
+            amount: -raw,
+            date: new Date(m.created_at).toLocaleDateString("fr-FR"),
+            rawDate: new Date(m.created_at),
+            category: "needit",
+            icon: "needit",
+          });
+        }
+      });
+
+      // NeedIt as voyageur (gains after commission)
+      missRes.data?.filter(m => m.voyageur_id === user.id).forEach((m) => {
+        const raw = parseFloat(m.prix_max?.replace(/[^0-9.]/g, "") ?? "0") || 0;
+        const gain = raw * (1 - PLATFORM_RATE);
+        if (gain > 0) {
+          items.push({
+            id: `n-voy-${m.id}`,
+            type: "Mission NeedIt (gain)",
+            ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`,
+            amount: gain,
+            date: new Date(m.created_at).toLocaleDateString("fr-FR"),
+            rawDate: new Date(m.created_at),
+            category: "voyageur",
+            icon: "transport",
+          });
+        }
+      });
+
+      items.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
+      setAllData(items);
+      setLoading(false);
+    };
+
+    load();
+  }, [user]);
 
   // Filtered data
   const filtered = useMemo(() => {
-    let items = activeTab === "all" ? ALL_DATA : ALL_DATA.filter((i) => i.category === activeTab);
+    let items = activeTab === "all" ? allData : allData.filter((i) => i.category === activeTab);
 
     if (search) {
       const q = search.toLowerCase();
@@ -84,38 +181,42 @@ const HistoryPage = () => {
     }
 
     return items;
-  }, [activeTab, search, aiFilter]);
+  }, [activeTab, search, aiFilter, allData]);
 
   // Stats
-  const totalGains = useMemo(() => ALL_DATA.filter((i) => i.amount > 0).reduce((s, i) => s + i.amount, 0), []);
-  const totalExpenses = useMemo(() => ALL_DATA.filter((i) => i.amount < 0).reduce((s, i) => s + Math.abs(i.amount), 0), []);
+  const totalGains = useMemo(() => allData.filter((i) => i.amount > 0).reduce((s, i) => s + i.amount, 0), [allData]);
+  const totalExpenses = useMemo(() => allData.filter((i) => i.amount < 0).reduce((s, i) => s + Math.abs(i.amount), 0), [allData]);
   const netBalance = totalGains - totalExpenses;
+
+  // Savings: classic carrier vs platform
+  const shipmentCount = allData.filter(i => i.category === "coly" && i.amount < 0).length;
+  const estimatedClassic = shipmentCount * CLASSIC_RATE_PER_UNIT;
+  const savings = estimatedClassic - totalExpenses;
 
   // Pie chart data
   const pieData = useMemo(() => {
-    const voyTotal = ALL_DATA.filter((i) => i.category === "voyageur").reduce((s, i) => s + Math.abs(i.amount), 0);
-    const colyTotal = ALL_DATA.filter((i) => i.category === "coly").reduce((s, i) => s + Math.abs(i.amount), 0);
-    const needitTotal = ALL_DATA.filter((i) => i.category === "needit").reduce((s, i) => s + Math.abs(i.amount), 0);
+    const voyTotal = allData.filter((i) => i.category === "voyageur").reduce((s, i) => s + Math.abs(i.amount), 0);
+    const colyTotal = allData.filter((i) => i.category === "coly").reduce((s, i) => s + Math.abs(i.amount), 0);
+    const needitTotal = allData.filter((i) => i.category === "needit").reduce((s, i) => s + Math.abs(i.amount), 0);
     return [
       { name: "Voyageur", value: voyTotal },
       { name: "Coly", value: colyTotal },
       { name: "NeedIt", value: needitTotal },
-    ];
-  }, []);
+    ].filter(d => d.value > 0);
+  }, [allData]);
 
   // Monthly bar chart data
   const barData = useMemo(() => {
     const months: Record<string, { gains: number; expenses: number }> = {};
-    ALL_DATA.forEach((item) => {
-      const parts = item.date.split("/");
-      const monthIdx = parseInt(parts[1], 10) - 1;
-      const key = MONTHS[monthIdx] || parts[1];
+    allData.forEach((item) => {
+      const monthIdx = item.rawDate.getMonth();
+      const key = MONTHS[monthIdx];
       if (!months[key]) months[key] = { gains: 0, expenses: 0 };
       if (item.amount > 0) months[key].gains += item.amount;
       else months[key].expenses += Math.abs(item.amount);
     });
     return Object.entries(months).map(([month, vals]) => ({ month, ...vals }));
-  }, []);
+  }, [allData]);
 
   const total = filtered.reduce((s, i) => s + i.amount, 0);
 
@@ -131,22 +232,37 @@ const HistoryPage = () => {
         </div>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-3 mb-6 foldable-grid" role="region" aria-label="Résumé financier">
+        <div className="grid grid-cols-3 gap-3 mb-4 foldable-grid" role="region" aria-label="Résumé financier">
           <div className="bg-primary/10 rounded-2xl p-3 text-center">
             <p className="text-xs text-muted-foreground uppercase font-semibold">Gains</p>
-            <p className="text-lg font-black text-primary" aria-label={`Gains: ${totalGains.toFixed(0)} euros`}>+{totalGains.toFixed(0)}€</p>
+            <p className="text-lg font-black text-primary">+{totalGains.toFixed(0)}€</p>
           </div>
           <div className="bg-destructive/10 rounded-2xl p-3 text-center">
             <p className="text-xs text-muted-foreground uppercase font-semibold">Dépenses</p>
-            <p className="text-lg font-black text-destructive" aria-label={`Dépenses: ${totalExpenses.toFixed(0)} euros`}>-{totalExpenses.toFixed(0)}€</p>
+            <p className="text-lg font-black text-destructive">-{totalExpenses.toFixed(0)}€</p>
           </div>
           <div className={`rounded-2xl p-3 text-center ${netBalance >= 0 ? "bg-primary/5" : "bg-destructive/10"}`}>
             <p className="text-xs text-muted-foreground uppercase font-semibold">Net</p>
-            <p className={`text-lg font-black ${netBalance >= 0 ? "text-primary" : "text-destructive"}`} aria-label={`Solde net: ${netBalance.toFixed(0)} euros`}>
+            <p className={`text-lg font-black ${netBalance >= 0 ? "text-primary" : "text-destructive"}`}>
               {netBalance >= 0 ? "+" : ""}{netBalance.toFixed(0)}€
             </p>
           </div>
         </div>
+
+        {/* Savings card */}
+        {savings > 0 && (
+          <div className="bg-gradient-to-r from-accent/10 to-primary/10 border border-accent/20 rounded-2xl p-3.5 mb-5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <TrendingUp size={18} className="text-accent" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-accent">Économies vs. transporteur classique</p>
+              <p className="text-sm font-bold text-foreground mt-0.5">
+                Vous avez économisé <span className="text-accent">+{savings.toFixed(0)}€</span> en utilisant la plateforme
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Category tabs */}
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as any); setAiFilter("all"); }}>
@@ -157,7 +273,7 @@ const HistoryPage = () => {
             <TabsTrigger value="voyageur" className="flex-1 rounded-xl py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Voyageur
             </TabsTrigger>
-            <TabsTrigger value="coly" className="flex-1 rounded-xl py-2 text-xs font-semibold data-[state=active]:bg-coly-purple data-[state=active]:text-primary-foreground">
+            <TabsTrigger value="coly" className="flex-1 rounded-xl py-2 text-xs font-semibold data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
               Coly
             </TabsTrigger>
             <TabsTrigger value="needit" className="flex-1 rounded-xl py-2 text-xs font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
@@ -167,76 +283,70 @@ const HistoryPage = () => {
         </Tabs>
 
         {/* Charts section */}
-        <div className="grid grid-cols-2 gap-3 mb-6 foldable-grid" role="region" aria-label="Graphiques">
-          {/* Pie chart */}
-          <div className="bg-card rounded-2xl border border-border p-3">
-            <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Répartition</p>
-            <ResponsiveContainer width="100%" height={120}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={30}
-                  outerRadius={50}
-                  dataKey="value"
-                  strokeWidth={0}
-                >
-                  {pieData.map((_, idx) => (
-                    <Cell key={idx} fill={PIE_COLORS[idx]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number) => `${value.toFixed(1)}€`}
-                  contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", fontSize: "12px" }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {pieData.map((d, i) => (
-                <div key={d.name} className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full" style={{ background: PIE_COLORS[i] }} />
-                  <span className="text-xs text-muted-foreground">{d.name}</span>
-                </div>
-              ))}
+        {!loading && allData.length > 0 && (
+          <div className="grid grid-cols-2 gap-3 mb-6 foldable-grid" role="region" aria-label="Graphiques">
+            {/* Pie chart */}
+            <div className="bg-card rounded-2xl border border-border p-3">
+              <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Répartition</p>
+              <ResponsiveContainer width="100%" height={120}>
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={30} outerRadius={50} dataKey="value" strokeWidth={0}>
+                    {pieData.map((_, idx) => (
+                      <Cell key={idx} fill={PIE_COLORS[idx]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number) => `${value.toFixed(1)}€`}
+                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", fontSize: "12px" }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {pieData.map((d, i) => (
+                  <div key={d.name} className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full" style={{ background: PIE_COLORS[i] }} />
+                    <span className="text-xs text-muted-foreground">{d.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Bar chart */}
-          <div className="bg-card rounded-2xl border border-border p-3">
-            <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Timeline</p>
-            <ResponsiveContainer width="100%" height={120}>
-              <BarChart data={barData} barSize={10}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <YAxis hide />
-                <Tooltip
-                  formatter={(value: number) => `${value.toFixed(1)}€`}
-                  contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", fontSize: "12px" }}
-                />
-                <Bar dataKey="gains" fill="hsl(214, 80%, 52%)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="expenses" fill="hsl(252, 40%, 75%)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-            <div className="flex gap-3 mt-1">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-primary" aria-hidden="true" />
-                <span className="text-xs text-muted-foreground">Gains</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-coly-purple" aria-hidden="true" />
-                <span className="text-xs text-muted-foreground">Dépenses</span>
+            {/* Bar chart */}
+            <div className="bg-card rounded-2xl border border-border p-3">
+              <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Timeline</p>
+              <ResponsiveContainer width="100%" height={120}>
+                <BarChart data={barData} barSize={10}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="month" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <YAxis hide />
+                  <Tooltip
+                    formatter={(value: number) => `${value.toFixed(1)}€`}
+                    contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", fontSize: "12px" }}
+                  />
+                  <Bar dataKey="gains" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="expenses" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+              <div className="flex gap-3 mt-1">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-primary" />
+                  <span className="text-xs text-muted-foreground">Gains</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-secondary" />
+                  <span className="text-xs text-muted-foreground">Dépenses</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Search + AI filters */}
         <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mb-3">
-          <Search size={16} className="text-muted-foreground shrink-0" aria-hidden="true" />
+          <Search size={16} className="text-muted-foreground shrink-0" />
           <input
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-            placeholder="Rechercher par ref, type..."
+            placeholder="Rechercher par ref, type…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Rechercher des transactions"
@@ -268,7 +378,7 @@ const HistoryPage = () => {
         {/* Total for current filter */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-muted-foreground">
-            {filtered.length} transaction{filtered.length > 1 ? "s" : ""}
+            {loading ? "Chargement…" : `${filtered.length} transaction${filtered.length > 1 ? "s" : ""}`}
           </p>
           <p className={`text-lg font-bold ${total >= 0 ? "text-primary" : "text-destructive"}`}>
             {total >= 0 ? "+" : ""}{total.toFixed(2)}€
@@ -276,50 +386,65 @@ const HistoryPage = () => {
         </div>
 
         {/* Transaction list */}
-        <motion.ul
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-          className="space-y-2" role="list" aria-label="Liste des transactions"
-        >
-          {filtered.length === 0 ? (
-            <li className="text-center py-12">
-              <p className="text-muted-foreground text-sm" role="status">Aucune transaction trouvée</p>
-            </li>
-          ) : (
-            filtered.map((item) => (
-              <motion.li
-                key={item.id}
-                variants={staggerItem}
-                className="flex items-center gap-3 bg-card rounded-xl border border-border p-3.5 hover:shadow-sm transition-shadow"
-                aria-label={`${item.type} ${item.ref}, ${item.amount >= 0 ? "+" : ""}${item.amount.toFixed(1)} euros, ${item.date}`}
-              >
-                <div className={`w-10 h-10 rounded-lg ${iconBgMap[item.icon]} flex items-center justify-center shrink-0`} aria-hidden="true">
-                  {iconMap[item.icon]}
+        {loading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-card rounded-xl border border-border p-3.5 animate-pulse flex gap-3">
+                <div className="w-10 h-10 bg-muted rounded-lg shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 bg-muted rounded w-2/3" />
+                  <div className="h-3 bg-muted rounded w-1/3" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-semibold text-foreground text-sm">{item.type}</p>
-                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                      item.category === "voyageur" ? "bg-primary/10 text-primary" :
-                      item.category === "coly" ? "bg-coly-purple/10 text-coly-purple" :
-                      "bg-accent/10 text-accent"
-                    }`}>
-                      {item.category}
-                    </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <motion.ul
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="space-y-2"
+            role="list"
+            aria-label="Liste des transactions"
+          >
+            {filtered.length === 0 ? (
+              <li className="text-center py-12">
+                <p className="text-muted-foreground text-sm">Aucune transaction trouvée</p>
+              </li>
+            ) : (
+              filtered.map((item) => (
+                <motion.li
+                  key={item.id}
+                  variants={staggerItem}
+                  className="flex items-center gap-3 bg-card rounded-xl border border-border p-3.5 hover:shadow-sm transition-shadow"
+                >
+                  <div className={`w-10 h-10 rounded-lg ${iconBgMap[item.icon]} flex items-center justify-center shrink-0`}>
+                    {iconMap[item.icon]}
                   </div>
-                  <p className="text-sm text-muted-foreground">{item.ref}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className={`font-bold text-sm ${item.amount >= 0 ? "text-primary" : "text-destructive"}`}>
-                    {item.amount >= 0 ? "+" : ""}{item.amount.toFixed(1)}€
-                  </p>
-                  <p className="text-xs text-muted-foreground">{item.date}</p>
-                </div>
-              </motion.li>
-            ))
-          )}
-        </motion.ul>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-foreground text-sm">{item.type}</p>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                        item.category === "voyageur" ? "bg-primary/10 text-primary" :
+                        item.category === "coly" ? "bg-secondary/10 text-secondary" :
+                        "bg-accent/10 text-accent"
+                      }`}>
+                        {item.category}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{item.ref}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className={`font-bold text-sm ${item.amount >= 0 ? "text-primary" : "text-destructive"}`}>
+                      {item.amount >= 0 ? "+" : ""}{item.amount.toFixed(1)}€
+                    </p>
+                    <p className="text-xs text-muted-foreground">{item.date}</p>
+                  </div>
+                </motion.li>
+              ))
+            )}
+          </motion.ul>
+        )}
       </main>
       </PageTransition>
       <BottomNav />

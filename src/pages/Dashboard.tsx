@@ -901,6 +901,7 @@ const Dashboard = () => {
 
                 <div className="space-y-2 mt-2">
                   {[
+                    { label: "Trouver un voyageur", icon: Search, path: "/voyageur-search", color: "primary" },
                     { label: "Mes Missions NeedIt", count: demandeurMissions.length, icon: ShoppingBag, path: "/mes-missions-needit", color: "secondary" },
                     { label: "Historique", icon: Receipt, path: "/history/coly", color: "primary" },
                     { label: "Mon solde", icon: Wallet, path: "/solde", color: "accent" },

@@ -33,6 +33,7 @@ import ConversationsPage from "./pages/ConversationsPage";
 import ChatPage from "./pages/ChatPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
+import VoyageurSearch from "./pages/VoyageurSearch";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,7 @@ const App = () => (
             <Route path="/conversations" element={<ProtectedRoute><ConversationsPage /></ProtectedRoute>} />
             <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/voyageur-search" element={<ProtectedRoute><VoyageurSearch /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
             </FavoritesProvider>
