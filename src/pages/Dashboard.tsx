@@ -484,7 +484,7 @@ const Dashboard = () => {
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-[9px] font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">MATCH</span>
                             <p className="font-semibold text-foreground text-sm truncate">
-                              {s.arrival_city}, {s.arrival_country}
+                              {s.departure_city || "—"} → {s.arrival_city}, {s.arrival_country}
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
@@ -515,9 +515,9 @@ const Dashboard = () => {
                       <div key={s.id} className="bg-card rounded-xl px-3 py-2.5 border border-border">
                         <div className="flex items-center justify-between">
                           <div className="min-w-0">
-                            <p className="font-medium text-foreground text-sm truncate">
-                              {s.arrival_city}, {s.arrival_country}
-                            </p>
+                             <p className="font-medium text-foreground text-sm truncate">
+                               {s.departure_city || "—"} → {s.arrival_city}, {s.arrival_country}
+                             </p>
                             <p className="text-[11px] text-muted-foreground mt-0.5">
                               {formatDate(s.departure_date)} · Taille {s.size}
                             </p>
