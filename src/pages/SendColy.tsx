@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package,
   Image, Ruler, CreditCard, Shield, Sparkles, Users, Truck, Zap,
-  AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2
+  AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +20,89 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getCurrencyForCountry, getUnitsForCountry, formatSizeLabel } from "@/hooks/useLocaleUnits";
+import { Input } from "@/components/ui/input";
+
+/** Searchable dropdown that only renders visible items (max 50 shown) */
+const SearchableSelect = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled = false,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder: string;
+  disabled?: boolean;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filtered = useMemo(() => {
+    if (!search) return options.slice(0, 50);
+    const q = search.toLowerCase();
+    return options.filter((o) => o.toLowerCase().includes(q)).slice(0, 50);
+  }, [options, search]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => { if (!disabled) { setOpen(!open); setSearch(""); } }}
+        className="flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <span className={value ? "text-foreground" : "text-muted-foreground"}>
+          {value || placeholder}
+        </span>
+        <ChevronDown className="h-4 w-4 opacity-50" />
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-card border border-border rounded-md shadow-lg">
+          <div className="p-2">
+            <Input
+              autoFocus
+              placeholder="Rechercher..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-8 text-sm"
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-muted-foreground">Aucun résultat</div>
+            ) : (
+              filtered.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => { onChange(item); setOpen(false); setSearch(""); }}
+                  className={`w-full text-left px-3 py-2 text-sm hover:bg-muted/80 transition-colors ${
+                    item === value ? "bg-primary/10 font-medium" : ""
+                  }`}
+                >
+                  {item}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // — Constants —
 
@@ -216,6 +299,42 @@ const SendColy = () => {
   const [contactPrenom, setContactPrenom] = useState("");
   const [contactTel, setContactTel] = useState("");
   const [contactMail, setContactMail] = useState("");
+
+  // Countries & cities for destination
+  const [countries, setCountries] = useState<string[]>([]);
+  const [arrCities, setArrCities] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("https://countriesnow.space/api/v0.1/countries")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res?.data) {
+          const sorted = res.data.map((c: any) => c.country).sort();
+          setCountries(sorted);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const fetchCities = (country: string) => {
+    setArrCities([]);
+    if (!country) return;
+    fetch("https://countriesnow.space/api/v0.1/countries/cities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ country }),
+    })
+      .then((r) => r.json())
+      .then((res) => { if (res?.data) setArrCities(res.data.sort()); })
+      .catch(() => {});
+  };
+
+  const handleArrCountryChange = (v: string) => {
+    setArrCountry(v);
+    setArrCity("");
+    clearError("arrCountry");
+    fetchCities(v);
+  };
 
   // Step 2 — Colis
   const [photo, setPhoto] = useState<string | null>(null);
@@ -465,14 +584,27 @@ const SendColy = () => {
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <MapPin size={16} className="text-accent" /> Destination & Contact
               </h3>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
                 <div>
-                  <input className={inputClass("arrCity")} placeholder="Ville" value={arrCity} onChange={(e) => { setArrCity(e.target.value); clearError("arrCity"); }} />
-                  {errors.arrCity && <ErrorHint message={errors.arrCity} />}
+                  <label className="text-xs text-muted-foreground mb-1 block">Pays</label>
+                  <SearchableSelect
+                    value={arrCountry}
+                    onChange={handleArrCountryChange}
+                    options={countries}
+                    placeholder="Sélectionner un pays"
+                  />
+                  {errors.arrCountry && <ErrorHint message={errors.arrCountry} />}
                 </div>
                 <div>
-                  <input className={inputClass("arrCountry")} placeholder="Pays" value={arrCountry} onChange={(e) => { setArrCountry(e.target.value); clearError("arrCountry"); }} />
-                  {errors.arrCountry && <ErrorHint message={errors.arrCountry} />}
+                  <label className="text-xs text-muted-foreground mb-1 block">Ville</label>
+                  <SearchableSelect
+                    value={arrCity}
+                    onChange={(v) => { setArrCity(v); clearError("arrCity"); }}
+                    options={arrCities}
+                    placeholder="Sélectionner une ville"
+                    disabled={!arrCountry}
+                  />
+                  {errors.arrCity && <ErrorHint message={errors.arrCity} />}
                 </div>
               </div>
 
