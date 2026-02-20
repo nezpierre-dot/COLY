@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
@@ -155,6 +155,26 @@ const Dashboard = () => {
   const [filterTout, setFilterTout] = useState(false);
   const [voyages, setVoyages] = useState<Voyage[]>([]);
   const [selectedVoyage, setSelectedVoyage] = useState<string | null>(null);
+
+  // Demandeur stats
+  const [demandeurShipments, setDemandeurShipments] = useState<any[]>([]);
+  const [demandeurMissions, setDemandeurMissions] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isVoyageur || !user) return;
+    const loadDemandeurData = async () => {
+      const [shipRes, missRes] = await Promise.all([
+        supabase.from("shipments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("needit_missions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      ]);
+      if (shipRes.data) setDemandeurShipments(shipRes.data);
+      if (missRes.data) setDemandeurMissions(missRes.data);
+    };
+    loadDemandeurData();
+    const ch1 = supabase.channel("dem-shipments").on("postgres_changes", { event: "*", schema: "public", table: "shipments", filter: `user_id=eq.${user.id}` }, () => loadDemandeurData()).subscribe();
+    const ch2 = supabase.channel("dem-missions").on("postgres_changes", { event: "*", schema: "public", table: "needit_missions", filter: `user_id=eq.${user.id}` }, () => loadDemandeurData()).subscribe();
+    return () => { supabase.removeChannel(ch1); supabase.removeChannel(ch2); };
+  }, [isVoyageur, user]);
 
   // Fetch voyages
   useEffect(() => {
@@ -588,93 +608,153 @@ const Dashboard = () => {
           </div>
         ) : (
           /* ============ DEMANDEUR ============ */
-          <div className="space-y-4">
+          <motion.div
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="space-y-4"
+          >
+            {/* Summary Stats */}
+            <motion.div variants={staggerItem} className="grid grid-cols-3 gap-2">
+              {[
+                { value: demandeurShipments.length, label: "Envois", icon: Send, color: "primary" },
+                { value: demandeurMissions.length, label: "Missions", icon: ShoppingBag, color: "secondary" },
+                { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", icon: Clock, color: "accent" },
+              ].map((stat) => (
+                <motion.div
+                  key={stat.label}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  className={`bg-${stat.color}/10 border border-${stat.color}/20 rounded-2xl p-3 text-center cursor-default`}
+                >
+                  <stat.icon size={16} className={`text-${stat.color} mx-auto mb-1`} />
+                  <p className={`text-xl font-bold text-${stat.color}`}>{stat.value}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">{stat.label}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+
             {/* AI Recommendation */}
-            <AiRecommendation isVoyageur={false} />
+            <motion.div variants={staggerItem}>
+              <AiRecommendation isVoyageur={false} />
+            </motion.div>
 
             {/* Favorite Routes */}
             <FavoriteRoutes />
 
-            <button onClick={() => navigate("/needit-mission")}
-              className="w-full py-4 rounded-2xl bg-primary/20 border border-primary/30 text-primary font-medium text-lg hover:bg-primary/30 transition-colors">
-              Je propose une mission d'achat Needit
-            </button>
-            <button onClick={() => navigate("/mes-missions-needit")}
-              className="w-full py-4 rounded-2xl bg-secondary/20 border border-secondary/30 text-secondary font-medium text-lg flex items-center justify-center gap-2 hover:bg-secondary/30 transition-colors">
-              Mes Missions Needit <ArrowRight size={20} />
-            </button>
-
-            <div className="h-4" />
-
-            <button onClick={() => navigate("/send-coly")}
-              className="w-full py-4 rounded-2xl bg-primary/20 border border-primary/30 text-primary font-medium text-lg hover:bg-primary/30 transition-colors">
-              Je propose un envoi COLY
-            </button>
-
-            {/* Mes Envois section */}
-            <div className="bg-muted/50 rounded-2xl p-4 mt-2">
-              <h3 className="text-lg font-bold text-foreground text-center mb-4">Mes Envois</h3>
-
-              <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2 mb-3">
-                <Filter size={16} className="text-muted-foreground" aria-hidden="true" />
-                <input
-                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                  placeholder="par ville : de départ, d'arrivée .."
-                  value={searchCity}
-                  onChange={(e) => setSearchCity(e.target.value)}
-                  aria-label="Filtrer les envois par ville"
-                />
-                <Search size={16} className="text-muted-foreground" aria-hidden="true" />
+            {/* Quick Actions */}
+            <motion.div variants={staggerItem}>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Actions rapides</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate("/send-coly")}
+                  className="flex flex-col items-center gap-2 py-5 rounded-2xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Send size={20} className="text-primary" />
+                  </div>
+                  <span className="text-sm font-semibold text-primary">Envoyer un colis</span>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate("/needit-mission")}
+                  className="flex flex-col items-center gap-2 py-5 rounded-2xl bg-secondary/10 border border-secondary/20 hover:bg-secondary/15 transition-colors"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-secondary/20 flex items-center justify-center">
+                    <ShoppingBag size={20} className="text-secondary" />
+                  </div>
+                  <span className="text-sm font-semibold text-secondary">Mission NeedIt</span>
+                </motion.button>
               </div>
+            </motion.div>
 
-              <div className="flex gap-4 mb-4">
-                <label className="flex items-center gap-2 text-sm text-foreground">
-                  <Checkbox checked={filterEnCours} onCheckedChange={(v) => { setFilterEnCours(!!v); setFilterTout(false); }} />
-                  en cours
-                </label>
-                <label className="flex items-center gap-2 text-sm text-foreground">
-                  <Checkbox checked={filterEnAttente} onCheckedChange={(v) => { setFilterEnAttente(!!v); setFilterTout(false); }} />
-                  en attente
-                </label>
-                <label className="flex items-center gap-2 text-sm text-foreground">
-                  <Checkbox checked={filterTout} onCheckedChange={(v) => { setFilterTout(!!v); if (v) { setFilterEnCours(false); setFilterEnAttente(false); } }} />
-                  tout
-                </label>
-              </div>
+            {/* Shortcut links */}
+            <motion.div variants={staggerItem} className="space-y-2">
+              {[
+                { label: "Mes Missions NeedIt", count: demandeurMissions.length, icon: ShoppingBag, path: "/mes-missions-needit", color: "secondary" },
+                { label: "Historique", icon: Receipt, path: "/history/coly", color: "primary" },
+                { label: "Mon solde", icon: Wallet, path: "/solde", color: "accent" },
+              ].map((link) => (
+                <motion.button
+                  key={link.path}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => navigate(link.path)}
+                  className="w-full flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3 hover:shadow-sm transition-shadow"
+                >
+                  <div className={`w-9 h-9 rounded-lg bg-${link.color}/10 flex items-center justify-center shrink-0`}>
+                    <link.icon size={18} className={`text-${link.color}`} />
+                  </div>
+                  <span className="text-sm font-medium text-foreground flex-1 text-left">{link.label}</span>
+                  {"count" in link && typeof link.count === "number" && link.count > 0 && (
+                    <span className={`text-xs font-bold text-${link.color} bg-${link.color}/10 px-2 py-0.5 rounded-full`}>{link.count}</span>
+                  )}
+                  <ChevronRight size={16} className="text-muted-foreground" />
+                </motion.button>
+              ))}
+            </motion.div>
 
-              <div className="space-y-3">
-                {filteredEnvois.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">Aucun envoi trouvé</p>
-                ) : (
-                  filteredEnvois.map((e) => (
-                    <div key={e.id} className="rounded-2xl p-4 text-primary-foreground relative overflow-hidden"
-                      style={{ background: e.status === "accepted"
-                        ? "linear-gradient(135deg, hsl(var(--primary)), hsl(210 60% 55%))"
-                        : "linear-gradient(135deg, hsl(140 50% 45%), hsl(160 60% 50%))" }}>
-                      <div className="absolute bottom-4 right-4 w-20 h-20 rounded-full bg-primary-foreground/10" />
-                      <button
-                        onClick={() => handleToggleFavorite(e.from, e.to)}
-                        className="absolute top-3 right-3 w-7 h-7 rounded-full bg-primary-foreground/20 flex items-center justify-center"
-                      >
-                        <Heart size={12} fill={isFavorite(e.from, e.to) ? "currentColor" : "none"} className="text-primary-foreground" />
-                      </button>
-                      <p className="text-xs opacity-80">coly n° {e.id}</p>
-                      <p className="text-xl font-bold">Départ : {e.date}</p>
-                      <p className="text-sm opacity-90">à {e.time}</p>
-                      <p className="font-bold mt-1">{e.item}</p>
-                      <p className="text-sm font-medium">{e.from} → {e.to}</p>
-                      <p className="text-sm opacity-90">{e.station}</p>
-                      <p className="text-xs mt-2 opacity-80">
-                        {e.status === "accepted"
-                          ? `voyageur n°${e.voyageur} demande accepté`
-                          : "en attente de validation voyageur"}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
+            {/* Recent Activity */}
+            <motion.div variants={staggerItem}>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Activité récente</h3>
+              {demandeurShipments.length === 0 && demandeurMissions.length === 0 ? (
+                <div className="bg-muted/50 rounded-2xl p-6 text-center">
+                  <Package size={24} className="text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Aucune activité pour le moment</p>
+                  <p className="text-xs text-muted-foreground mt-1">Vos envois et missions apparaîtront ici</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {[...demandeurShipments.slice(0, 3).map(s => ({
+                    id: s.id,
+                    type: "coly" as const,
+                    title: `${s.departure_city || "—"} → ${s.arrival_city}`,
+                    subtitle: `Taille ${s.size} · ${s.tarif}`,
+                    status: s.status,
+                    date: s.created_at,
+                  })),
+                  ...demandeurMissions.slice(0, 2).map(m => ({
+                    id: m.id,
+                    type: "needit" as const,
+                    title: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission",
+                    subtitle: `${m.country}${m.city ? `, ${m.city}` : ""}`,
+                    status: m.status,
+                    date: m.created_at,
+                  }))]
+                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .slice(0, 4)
+                  .map((item) => (
+                    <motion.div
+                      key={item.id}
+                      whileTap={{ scale: 0.98 }}
+                      className="flex items-center gap-3 bg-card border border-border rounded-xl px-3.5 py-3"
+                    >
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                        item.type === "coly" ? "bg-primary/10" : "bg-secondary/10"
+                      }`}>
+                        {item.type === "coly"
+                          ? <Send size={16} className="text-primary" />
+                          : <ShoppingBag size={16} className="text-secondary" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
+                        <p className="text-xs text-muted-foreground">{item.subtitle}</p>
+                      </div>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                        item.status === "pending" ? "bg-accent/15 text-accent" :
+                        item.status === "accepted" ? "bg-primary/15 text-primary" :
+                        "bg-muted text-muted-foreground"
+                      }`}>
+                        {item.status === "pending" ? "En attente" : item.status === "accepted" ? "Accepté" : item.status}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
         )}
       </main>
       </PageTransition>
