@@ -144,7 +144,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="px-6 pt-12">
+      <main className="px-6 pt-12" id="main-content" role="main" aria-label="Tableau de bord">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold text-foreground">
@@ -152,12 +152,12 @@ const Dashboard = () => {
           </h1>
           <div className="flex items-center gap-3">
             <NotificationBell />
-            <button onClick={toggleRole}
+            <button onClick={toggleRole} aria-label={`Changer vers ${isVoyageur ? "demandeur" : "voyageur"}`}
               className={`w-14 h-8 rounded-full relative transition-colors ${isVoyageur ? "bg-secondary" : "bg-muted"}`}>
               <div className={`w-6 h-6 rounded-full bg-background shadow absolute top-1 transition-transform ${isVoyageur ? "translate-x-7" : "translate-x-1"}`} />
             </button>
-            <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground">
-              <LogOut size={20} />
+            <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground" aria-label="Se déconnecter">
+              <LogOut size={20} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -351,14 +351,15 @@ const Dashboard = () => {
               <h3 className="text-lg font-bold text-foreground text-center mb-4">Mes Envois</h3>
 
               <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2 mb-3">
-                <Filter size={16} className="text-muted-foreground" />
+                <Filter size={16} className="text-muted-foreground" aria-hidden="true" />
                 <input
                   className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                   placeholder="par ville : de départ, d'arrivée .."
                   value={searchCity}
                   onChange={(e) => setSearchCity(e.target.value)}
+                  aria-label="Filtrer les envois par ville"
                 />
-                <Search size={16} className="text-muted-foreground" />
+                <Search size={16} className="text-muted-foreground" aria-hidden="true" />
               </div>
 
               <div className="flex gap-4 mb-4">
@@ -411,7 +412,7 @@ const Dashboard = () => {
             </div>
           </div>
         )}
-      </div>
+      </main>
 
       <BottomNav />
     </div>
