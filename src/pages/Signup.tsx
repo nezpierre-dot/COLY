@@ -113,7 +113,7 @@ const Signup = () => {
               type="button"
               onClick={handleGeolocate}
               disabled={geoLoading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 text-primary font-medium text-sm mb-4 hover:bg-primary/20 transition-colors disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 text-primary font-medium text-sm mb-1 hover:bg-primary/20 transition-colors disabled:opacity-50"
             >
               {geoLoading ? (
                 <Loader2 size={16} className="animate-spin" />
@@ -122,6 +122,9 @@ const Signup = () => {
               )}
               {geoLoading ? "Détection en cours..." : "Utiliser ma position GPS"}
             </button>
+            <p className="text-[11px] text-muted-foreground text-center mb-4">
+              📍 Votre position est utilisée uniquement pour pré-remplir l'adresse et n'est pas conservée.
+            </p>
 
             <input className={inputClass} placeholder="Pays de résidence" value={form.pays} onChange={(e) => update("pays", e.target.value)} />
             <div className="flex gap-4">
