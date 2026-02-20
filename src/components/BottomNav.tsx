@@ -15,11 +15,14 @@ const BottomNav = () => {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 glass-strong border-t border-border/40 pb-safe z-50"
+      className="fixed bottom-0 left-0 right-0 z-50"
       role="navigation"
       aria-label="Navigation principale"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
-      <div className="flex items-end justify-around pt-1.5 pb-1 max-w-lg mx-auto">
+      {/* Background layer that extends to screen edge */}
+      <div className="absolute inset-0 glass-strong" style={{ bottom: "calc(-1 * env(safe-area-inset-bottom, 0px))" }} />
+      <div className="relative flex items-end justify-around pt-1.5 pb-1 max-w-lg mx-auto">
         {tabs.map((tab, i) => {
           const Icon = tab.icon;
           const active = location.pathname === tab.path;
