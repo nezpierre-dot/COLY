@@ -25,6 +25,7 @@ import Comptabilite from "./pages/Comptabilite";
 import SoldePage from "./pages/SoldePage";
 import FacturationPage from "./pages/FacturationPage";
 import ConfidentialitePage from "./pages/ConfidentialitePage";
+import PaymentMethods from "./pages/PaymentMethods";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/solde" element={<ProtectedRoute><SoldePage /></ProtectedRoute>} />
             <Route path="/facturation" element={<ProtectedRoute><FacturationPage /></ProtectedRoute>} />
             <Route path="/confidentialite" element={<ProtectedRoute><ConfidentialitePage /></ProtectedRoute>} />
+            <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
             </FavoritesProvider>

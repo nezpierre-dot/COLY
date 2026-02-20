@@ -6,8 +6,8 @@ const MENU_ITEMS = [
   { label: "SOLDE", route: "/solde" },
   { label: "Relevés Expéditeur", route: "/history/coly" },
   { label: "Relevés Voyageur", route: "/history/voyageur" },
-  { label: "Mon rib", route: null },
-  { label: "Méthodes de Paiement", route: null },
+  { label: "Mon rib", route: "/payment-methods" },
+  { label: "Méthodes de Paiement", route: "/payment-methods" },
   { label: "Facturation et Paiements", route: "/facturation" },
 ];
 
