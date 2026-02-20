@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
 import NotificationBell from "@/components/NotificationBell";
@@ -15,6 +15,7 @@ import { getCurrencyForCountry } from "@/hooks/useLocaleUnits";
 import BottomNav from "@/components/BottomNav";
 import VoyageMap from "@/components/VoyageMap";
 import PublicMissionsMap from "@/components/PublicMissionsMap";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -156,6 +157,9 @@ const Dashboard = () => {
   const { roles, user } = useAuth();
   const { addFavorite, isFavorite } = useFavorites();
   const isVoyageur = roles.includes("voyageur");
+  const { canInstall, promptInstall } = usePWAInstall();
+  const [dismissedBanner, setDismissedBanner] = useState(() => localStorage.getItem("pwa-banner-dismissed") === "1");
+  const showInstallBanner = canInstall && !dismissedBanner;
 
   const [voyages, setVoyages] = useState<Voyage[]>([]);
   const [selectedVoyage, setSelectedVoyage] = useState<string | null>(null);
@@ -386,6 +390,32 @@ const Dashboard = () => {
             </button>
           </div>
         </motion.div>
+
+        {/* PWA Install Banner */}
+        <AnimatePresence>
+          {showInstallBanner && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-primary/8 border border-primary/20 rounded-2xl px-4 py-3 mb-4 flex items-center gap-3"
+            >
+              <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                <Download size={18} className="text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">Installer WeAppYou</p>
+                <p className="text-xs text-muted-foreground">Accès rapide & mode hors-ligne</p>
+              </div>
+              <button onClick={promptInstall} className="shrink-0 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity">
+                Installer
+              </button>
+              <button onClick={() => { setDismissedBanner(true); localStorage.setItem("pwa-banner-dismissed", "1"); }} className="text-muted-foreground shrink-0">
+                <X size={16} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {isVoyageur ? (
           /* ============ VOYAGEUR ============ */
