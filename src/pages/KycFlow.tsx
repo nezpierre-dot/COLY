@@ -8,9 +8,12 @@ import BottomNav from "@/components/BottomNav";
 
 type KycStep = "intro" | "scan" | "review" | "selfie" | "done";
 
+const STEPS_ORDER: KycStep[] = ["intro", "scan", "review", "selfie", "done"];
+
 const KycFlow = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const isVoyageur = roles.includes("voyageur");
   const [step, setStep] = useState<KycStep>("intro");
   const [idFront, setIdFront] = useState<File | null>(null);
   const [idBack, setIdBack] = useState<File | null>(null);
@@ -23,6 +26,9 @@ const KycFlow = () => {
   const frontRef = useRef<HTMLInputElement>(null);
   const backRef = useRef<HTMLInputElement>(null);
   const selfieRef = useRef<HTMLInputElement>(null);
+
+  const currentStepIndex = STEPS_ORDER.indexOf(step);
+  const progress = Math.round(((currentStepIndex + 1) / STEPS_ORDER.length) * 100);
 
   const handleFile = (
     file: File | undefined,
@@ -74,6 +80,11 @@ const KycFlow = () => {
     }
   };
 
+  const handleSkipKyc = () => {
+    toast.info("Vous pourrez compléter la vérification plus tard depuis Mon Compte");
+    navigate("/dashboard");
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Blue header */}
@@ -104,6 +115,19 @@ const KycFlow = () => {
           {step === "selfie" && "Créez votre compte pour commencer à utiliser nos services."}
           {step === "done" && "Conditions générales d'utilisation"}
         </p>
+
+        {/* Progress bar */}
+        {step !== "done" && (
+          <div className="mt-4 relative z-10">
+            <div className="w-full h-1.5 rounded-full bg-primary-foreground/20">
+              <div
+                className="h-1.5 rounded-full bg-primary-foreground transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="text-xs opacity-70 mt-1">Étape {currentStepIndex + 1} / {STEPS_ORDER.length - 1}</p>
+          </div>
+        )}
       </div>
 
       {/* Content card */}
@@ -117,6 +141,9 @@ const KycFlow = () => {
                 <p className="text-foreground mt-6 text-sm leading-relaxed">
                   POUR ASSURER LA SÉCURITÉ DE VOTRE ENVOI MERCI DE CONFIRMER VOTRE IDENTITÉ
                 </p>
+                <p className="text-muted-foreground mt-4 text-xs">
+                  ⏱ Cette vérification prend environ 2 minutes
+                </p>
               </div>
               <div className="flex items-center justify-between mt-12">
                 <button
@@ -125,12 +152,23 @@ const KycFlow = () => {
                 >
                   Retour
                 </button>
-                <button
-                  onClick={() => setStep("scan")}
-                  className="px-10 py-3.5 rounded-2xl bg-accent text-accent-foreground font-bold text-lg shadow-lg"
-                >
-                  Continuer
-                </button>
+                <div className="flex items-center gap-3">
+                  {/* Skip for voyageur role — KYC optional */}
+                  {isVoyageur && (
+                    <button
+                      onClick={handleSkipKyc}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors underline"
+                    >
+                      Plus tard
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setStep("scan")}
+                    className="px-10 py-3.5 rounded-2xl bg-accent text-accent-foreground font-bold text-lg shadow-lg"
+                  >
+                    Continuer
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -148,6 +186,7 @@ const KycFlow = () => {
                   <>
                     <Camera size={48} className="text-foreground mb-2" />
                     <p className="text-sm text-muted-foreground">Touchez pour scanner</p>
+                    <p className="text-xs text-muted-foreground mt-1">CNI ou Passeport</p>
                   </>
                 )}
                 <input
@@ -159,15 +198,20 @@ const KycFlow = () => {
                   onChange={(e) => handleFile(e.target.files?.[0], setIdFront, setFrontPreview)}
                 />
               </div>
-              <button
-                onClick={() => {
-                  if (idFront) setStep("review");
-                  else toast.error("Veuillez scanner votre document");
-                }}
-                className="w-full py-3.5 rounded-2xl bg-coly-purple text-primary-foreground font-bold text-lg mt-6 flex items-center justify-center gap-2"
-              >
-                Uploader une image <ArrowRight size={20} />
-              </button>
+              <div className="flex items-center justify-between w-full mt-6">
+                <button onClick={() => setStep("intro")} className="text-muted-foreground font-medium">
+                  Retour
+                </button>
+                <button
+                  onClick={() => {
+                    if (idFront) setStep("review");
+                    else toast.error("Veuillez scanner votre document");
+                  }}
+                  className="px-8 py-3.5 rounded-2xl bg-coly-purple text-primary-foreground font-bold text-lg flex items-center gap-2"
+                >
+                  Uploader <ArrowRight size={20} />
+                </button>
+              </div>
             </div>
           )}
 
@@ -175,13 +219,11 @@ const KycFlow = () => {
           {step === "review" && (
             <div className="flex-1 flex flex-col justify-between">
               <div className="space-y-4 mt-2">
-                {/* Front */}
                 {frontPreview && (
                   <div className="rounded-2xl overflow-hidden border border-border">
                     <img src={frontPreview} alt="ID Recto" className="w-full object-contain" />
                   </div>
                 )}
-                {/* Back */}
                 <div
                   className="rounded-2xl overflow-hidden border border-border bg-muted flex items-center justify-center min-h-[140px] cursor-pointer"
                   onClick={() => backRef.current?.click()}
@@ -223,9 +265,12 @@ const KycFlow = () => {
           {/* === STEP: SELFIE === */}
           {step === "selfie" && (
             <div className="flex-1 flex flex-col items-center justify-center">
-              <h2 className="text-xl font-bold text-foreground mb-8">
+              <h2 className="text-xl font-bold text-foreground mb-2">
                 Juste un selfie et c'est fini !
               </h2>
+              <p className="text-sm text-muted-foreground mb-8">
+                Prenez un selfie clair, visage bien visible
+              </p>
               <div
                 className="w-32 h-32 rounded-full bg-muted flex items-center justify-center cursor-pointer overflow-hidden mb-6"
                 onClick={() => selfieRef.current?.click()}
@@ -260,9 +305,12 @@ const KycFlow = () => {
           {/* === STEP: DONE === */}
           {step === "done" && (
             <div className="flex-1 flex flex-col justify-between">
-              <div className="mt-8">
+              <div className="mt-8 text-center">
+                <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle size={40} className="text-green-600" />
+                </div>
                 <h2 className="text-2xl font-bold text-foreground">Votre Envoi est validé !</h2>
-                <p className="text-foreground mt-6 text-lg leading-relaxed">
+                <p className="text-foreground mt-4 text-sm leading-relaxed">
                   Vous recevrez une notification lorsqu'un voyageur acceptera votre demande.
                 </p>
               </div>
