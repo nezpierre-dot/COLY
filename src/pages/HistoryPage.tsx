@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import BottomNav from "@/components/BottomNav";
@@ -119,8 +121,8 @@ const HistoryPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <main className="px-6 pt-12" id="main-content" role="main" aria-label="Historique des transactions">
-        {/* Header */}
+      <PageTransition>
+        <main className="px-6 pt-12" id="main-content" role="main" aria-label="Historique des transactions">
         <div className="flex items-center gap-3 mb-6">
           <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Retour">
             <ArrowLeft size={24} aria-hidden="true" />
@@ -274,15 +276,21 @@ const HistoryPage = () => {
         </div>
 
         {/* Transaction list */}
-        <ul className="space-y-2" role="list" aria-label="Liste des transactions">
+        <motion.ul
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+          className="space-y-2" role="list" aria-label="Liste des transactions"
+        >
           {filtered.length === 0 ? (
             <li className="text-center py-12">
               <p className="text-muted-foreground text-sm" role="status">Aucune transaction trouvée</p>
             </li>
           ) : (
             filtered.map((item) => (
-              <li
+              <motion.li
                 key={item.id}
+                variants={staggerItem}
                 className="flex items-center gap-3 bg-card rounded-xl border border-border p-3.5 hover:shadow-sm transition-shadow"
                 aria-label={`${item.type} ${item.ref}, ${item.amount >= 0 ? "+" : ""}${item.amount.toFixed(1)} euros, ${item.date}`}
               >
@@ -308,11 +316,12 @@ const HistoryPage = () => {
                   </p>
                   <p className="text-xs text-muted-foreground">{item.date}</p>
                 </div>
-              </li>
+              </motion.li>
             ))
           )}
-        </ul>
+        </motion.ul>
       </main>
+      </PageTransition>
       <BottomNav />
     </div>
   );
