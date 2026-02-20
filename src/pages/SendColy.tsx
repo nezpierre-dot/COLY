@@ -291,6 +291,7 @@ const SendColy = () => {
   // Step 1 — Trajet
   const [date, setDate] = useState("");
   const [departMethod, setDepartMethod] = useState<string>("");
+  const [departCountry, setDepartCountry] = useState("");
   const [departCity, setDepartCity] = useState("");
   const [relayPoint, setRelayPoint] = useState("");
   const [arrCity, setArrCity] = useState("");
@@ -300,8 +301,9 @@ const SendColy = () => {
   const [contactTel, setContactTel] = useState("");
   const [contactMail, setContactMail] = useState("");
 
-  // Countries & cities for destination
+  // Countries & cities
   const [countries, setCountries] = useState<string[]>([]);
+  const [departCities, setDepartCities] = useState<string[]>([]);
   const [arrCities, setArrCities] = useState<string[]>([]);
 
   useEffect(() => {
@@ -316,8 +318,8 @@ const SendColy = () => {
       .catch(() => {});
   }, []);
 
-  const fetchCities = (country: string) => {
-    setArrCities([]);
+  const fetchCitiesFor = (country: string, setter: (c: string[]) => void) => {
+    setter([]);
     if (!country) return;
     fetch("https://countriesnow.space/api/v0.1/countries/cities", {
       method: "POST",
@@ -325,15 +327,22 @@ const SendColy = () => {
       body: JSON.stringify({ country }),
     })
       .then((r) => r.json())
-      .then((res) => { if (res?.data) setArrCities(res.data.sort()); })
+      .then((res) => { if (res?.data) setter(res.data.sort()); })
       .catch(() => {});
+  };
+
+  const handleDepartCountryChange = (v: string) => {
+    setDepartCountry(v);
+    setDepartCity("");
+    clearError("departCountry");
+    fetchCitiesFor(v, setDepartCities);
   };
 
   const handleArrCountryChange = (v: string) => {
     setArrCountry(v);
     setArrCity("");
     clearError("arrCountry");
-    fetchCities(v);
+    fetchCitiesFor(v, setArrCities);
   };
 
   // Step 2 — Colis
@@ -423,8 +432,8 @@ const SendColy = () => {
         if (!date) e.date = "Veuillez sélectionner une date";
         else if (new Date(date) < new Date(new Date().toDateString())) e.date = "La date doit être dans le futur";
         if (!departMethod) e.departMethod = "Choisissez un mode de remise";
-        if (departMethod === "address" && !departCity.trim()) e.departCity = "Adresse requise";
-        if (departMethod === "relay" && !departCity.trim()) e.departCity = "Ville requise";
+        if (!departCountry.trim()) e.departCountry = "Pays de départ requis";
+        if (!departCity.trim()) e.departCity = "Ville de départ requise";
         if (departMethod === "relay" && !relayPoint) e.relayPoint = "Choisissez un point relais";
         if (!arrCity.trim()) e.arrCity = "Ville d'arrivée requise";
         if (!arrCountry.trim()) e.arrCountry = "Pays d'arrivée requis";
@@ -544,6 +553,33 @@ const SendColy = () => {
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <MapPin size={16} className="text-primary" /> Point de départ
               </h3>
+
+              {/* Pays de départ */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Pays de départ</label>
+                <SearchableSelect
+                  value={departCountry}
+                  onChange={handleDepartCountryChange}
+                  options={countries}
+                  placeholder="Sélectionner un pays"
+                />
+                {errors.departCountry && <ErrorHint message={errors.departCountry} />}
+              </div>
+
+              {/* Ville de départ */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Ville de départ</label>
+                <SearchableSelect
+                  value={departCity}
+                  onChange={(v) => { setDepartCity(v); clearError("departCity"); }}
+                  options={departCities}
+                  placeholder={departCountry ? "Sélectionner une ville" : "Choisir un pays d'abord"}
+                  disabled={!departCountry}
+                />
+                {errors.departCity && <ErrorHint message={errors.departCity} />}
+              </div>
+
+              {/* Mode de remise */}
               {errors.departMethod && <ErrorHint message={errors.departMethod} />}
               <div className="grid grid-cols-1 gap-2">
                 {(["main", "address", "relay"] as const).map((m) => (
@@ -557,14 +593,11 @@ const SendColy = () => {
               </div>
               {departMethod === "address" && (
                 <div>
-                  <input className={inputClass("departCity")} placeholder="Adresse de récupération" value={departCity} onChange={(e) => { setDepartCity(e.target.value); clearError("departCity"); }} />
-                  {errors.departCity && <ErrorHint message={errors.departCity} />}
+                  <input className={inputClass("departAddress")} placeholder="Adresse de récupération" value={departCity} onChange={(e) => { setDepartCity(e.target.value); clearError("departCity"); }} />
                 </div>
               )}
               {departMethod === "relay" && (
                 <div className="space-y-2">
-                  <input className={inputClass("departCity")} placeholder="Ville..." value={departCity} onChange={(e) => { setDepartCity(e.target.value); clearError("departCity"); }} />
-                  {errors.departCity && <ErrorHint message={errors.departCity} />}
                   <Select value={relayPoint} onValueChange={(v) => { setRelayPoint(v); clearError("relayPoint"); }}>
                     <SelectTrigger className={`rounded-xl ${errors.relayPoint ? "border-destructive" : ""}`}>
                       <SelectValue placeholder="Choisir un point relais" />
