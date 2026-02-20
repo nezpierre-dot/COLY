@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
@@ -80,6 +81,7 @@ const Dashboard = () => {
             {isVoyageur ? "Espace Relayeur" : "Espace Demandeur"}
           </h1>
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <button onClick={toggleRole}
               className={`w-14 h-8 rounded-full relative transition-colors ${isVoyageur ? "bg-coly-purple" : "bg-muted"}`}>
               <div className={`w-6 h-6 rounded-full bg-white shadow absolute top-1 transition-transform ${isVoyageur ? "translate-x-7" : "translate-x-1"}`} />
