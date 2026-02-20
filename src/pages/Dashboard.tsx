@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+import VoyageMap from "@/components/VoyageMap";
 
 const MOCK_VOYAGES = [
   { id: 1, from: "Genève", to: "Casablanca", date: "06/01/2025", time: "18h30", location: "Aeroport International de genève (GVA)", fillRate: 75 },
@@ -94,7 +95,10 @@ const Dashboard = () => {
           <Tabs defaultValue="voyages" className="space-y-4">
             <TabsList className="w-full bg-muted rounded-2xl p-1 h-auto">
               <TabsTrigger value="voyages" className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Plane size={16} className="mr-1.5" /> Mes Voyages
+                <Plane size={16} className="mr-1.5" /> Voyages
+              </TabsTrigger>
+              <TabsTrigger value="carte" className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Map size={16} className="mr-1.5" /> Carte
               </TabsTrigger>
               <TabsTrigger value="demandes" className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-coly-purple data-[state=active]:text-primary-foreground">
                 <MapPin size={16} className="mr-1.5" /> Demandes
@@ -153,6 +157,30 @@ const Dashboard = () => {
                 className="w-full py-4 rounded-2xl bg-coly-purple/20 border border-coly-purple/30 text-coly-purple font-medium text-lg flex items-center justify-center gap-2 hover:bg-coly-purple/30 transition-colors">
                 Je propose un nouveau voyage <ArrowRight size={20} />
               </button>
+            </TabsContent>
+
+            {/* ---- Carte tab ---- */}
+            <TabsContent value="carte" className="space-y-4 mt-0">
+              <p className="text-sm text-muted-foreground text-center">Visualisez vos trajets sur la carte</p>
+              <VoyageMap
+                voyages={MOCK_VOYAGES}
+                selectedVoyageId={selectedVoyage}
+                onSelectVoyage={setSelectedVoyage}
+              />
+              {currentVoyage && (
+                <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-foreground">{currentVoyage.from} → {currentVoyage.to}</p>
+                      <p className="text-xs text-muted-foreground">{currentVoyage.date} à {currentVoyage.time}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-foreground">{currentVoyage.fillRate}%</p>
+                      <p className="text-xs text-muted-foreground">rempli</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </TabsContent>
 
             {/* ---- Demandes tab ---- */}
