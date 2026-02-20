@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { getCurrencyForCountry, getUnitsForCountry } from "@/hooks/useLocaleUnits";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -36,8 +37,12 @@ const NewTrip = () => {
   const [arrivalDate, setArrivalDate] = useState("");
   const [arrivalTime, setArrivalTime] = useState("");
   const [arrivalCity, setArrivalCity] = useState("");
+  const [arrivalCountry, setArrivalCountry] = useState("");
   const [arrivalAddress, setArrivalAddress] = useState("");
 
+  // Locale units based on arrival country
+  const currency = useMemo(() => getCurrencyForCountry(arrivalCountry), [arrivalCountry]);
+  const units = useMemo(() => getUnitsForCountry(arrivalCountry), [arrivalCountry]);
   // Step 4 – Transport & options
   const [transportMethod, setTransportMethod] = useState("");
   const [canPickup, setCanPickup] = useState(false);
@@ -181,6 +186,10 @@ const NewTrip = () => {
                   <Input type="time" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} />
                 </div>
                 <div>
+                  <Label className="text-muted-foreground text-sm">Pays d'Arrivée</Label>
+                  <Input placeholder="France" value={arrivalCountry} onChange={(e) => setArrivalCountry(e.target.value)} />
+                </div>
+                <div>
                   <Label className="text-muted-foreground text-sm">Ville d'Arrivée</Label>
                   <Input placeholder="Casablanca" value={arrivalCity} onChange={(e) => setArrivalCity(e.target.value)} />
                 </div>
@@ -262,13 +271,20 @@ const NewTrip = () => {
 
               {acceptNeedit && (
                 <div>
-                  <Label className="text-muted-foreground text-sm">Montant du budget Needit pour ce trajet</Label>
-                  <Input
-                    type="number"
-                    placeholder="Ex: 500"
-                    value={needitBudget}
-                    onChange={(e) => setNeeditBudget(e.target.value)}
-                  />
+                  <Label className="text-muted-foreground text-sm">
+                    Montant du budget Needit pour ce trajet ({currency.code})
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Ex: 500"
+                      value={needitBudget}
+                      onChange={(e) => setNeeditBudget(e.target.value)}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">
+                      {currency.symbol}
+                    </span>
+                  </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     *Je dois définir le plafond à ne pas dépasser qui correspond à mon budget.
                   </p>
