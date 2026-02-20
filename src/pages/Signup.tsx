@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, MapPin, Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
   const [form, setForm] = useState<FormData>({
     nom: "", prenom: "", email: "", telephone: "",
     pays: "", ville: "", codePostal: "", region: "", adresse: "",
@@ -38,6 +39,51 @@ const Signup = () => {
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const inputClass = "w-full border-b border-muted-foreground/30 py-3 text-foreground placeholder:text-muted-foreground focus:border-coly-blue focus:outline-none bg-transparent";
+
+  const totalSteps = 3;
+
+  // GPS auto-fill for step 2
+  const handleGeolocate = async () => {
+    if (!navigator.geolocation) {
+      toast.error("Géolocalisation non supportée par votre navigateur");
+      return;
+    }
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const resp = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=fr`
+          );
+          const data = await resp.json();
+          if (data?.address) {
+            const a = data.address;
+            update("pays", a.country || "");
+            update("ville", a.city || a.town || a.village || "");
+            update("codePostal", a.postcode || "");
+            update("region", a.state || a.county || "");
+            update("adresse", data.display_name?.split(",").slice(0, 2).join(",") || "");
+            toast.success("Localisation détectée !");
+          }
+        } catch {
+          toast.error("Impossible de récupérer l'adresse");
+        } finally {
+          setGeoLoading(false);
+        }
+      },
+      () => {
+        toast.error("Accès à la localisation refusé");
+        setGeoLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const canSkipStep2 = () => {
+    // Allow skip — address can be filled later
+    return true;
+  };
 
   const titles: Record<number, { title: string; subtitle: string }> = {
     1: { title: "", subtitle: "Créez votre compte pour commencer à partager le trajet." },
@@ -60,7 +106,23 @@ const Signup = () => {
       case 2:
         return (
           <>
-            <h2 className="text-2xl font-bold text-foreground mb-6">Où êtes-vous ?</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-2">Où êtes-vous ?</h2>
+
+            {/* GPS auto-fill button */}
+            <button
+              type="button"
+              onClick={handleGeolocate}
+              disabled={geoLoading}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 text-primary font-medium text-sm mb-4 hover:bg-primary/20 transition-colors disabled:opacity-50"
+            >
+              {geoLoading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <MapPin size={16} />
+              )}
+              {geoLoading ? "Détection en cours..." : "Utiliser ma position GPS"}
+            </button>
+
             <input className={inputClass} placeholder="Pays de résidence" value={form.pays} onChange={(e) => update("pays", e.target.value)} />
             <div className="flex gap-4">
               <input className={`${inputClass} flex-1`} placeholder="Ville" value={form.ville} onChange={(e) => update("ville", e.target.value)} />
@@ -86,11 +148,14 @@ const Signup = () => {
                 {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            <input className={inputClass} placeholder="Adresse mail de récupération" type="email" value={form.recoveryEmail} onChange={(e) => update("recoveryEmail", e.target.value)} />
+            <input className={inputClass} placeholder="Adresse mail de récupération (facultatif)" type="email" value={form.recoveryEmail} onChange={(e) => update("recoveryEmail", e.target.value)} />
             <div className="flex items-start gap-3 mt-4">
               <Checkbox checked={form.acceptTerms} onCheckedChange={(v) => update("acceptTerms", !!v)} className="mt-1" />
               <span className="text-sm text-foreground">
-                Je confirme que les informations fournies sont exactes et que j'accepte les termes et conditions d'utilisation.
+                Je confirme que les informations fournies sont exactes et que j'accepte les{" "}
+                <button type="button" onClick={() => navigate("/terms")} className="text-primary underline">
+                  termes et conditions d'utilisation
+                </button>.
               </span>
             </div>
           </>
@@ -104,6 +169,16 @@ const Signup = () => {
       return;
     }
 
+    if (!form.nom.trim() || !form.prenom.trim() || !form.email.trim()) {
+      toast.error("Veuillez remplir vos informations personnelles");
+      setStep(1);
+      return;
+    }
+
+    if (form.password.length < 6) {
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       toast.error("Les mots de passe ne correspondent pas");
       return;
@@ -122,6 +197,11 @@ const Signup = () => {
         data: {
           full_name: `${form.prenom} ${form.nom}`,
           phone: form.telephone,
+          pays: form.pays,
+          ville: form.ville,
+          code_postal: form.codePostal,
+          region: form.region,
+          adresse: form.adresse,
         },
       },
     });
@@ -135,11 +215,30 @@ const Signup = () => {
     }
   };
 
+  const handleSkip = () => {
+    if (step === 2) {
+      setStep(3);
+    }
+  };
+
   const { title, subtitle } = titles[step];
 
   return (
     <AuthLayout title={title} subtitle={subtitle}>
       <div className="flex flex-col gap-4 flex-1">
+        {/* Progress indicator */}
+        <div className="flex items-center gap-2 mb-2">
+          {Array.from({ length: totalSteps }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-1.5 flex-1 rounded-full transition-colors ${
+                i < step ? "bg-primary" : i === step ? "bg-primary/40" : "bg-muted"
+              }`}
+            />
+          ))}
+          <span className="text-xs text-muted-foreground ml-1">{step}/{totalSteps}</span>
+        </div>
+
         {renderStep()}
         <div className="flex-1" />
         <div className="flex items-center justify-between pt-6">
@@ -149,13 +248,25 @@ const Signup = () => {
           >
             Retour
           </button>
-          <button
-            onClick={handleNext}
-            disabled={loading}
-            className="flex items-center gap-2 px-8 py-3 rounded-full bg-coly-orange text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
-          >
-            {loading ? "..." : step === 3 ? "Finaliser" : "Continuer"} <ArrowRight size={20} />
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Skip button for step 2 */}
+            {step === 2 && (
+              <button
+                onClick={handleSkip}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors underline"
+              >
+                Plus tard
+              </button>
+            )}
+            <button
+              onClick={handleNext}
+              disabled={loading}
+              className="flex items-center gap-2 px-8 py-3 rounded-full bg-coly-orange text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
+            >
+              {loading ? "..." : step === 3 ? "Finaliser" : "Continuer"} <ArrowRight size={20} />
+            </button>
+          </div>
         </div>
       </div>
     </AuthLayout>
