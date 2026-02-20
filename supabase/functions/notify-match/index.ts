@@ -5,6 +5,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MAX_NOTIFICATIONS_PER_CALL = 50;
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX_CALLS = 5;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -41,6 +45,32 @@ Deno.serve(async (req) => {
 
     // Use service role client for data operations
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    // Rate limiting: check recent notifications created by this user
+    const rateLimitCutoff = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
+    const { count: recentNotifCount } = await supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("type", "match")
+      .gte("created_at", rateLimitCutoff);
+
+    // Simple rate limit based on recent match notifications globally from this endpoint
+    // A more precise approach would use a dedicated log table, but this is a reasonable heuristic
+    const { data: recentUserNotifs } = await supabase
+      .from("notifications")
+      .select("created_at")
+      .eq("user_id", userId)
+      .eq("type", "match")
+      .gte("created_at", rateLimitCutoff)
+      .order("created_at", { ascending: false })
+      .limit(RATE_LIMIT_MAX_CALLS);
+
+    if (recentUserNotifs && recentUserNotifs.length >= RATE_LIMIT_MAX_CALLS) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Parse and validate input
     let body: any;
@@ -114,7 +144,7 @@ Deno.serve(async (req) => {
         return cityMatch;
       });
 
-      const notifications: any[] = [];
+      let notifications: any[] = [];
 
       for (const s of matchedShipments) {
         notifications.push({
@@ -142,6 +172,11 @@ Deno.serve(async (req) => {
           message: `${total} demande(s) correspondent à votre trajet vers ${voyage.arrival_city}, ${voyage.arrival_country}.`,
           type: "match",
         });
+      }
+
+      // Cap notifications to prevent abuse
+      if (notifications.length > MAX_NOTIFICATIONS_PER_CALL) {
+        notifications = notifications.slice(0, MAX_NOTIFICATIONS_PER_CALL);
       }
 
       if (notifications.length > 0) {
@@ -208,7 +243,7 @@ Deno.serve(async (req) => {
         return cityMatch;
       });
 
-      const notifications: any[] = [];
+      let notifications: any[] = [];
 
       if (matchedVoyages.length > 0) {
         notifications.push({
@@ -226,6 +261,11 @@ Deno.serve(async (req) => {
             type: "match",
           });
         }
+      }
+
+      // Cap notifications to prevent abuse
+      if (notifications.length > MAX_NOTIFICATIONS_PER_CALL) {
+        notifications = notifications.slice(0, MAX_NOTIFICATIONS_PER_CALL);
       }
 
       if (notifications.length > 0) {
