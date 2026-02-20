@@ -115,7 +115,7 @@ const SearchableDropdown = ({
               autoFocus
             />
           </div>
-          <ScrollArea className="max-h-60">
+          <div className="max-h-60 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
             {filtered.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 {items.length === 0 ? "Aucune donnée" : "Aucun résultat"}
@@ -141,7 +141,7 @@ const SearchableDropdown = ({
                 ))}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </PopoverContent>
       </Popover>
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}
