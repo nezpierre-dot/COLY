@@ -143,6 +143,63 @@ const PRODUCT_CATEGORIES: CategoryNode[] = [
   },
 ];
 
+// ─── Locale Units Helper ───
+
+const IMPERIAL_COUNTRIES = ["United States", "United States of America", "USA", "Liberia", "Myanmar", "United Kingdom"];
+
+const getCurrencyForCountry = (country: string): { symbol: string; code: string } => {
+  const map: Record<string, { symbol: string; code: string }> = {
+    "France": { symbol: "€", code: "EUR" },
+    "Germany": { symbol: "€", code: "EUR" },
+    "Italy": { symbol: "€", code: "EUR" },
+    "Spain": { symbol: "€", code: "EUR" },
+    "Belgium": { symbol: "€", code: "EUR" },
+    "Netherlands": { symbol: "€", code: "EUR" },
+    "Portugal": { symbol: "€", code: "EUR" },
+    "Austria": { symbol: "€", code: "EUR" },
+    "Ireland": { symbol: "€", code: "EUR" },
+    "Finland": { symbol: "€", code: "EUR" },
+    "Greece": { symbol: "€", code: "EUR" },
+    "Luxembourg": { symbol: "€", code: "EUR" },
+    "United States": { symbol: "$", code: "USD" },
+    "United States of America": { symbol: "$", code: "USD" },
+    "United Kingdom": { symbol: "£", code: "GBP" },
+    "Japan": { symbol: "¥", code: "JPY" },
+    "China": { symbol: "¥", code: "CNY" },
+    "South Korea": { symbol: "₩", code: "KRW" },
+    "Canada": { symbol: "CA$", code: "CAD" },
+    "Australia": { symbol: "A$", code: "AUD" },
+    "Switzerland": { symbol: "CHF", code: "CHF" },
+    "Brazil": { symbol: "R$", code: "BRL" },
+    "India": { symbol: "₹", code: "INR" },
+    "Morocco": { symbol: "MAD", code: "MAD" },
+    "Senegal": { symbol: "CFA", code: "XOF" },
+    "Ivory Coast": { symbol: "CFA", code: "XOF" },
+    "Cameroon": { symbol: "CFA", code: "XAF" },
+    "Tunisia": { symbol: "TND", code: "TND" },
+    "Algeria": { symbol: "DZD", code: "DZD" },
+    "Turkey": { symbol: "₺", code: "TRY" },
+    "Russia": { symbol: "₽", code: "RUB" },
+    "Mexico": { symbol: "MX$", code: "MXN" },
+    "Nigeria": { symbol: "₦", code: "NGN" },
+    "South Africa": { symbol: "R", code: "ZAR" },
+    "Thailand": { symbol: "฿", code: "THB" },
+    "Saudi Arabia": { symbol: "SAR", code: "SAR" },
+    "United Arab Emirates": { symbol: "AED", code: "AED" },
+  };
+  return map[country] || { symbol: "$", code: "USD" };
+};
+
+const getUnitsForCountry = (country: string) => {
+  const isImperial = IMPERIAL_COUNTRIES.includes(country);
+  return {
+    weight: isImperial ? "oz" : "kg",
+    weightPlaceholder: isImperial ? "Poids (en onces)" : "Poids (en kg)",
+    dimension: isImperial ? "in" : "cm",
+    dimensionPlaceholder: isImperial ? "Dimensions (en pouces)" : "Dimensions (en cm)",
+  };
+};
+
 // ─── Country / City API helpers ───
 
 const fetchCountries = async (): Promise<string[]> => {
@@ -495,15 +552,32 @@ const NeeditMission = () => {
         {step === 4 && (
           <>
             <h3 className="text-xl text-muted-foreground mb-6">Décrivez le ou les produits ?</h3>
-            <div className="space-y-4 mb-4">
-              <Input placeholder="Dimension" value={dimension} onChange={(e) => setDimension(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary" />
-              <Input placeholder="Poids" value={poids} onChange={(e) => setPoids(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary" />
-              <Input placeholder="Prix max autorisé" value={prixMax} onChange={(e) => setPrixMax(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary" />
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-              *Le montant de l'achat peut être en dessous du prix max autorisé dans ce cas vous recevrez la différence.<br />
-              Le débit se fait automatiquement au moment de l'achat par le voyageur.
-            </p>
+            {(() => {
+              const currency = getCurrencyForCountry(pays);
+              const units = getUnitsForCountry(pays);
+              return (
+                <>
+                  <div className="space-y-4 mb-4">
+                    <div className="relative">
+                      <Input placeholder={units.dimensionPlaceholder} value={dimension} onChange={(e) => setDimension(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" />
+                      <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.dimension}</span>
+                    </div>
+                    <div className="relative">
+                      <Input placeholder={units.weightPlaceholder} value={poids} onChange={(e) => setPoids(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" />
+                      <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.weight}</span>
+                    </div>
+                    <div className="relative">
+                      <Input placeholder={`Prix max autorisé (${currency.code})`} value={prixMax} onChange={(e) => setPrixMax(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" />
+                      <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">{currency.symbol}</span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                    *Le montant de l'achat peut être en dessous du prix max autorisé dans ce cas vous recevrez la différence.<br />
+                    Le débit se fait automatiquement au moment de l'achat par le voyageur. Montant en {currency.code} ({currency.symbol}).
+                  </p>
+                </>
+              );
+            })()}
           </>
         )}
 
