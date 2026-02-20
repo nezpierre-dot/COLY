@@ -25,14 +25,14 @@ const createColorIcon = (color: string) =>
 const departIcon = createColorIcon("hsl(214, 80%, 52%)");
 const arriveIcon = createColorIcon("hsl(252, 40%, 75%)");
 
-interface Voyage {
-  id: number;
-  from: string;
-  to: string;
-  date: string;
-  time: string;
-  location: string;
-  fillRate: number;
+export interface Voyage {
+  id: string;
+  departure_city: string;
+  arrival_city: string;
+  departure_date: string;
+  departure_time: string | null;
+  transport_method: string;
+  status: string;
 }
 
 const CITY_COORDS: Record<string, [number, number]> = {
@@ -41,20 +41,14 @@ const CITY_COORDS: Record<string, [number, number]> = {
   "Paris": [48.8566, 2.3522],
   "Tunis": [36.8065, 10.1815],
   "Marseille": [43.2965, 5.3698],
-};
-
-const getEstimatedArrival = (from: string, to: string, departTime: string): string => {
-  const distances: Record<string, number> = {
-    "Genève-Casablanca": 3, "Casablanca-Genève": 3,
-    "Paris-Tunis": 2.5, "Tunis-Paris": 2.5,
-    "Paris-Marseille": 1.5, "Marseille-Paris": 1.5,
-    "Paris-Casablanca": 3.5, "Casablanca-Paris": 3.5,
-  };
-  const hours = distances[`${from}-${to}`] || 2;
-  const [h, m] = departTime.replace("h", ":").split(":").map(Number);
-  const arrH = (h + Math.floor(hours)) % 24;
-  const arrM = m + Math.round((hours % 1) * 60);
-  return `${String(arrH).padStart(2, "0")}h${String(arrM % 60).padStart(2, "0")}`;
+  "Lyon": [45.7640, 4.8357],
+  "Dakar": [14.7167, -17.4677],
+  "Abidjan": [5.3600, -4.0083],
+  "Alger": [36.7538, 3.0588],
+  "London": [51.5074, -0.1278],
+  "New York": [40.7128, -74.0060],
+  "Dubai": [25.2048, 55.2708],
+  "Istanbul": [41.0082, 28.9784],
 };
 
 function FitBounds({ positions }: { positions: [number, number][] }) {
@@ -69,15 +63,15 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
 
 interface VoyageMapProps {
   voyages: Voyage[];
-  selectedVoyageId: number;
-  onSelectVoyage: (id: number) => void;
+  selectedVoyageId: string | null;
+  onSelectVoyage: (id: string) => void;
 }
 
 const VoyageMap = ({ voyages, selectedVoyageId, onSelectVoyage }: VoyageMapProps) => {
   const allPositions: [number, number][] = [];
   voyages.forEach((v) => {
-    const fromCoords = CITY_COORDS[v.from];
-    const toCoords = CITY_COORDS[v.to];
+    const fromCoords = CITY_COORDS[v.departure_city];
+    const toCoords = CITY_COORDS[v.arrival_city];
     if (fromCoords) allPositions.push(fromCoords);
     if (toCoords) allPositions.push(toCoords);
   });
@@ -86,15 +80,13 @@ const VoyageMap = ({ voyages, selectedVoyageId, onSelectVoyage }: VoyageMapProps
     ? [allPositions.reduce((s, p) => s + p[0], 0) / allPositions.length, allPositions.reduce((s, p) => s + p[1], 0) / allPositions.length]
     : [40, 2];
 
-  // Flatten voyage layers — react-leaflet does NOT support <div> wrappers inside MapContainer
   const mapChildren: React.ReactNode[] = [];
   voyages.forEach((v) => {
-    const fromCoords = CITY_COORDS[v.from];
-    const toCoords = CITY_COORDS[v.to];
+    const fromCoords = CITY_COORDS[v.departure_city];
+    const toCoords = CITY_COORDS[v.arrival_city];
     if (!fromCoords || !toCoords) return;
 
     const isSelected = v.id === selectedVoyageId;
-    const eta = getEstimatedArrival(v.from, v.to, v.time);
 
     mapChildren.push(
       <Polyline
@@ -113,10 +105,9 @@ const VoyageMap = ({ voyages, selectedVoyageId, onSelectVoyage }: VoyageMapProps
         eventHandlers={{ click: () => onSelectVoyage(v.id) }}>
         <Popup>
           <div style={{ fontSize: 13 }}>
-            <p style={{ fontWeight: 700 }}>{v.from} → {v.to}</p>
-            <p>Départ : {v.date} à {v.time}</p>
-            <p style={{ color: "#888" }}>Arrivée estimée : ~{eta}</p>
-            <p>Remplissage : {v.fillRate}%</p>
+            <p style={{ fontWeight: 700 }}>{v.departure_city} → {v.arrival_city}</p>
+            <p>Départ : {v.departure_date} {v.departure_time ? `à ${v.departure_time}` : ""}</p>
+            <p style={{ color: "#888" }}>Transport : {v.transport_method}</p>
           </div>
         </Popup>
       </Marker>
@@ -126,8 +117,7 @@ const VoyageMap = ({ voyages, selectedVoyageId, onSelectVoyage }: VoyageMapProps
         eventHandlers={{ click: () => onSelectVoyage(v.id) }}>
         <Popup>
           <div style={{ fontSize: 13 }}>
-            <p style={{ fontWeight: 700 }}>Arrivée : {v.to}</p>
-            <p>ETA : ~{eta}</p>
+            <p style={{ fontWeight: 700 }}>Arrivée : {v.arrival_city}</p>
           </div>
         </Popup>
       </Marker>

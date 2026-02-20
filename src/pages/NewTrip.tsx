@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Check, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getCurrencyForCountry, getUnitsForCountry } from "@/hooks/useLocaleUnits";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 
@@ -108,10 +109,37 @@ const NewTrip = () => {
     }
   };
 
-  const handleSubmit = () => {
-    // For now just show success and go back
-    toast.success("Voyage créé avec succès !");
-    navigate("/dashboard");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!user) return;
+    setSubmitting(true);
+    const { error } = await supabase.from("voyages").insert({
+      user_id: user.id,
+      departure_country: departureCountry,
+      departure_city: departureCity,
+      departure_address: departureAddress || null,
+      departure_date: departureDate,
+      departure_time: departureTime || null,
+      arrival_country: arrivalCountry,
+      arrival_city: arrivalCity,
+      arrival_address: arrivalAddress || null,
+      arrival_date: arrivalDate || null,
+      arrival_time: arrivalTime || null,
+      transport_method: transportMethod,
+      can_pickup: canPickup,
+      can_move: canMove,
+      deliver_to_address: deliverToAddress,
+      accept_needit: acceptNeedit,
+      needit_budget: needitBudget || null,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast.error("Erreur lors de la création du voyage");
+    } else {
+      toast.success("Voyage créé avec succès !");
+      navigate("/dashboard");
+    }
   };
 
   const handleNext = () => {
@@ -378,10 +406,11 @@ const NewTrip = () => {
         </button>
         <button
           onClick={handleNext}
-          disabled={!canContinue()}
+          disabled={!canContinue() || submitting}
           className="bg-primary text-primary-foreground font-semibold px-8 py-3 rounded-full flex items-center gap-2 disabled:opacity-40 transition-opacity"
         >
-          {step === TOTAL_STEPS ? "Valider" : "Continuer"} <ArrowRight size={18} />
+          {submitting ? <Loader2 size={18} className="animate-spin" /> : null}
+          {step === TOTAL_STEPS ? "Valider" : "Continuer"} {!submitting && <ArrowRight size={18} />}
         </button>
       </div>
 

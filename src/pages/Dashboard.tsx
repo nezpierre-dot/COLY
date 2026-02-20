@@ -11,10 +11,17 @@ import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import VoyageMap from "@/components/VoyageMap";
 
-const MOCK_VOYAGES = [
-  { id: 1, from: "Genève", to: "Casablanca", date: "06/01/2025", time: "18h30", location: "Aeroport International de genève (GVA)", fillRate: 75 },
-  { id: 2, from: "Paris", to: "Tunis", date: "12/02/2025", time: "09h00", location: "Aeroport CDG Terminal 2E", fillRate: 40 },
-];
+// Dynamic voyages type
+type Voyage = {
+  id: string;
+  departure_city: string;
+  arrival_city: string;
+  departure_date: string;
+  departure_time: string | null;
+  departure_address: string | null;
+  transport_method: string;
+  status: string;
+};
 
 const MOCK_DEMANDES = [
   { id: 1, icon: "🛍️", item: "Sac de luxe", client: "Christine G", price: 150, type: "Dépot", status: "accepted" },
@@ -99,11 +106,34 @@ const Dashboard = () => {
   const isVoyageur = roles.includes("voyageur");
 
   const [demandFilter, setDemandFilter] = useState<"all" | "accepted" | "pending">("all");
-  const [selectedVoyage, setSelectedVoyage] = useState<number>(MOCK_VOYAGES[0]?.id);
+  const [voyages, setVoyages] = useState<Voyage[]>([]);
+  const [selectedVoyage, setSelectedVoyage] = useState<string | null>(null);
   const [searchCity, setSearchCity] = useState("");
   const [filterEnCours, setFilterEnCours] = useState(true);
   const [filterEnAttente, setFilterEnAttente] = useState(true);
   const [filterTout, setFilterTout] = useState(false);
+
+  // Fetch voyages
+  useEffect(() => {
+    if (!isVoyageur || !user) return;
+    const loadVoyages = async () => {
+      const { data } = await supabase
+        .from("voyages")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("departure_date", { ascending: true });
+      if (data) {
+        setVoyages(data);
+        if (data.length > 0 && !selectedVoyage) setSelectedVoyage(data[0].id);
+      }
+    };
+    loadVoyages();
+    const ch = supabase
+      .channel("my-voyages")
+      .on("postgres_changes", { event: "*", schema: "public", table: "voyages", filter: `user_id=eq.${user.id}` }, () => loadVoyages())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [isVoyageur, user]);
 
   // NeedIt missions for voyageur view
   const [needitMissions, setNeeditMissions] = useState<any[]>([]);
@@ -154,7 +184,7 @@ const Dashboard = () => {
     return matchCity && matchStatus;
   });
 
-  const currentVoyage = MOCK_VOYAGES.find((v) => v.id === selectedVoyage);
+  const currentVoyage = voyages.find((v) => v.id === selectedVoyage);
 
   const handleToggleFavorite = (from: string, to: string) => {
     if (!isFavorite(from, to)) {
@@ -212,9 +242,13 @@ const Dashboard = () => {
             <TabsContent value="voyages" className="space-y-4 mt-0">
               <p className="text-sm text-muted-foreground text-center">Voyages en cours</p>
 
-              {MOCK_VOYAGES.map((v) => {
+              {voyages.length === 0 && (
+                <p className="text-muted-foreground text-sm text-center py-6">Aucun voyage enregistré</p>
+              )}
+
+              {voyages.map((v) => {
                 const isSelected = selectedVoyage === v.id;
-                const fav = isFavorite(v.from, v.to);
+                const fav = isFavorite(v.departure_city, v.arrival_city);
                 return (
                   <div key={v.id} className="relative">
                     <button onClick={() => setSelectedVoyage(v.id)}
@@ -225,36 +259,16 @@ const Dashboard = () => {
                       </div>
                       <div className="absolute bottom-6 left-1/2 w-28 h-28 rounded-full bg-primary-foreground/10" />
 
-                      <h3 className="font-bold text-lg">{v.from} → {v.to}</h3>
+                      <h3 className="font-bold text-lg">{v.departure_city} → {v.arrival_city}</h3>
                       <div className="flex items-center gap-1.5 text-sm opacity-90 mt-1">
                         <Clock size={14} />
-                        <span>{v.date} à {v.time}</span>
+                        <span>{v.departure_date} {v.departure_time ? `à ${v.departure_time}` : ""}</span>
                       </div>
-                      <p className="text-xs opacity-80 mt-0.5">{v.location}</p>
-
-                      <div className="mt-4 flex items-center gap-3">
-                        <div className="flex-1">
-                          <div className="flex justify-between text-xs mb-1">
-                            <span>Taux de remplissage</span>
-                            <span className="font-bold">{v.fillRate}%</span>
-                          </div>
-                          <div className="w-full h-2 rounded-full bg-primary-foreground/20">
-                            <div className="h-2 rounded-full bg-primary-foreground transition-all duration-500" style={{ width: `${v.fillRate}%` }} />
-                          </div>
-                        </div>
-                        <div className="relative w-11 h-11 shrink-0">
-                          <svg className="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
-                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="hsl(var(--secondary))" strokeWidth="3" opacity="0.3" />
-                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="hsl(var(--secondary))" strokeWidth="3"
-                              strokeDasharray={`${v.fillRate} ${100 - v.fillRate}`} strokeLinecap="round" />
-                          </svg>
-                          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">{v.fillRate}%</span>
-                        </div>
-                      </div>
+                      <p className="text-xs opacity-80 mt-0.5">{v.transport_method}</p>
                     </button>
                     {/* Favorite button */}
                     <button
-                      onClick={(e) => { e.stopPropagation(); handleToggleFavorite(v.from, v.to); }}
+                      onClick={(e) => { e.stopPropagation(); handleToggleFavorite(v.departure_city, v.arrival_city); }}
                       className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                         fav ? "bg-accent/20 text-accent" : "bg-primary-foreground/20 text-primary-foreground/60 hover:text-accent"
                       }`}
@@ -275,7 +289,7 @@ const Dashboard = () => {
             <TabsContent value="carte" className="space-y-4 mt-0">
               <p className="text-sm text-muted-foreground text-center">Visualisez vos trajets sur la carte</p>
               <VoyageMap
-                voyages={MOCK_VOYAGES}
+                voyages={voyages}
                 selectedVoyageId={selectedVoyage}
                 onSelectVoyage={setSelectedVoyage}
               />
@@ -283,12 +297,11 @@ const Dashboard = () => {
                 <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-foreground">{currentVoyage.from} → {currentVoyage.to}</p>
-                      <p className="text-xs text-muted-foreground">{currentVoyage.date} à {currentVoyage.time}</p>
+                      <p className="font-bold text-foreground">{currentVoyage.departure_city} → {currentVoyage.arrival_city}</p>
+                      <p className="text-xs text-muted-foreground">{currentVoyage.departure_date} {currentVoyage.departure_time ? `à ${currentVoyage.departure_time}` : ""}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-foreground">{currentVoyage.fillRate}%</p>
-                      <p className="text-xs text-muted-foreground">rempli</p>
+                      <p className="text-sm font-semibold text-foreground">{currentVoyage.transport_method}</p>
                     </div>
                   </div>
                 </div>
@@ -310,8 +323,8 @@ const Dashboard = () => {
                 <div className="rounded-2xl p-5 text-primary-foreground relative overflow-hidden"
                   style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}>
                   <div className="absolute bottom-12 right-0 w-40 h-40 rounded-full bg-primary-foreground/10" />
-                  <h3 className="font-bold">{currentVoyage.from} → {currentVoyage.to}</h3>
-                  <p className="text-sm opacity-80">{currentVoyage.date} à {currentVoyage.time} — {currentVoyage.location}</p>
+                  <h3 className="font-bold">{currentVoyage.departure_city} → {currentVoyage.arrival_city}</h3>
+                  <p className="text-sm opacity-80">{currentVoyage.departure_date} {currentVoyage.departure_time ? `à ${currentVoyage.departure_time}` : ""} — {currentVoyage.transport_method}</p>
                 </div>
               )}
 
@@ -369,10 +382,10 @@ const Dashboard = () => {
               )}
 
               <div className="flex gap-2 overflow-x-auto pb-1">
-                {MOCK_VOYAGES.map((v) => (
+                {voyages.map((v) => (
                   <button key={v.id} onClick={() => setSelectedVoyage(v.id)}
                     className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${selectedVoyage === v.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                    {v.from} → {v.to}
+                    {v.departure_city} → {v.arrival_city}
                   </button>
                 ))}
               </div>

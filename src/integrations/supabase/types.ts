@@ -224,6 +224,78 @@ export type Database = {
         }
         Relationships: []
       }
+      voyages: {
+        Row: {
+          accept_needit: boolean
+          arrival_address: string | null
+          arrival_city: string
+          arrival_country: string
+          arrival_date: string | null
+          arrival_time: string | null
+          can_move: boolean
+          can_pickup: boolean
+          created_at: string
+          deliver_to_address: boolean
+          departure_address: string | null
+          departure_city: string
+          departure_country: string
+          departure_date: string
+          departure_time: string | null
+          id: string
+          needit_budget: string | null
+          status: string
+          transport_method: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accept_needit?: boolean
+          arrival_address?: string | null
+          arrival_city: string
+          arrival_country: string
+          arrival_date?: string | null
+          arrival_time?: string | null
+          can_move?: boolean
+          can_pickup?: boolean
+          created_at?: string
+          deliver_to_address?: boolean
+          departure_address?: string | null
+          departure_city: string
+          departure_country: string
+          departure_date: string
+          departure_time?: string | null
+          id?: string
+          needit_budget?: string | null
+          status?: string
+          transport_method: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accept_needit?: boolean
+          arrival_address?: string | null
+          arrival_city?: string
+          arrival_country?: string
+          arrival_date?: string | null
+          arrival_time?: string | null
+          can_move?: boolean
+          can_pickup?: boolean
+          created_at?: string
+          deliver_to_address?: boolean
+          departure_address?: string | null
+          departure_city?: string
+          departure_country?: string
+          departure_date?: string
+          departure_time?: string | null
+          id?: string
+          needit_budget?: string | null
+          status?: string
+          transport_method?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
