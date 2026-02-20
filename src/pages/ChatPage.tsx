@@ -1,10 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin, Calendar, Ruler, Weight, DollarSign } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin,
+  Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -53,6 +57,10 @@ const getCurrencyForCountry = (country: string) => {
   return "€";
 };
 
+// Detect image message
+const isImageUrl = (content: string) => content.startsWith("__IMG__:");
+const getImageUrl = (content: string) => content.replace("__IMG__:", "");
+
 const ChatPage = () => {
   const navigate = useNavigate();
   const { id: conversationId } = useParams<{ id: string }>();
@@ -61,16 +69,22 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [otherName, setOtherName] = useState("");
+  const [otherUserId, setOtherUserId] = useState("");
   const [shipmentRoute, setShipmentRoute] = useState("");
   const [itemDetail, setItemDetail] = useState<ItemDetail | null>(null);
-  
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!conversationId || !user) return;
 
     const load = async () => {
-      // Load conversation info
       const { data: convo } = await supabase
         .from("conversations")
         .select("*")
@@ -79,11 +93,11 @@ const ChatPage = () => {
 
       if (convo) {
         const otherId = convo.demandeur_id === user.id ? convo.voyageur_id : convo.demandeur_id;
+        setOtherUserId(otherId);
         const isOtherVoyageur = convo.voyageur_id === otherId;
         const otherRef = (isOtherVoyageur ? "VOY-" : "EXP-") + otherId.substring(0, 8).toUpperCase();
         setOtherName(otherRef);
 
-        // Try shipment first, then needit mission
         const { data: shipData } = await supabase
           .from("shipments")
           .select("departure_city, arrival_city, arrival_country, departure_date, size, tarif, insured, departure_method")
@@ -104,7 +118,6 @@ const ChatPage = () => {
             departure_method: shipData.departure_method,
           });
         } else {
-          // It's a NeedIt mission
           const { data: missionData } = await supabase
             .from("needit_missions")
             .select("product_name, category_path, country, city, prix_max, poids, dimension, timing, is_unlisted, unlisted_description")
@@ -113,15 +126,11 @@ const ChatPage = () => {
 
           if (missionData) {
             setShipmentRoute(`NeedIt → ${missionData.city || missionData.country}`);
-            setItemDetail({
-              type: "mission",
-              ...missionData,
-            });
+            setItemDetail({ type: "mission", ...missionData });
           }
         }
       }
 
-      // Load messages
       const { data: msgs } = await supabase
         .from("messages")
         .select("*")
@@ -130,7 +139,6 @@ const ChatPage = () => {
 
       if (msgs) setMessages(msgs);
 
-      // Mark unread messages as read
       await supabase
         .from("messages")
         .update({ is_read: true })
@@ -140,8 +148,8 @@ const ChatPage = () => {
     };
     load();
 
-    // Realtime
-    const channel = supabase
+    // Realtime messages
+    const msgChannel = supabase
       .channel(`chat-${conversationId}`)
       .on("postgres_changes", {
         event: "INSERT",
@@ -150,27 +158,72 @@ const ChatPage = () => {
         filter: `conversation_id=eq.${conversationId}`,
       }, (payload) => {
         const msg = payload.new as Message;
-        setMessages((prev) => [...prev, msg]);
-        // Mark as read if from other user
+        setMessages((prev) => {
+          // Avoid duplicate
+          if (prev.find(m => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
         if (msg.sender_id !== user.id) {
           supabase.from("messages").update({ is_read: true }).eq("id", msg.id).then();
         }
       })
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "messages",
+        filter: `conversation_id=eq.${conversationId}`,
+      }, (payload) => {
+        const updated = payload.new as Message;
+        setMessages((prev) => prev.map(m => m.id === updated.id ? updated : m));
+      })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    // Typing indicator via Presence
+    const typingChannel = supabase.channel(`typing-${conversationId}`, {
+      config: { presence: { key: user.id } },
+    });
+    typingChannelRef.current = typingChannel;
+
+    typingChannel
+      .on("presence", { event: "sync" }, () => {
+        const state = typingChannel.presenceState();
+        const others = Object.entries(state)
+          .filter(([key]) => key !== user.id)
+          .map(([, v]) => v as { typing?: boolean }[]);
+        setIsOtherTyping(others.some((arr) => arr?.[0]?.typing === true));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(msgChannel);
+      supabase.removeChannel(typingChannel);
+    };
   }, [conversationId, user]);
 
   // Auto-scroll to bottom
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isOtherTyping]);
+
+  const broadcastTyping = (typing: boolean) => {
+    typingChannelRef.current?.track({ typing });
+  };
+
+  const handleInputChange = (v: string) => {
+    setNewMessage(v);
+    broadcastTyping(v.length > 0);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    if (v.length > 0) {
+      typingTimeoutRef.current = setTimeout(() => broadcastTyping(false), 3000);
+    }
+  };
 
   const handleSend = async () => {
     if (!newMessage.trim() || !user || !conversationId || sending) return;
     setSending(true);
     const content = newMessage.trim();
     setNewMessage("");
+    broadcastTyping(false);
 
     await supabase.from("messages").insert({
       conversation_id: conversationId,
@@ -181,9 +234,35 @@ const ChatPage = () => {
     setSending(false);
   };
 
-  const formatTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  const handlePhotoUpload = async (file: File) => {
+    if (!user || !conversationId) return;
+    setUploadingPhoto(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/${conversationId}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("chat-photos")
+        .upload(path, file, { upsert: false });
+
+      if (upErr) throw upErr;
+
+      const { data: urlData } = supabase.storage.from("chat-photos").getPublicUrl(path);
+      const publicUrl = urlData.publicUrl;
+
+      await supabase.from("messages").insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: `__IMG__:${publicUrl}`,
+      });
+    } catch {
+      toast.error("Erreur lors de l'envoi de la photo");
+    } finally {
+      setUploadingPhoto(false);
+    }
   };
+
+  const formatTime = (dateStr: string) =>
+    new Date(dateStr).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 
   const formatDateSeparator = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -225,6 +304,9 @@ const ChatPage = () => {
               </p>
             )}
           </div>
+          {isOtherTyping && (
+            <span className="text-[10px] text-primary animate-pulse shrink-0">en train d'écrire…</span>
+          )}
         </div>
       </div>
 
@@ -250,7 +332,6 @@ const ChatPage = () => {
                 {itemDetail.type === "shipment" ? "📦 Récap Colis" : "🛒 Récap Mission NeedIt"}
               </span>
             </div>
-            
           </div>
 
           {itemDetail.type === "shipment" ? (
@@ -265,15 +346,15 @@ const ChatPage = () => {
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Ruler size={11} />
-                <span>Taille : {itemDetail.size === "S" ? "Petit colis" : itemDetail.size === "M" ? "Colis moyen" : itemDetail.size === "L" ? "Grand colis" : itemDetail.size === "XL" ? "Très grand colis" : itemDetail.size === "standard" || itemDetail.size === "Standard" ? "Taille standard" : itemDetail.size}</span>
+                <span>Taille : {itemDetail.size === "S" ? "Petit" : itemDetail.size === "M" ? "Moyen" : itemDetail.size === "L" ? "Grand" : itemDetail.size === "XL" ? "Très grand" : itemDetail.size}</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <DollarSign size={11} />
-                <span>Tarif : {isNaN(Number(itemDetail.tarif)) ? "Tarif standard" : `${itemDetail.tarif} ${getCurrencyForCountry(itemDetail.arrival_country)}`}</span>
+                <span>{isNaN(Number(itemDetail.tarif)) ? "Standard" : `${itemDetail.tarif} ${getCurrencyForCountry(itemDetail.arrival_country)}`}</span>
               </div>
               <div className="col-span-2 flex items-center gap-1.5 text-muted-foreground">
                 <Package size={11} />
-                <span>Remise : {itemDetail.departure_method === "main" ? "En main propre" : itemDetail.departure_method === "relay" ? "Point relais" : itemDetail.departure_method === "address" ? "À domicile" : itemDetail.departure_method}{itemDetail.insured ? " • Assuré ✅" : ""}</span>
+                <span>{itemDetail.departure_method === "main" ? "En main propre" : itemDetail.departure_method === "relay" ? "Point relais" : itemDetail.departure_method === "address" ? "À domicile" : itemDetail.departure_method}{itemDetail.insured ? " • Assuré ✅" : ""}</span>
               </div>
             </div>
           ) : (
@@ -333,8 +414,9 @@ const ChatPage = () => {
             </div>
 
             {/* Messages in group */}
-            {group.msgs.map((msg, i) => {
+            {group.msgs.map((msg) => {
               const isMine = msg.sender_id === user?.id;
+              const isImg = isImageUrl(msg.content);
               return (
                 <motion.div
                   key={msg.id}
@@ -344,32 +426,105 @@ const ChatPage = () => {
                   className={`flex mb-1.5 ${isMine ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 ${
+                    className={`max-w-[80%] rounded-2xl ${isImg ? "p-1" : "px-3.5 py-2.5"} ${
                       isMine
                         ? "bg-primary text-primary-foreground rounded-br-md"
                         : "bg-muted text-foreground rounded-bl-md"
                     }`}
                   >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                    <p className={`text-[9px] mt-1 ${isMine ? "text-primary-foreground/60" : "text-muted-foreground"} text-right`}>
-                      {formatTime(msg.created_at)}
-                      {isMine && msg.is_read && " ✓✓"}
-                    </p>
+                    {isImg ? (
+                      <div className="relative">
+                        <img
+                          src={getImageUrl(msg.content)}
+                          alt="Photo"
+                          className="max-w-[220px] max-h-[280px] rounded-xl object-cover cursor-pointer"
+                          onClick={() => setPreviewPhoto(getImageUrl(msg.content))}
+                        />
+                        <div className={`absolute bottom-1 right-2 flex items-center gap-0.5`}>
+                          <span className="text-[9px] text-white/80 drop-shadow">{formatTime(msg.created_at)}</span>
+                          {isMine && (
+                            <CheckCheck
+                              size={12}
+                              className={msg.is_read ? "text-blue-300 drop-shadow" : "text-white/60 drop-shadow"}
+                            />
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                        <div className={`flex items-center justify-end gap-1 mt-1`}>
+                          <p className={`text-[9px] ${isMine ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
+                            {formatTime(msg.created_at)}
+                          </p>
+                          {isMine && (
+                            <CheckCheck
+                              size={12}
+                              className={msg.is_read ? "text-blue-300" : "text-primary-foreground/40"}
+                            />
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </motion.div>
               );
             })}
           </div>
         ))}
+
+        {/* Typing indicator */}
+        <AnimatePresence>
+          {isOtherTyping && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              className="flex justify-start"
+            >
+              <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5 flex items-center gap-1.5">
+                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:300ms]" />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Input */}
       <div className="bg-card/95 backdrop-blur-lg border-t border-border/60 px-4 py-3 pb-safe shrink-0">
         <div className="flex items-end gap-2 max-w-lg mx-auto">
+          {/* Photo button */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => fileRef.current?.click()}
+            disabled={uploadingPhoto}
+            className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+          >
+            {uploadingPhoto ? (
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <ImageIcon size={18} />
+            )}
+          </motion.button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handlePhotoUpload(file);
+              e.target.value = "";
+            }}
+          />
+
+          {/* Text area */}
           <div className="flex-1 bg-muted rounded-2xl px-4 py-2.5">
             <textarea
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => handleInputChange(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -381,6 +536,8 @@ const ChatPage = () => {
               className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none resize-none max-h-24"
             />
           </div>
+
+          {/* Send button */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleSend}
@@ -391,6 +548,32 @@ const ChatPage = () => {
           </motion.button>
         </div>
       </div>
+
+      {/* Photo preview lightbox */}
+      <AnimatePresence>
+        {previewPhoto && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setPreviewPhoto(null)}
+          >
+            <button
+              className="absolute top-4 right-4 text-white/80 hover:text-white"
+              onClick={() => setPreviewPhoto(null)}
+            >
+              <X size={28} />
+            </button>
+            <img
+              src={previewPhoto}
+              alt="Aperçu"
+              className="max-w-full max-h-full rounded-xl object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
