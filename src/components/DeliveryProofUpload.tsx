@@ -61,7 +61,7 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
 
       const { data: signed } = await supabase.storage
         .from("shipment-photos")
-        .createSignedUrl(path, 60 * 60 * 24 * 365);
+        .createSignedUrl(path, 60 * 60 * 24 * 90); // 90 days expiry
       const photoUrl = signed?.signedUrl ?? "";
 
       // Save delivery proof
