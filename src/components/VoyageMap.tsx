@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -35,7 +35,6 @@ interface Voyage {
   fillRate: number;
 }
 
-// Geocoded coordinates for mock cities
 const CITY_COORDS: Record<string, [number, number]> = {
   "Genève": [46.2044, 6.1432],
   "Casablanca": [33.5731, -7.5898],
@@ -44,20 +43,14 @@ const CITY_COORDS: Record<string, [number, number]> = {
   "Marseille": [43.2965, 5.3698],
 };
 
-// Estimated flight durations (mock)
 const getEstimatedArrival = (from: string, to: string, departTime: string): string => {
   const distances: Record<string, number> = {
-    "Genève-Casablanca": 3,
-    "Casablanca-Genève": 3,
-    "Paris-Tunis": 2.5,
-    "Tunis-Paris": 2.5,
-    "Paris-Marseille": 1.5,
-    "Marseille-Paris": 1.5,
-    "Paris-Casablanca": 3.5,
-    "Casablanca-Paris": 3.5,
+    "Genève-Casablanca": 3, "Casablanca-Genève": 3,
+    "Paris-Tunis": 2.5, "Tunis-Paris": 2.5,
+    "Paris-Marseille": 1.5, "Marseille-Paris": 1.5,
+    "Paris-Casablanca": 3.5, "Casablanca-Paris": 3.5,
   };
-  const key = `${from}-${to}`;
-  const hours = distances[key] || 2;
+  const hours = distances[`${from}-${to}`] || 2;
   const [h, m] = departTime.replace("h", ":").split(":").map(Number);
   const arrH = (h + Math.floor(hours)) % 24;
   const arrM = m + Math.round((hours % 1) * 60);
@@ -93,6 +86,54 @@ const VoyageMap = ({ voyages, selectedVoyageId, onSelectVoyage }: VoyageMapProps
     ? [allPositions.reduce((s, p) => s + p[0], 0) / allPositions.length, allPositions.reduce((s, p) => s + p[1], 0) / allPositions.length]
     : [40, 2];
 
+  // Flatten voyage layers — react-leaflet does NOT support <div> wrappers inside MapContainer
+  const mapChildren: React.ReactNode[] = [];
+  voyages.forEach((v) => {
+    const fromCoords = CITY_COORDS[v.from];
+    const toCoords = CITY_COORDS[v.to];
+    if (!fromCoords || !toCoords) return;
+
+    const isSelected = v.id === selectedVoyageId;
+    const eta = getEstimatedArrival(v.from, v.to, v.time);
+
+    mapChildren.push(
+      <Polyline
+        key={`line-${v.id}`}
+        positions={[fromCoords, toCoords]}
+        pathOptions={{
+          color: isSelected ? "hsl(214, 80%, 52%)" : "hsl(252, 40%, 75%)",
+          weight: isSelected ? 3 : 2,
+          dashArray: isSelected ? undefined : "6 4",
+          opacity: isSelected ? 1 : 0.5,
+        }}
+      />
+    );
+    mapChildren.push(
+      <Marker key={`from-${v.id}`} position={fromCoords} icon={departIcon}
+        eventHandlers={{ click: () => onSelectVoyage(v.id) }}>
+        <Popup>
+          <div style={{ fontSize: 13 }}>
+            <p style={{ fontWeight: 700 }}>{v.from} → {v.to}</p>
+            <p>Départ : {v.date} à {v.time}</p>
+            <p style={{ color: "#888" }}>Arrivée estimée : ~{eta}</p>
+            <p>Remplissage : {v.fillRate}%</p>
+          </div>
+        </Popup>
+      </Marker>
+    );
+    mapChildren.push(
+      <Marker key={`to-${v.id}`} position={toCoords} icon={arriveIcon}
+        eventHandlers={{ click: () => onSelectVoyage(v.id) }}>
+        <Popup>
+          <div style={{ fontSize: 13 }}>
+            <p style={{ fontWeight: 700 }}>Arrivée : {v.to}</p>
+            <p>ETA : ~{eta}</p>
+          </div>
+        </Popup>
+      </Marker>
+    );
+  });
+
   return (
     <div className="rounded-2xl overflow-hidden border border-border shadow-sm" style={{ height: 320 }}>
       <MapContainer center={center} zoom={4} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }} zoomControl={false}>
@@ -101,49 +142,7 @@ const VoyageMap = ({ voyages, selectedVoyageId, onSelectVoyage }: VoyageMapProps
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <FitBounds positions={allPositions} />
-
-        {voyages.map((v) => {
-          const fromCoords = CITY_COORDS[v.from];
-          const toCoords = CITY_COORDS[v.to];
-          if (!fromCoords || !toCoords) return null;
-
-          const isSelected = v.id === selectedVoyageId;
-          const eta = getEstimatedArrival(v.from, v.to, v.time);
-
-          return (
-            <div key={v.id}>
-              <Polyline
-                positions={[fromCoords, toCoords]}
-                pathOptions={{
-                  color: isSelected ? "hsl(214, 80%, 52%)" : "hsl(252, 40%, 75%)",
-                  weight: isSelected ? 3 : 2,
-                  dashArray: isSelected ? undefined : "6 4",
-                  opacity: isSelected ? 1 : 0.5,
-                }}
-              />
-              <Marker position={fromCoords} icon={departIcon}
-                eventHandlers={{ click: () => onSelectVoyage(v.id) }}>
-                <Popup>
-                  <div className="text-sm">
-                    <p className="font-bold">{v.from} → {v.to}</p>
-                    <p>Départ : {v.date} à {v.time}</p>
-                    <p className="text-muted-foreground">Arrivée estimée : ~{eta}</p>
-                    <p>Remplissage : {v.fillRate}%</p>
-                  </div>
-                </Popup>
-              </Marker>
-              <Marker position={toCoords} icon={arriveIcon}
-                eventHandlers={{ click: () => onSelectVoyage(v.id) }}>
-                <Popup>
-                  <div className="text-sm">
-                    <p className="font-bold">Arrivée : {v.to}</p>
-                    <p>ETA : ~{eta}</p>
-                  </div>
-                </Popup>
-              </Marker>
-            </div>
-          );
-        })}
+        {mapChildren}
       </MapContainer>
     </div>
   );
