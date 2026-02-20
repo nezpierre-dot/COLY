@@ -729,7 +729,8 @@ const Dashboard = () => {
                     <motion.div
                       key={item.id}
                       whileTap={{ scale: 0.98 }}
-                      className="flex items-center gap-3 bg-card border border-border rounded-xl px-3.5 py-3"
+                      onClick={() => item.type === "coly" ? navigate(`/tracking/${item.id}`) : undefined}
+                      className={`flex items-center gap-3 bg-card border border-border rounded-xl px-3.5 py-3 ${item.type === "coly" ? "cursor-pointer hover:shadow-sm" : ""}`}
                     >
                       <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
                         item.type === "coly" ? "bg-primary/10" : "bg-secondary/10"
