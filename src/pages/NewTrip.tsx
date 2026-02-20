@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { getCurrencyForCountry, getUnitsForCountry } from "@/hooks/useLocaleUnit
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
@@ -30,6 +31,7 @@ const NewTrip = () => {
   // Step 2 – Departure
   const [departureDate, setDepartureDate] = useState("");
   const [departureTime, setDepartureTime] = useState("");
+  const [departureCountry, setDepartureCountry] = useState("");
   const [departureCity, setDepartureCity] = useState("");
   const [departureAddress, setDepartureAddress] = useState("");
 
@@ -43,6 +45,48 @@ const NewTrip = () => {
   // Locale units based on arrival country
   const currency = useMemo(() => getCurrencyForCountry(arrivalCountry), [arrivalCountry]);
   const units = useMemo(() => getUnitsForCountry(arrivalCountry), [arrivalCountry]);
+
+  // Countries & cities
+  const [countries, setCountries] = useState<string[]>([]);
+  const [departureCities, setDepartureCities] = useState<string[]>([]);
+  const [arrivalCities, setArrivalCities] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("https://countriesnow.space/api/v0.1/countries")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res?.data) {
+          const sorted = res.data.map((c: any) => c.country).sort();
+          setCountries(sorted);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const fetchCities = (country: string, setter: (c: string[]) => void) => {
+    setter([]);
+    if (!country) return;
+    fetch("https://countriesnow.space/api/v0.1/countries/cities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ country }),
+    })
+      .then((r) => r.json())
+      .then((res) => { if (res?.data) setter(res.data.sort()); })
+      .catch(() => {});
+  };
+
+  const handleDepartureCountry = (v: string) => {
+    setDepartureCountry(v);
+    setDepartureCity("");
+    fetchCities(v, setDepartureCities);
+  };
+
+  const handleArrivalCountry = (v: string) => {
+    setArrivalCountry(v);
+    setArrivalCity("");
+    fetchCities(v, setArrivalCities);
+  };
   // Step 4 – Transport & options
   const [transportMethod, setTransportMethod] = useState("");
   const [canPickup, setCanPickup] = useState(false);
@@ -161,8 +205,26 @@ const NewTrip = () => {
                   <Input type="time" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} />
                 </div>
                 <div>
+                  <Label className="text-muted-foreground text-sm">Pays de Départ</Label>
+                  <Select value={departureCountry} onValueChange={handleDepartureCountry}>
+                    <SelectTrigger><SelectValue placeholder="Sélectionner un pays" /></SelectTrigger>
+                    <SelectContent className="bg-card border border-border z-50 max-h-60">
+                      {countries.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label className="text-muted-foreground text-sm">Ville de Départ</Label>
-                  <Input placeholder="Paris" value={departureCity} onChange={(e) => setDepartureCity(e.target.value)} />
+                  <Select value={departureCity} onValueChange={setDepartureCity} disabled={!departureCountry}>
+                    <SelectTrigger><SelectValue placeholder={departureCountry ? "Sélectionner une ville" : "Choisir un pays d'abord"} /></SelectTrigger>
+                    <SelectContent className="bg-card border border-border z-50 max-h-60">
+                      {departureCities.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Adresse de Départ</Label>
@@ -187,11 +249,25 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Pays d'Arrivée</Label>
-                  <Input placeholder="France" value={arrivalCountry} onChange={(e) => setArrivalCountry(e.target.value)} />
+                  <Select value={arrivalCountry} onValueChange={handleArrivalCountry}>
+                    <SelectTrigger><SelectValue placeholder="Sélectionner un pays" /></SelectTrigger>
+                    <SelectContent className="bg-card border border-border z-50 max-h-60">
+                      {countries.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Ville d'Arrivée</Label>
-                  <Input placeholder="Casablanca" value={arrivalCity} onChange={(e) => setArrivalCity(e.target.value)} />
+                  <Select value={arrivalCity} onValueChange={setArrivalCity} disabled={!arrivalCountry}>
+                    <SelectTrigger><SelectValue placeholder={arrivalCountry ? "Sélectionner une ville" : "Choisir un pays d'abord"} /></SelectTrigger>
+                    <SelectContent className="bg-card border border-border z-50 max-h-60">
+                      {arrivalCities.map((c) => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">Adresse d'Arrivée</Label>
