@@ -43,10 +43,12 @@ const ConversationsPage = () => {
       const enriched = await Promise.all(
         convos.map(async (c) => {
           const otherId = c.demandeur_id === user.id ? c.voyageur_id : c.demandeur_id;
+          const isOtherVoyageur = c.voyageur_id === otherId;
+          const otherRef = (isOtherVoyageur ? "VOY-" : "EXP-") + otherId.substring(0, 8).toUpperCase();
 
-          const [msgRes, profileRes, shipRes] = await Promise.all([
+          const [msgRes, , shipRes] = await Promise.all([
             supabase.from("messages").select("content").eq("conversation_id", c.id).order("created_at", { ascending: false }).limit(1),
-            supabase.from("profiles").select("full_name").eq("user_id", otherId).maybeSingle(),
+            Promise.resolve(),
             supabase.from("shipments").select("departure_city, arrival_city").eq("id", c.shipment_id).maybeSingle(),
           ]);
 
@@ -61,7 +63,7 @@ const ConversationsPage = () => {
           return {
             ...c,
             last_message: msgRes.data?.[0]?.content || "",
-            other_name: profileRes.data?.full_name || "Utilisateur",
+            other_name: otherRef,
             shipment_route: shipRes.data ? `${shipRes.data.departure_city || "—"} → ${shipRes.data.arrival_city}` : "",
             unread_count: count || 0,
           };
