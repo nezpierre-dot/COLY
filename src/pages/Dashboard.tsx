@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -15,7 +15,9 @@ import VoyageMap from "@/components/VoyageMap";
 type Voyage = {
   id: string;
   departure_city: string;
+  departure_country: string;
   arrival_city: string;
+  arrival_country: string;
   departure_date: string;
   departure_time: string | null;
   departure_address: string | null;
@@ -137,10 +139,12 @@ const Dashboard = () => {
 
   // NeedIt missions for voyageur view
   const [needitMissions, setNeeditMissions] = useState<any[]>([]);
+  // Public pending shipments
+  const [pendingShipments, setPendingShipments] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isVoyageur) return;
-    const load = async () => {
+    const loadNeedit = async () => {
       const { data } = await supabase
         .from("needit_missions")
         .select("*")
@@ -148,13 +152,59 @@ const Dashboard = () => {
         .order("created_at", { ascending: false });
       if (data) setNeeditMissions(data);
     };
-    load();
-    const ch = supabase
+    const loadShipments = async () => {
+      const { data } = await supabase
+        .from("shipments")
+        .select("*")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (data) setPendingShipments(data);
+    };
+    loadNeedit();
+    loadShipments();
+    const ch1 = supabase
       .channel("voyageur-needit")
-      .on("postgres_changes", { event: "*", schema: "public", table: "needit_missions" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "needit_missions" }, () => loadNeedit())
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    const ch2 = supabase
+      .channel("voyageur-shipments")
+      .on("postgres_changes", { event: "*", schema: "public", table: "shipments" }, () => loadShipments())
+      .subscribe();
+    return () => { supabase.removeChannel(ch1); supabase.removeChannel(ch2); };
   }, [isVoyageur]);
+
+  // Smart matching: cross-reference user's voyages with pending shipments & needit missions
+  const matchedShipments = useMemo(() => {
+    if (!voyages.length || !pendingShipments.length) return [];
+    return pendingShipments.filter((s) =>
+      voyages.some((v) => {
+        const countryMatch = v.arrival_country?.toLowerCase() === s.arrival_country?.toLowerCase();
+        const cityMatch = v.arrival_city?.toLowerCase() === s.arrival_city?.toLowerCase();
+        return countryMatch && (cityMatch || !s.arrival_city);
+      })
+    );
+  }, [voyages, pendingShipments]);
+
+  const unmatchedShipments = useMemo(() => {
+    const matchedIds = new Set(matchedShipments.map((s) => s.id));
+    return pendingShipments.filter((s) => !matchedIds.has(s.id));
+  }, [pendingShipments, matchedShipments]);
+
+  const matchedNeedit = useMemo(() => {
+    if (!voyages.length || !needitMissions.length) return [];
+    return needitMissions.filter((m) =>
+      voyages.some((v) => {
+        const countryMatch = v.arrival_country?.toLowerCase() === m.country?.toLowerCase();
+        const cityMatch = v.arrival_city?.toLowerCase() === m.city?.toLowerCase();
+        return countryMatch && (cityMatch || !m.city);
+      })
+    );
+  }, [voyages, needitMissions]);
+
+  const unmatchedNeedit = useMemo(() => {
+    const matchedIds = new Set(matchedNeedit.map((m) => m.id));
+    return needitMissions.filter((m) => !matchedIds.has(m.id));
+  }, [needitMissions, matchedNeedit]);
 
   const toggleRole = async () => {
     if (!user) return;
@@ -227,14 +277,17 @@ const Dashboard = () => {
           /* ============ VOYAGEUR / RELAYEUR ============ */
           <Tabs defaultValue="voyages" className="space-y-4">
             <TabsList className="w-full bg-muted rounded-2xl p-1 h-auto">
-              <TabsTrigger value="voyages" className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Plane size={16} className="mr-1.5" /> Voyages
+              <TabsTrigger value="voyages" className="flex-1 rounded-xl py-2.5 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Plane size={14} className="mr-1" /> Voyages
               </TabsTrigger>
-              <TabsTrigger value="carte" className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Map size={16} className="mr-1.5" /> Carte
+              <TabsTrigger value="colis" className="flex-1 rounded-xl py-2.5 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Package size={14} className="mr-1" /> Colis
               </TabsTrigger>
-              <TabsTrigger value="demandes" className="flex-1 rounded-xl py-2.5 text-sm font-semibold data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
-                <MapPin size={16} className="mr-1.5" /> Demandes
+              <TabsTrigger value="carte" className="flex-1 rounded-xl py-2.5 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Map size={14} className="mr-1" /> Carte
+              </TabsTrigger>
+              <TabsTrigger value="demandes" className="flex-1 rounded-xl py-2.5 text-xs font-semibold data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground">
+                <MapPin size={14} className="mr-1" /> Demandes
               </TabsTrigger>
             </TabsList>
 
@@ -283,6 +336,76 @@ const Dashboard = () => {
                 className="w-full py-4 rounded-2xl bg-secondary/20 border border-secondary/30 text-secondary font-medium text-lg flex items-center justify-center gap-2 hover:bg-secondary/30 transition-colors">
                 Je propose un nouveau voyage <ArrowRight size={20} />
               </button>
+            </TabsContent>
+
+            {/* ---- Colis tab (public shipments) ---- */}
+            <TabsContent value="colis" className="space-y-4 mt-0">
+              <p className="text-sm text-muted-foreground text-center">Envois de colis disponibles</p>
+
+              {/* Matched shipments */}
+              {matchedShipments.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-accent/20 flex items-center justify-center">
+                      <Zap size={14} className="text-accent" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground">Correspondances avec vos trajets</h3>
+                  </div>
+                  {matchedShipments.map((s: any) => (
+                    <div key={s.id} className="bg-gradient-to-r from-accent/5 to-primary/5 border border-accent/20 rounded-2xl p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold bg-accent/20 text-accent px-2 py-0.5 rounded-full">MATCH</span>
+                        <span className="text-xs text-muted-foreground">{new Date(s.created_at).toLocaleDateString("fr-FR")}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-foreground text-sm flex items-center gap-1.5">
+                            <Package size={14} className="text-primary" />
+                            Colis {s.size} → {s.arrival_city}, {s.arrival_country}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Départ le {new Date(s.departure_date).toLocaleDateString("fr-FR")} — {s.contact_prenom} {s.contact_nom}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-foreground">{s.tarif === "custom" ? "Sur devis" : s.tarif}</p>
+                          {s.insured && <span className="text-[10px] text-accent font-medium">🛡 AXA</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* All other pending shipments */}
+              <div className="space-y-3">
+                {matchedShipments.length > 0 && unmatchedShipments.length > 0 && (
+                  <h3 className="text-sm font-semibold text-foreground mt-2">Autres envois disponibles</h3>
+                )}
+                {pendingShipments.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-6">Aucun envoi disponible pour le moment</p>
+                ) : (
+                  (matchedShipments.length > 0 ? unmatchedShipments : pendingShipments).map((s: any) => (
+                    <div key={s.id} className="bg-card rounded-xl px-4 py-3 border border-border shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-foreground text-sm flex items-center gap-1.5">
+                            <Package size={14} className="text-primary" />
+                            Colis {s.size} → {s.arrival_city}, {s.arrival_country}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Départ le {new Date(s.departure_date).toLocaleDateString("fr-FR")}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-foreground">{s.tarif === "custom" ? "Sur devis" : s.tarif}</p>
+                          {s.insured && <span className="text-[10px] text-accent font-medium">🛡 AXA</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </TabsContent>
 
             {/* ---- Carte tab ---- */}
@@ -352,32 +475,62 @@ const Dashboard = () => {
                 )}
               </div>
 
-              {/* NeedIt Missions disponibles */}
+              {/* NeedIt Missions — matched first */}
               {needitMissions.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <ShoppingBag size={16} className="text-accent" /> Missions NeedIt disponibles
-                  </h3>
-                  <div className="space-y-2">
-                    {needitMissions.map((m: any) => (
-                      <div key={m.id} className="bg-card rounded-xl px-4 py-3 border border-border shadow-sm">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="font-semibold text-foreground text-sm">
-                              {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Produit"}
-                            </p>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                              <MapPin size={12} /> {m.country}{m.city ? `, ${m.city}` : ""}
-                            </p>
-                            {m.category_path?.length > 0 && (
-                              <p className="text-xs text-muted-foreground mt-0.5">{m.category_path.join(" → ")}</p>
-                            )}
+                <div className="mt-4 space-y-3">
+                  {matchedNeedit.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Zap size={14} className="text-accent" />
+                        Missions correspondant à vos trajets
+                      </h3>
+                      {matchedNeedit.map((m: any) => (
+                        <div key={m.id} className="bg-gradient-to-r from-accent/5 to-primary/5 border border-accent/20 rounded-xl px-4 py-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold bg-accent/20 text-accent px-2 py-0.5 rounded-full">MATCH</span>
+                                <p className="font-semibold text-foreground text-sm">
+                                  {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Produit"}
+                                </p>
+                              </div>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                <MapPin size={12} /> {m.country}{m.city ? `, ${m.city}` : ""}
+                              </p>
+                            </div>
+                            {m.prix_max && <p className="text-sm font-bold text-foreground">{m.prix_max}</p>}
                           </div>
-                          {m.prix_max && <p className="text-sm font-bold text-foreground">{m.prix_max}</p>}
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {unmatchedNeedit.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <ShoppingBag size={16} className="text-accent" />
+                        {matchedNeedit.length > 0 ? "Autres missions NeedIt" : "Missions NeedIt disponibles"}
+                      </h3>
+                      {unmatchedNeedit.map((m: any) => (
+                        <div key={m.id} className="bg-card rounded-xl px-4 py-3 border border-border shadow-sm">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="font-semibold text-foreground text-sm">
+                                {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Produit"}
+                              </p>
+                              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                <MapPin size={12} /> {m.country}{m.city ? `, ${m.city}` : ""}
+                              </p>
+                              {m.category_path?.length > 0 && (
+                                <p className="text-xs text-muted-foreground mt-0.5">{m.category_path.join(" → ")}</p>
+                              )}
+                            </div>
+                            {m.prix_max && <p className="text-sm font-bold text-foreground">{m.prix_max}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
