@@ -45,39 +45,43 @@ type Voyage = {
 // No mock data — only real DB data is displayed
 
 // --- Voyageur Quick Stats ---
-const QuickStats = ({ voyagesCount, colisCount, matchCount }: { voyagesCount: number; colisCount: number; matchCount: number }) => (
-  <motion.div
-    variants={staggerContainer}
-    initial="initial"
-    animate="animate"
-    className="grid grid-cols-3 gap-2 mb-4"
-  >
-    {[
-      { value: voyagesCount, label: "Voyages", color: "primary" },
-      { value: colisCount, label: "Colis dispo", color: "secondary" },
-      { value: matchCount, label: "Matchs", color: "accent" },
-    ].map((stat) => (
-      <motion.div
-        key={stat.label}
-        variants={staggerItem}
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.97 }}
-        className={`bg-${stat.color}/10 border border-${stat.color}/20 rounded-2xl p-3 text-center cursor-default`}
-      >
-        <motion.p
-          key={stat.value}
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className={`text-xl font-bold text-${stat.color}`}
+const QuickStats = ({ voyagesCount, colisCount, matchCount }: { voyagesCount: number; colisCount: number; matchCount: number }) => {
+  const stats = [
+    { value: voyagesCount, label: "Voyages", gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
+    { value: colisCount, label: "Colis dispo", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
+    { value: matchCount, label: "Matchs", gradient: "from-accent to-accent/70", textColor: "text-accent-foreground" },
+  ];
+  return (
+    <motion.div
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+      className="grid grid-cols-3 gap-2 mb-4"
+    >
+      {stats.map((stat) => (
+        <motion.div
+          key={stat.label}
+          variants={staggerItem}
+          whileHover={{ scale: 1.04, y: -2 }}
+          whileTap={{ scale: 0.97 }}
+          className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-3 text-center cursor-default shadow-lg relative overflow-hidden`}
         >
-          {stat.value}
-        </motion.p>
-        <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{stat.label}</p>
-      </motion.div>
-    ))}
-  </motion.div>
-);
+          <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-white/10" />
+          <motion.p
+            key={stat.value}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className={`text-xl font-bold ${stat.textColor}`}
+          >
+            {stat.value}
+          </motion.p>
+          <p className={`text-[10px] ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+};
 
 // AI Recommendation Card
 const AiRecommendation = ({ isVoyageur }: { isVoyageur: boolean }) => {
@@ -364,33 +368,47 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <PageTransition>
-      <main className="px-5 pt-10" id="main-content" role="main" aria-label="Tableau de bord">
-        {/* Header */}
+      <main className="px-0 pt-0" id="main-content" role="main" aria-label="Tableau de bord">
+        {/* Colorful Hero Header */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="flex items-center justify-between mb-5"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden px-5 pt-12 pb-6"
+          style={{
+            background: isVoyageur
+              ? "linear-gradient(135deg, hsl(252 40% 55%), hsl(214 80% 45%), hsl(200 80% 50%))"
+              : "linear-gradient(135deg, hsl(214 80% 45%), hsl(33 90% 48%), hsl(15 85% 55%))"
+          }}
         >
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              {isVoyageur ? "Espace Voyageur" : "Espace Demandeur"}
-            </h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {isVoyageur ? "Gérez vos trajets et opportunités" : "Envoyez vos colis et missions"}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-            <button onClick={toggleRole} aria-label={`Changer vers ${isVoyageur ? "demandeur" : "voyageur"}`}
-              className={`w-12 h-7 rounded-full relative transition-colors ${isVoyageur ? "bg-secondary" : "bg-muted"}`}>
-              <div className={`w-5 h-5 rounded-full bg-background shadow-sm absolute top-1 transition-transform ${isVoyageur ? "translate-x-6" : "translate-x-1"}`} />
-            </button>
-            <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground" aria-label="Se déconnecter">
-              <LogOut size={18} aria-hidden="true" />
-            </button>
+          {/* Decorative circles */}
+          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
+          <div className="absolute bottom-0 -left-6 w-24 h-24 rounded-full bg-white/5" />
+          <div className="absolute top-12 right-20 w-16 h-16 rounded-full bg-white/5" />
+
+          <div className="relative z-10 flex items-center justify-between mb-1">
+            <div>
+              <h1 className="text-2xl font-bold text-white">
+                {isVoyageur ? "Espace Voyageur" : "Espace Demandeur"}
+              </h1>
+              <p className="text-xs text-white/70 mt-0.5">
+                {isVoyageur ? "Gérez vos trajets et opportunités" : "Envoyez vos colis et missions"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <button onClick={toggleRole} aria-label={`Changer vers ${isVoyageur ? "demandeur" : "voyageur"}`}
+                className={`w-12 h-7 rounded-full relative transition-colors ${isVoyageur ? "bg-white/30" : "bg-white/20"}`}>
+                <div className={`w-5 h-5 rounded-full bg-white shadow-sm absolute top-1 transition-transform ${isVoyageur ? "translate-x-6" : "translate-x-1"}`} />
+              </button>
+              <button onClick={handleLogout} className="text-white/70 hover:text-white" aria-label="Se déconnecter">
+                <LogOut size={18} aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </motion.div>
+
+        <div className="px-5 -mt-4 relative z-10 space-y-4">
 
         {/* PWA Install Banner */}
         <AnimatePresence>
@@ -435,7 +453,7 @@ const Dashboard = () => {
             <FavoriteRoutes />
 
             <Tabs defaultValue="voyages" className="space-y-3">
-              <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto">
+              <TabsList className="w-full glass rounded-xl p-1 h-auto">
                 <TabsTrigger value="voyages" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Plane size={13} className="mr-1" /> Voyages
                 </TabsTrigger>
@@ -724,27 +742,28 @@ const Dashboard = () => {
               className="grid grid-cols-3 gap-2 mb-4"
             >
               {[
-                { value: demandeurShipments.length, label: "Envois", color: "primary" },
-                { value: demandeurMissions.length, label: "Missions", color: "secondary" },
-                { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", color: "accent" },
+                { value: demandeurShipments.length, label: "Envois", gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
+                { value: demandeurMissions.length, label: "Missions", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
+                { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", gradient: "from-accent to-accent/70", textColor: "text-accent-foreground" },
               ].map((stat) => (
                 <motion.div
                   key={stat.label}
                   variants={staggerItem}
-                  whileHover={{ scale: 1.04 }}
+                  whileHover={{ scale: 1.04, y: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  className={`bg-${stat.color}/10 border border-${stat.color}/20 rounded-2xl p-3 text-center cursor-default`}
+                  className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-3 text-center cursor-default shadow-lg relative overflow-hidden`}
                 >
+                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-white/10" />
                   <motion.p
                     key={stat.value}
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className={`text-xl font-bold text-${stat.color}`}
+                    className={`text-xl font-bold ${stat.textColor}`}
                   >
                     {stat.value}
                   </motion.p>
-                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{stat.label}</p>
+                  <p className={`text-[10px] ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
                 </motion.div>
               ))}
             </motion.div>
@@ -756,7 +775,7 @@ const Dashboard = () => {
             <FavoriteRoutes />
 
             <Tabs defaultValue="envois" className="space-y-3">
-              <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto">
+              <TabsList className="w-full glass rounded-xl p-1 h-auto">
                 <TabsTrigger value="envois" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Send size={13} className="mr-1" /> Envois
                 </TabsTrigger>
@@ -1016,6 +1035,7 @@ const Dashboard = () => {
             </Tabs>
           </div>
         )}
+        </div>
       </main>
       </PageTransition>
 
