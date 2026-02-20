@@ -301,6 +301,46 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_recent_shipments: {
+        Args: { _limit?: number }
+        Returns: {
+          arrival_city: string
+          arrival_country: string
+          created_at: string
+          departure_city: string
+          id: string
+          insured: boolean
+          ref_number: string
+          size: string
+          status: string
+          tarif: string
+        }[]
+      }
+      admin_get_shipments_over_time: {
+        Args: never
+        Returns: {
+          count: number
+          day: string
+        }[]
+      }
+      admin_get_users_over_time: {
+        Args: never
+        Returns: {
+          count: number
+          day: string
+        }[]
+      }
+      admin_list_users: {
+        Args: { _limit?: number; _offset?: number }
+        Returns: {
+          created_at: string
+          full_name: string
+          kyc_status: string
+          role: string
+          user_ref: string
+        }[]
+      }
+      get_admin_stats: { Args: never; Returns: Json }
       get_pending_needit_missions: {
         Args: never
         Returns: {
@@ -349,7 +389,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "demandeur" | "voyageur"
+      app_role: "demandeur" | "voyageur" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -477,7 +517,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["demandeur", "voyageur"],
+      app_role: ["demandeur", "voyageur", "admin"],
     },
   },
 } as const
