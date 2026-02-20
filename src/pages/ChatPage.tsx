@@ -38,11 +38,13 @@ const ChatPage = () => {
 
       if (convo) {
         const otherId = convo.demandeur_id === user.id ? convo.voyageur_id : convo.demandeur_id;
-        const [profileRes, shipRes] = await Promise.all([
-          supabase.from("profiles").select("full_name").eq("user_id", otherId).maybeSingle(),
+        const isOtherVoyageur = convo.voyageur_id === otherId;
+        const otherRef = (isOtherVoyageur ? "VOY-" : "EXP-") + otherId.substring(0, 8).toUpperCase();
+        const [, shipRes] = await Promise.all([
+          Promise.resolve(),
           supabase.from("shipments").select("departure_city, arrival_city").eq("id", convo.shipment_id).maybeSingle(),
         ]);
-        setOtherName(profileRes.data?.full_name || "Utilisateur");
+        setOtherName(otherRef);
         if (shipRes.data) setShipmentRoute(`${shipRes.data.departure_city || "—"} → ${shipRes.data.arrival_city}`);
       }
 
