@@ -327,8 +327,11 @@ const NeeditMission = () => {
             .from("shipment-photos")
             .upload(path, photoFile);
           if (!uploadErr) {
-            const { data: urlData } = supabase.storage.from("shipment-photos").getPublicUrl(path);
-            photo_url = urlData.publicUrl;
+            // Use signed URL for private bucket access
+            const { data: signedData } = await supabase.storage
+              .from("shipment-photos")
+              .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 year expiry for stored reference
+            photo_url = signedData?.signedUrl ?? null;
           }
         }
 
