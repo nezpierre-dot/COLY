@@ -89,16 +89,71 @@ const MesNeeditMissions = () => {
             <Loader2 size={32} className="animate-spin text-primary" />
           </div>
         ) : missions.length === 0 ? (
-          <EmptyState
-            icon={Package}
-            title="Aucune mission pour le moment"
-            description="Créez votre première mission d'achat NeedIt"
-            action={
-              <button onClick={() => navigate("/needit-mission")} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
-                <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Créer une mission
-              </button>
-            }
-          />
+          <div className="py-6 px-2">
+            <EmptyState
+              icon={Package}
+              title="Aucune mission pour le moment"
+              description="Faites acheter ce que vous voulez par un voyageur, où que ce soit dans le monde."
+              action={
+                <button onClick={() => navigate("/needit-mission")} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
+                  <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Créer ma première mission
+                </button>
+              }
+            />
+
+            {/* AI Tutorial / Onboarding Steps */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="mt-4 bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/15 rounded-2xl p-4 space-y-4"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🤖</span>
+                <p className="text-sm font-semibold text-foreground">Guide IA — Crée ta première mission</p>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  { step: 1, emoji: "🌍", title: "Choisis un pays", desc: "Ex : Espagne, Turquie, Japon…" },
+                  { step: 2, emoji: "🛍️", title: "Sélectionne un produit", desc: "Navigue dans le catalogue ou décris ton besoin" },
+                  { step: 3, emoji: "📸", title: "Ajoute une photo (optionnel)", desc: "Pour que le voyageur identifie le bon produit" },
+                  { step: 4, emoji: "✅", title: "Publie & attends un match", desc: "Un voyageur acceptera ta mission !" },
+                ].map((s) => (
+                  <motion.div
+                    key={s.step}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 + s.step * 0.12 }}
+                    className="flex items-start gap-3"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-base">
+                      {s.emoji}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{s.step}. {s.title}</p>
+                      <p className="text-xs text-muted-foreground">{s.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="bg-card border border-border rounded-xl p-3 mt-2">
+                <p className="text-xs text-muted-foreground italic">
+                  💡 <span className="font-medium text-foreground">Exemple :</span> « Je cherche de l'huile d'olive premium en Espagne, max 25€ ». Un voyageur passant par Barcelone pourra l'acheter pour vous !
+                </p>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate("/needit-mission")}
+                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm shadow-sm"
+              >
+                🚀 C'est parti !
+              </motion.button>
+            </motion.div>
+          </div>
         ) : (
           <motion.div
             variants={staggerContainer}
