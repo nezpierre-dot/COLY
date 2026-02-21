@@ -71,6 +71,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ean_products: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          ean_code: string
+          id: string
+          image_url: string | null
+          product_name: string | null
+          source: string
+          updated_at: string
+          weight: string | null
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          ean_code: string
+          id?: string
+          image_url?: string | null
+          product_name?: string | null
+          source?: string
+          updated_at?: string
+          weight?: string | null
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          ean_code?: string
+          id?: string
+          image_url?: string | null
+          product_name?: string | null
+          source?: string
+          updated_at?: string
+          weight?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string
@@ -113,6 +152,8 @@ export type Database = {
           country: string
           created_at: string
           dimension: string | null
+          ean_code: string | null
+          ean_verified: boolean
           id: string
           is_unlisted: boolean
           photo_url: string | null
@@ -132,6 +173,8 @@ export type Database = {
           country: string
           created_at?: string
           dimension?: string | null
+          ean_code?: string | null
+          ean_verified?: boolean
           id?: string
           is_unlisted?: boolean
           photo_url?: string | null
@@ -151,6 +194,8 @@ export type Database = {
           country?: string
           created_at?: string
           dimension?: string | null
+          ean_code?: string | null
+          ean_verified?: boolean
           id?: string
           is_unlisted?: boolean
           photo_url?: string | null
