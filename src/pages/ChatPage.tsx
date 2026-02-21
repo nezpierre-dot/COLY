@@ -246,13 +246,15 @@ const ChatPage = () => {
 
       if (upErr) throw upErr;
 
-      const { data: urlData } = supabase.storage.from("chat-photos").getPublicUrl(path);
-      const publicUrl = urlData.publicUrl;
+      const { data: signedData } = await supabase.storage
+        .from("chat-photos")
+        .createSignedUrl(path, 60 * 60 * 24 * 90); // 90 days expiry
+      const photoUrl = signedData?.signedUrl ?? "";
 
       await supabase.from("messages").insert({
         conversation_id: conversationId,
         sender_id: user.id,
-        content: `__IMG__:${publicUrl}`,
+        content: `__IMG__:${photoUrl}`,
       });
     } catch {
       toast.error("Erreur lors de l'envoi de la photo");
