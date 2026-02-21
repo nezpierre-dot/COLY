@@ -494,6 +494,27 @@ const ChatPage = () => {
         </AnimatePresence>
       </div>
 
+      {/* AI Quick Suggestions */}
+      {messages.length > 0 && messages.length <= 6 && (
+        <div className="px-4 pb-1 shrink-0">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            {[
+              "📍 Coordonnées de remise ?",
+              "📸 Photo du colis ?",
+              "📅 Dispo pour récupérer ?",
+            ].map((s) => (
+              <button
+                key={s}
+                onClick={() => { setNewMessage(s.replace(/^..\s/, "")); }}
+                className="shrink-0 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors whitespace-nowrap"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Input */}
       <div className="bg-card/95 backdrop-blur-lg border-t border-border/60 px-4 py-3 pb-safe shrink-0">
         <div className="flex items-end gap-2 max-w-lg mx-auto">
