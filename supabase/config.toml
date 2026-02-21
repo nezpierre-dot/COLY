@@ -1,1 +1,7 @@
 project_id = "hyvqqfmlhcjbwrbpmdwr"
+
+[functions.notify-match]
+verify_jwt = false
+
+[functions.ean-lookup]
+verify_jwt = false

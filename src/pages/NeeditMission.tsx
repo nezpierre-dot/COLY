@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ChevronDown, Loader2, Search, Camera } from "lucide-react";
+import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import EanScanner from "@/components/EanScanner";
 
 // ─── Product Category Data ───
 
@@ -252,6 +253,7 @@ const NeeditMission = () => {
   const [dimension, setDimension] = useState("");
   const [poids, setPoids] = useState("");
   const [prixMax, setPrixMax] = useState("");
+  const [eanCode, setEanCode] = useState("");
 
   useEffect(() => {
     fetchCountries().then((data) => { setCountries(data); setLoadingCountries(false); });
@@ -351,7 +353,8 @@ const NeeditMission = () => {
           dimension: dimension || null,
           poids: poids || null,
           prix_max: prixMax || null,
-        }).select("id").single();
+          ean_code: eanCode || null,
+        } as any).select("id").single();
 
         if (error) throw error;
 
@@ -497,6 +500,38 @@ const NeeditMission = () => {
                 <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
               </label>
             )}
+
+            {/* EAN Scanner for demandeur */}
+            <div className="w-full mt-2">
+              <div className="flex items-center gap-2 mb-3">
+                <ScanBarcode size={18} className="text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Code-barres EAN (optionnel)</h3>
+              </div>
+              {eanCode ? (
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                  <ScanBarcode size={16} className="text-primary shrink-0" />
+                  <span className="text-sm font-mono text-foreground flex-1">{eanCode}</span>
+                  <button onClick={() => setEanCode("")} className="text-xs text-destructive">Retirer</button>
+                </div>
+              ) : (
+                <EanScanner
+                  mode="scan"
+                  onProductFound={(product) => {
+                    setEanCode(product.ean_code);
+                    if (product.product_name && !selectedLeaf && !unlistedName) {
+                      setUnlistedName(product.product_name);
+                      setIsUnlisted(true);
+                    }
+                    if (product.weight && !poids) {
+                      setPoids(product.weight);
+                    }
+                  }}
+                />
+              )}
+              <p className="text-xs text-muted-foreground mt-2">
+                Scannez le code-barres pour que le voyageur puisse vérifier le bon produit en magasin.
+              </p>
+            </div>
           </div>
         )}
 

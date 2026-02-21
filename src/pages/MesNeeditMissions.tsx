@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2, ScanBarcode, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import EanScanner from "@/components/EanScanner";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,9 @@ interface NeeditMission {
   prix_max: string | null;
   status: string;
   created_at: string;
+  ean_code: string | null;
+  ean_verified: boolean;
+  voyageur_id: string | null;
 }
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -36,25 +40,41 @@ const MesNeeditMissions = () => {
   const { user } = useAuth();
   const [missions, setMissions] = useState<NeeditMission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [scanningMissionId, setScanningMissionId] = useState<string | null>(null);
+
+  const loadMissions = async () => {
+    if (!user) return;
+    // Load missions where user is owner OR voyageur
+    const { data: ownedData } = await supabase
+      .from("needit_missions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    const { data: acceptedData } = await supabase
+      .from("needit_missions")
+      .select("*")
+      .eq("voyageur_id", user.id)
+      .order("created_at", { ascending: false });
+
+    const allMissions = [...(ownedData || []), ...(acceptedData || [])];
+    // Deduplicate
+    const unique = Array.from(new Map(allMissions.map(m => [m.id, m])).values());
+    setMissions(unique as unknown as NeeditMission[]);
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      const { data, error } = await supabase
-        .from("needit_missions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (!error && data) setMissions(data as unknown as NeeditMission[]);
-      setLoading(false);
-    };
-    load();
+    loadMissions();
 
-    // Realtime subscription
     const channel = supabase
       .channel("my-needit-missions")
       .on("postgres_changes", { event: "*", schema: "public", table: "needit_missions", filter: `user_id=eq.${user.id}` }, () => {
-        load();
+        loadMissions();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "needit_missions", filter: `voyageur_id=eq.${user.id}` }, () => {
+        loadMissions();
       })
       .subscribe();
 
@@ -212,8 +232,58 @@ const MesNeeditMissions = () => {
                     <p className="text-sm font-medium text-foreground mt-2">Prix max : {m.prix_max}</p>
                   )}
 
+                  {m.ean_code && (
+                    <p className="text-xs text-muted-foreground mt-1 font-mono flex items-center gap-1.5">
+                      <ScanBarcode size={12} /> EAN: {m.ean_code}
+                      {m.ean_verified && <CheckCircle2 size={14} className="text-green-500" />}
+                    </p>
+                  )}
+
                   {m.photo_url && (
                     <img src={m.photo_url} alt="Produit" className="mt-3 h-20 rounded-xl object-cover" />
+                  )}
+
+                  {/* Scanner EAN for voyageur on accepted missions */}
+                  {m.status === "accepted" && m.voyageur_id === user?.id && !m.ean_verified && (
+                    <div className="mt-3">
+                      {scanningMissionId === m.id ? (
+                        <AnimatePresence>
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+                            <EanScanner
+                              mode={m.ean_code ? "verify" : "scan"}
+                              expectedEan={m.ean_code || undefined}
+                              onVerified={async (ean) => {
+                                await supabase.from("needit_missions").update({ ean_verified: true } as any).eq("id", m.id);
+                                loadMissions();
+                                setScanningMissionId(null);
+                              }}
+                              onProductFound={async (product) => {
+                                await supabase.from("needit_missions").update({ ean_code: product.ean_code, ean_verified: true } as any).eq("id", m.id);
+                                loadMissions();
+                                setScanningMissionId(null);
+                              }}
+                            />
+                            <button onClick={() => setScanningMissionId(null)} className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground">
+                              Fermer le scanner
+                            </button>
+                          </motion.div>
+                        </AnimatePresence>
+                      ) : (
+                        <button
+                          onClick={() => setScanningMissionId(m.id)}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
+                        >
+                          <ScanBarcode size={16} />
+                          {m.ean_code ? "Vérifier le produit (EAN)" : "Scanner le code-barres"}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {m.ean_verified && (
+                    <div className="mt-2 flex items-center gap-1.5 text-xs text-green-600 font-medium">
+                      <CheckCircle2 size={14} /> Produit vérifié par scan
+                    </div>
                   )}
 
                   <p className="text-xs text-muted-foreground mt-2">
