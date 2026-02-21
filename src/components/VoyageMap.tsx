@@ -212,8 +212,10 @@ const VoyageMap = ({ voyages, selectedVoyageId, onSelectVoyage, pendingShipments
     <div className="rounded-2xl overflow-hidden border border-border shadow-sm" style={{ height: 340 }}>
       <MapContainer center={center} zoom={3} scrollWheelZoom={false} style={{ height: "100%", width: "100%" }} zoomControl={false}>
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.mapbox.com/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/">OSM</a>'
+          url="https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoicGllcnJlLTQzOTciLCJhIjoiY21sd2N6dTlmMGJkMTNlcXduMWtnZTJyMyJ9.vV_ZqV0mJ5WLbE6aX3QDJg"
+          tileSize={512}
+          zoomOffset={-1}
         />
         <FitBounds positions={allPositions} />
         {mapChildren}
