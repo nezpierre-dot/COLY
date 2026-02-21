@@ -275,8 +275,10 @@ const PublicMissionsMap = () => {
             zoomControl={false}
           >
             <TileLayer
-              attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/">OSM</a>'
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.mapbox.com/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/">OSM</a>'
+              url="https://api.mapbox.com/styles/v1/mapbox/light-v11/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoicGllcnJlLTQzOTciLCJhIjoiY21sd2N6dTlmMGJkMTNlcXduMWtnZTJyMyJ9.vV_ZqV0mJ5WLbE6aX3QDJg"
+              tileSize={512}
+              zoomOffset={-1}
             />
             <ZoomControl position="bottomright" />
             <FitBounds positions={allPositions} />
