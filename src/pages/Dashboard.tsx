@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
 import NotificationBell from "@/components/NotificationBell";
@@ -44,42 +45,80 @@ type Voyage = {
 
 // No mock data — only real DB data is displayed
 
-// --- Voyageur Quick Stats ---
-const QuickStats = ({ voyagesCount, colisCount, matchCount }: { voyagesCount: number; colisCount: number; matchCount: number }) => {
+// --- Voyageur Quick Stats with mini chart ---
+const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData }: { voyagesCount: number; colisCount: number; matchCount: number; chartData: { name: string; value: number }[] }) => {
   const stats = [
     { value: voyagesCount, label: "Voyages", gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
     { value: colisCount, label: "Colis dispo", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
     { value: matchCount, label: "Matchs", gradient: "from-accent to-accent/70", textColor: "text-accent-foreground" },
   ];
   return (
-    <motion.div
-      variants={staggerContainer}
-      initial="initial"
-      animate="animate"
-      className="grid grid-cols-3 gap-2 mb-4"
-    >
-      {stats.map((stat) => (
-        <motion.div
-          key={stat.label}
-          variants={staggerItem}
-          whileHover={{ scale: 1.04, y: -2 }}
-          whileTap={{ scale: 0.97 }}
-          className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-3 text-center cursor-default shadow-lg relative overflow-hidden`}
-        >
-          <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-white/10" />
-          <motion.p
-            key={stat.value}
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className={`text-xl font-bold ${stat.textColor}`}
+    <div className="space-y-3 mb-4">
+      <motion.div
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+        className="grid grid-cols-3 gap-2"
+      >
+        {stats.map((stat) => (
+          <motion.div
+            key={stat.label}
+            variants={staggerItem}
+            whileHover={{ scale: 1.04, y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-3 text-center cursor-default shadow-lg relative overflow-hidden`}
           >
-            {stat.value}
-          </motion.p>
-          <p className={`text-[10px] ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-white/10" />
+            <motion.p
+              key={stat.value}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className={`text-xl font-bold ${stat.textColor}`}
+            >
+              {stat.value}
+            </motion.p>
+            <p className={`text-[10px] ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Mini progression chart */}
+      {chartData.length > 1 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-card border border-border rounded-2xl p-3 shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <BarChart3 size={13} className="text-primary" />
+              <span className="text-xs font-semibold text-foreground">Activité récente</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground">30 derniers jours</span>
+          </div>
+          <div className="h-14">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" hide />
+                <Tooltip
+                  contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid hsl(var(--border))" }}
+                  labelStyle={{ fontWeight: 600 }}
+                />
+                <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorActivity)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </motion.div>
-      ))}
-    </motion.div>
+      )}
+    </div>
   );
 };
 
@@ -337,6 +376,22 @@ const Dashboard = () => {
 
   const totalMatches = matchedShipments.length + matchedNeedit.length;
 
+  // Generate chart data from voyages creation dates (last 30 days)
+  const activityChartData = useMemo(() => {
+    const now = new Date();
+    const days: { name: string; value: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+      const count = voyages.filter(v => v.departure_date && v.departure_date.startsWith(key)).length
+        + (isVoyageur ? 0 : demandeurShipments.filter(s => s.created_at?.startsWith(key)).length);
+      days.push({ name: label, value: count });
+    }
+    return days;
+  }, [voyages, isVoyageur, demandeurShipments]);
+
   const toggleRole = async () => {
     if (!user) return;
     const { error } = await supabase.rpc("toggle_user_role", { _user_id: user.id });
@@ -444,6 +499,7 @@ const Dashboard = () => {
               voyagesCount={voyages.length}
               colisCount={pendingShipments.length}
               matchCount={totalMatches}
+              chartData={activityChartData}
             />
 
             {/* AI Recommendation */}
@@ -735,38 +791,73 @@ const Dashboard = () => {
         ) : (
           /* ============ DEMANDEUR ============ */
           <div className="space-y-4">
-            <motion.div
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-              className="grid grid-cols-3 gap-2 mb-4"
-            >
-              {[
-                { value: demandeurShipments.length, label: "Envois", gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
-                { value: demandeurMissions.length, label: "Missions", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
-                { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", gradient: "from-accent to-accent/70", textColor: "text-accent-foreground" },
-              ].map((stat) => (
-                <motion.div
-                  key={stat.label}
-                  variants={staggerItem}
-                  whileHover={{ scale: 1.04, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-3 text-center cursor-default shadow-lg relative overflow-hidden`}
-                >
-                  <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-white/10" />
-                  <motion.p
-                    key={stat.value}
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className={`text-xl font-bold ${stat.textColor}`}
+            <div className="space-y-3 mb-4">
+              <motion.div
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+                className="grid grid-cols-3 gap-2"
+              >
+                {[
+                  { value: demandeurShipments.length, label: "Envois", gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
+                  { value: demandeurMissions.length, label: "Missions", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
+                  { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", gradient: "from-accent to-accent/70", textColor: "text-accent-foreground" },
+                ].map((stat) => (
+                  <motion.div
+                    key={stat.label}
+                    variants={staggerItem}
+                    whileHover={{ scale: 1.04, y: -2 }}
+                    whileTap={{ scale: 0.97 }}
+                    className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-3 text-center cursor-default shadow-lg relative overflow-hidden`}
                   >
-                    {stat.value}
-                  </motion.p>
-                  <p className={`text-[10px] ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
+                    <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-white/10" />
+                    <motion.p
+                      key={stat.value}
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      className={`text-xl font-bold ${stat.textColor}`}
+                    >
+                      {stat.value}
+                    </motion.p>
+                    <p className={`text-[10px] ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
+                  </motion.div>
+                ))}
+              </motion.div>
+
+              {/* Mini progression chart for demandeur */}
+              {activityChartData.some(d => d.value > 0) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-card border border-border rounded-2xl p-3 shadow-sm"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <BarChart3 size={13} className="text-primary" />
+                      <span className="text-xs font-semibold text-foreground">Mes envois</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">30 derniers jours</span>
+                  </div>
+                  <div className="h-14">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={activityChartData}>
+                        <defs>
+                          <linearGradient id="colorDemandeur" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="name" hide />
+                        <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid hsl(var(--border))" }} labelStyle={{ fontWeight: 600 }} />
+                        <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorDemandeur)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
                 </motion.div>
-              ))}
-            </motion.div>
+              )}
+            </div>
 
             {/* AI Recommendation */}
             <AiRecommendation isVoyageur={false} />

@@ -46,12 +46,36 @@ export default function NotificationsPage() {
             ))}
           </div>
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="flex flex-col items-center justify-center py-16 text-center">
             <span className="text-5xl mb-4">🔔</span>
             <p className="text-lg font-semibold text-foreground">Aucune notification</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1 max-w-[260px]">
               Vous recevrez ici les mises à jour de votre compte
             </p>
+
+            {/* Smart notification examples */}
+            <div className="mt-8 w-full max-w-sm space-y-2.5">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-left">
+                Exemples de notifications à venir
+              </p>
+              {[
+                { emoji: "✅", title: "Voyageur accepté !", desc: "Un voyageur a pris en charge votre colis Paris → Dakar", type: "success" },
+                { emoji: "📦", title: "Colis en transit", desc: "Votre envoi est en route vers sa destination", type: "coly" },
+                { emoji: "🛍️", title: "Mission NeedIt disponible", desc: "Une nouvelle mission correspond à votre trajet", type: "needit" },
+                { emoji: "⭐", title: "Nouvel avis reçu", desc: "Un demandeur vous a noté 5/5 — bravo !", type: "info" },
+              ].map((notif, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 rounded-xl px-4 py-3 bg-muted/40 border border-border/60 opacity-60"
+                >
+                  <span className="text-lg mt-0.5">{notif.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{notif.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{notif.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="space-y-2">
