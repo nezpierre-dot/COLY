@@ -101,57 +101,75 @@ const MesNeeditMissions = () => {
               }
             />
 
-            {/* AI Tutorial / Onboarding Steps */}
+            {/* How it works guide */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="mt-4 bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/15 rounded-2xl p-4 space-y-4"
+              className="mt-6 rounded-2xl overflow-hidden border border-border shadow-sm"
             >
-              <div className="flex items-center gap-2">
-                <span className="text-lg">🤖</span>
-                <p className="text-sm font-semibold text-foreground">Guide IA — Crée ta première mission</p>
+              {/* Header */}
+              <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 px-5 py-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                  <span className="text-xl">💡</span>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-foreground">Comment ça marche ?</p>
+                  <p className="text-[11px] text-muted-foreground">4 étapes simples pour ta première mission</p>
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {[
-                  { step: 1, emoji: "🌍", title: "Choisis un pays", desc: "Ex : Espagne, Turquie, Japon…" },
-                  { step: 2, emoji: "🛍️", title: "Sélectionne un produit", desc: "Navigue dans le catalogue ou décris ton besoin" },
-                  { step: 3, emoji: "📸", title: "Ajoute une photo (optionnel)", desc: "Pour que le voyageur identifie le bon produit" },
-                  { step: 4, emoji: "✅", title: "Publie & attends un match", desc: "Un voyageur acceptera ta mission !" },
-                ].map((s) => (
-                  <motion.div
-                    key={s.step}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.6 + s.step * 0.12 }}
-                    className="flex items-start gap-3"
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-base">
-                      {s.emoji}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{s.step}. {s.title}</p>
-                      <p className="text-xs text-muted-foreground">{s.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
+              {/* Steps */}
+              <div className="bg-card px-5 py-4">
+                <div className="relative">
+                  {/* Vertical connector line */}
+                  <div className="absolute left-[15px] top-4 bottom-4 w-px bg-border" />
+
+                  <div className="space-y-5">
+                    {[
+                      { step: 1, emoji: "🌍", title: "Choisis un pays", desc: "Espagne, Turquie, Japon…" },
+                      { step: 2, emoji: "🛍️", title: "Sélectionne un produit", desc: "Catalogue ou description libre" },
+                      { step: 3, emoji: "📸", title: "Ajoute une photo", desc: "Aide le voyageur à identifier le bon article" },
+                      { step: 4, emoji: "🤝", title: "Un voyageur accepte", desc: "Coordonnez-vous via la messagerie" },
+                    ].map((s) => (
+                      <motion.div
+                        key={s.step}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.55 + s.step * 0.1 }}
+                        className="flex items-start gap-3.5 relative"
+                      >
+                        <div className="w-[30px] h-[30px] rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center shrink-0 z-10 text-sm">
+                          {s.emoji}
+                        </div>
+                        <div className="pt-0.5">
+                          <p className="text-sm font-semibold text-foreground">{s.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{s.desc}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-card border border-border rounded-xl p-3 mt-2">
-                <p className="text-xs text-muted-foreground italic">
-                  💡 <span className="font-medium text-foreground">Exemple :</span> « Je cherche de l'huile d'olive premium en Espagne, max 25€ ». Un voyageur passant par Barcelone pourra l'acheter pour vous !
+              {/* Example tip */}
+              <div className="bg-muted/40 border-t border-border px-5 py-3">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground">Ex :</span> « Huile d'olive premium, Espagne, max 25 € » — un voyageur passant par Barcelone l'achète pour vous !
                 </p>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => navigate("/needit-mission")}
-                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm shadow-sm"
-              >
-                🚀 C'est parti !
-              </motion.button>
+              {/* CTA */}
+              <div className="px-5 pb-4 pt-2 bg-card">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate("/needit-mission")}
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm shadow-sm"
+                >
+                  🚀 C'est parti !
+                </motion.button>
+              </div>
             </motion.div>
           </div>
         ) : (
