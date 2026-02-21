@@ -1,11 +1,21 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle } from "lucide-react";
+import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const MyAccount = () => {
   const navigate = useNavigate();
@@ -38,6 +48,8 @@ const MyAccount = () => {
     if (error) toast.error(error.message);
     else { toast.success("Profil mis à jour"); setEditing(false); }
   };
+
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -76,9 +88,9 @@ const MyAccount = () => {
       ],
     },
     {
-      id: "legal",
-      icon: Shield,
-      label: "Confidentialité & Légal",
+      id: "security",
+      icon: Lock,
+      label: "Sécurité",
       items: [
         { label: "Confidentialité / Mentions légales", onClick: () => navigate("/confidentialite") },
       ],
@@ -221,12 +233,54 @@ const MyAccount = () => {
           </button>
         </div>
 
+        {/* 2FA Security Prompt */}
+        <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
+              <ShieldCheck size={18} className="text-accent" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">Protégez votre compte</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Activez l'authentification à deux facteurs (2FA) pour renforcer la sécurité de votre compte.
+              </p>
+              <button
+                onClick={() => toast.info("La double authentification sera bientôt disponible")}
+                className="mt-2 text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+              >
+                <Lock size={11} /> Activer la 2FA →
+              </button>
+            </div>
+          </div>
+        </div>
+
         <button
-          onClick={handleLogout}
-          className="w-full py-3.5 rounded-2xl border border-destructive/30 text-destructive font-medium text-sm hover:bg-destructive/10 transition-colors"
+          onClick={() => setShowLogoutConfirm(true)}
+          className="w-full py-3.5 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive font-semibold text-sm hover:bg-destructive/20 transition-colors"
         >
           Se déconnecter
         </button>
+
+        {/* Logout confirmation dialog */}
+        <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+          <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Se déconnecter ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Êtes-vous sûr de vouloir vous déconnecter de votre compte ? Vous devrez vous reconnecter pour accéder à vos données.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleLogout}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Déconnexion
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <BottomNav />
