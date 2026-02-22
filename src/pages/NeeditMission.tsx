@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -223,9 +223,11 @@ const SearchableDropdown = ({
 
 const NeeditMission = () => {
   const navigate = useNavigate();
+  const { id: editId } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [loadingEdit, setLoadingEdit] = useState(!!editId);
 
   // Step management: 1=location/timing, 2=product category, 3=photo, 4=description
   const [step, setStep] = useState(1);
@@ -258,6 +260,48 @@ const NeeditMission = () => {
   useEffect(() => {
     fetchCountries().then((data) => { setCountries(data); setLoadingCountries(false); });
   }, []);
+
+  // Load existing mission for editing
+  useEffect(() => {
+    if (!editId || !user) return;
+    const loadMission = async () => {
+      const { data, error } = await supabase
+        .from("needit_missions")
+        .select("*")
+        .eq("id", editId)
+        .eq("user_id", user.id)
+        .single();
+      if (error || !data) {
+        toast.error("Mission introuvable");
+        navigate("/mes-missions-needit");
+        return;
+      }
+      if (data.status !== "pending") {
+        toast.error("Seules les missions en attente peuvent être modifiées");
+        navigate("/mes-missions-needit");
+        return;
+      }
+      // Populate fields
+      setPays(data.country || "");
+      setVille(data.city || "");
+      setTiming(data.timing || "");
+      setIsUnlisted(data.is_unlisted || false);
+      setUnlistedName(data.unlisted_description || data.product_name || "");
+      setSelectedLeaf(data.is_unlisted ? "" : (data.product_name || ""));
+      setPhotoPreview(data.photo_url || null);
+      setDimension(data.dimension || "");
+      setPoids(data.poids || "");
+      setPrixMax(data.prix_max || "");
+      setEanCode(data.ean_code || "");
+      // Load cities for the country
+      if (data.country) {
+        setLoadingCities(true);
+        fetchCities(data.country).then((c) => { setCities(c); setLoadingCities(false); });
+      }
+      setLoadingEdit(false);
+    };
+    loadMission();
+  }, [editId, user]);
 
   const handleCountryChange = useCallback((country: string) => {
     setPays(country); setVille(""); setCities([]);
@@ -340,32 +384,45 @@ const NeeditMission = () => {
         const pathLabels = categoryPath.map((n) => n.label);
         if (selectedLeaf) pathLabels.push(selectedLeaf);
 
-        const { data: inserted, error } = await supabase.from("needit_missions").insert({
-          user_id: user.id,
+        const missionData = {
           country: pays,
           city: ville || null,
           timing,
-          category_path: pathLabels,
+          category_path: pathLabels.length > 0 ? pathLabels : undefined,
           product_name: isUnlisted ? unlistedName : selectedLeaf,
           is_unlisted: isUnlisted,
           unlisted_description: isUnlisted ? unlistedName : null,
-          photo_url,
+          photo_url: photo_url ?? photoPreview,
           dimension: dimension || null,
           poids: poids || null,
           prix_max: prixMax || null,
           ean_code: eanCode || null,
-        } as any).select("id").single();
+        };
 
-        if (error) throw error;
-
-        // Trigger match notifications
-        supabase.functions.invoke("notify-match", { body: { type: "mission", record_id: inserted.id } }).catch(() => {});
-
-        toast.success("Mission NeedIt créée !");
+        if (editId) {
+          // Update existing mission
+          const { error } = await supabase
+            .from("needit_missions")
+            .update(missionData as any)
+            .eq("id", editId)
+            .eq("user_id", user.id);
+          if (error) throw error;
+          toast.success("Mission mise à jour !");
+        } else {
+          // Create new mission
+          const { data: inserted, error } = await supabase.from("needit_missions").insert({
+            user_id: user.id,
+            ...missionData,
+          } as any).select("id").single();
+          if (error) throw error;
+          // Trigger match notifications
+          supabase.functions.invoke("notify-match", { body: { type: "mission", record_id: inserted.id } }).catch(() => {});
+          toast.success("Mission NeedIt créée !");
+        }
         navigate("/mes-missions-needit");
       } catch (err: any) {
         console.error(err);
-        toast.error("Erreur lors de la création de la mission");
+        toast.error(editId ? "Erreur lors de la mise à jour" : "Erreur lors de la création de la mission");
       } finally {
         setSubmitting(false);
       }
@@ -373,7 +430,7 @@ const NeeditMission = () => {
   };
 
   const handleBack = () => {
-    if (step === 1) navigate("/dashboard");
+    if (step === 1) navigate(editId ? "/mes-missions-needit" : "/dashboard");
     else if (step === 2 && categoryPath.length > 0) handleCategoryBack();
     else setStep((s) => s - 1);
   };
@@ -397,10 +454,16 @@ const NeeditMission = () => {
       </div>
 
       <div className="relative z-10 px-6 pt-12 pb-6">
-        <h1 className="text-4xl font-bold text-primary-foreground leading-tight">NeedIt<br />Missions</h1>
+        <h1 className="text-4xl font-bold text-primary-foreground leading-tight">{editId ? "Modifier" : "NeedIt"}<br />Missions</h1>
       </div>
 
       <div className="relative z-10 flex-1 bg-card rounded-t-3xl px-6 pt-8 pb-24 overflow-y-auto">
+        {loadingEdit ? (
+          <div className="flex justify-center py-12">
+            <Loader2 size={32} className="animate-spin text-primary" />
+          </div>
+        ) : (
+        <>
         <h2 className="text-2xl font-bold text-foreground text-center mb-6">{stepTitle()}</h2>
 
         {/* ═══ STEP 1: Location & Timing ═══ */}
@@ -574,9 +637,11 @@ const NeeditMission = () => {
             Retour
           </button>
           <button onClick={handleNext} disabled={submitting} className="flex items-center gap-2 px-8 py-3 rounded-full bg-accent text-accent-foreground text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50">
-            {submitting ? <Loader2 size={20} className="animate-spin" /> : <>{step === 4 ? "Valider" : "Continuer"} <ArrowRight size={20} /></>}
+            {submitting ? <Loader2 size={20} className="animate-spin" /> : <>{step === 4 ? (editId ? "Enregistrer" : "Valider") : "Continuer"} <ArrowRight size={20} /></>}
           </button>
         </div>
+        </>
+        )}
       </div>
 
       <BottomNav />

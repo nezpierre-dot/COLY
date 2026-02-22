@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2, ScanBarcode, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2, ScanBarcode, CheckCircle2, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import EanScanner from "@/components/EanScanner";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -26,6 +26,7 @@ interface NeeditMission {
   ean_code: string | null;
   ean_verified: boolean;
   voyageur_id: string | null;
+  user_id: string;
 }
 
 const statusLabels: Record<string, { label: string; color: string }> = {
@@ -217,6 +218,15 @@ const MesNeeditMissions = () => {
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${st.color}`}>
                       {st.label}
                     </span>
+                    {m.status === "pending" && m.user_id === user?.id && (
+                      <button
+                        onClick={() => navigate(`/needit-mission/${m.id}`)}
+                        className="w-7 h-7 rounded-full bg-primary/10 text-primary hover:bg-primary/20 flex items-center justify-center transition-colors"
+                        aria-label="Modifier cette mission"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">

@@ -58,6 +58,7 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
             <Route path="/needit-mission" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
+            <Route path="/needit-mission/:id" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
             <Route path="/mes-missions-needit" element={<ProtectedRoute><MesNeeditMissions /></ProtectedRoute>} />
             <Route path="/kyc" element={<ProtectedRoute><KycFlow /></ProtectedRoute>} />
             <Route path="/my-info" element={<ProtectedRoute><MyInfo /></ProtectedRoute>} />
