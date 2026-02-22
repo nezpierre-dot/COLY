@@ -429,7 +429,7 @@ const Dashboard = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="relative overflow-hidden px-5 pt-12 pb-6"
+          className="relative overflow-visible px-5 pt-12 pb-6"
           style={{
             background: isVoyageur
               ? "linear-gradient(135deg, hsl(252 40% 55%), hsl(214 80% 45%), hsl(200 80% 50%))"
