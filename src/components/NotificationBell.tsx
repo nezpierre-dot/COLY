@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Bell, Check, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -17,24 +18,43 @@ const typeIcon: Record<string, string> = {
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const [pos, setPos] = useState({ top: 0, right: 0 });
+
+  // Position dropdown relative to button
+  useEffect(() => {
+    if (open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPos({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, [open]);
 
   // Close on outside click
   useEffect(() => {
+    if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (
+        buttonRef.current?.contains(e.target as Node) ||
+        dropdownRef.current?.contains(e.target as Node)
+      ) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  }, [open]);
 
   const recent = notifications.slice(0, 5);
 
   return (
-    <div className="relative" ref={ref}>
+    <>
       <button
+        ref={buttonRef}
         onClick={() => setOpen((o) => !o)}
         className="relative p-2 rounded-full hover:bg-muted transition-colors"
         aria-label="Notifications"
@@ -47,69 +67,75 @@ export default function NotificationBell() {
         )}
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-12 w-80 bg-popover border border-border rounded-2xl shadow-xl z-[9999] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <h3 className="font-bold text-foreground text-sm">Notifications</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={() => markAllAsRead()}
-                className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
-              >
-                <Check size={12} /> Tout lire
-              </button>
-            )}
-          </div>
-
-          {/* List */}
-          <div className="max-h-72 overflow-y-auto">
-            {recent.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Aucune notification
-              </p>
-            ) : (
-              recent.map((n) => (
-                <button
-                  key={n.id}
-                  onClick={() => {
-                    if (!n.is_read) markAsRead(n.id);
-                    setOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-muted/60 transition-colors border-b border-border/50 last:border-0 ${
-                    !n.is_read ? "bg-primary/5" : ""
-                  }`}
-                >
-                  <span className="text-lg mt-0.5">{typeIcon[n.type] || "🔔"}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>
-                      {n.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">{n.message}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}
-                    </p>
-                  </div>
-                  {!n.is_read && (
-                    <span className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" />
-                  )}
-                </button>
-              ))
-            )}
-          </div>
-
-          {/* Footer */}
-          <button
-            onClick={() => {
-              setOpen(false);
-              navigate("/notifications");
-            }}
-            className="w-full px-4 py-3 text-sm font-medium text-primary hover:bg-muted/60 transition-colors flex items-center justify-center gap-1 border-t border-border"
+      {open &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed w-80 bg-popover border border-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{ top: pos.top, right: pos.right, zIndex: 99999 }}
           >
-            Voir toutes les notifications <ChevronRight size={14} />
-          </button>
-        </div>
-      )}
-    </div>
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h3 className="font-bold text-foreground text-sm">Notifications</h3>
+              {unreadCount > 0 && (
+                <button
+                  onClick={() => markAllAsRead()}
+                  className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+                >
+                  <Check size={12} /> Tout lire
+                </button>
+              )}
+            </div>
+
+            {/* List */}
+            <div className="max-h-72 overflow-y-auto">
+              {recent.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Aucune notification
+                </p>
+              ) : (
+                recent.map((n) => (
+                  <button
+                    key={n.id}
+                    onClick={() => {
+                      if (!n.is_read) markAsRead(n.id);
+                      setOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-muted/60 transition-colors border-b border-border/50 last:border-0 ${
+                      !n.is_read ? "bg-primary/5" : ""
+                    }`}
+                  >
+                    <span className="text-lg mt-0.5">{typeIcon[n.type] || "🔔"}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>
+                        {n.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">{n.message}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}
+                      </p>
+                    </div>
+                    {!n.is_read && (
+                      <span className="w-2 h-2 rounded-full bg-primary mt-2 shrink-0" />
+                    )}
+                  </button>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            <button
+              onClick={() => {
+                setOpen(false);
+                navigate("/notifications");
+              }}
+              className="w-full px-4 py-3 text-sm font-medium text-primary hover:bg-muted/60 transition-colors flex items-center justify-center gap-1 border-t border-border"
+            >
+              Voir toutes les notifications <ChevronRight size={14} />
+            </button>
+          </div>,
+          document.body
+        )}
+    </>
   );
 }
