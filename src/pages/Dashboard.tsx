@@ -544,8 +544,8 @@ const Dashboard = () => {
                     title="Aucun voyage enregistré"
                     description="Commencez par ajouter votre premier trajet pour recevoir des colis"
                     action={
-                      <button onClick={() => navigate("/new-trip")} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
-                        <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Ajouter un voyage
+                       <button onClick={() => navigate("/new-trip")} className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg">
+                        <Plus size={20} className="inline mr-1.5 -mt-0.5" /> Ajouter un voyage
                       </button>
                     }
                   />
@@ -608,8 +608,8 @@ const Dashboard = () => {
                 )}
 
                 <button onClick={() => navigate("/new-trip")}
-                  className="w-full py-3.5 rounded-2xl border-2 border-dashed border-secondary/40 text-secondary font-medium text-sm flex items-center justify-center gap-2 hover:bg-secondary/10 transition-colors">
-                  <Plus size={18} /> Ajouter un voyage
+                  className="w-full py-3.5 rounded-2xl border-2 border-dashed border-primary/30 bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-md">
+                  <Plus size={22} /> Ajouter un voyage
                 </button>
               </TabsContent>
 
@@ -896,8 +896,8 @@ const Dashboard = () => {
                     title="Aucun envoi enregistré"
                     description="Commencez par envoyer votre premier colis"
                     action={
-                      <button onClick={() => navigate("/send-coly")} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
-                        <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Envoyer un colis
+                      <button onClick={() => navigate("/send-coly")} className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg">
+                        <Plus size={20} className="inline mr-1.5 -mt-0.5" /> Envoyer un colis
                       </button>
                     }
                   />
@@ -955,8 +955,8 @@ const Dashboard = () => {
                 )}
 
                 <button onClick={() => navigate("/send-coly")}
-                  className="w-full py-3.5 rounded-2xl border-2 border-dashed border-secondary/40 text-secondary font-medium text-sm flex items-center justify-center gap-2 hover:bg-secondary/10 transition-colors">
-                  <Plus size={18} /> Envoyer un colis
+                  className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-md">
+                  <Plus size={22} /> Envoyer un colis
                 </button>
               </TabsContent>
 
@@ -968,8 +968,8 @@ const Dashboard = () => {
                     title="Aucune mission NeedIt"
                     description="Créez une mission d'achat pour vos besoins"
                     action={
-                      <button onClick={() => navigate("/needit-mission")} className="px-5 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
-                        <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Créer une mission
+                      <button onClick={() => navigate("/needit-mission")} className="px-5 py-3 rounded-xl bg-secondary text-secondary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg">
+                        <Plus size={20} className="inline mr-1.5 -mt-0.5" /> Créer une mission
                       </button>
                     }
                   />
@@ -1023,8 +1023,8 @@ const Dashboard = () => {
                 )}
 
                 <button onClick={() => navigate("/needit-mission")}
-                  className="w-full py-3.5 rounded-2xl border-2 border-dashed border-secondary/40 text-secondary font-medium text-sm flex items-center justify-center gap-2 hover:bg-secondary/10 transition-colors">
-                  <Plus size={18} /> Créer une mission
+                  className="w-full py-3.5 rounded-2xl bg-secondary text-secondary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-md">
+                  <Plus size={22} /> Créer une mission
                 </button>
               </TabsContent>
 
@@ -1042,10 +1042,10 @@ const Dashboard = () => {
                     onClick={() => navigate("/send-coly")}
                     className="flex flex-col items-center gap-2 py-5 rounded-2xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-primary/20 flex items-center justify-center">
-                      <Send size={20} className="text-primary" />
+                    <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+                      <Send size={24} className="text-primary-foreground" />
                     </div>
-                    <span className="text-sm font-semibold text-primary">Envoyer un colis</span>
+                    <span className="text-sm font-bold text-foreground">Envoyer un colis</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -1053,10 +1053,10 @@ const Dashboard = () => {
                     onClick={() => navigate("/needit-mission")}
                     className="flex flex-col items-center gap-2 py-5 rounded-2xl bg-secondary/10 border border-secondary/20 hover:bg-secondary/15 transition-colors"
                   >
-                    <div className="w-11 h-11 rounded-xl bg-secondary/20 flex items-center justify-center">
-                      <ShoppingBag size={20} className="text-secondary" />
+                    <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
+                      <ShoppingBag size={24} className="text-secondary-foreground" />
                     </div>
-                    <span className="text-sm font-semibold text-secondary">Mission NeedIt</span>
+                    <span className="text-sm font-bold text-foreground">Mission NeedIt</span>
                   </motion.button>
                 </div>
 
@@ -1073,14 +1073,14 @@ const Dashboard = () => {
                       onClick={() => navigate(link.path)}
                       className="w-full flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3 hover:shadow-sm transition-shadow"
                     >
-                      <div className={`w-9 h-9 rounded-lg bg-${link.color}/10 flex items-center justify-center shrink-0`}>
-                        <link.icon size={18} className={`text-${link.color}`} />
+                      <div className={`w-10 h-10 rounded-lg bg-${link.color}/10 flex items-center justify-center shrink-0`}>
+                        <link.icon size={22} className={`text-${link.color}`} />
                       </div>
                       <span className="text-sm font-medium text-foreground flex-1 text-left">{link.label}</span>
                       {"count" in link && typeof link.count === "number" && link.count > 0 && (
                         <span className={`text-xs font-bold text-${link.color} bg-${link.color}/10 px-2 py-0.5 rounded-full`}>{link.count}</span>
                       )}
-                      <ChevronRight size={16} className="text-muted-foreground" />
+                      <ChevronRight size={20} className="text-muted-foreground" />
                     </motion.button>
                   ))}
                 </div>

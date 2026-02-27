@@ -36,7 +36,7 @@ const BottomNav = () => {
                 className="relative -mt-7 group"
               >
                 <div className="w-[56px] h-[56px] rounded-2xl bg-gradient-to-br from-primary to-coly-blue-dark shadow-[0_4px_24px_hsl(214_80%_45%/0.4)] flex items-center justify-center transition-transform active:scale-95">
-                  <Icon size={24} className="text-primary-foreground" aria-hidden="true" />
+                  <Icon size={28} className="text-primary-foreground" aria-hidden="true" />
                 </div>
               </button>
             );
@@ -51,7 +51,7 @@ const BottomNav = () => {
               className="flex flex-col items-center gap-0.5 px-4 py-1 transition-colors"
             >
               <Icon
-                size={21}
+                size={24}
                 strokeWidth={active ? 2.2 : 1.6}
                 className={`transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
                 aria-hidden="true"
