@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin,
-  Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck
+  Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck,
+  Clock, Truck, PackageCheck, HandshakeIcon, CircleDot
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
@@ -70,6 +71,9 @@ const ChatPage = () => {
   const [otherUserId, setOtherUserId] = useState("");
   const [shipmentRoute, setShipmentRoute] = useState("");
   const [itemDetail, setItemDetail] = useState<ItemDetail | null>(null);
+  const [shipmentStatus, setShipmentStatus] = useState<string>("pending");
+  const [shipmentId, setShipmentId] = useState<string>("");
+  const [isVoyageur, setIsVoyageur] = useState(false);
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
@@ -92,18 +96,21 @@ const ChatPage = () => {
       if (convo) {
         const otherId = convo.demandeur_id === user.id ? convo.voyageur_id : convo.demandeur_id;
         setOtherUserId(otherId);
+        setIsVoyageur(convo.voyageur_id === user.id);
+        setShipmentId(convo.shipment_id);
         const isOtherVoyageur = convo.voyageur_id === otherId;
         const otherRef = (isOtherVoyageur ? "VOY-" : "EXP-") + otherId.substring(0, 8).toUpperCase();
         setOtherName(otherRef);
 
         const { data: shipData } = await supabase
           .from("shipments")
-          .select("departure_city, arrival_city, arrival_country, departure_date, size, tarif, insured, departure_method")
+          .select("departure_city, arrival_city, arrival_country, departure_date, size, tarif, insured, departure_method, status")
           .eq("id", convo.shipment_id)
           .maybeSingle();
 
         if (shipData) {
           setShipmentRoute(`${shipData.departure_city || "—"} → ${shipData.arrival_city}`);
+          setShipmentStatus(shipData.status || "pending");
           setItemDetail({
             type: "shipment",
             departure_city: shipData.departure_city,
@@ -118,12 +125,13 @@ const ChatPage = () => {
         } else {
           const { data: missionData } = await supabase
             .from("needit_missions")
-            .select("product_name, category_path, country, city, prix_max, poids, dimension, timing, is_unlisted, unlisted_description")
+            .select("product_name, category_path, country, city, prix_max, poids, dimension, timing, is_unlisted, unlisted_description, status")
             .eq("id", convo.shipment_id)
             .maybeSingle();
 
           if (missionData) {
             setShipmentRoute(`NeedIt → ${missionData.city || missionData.country}`);
+            setShipmentStatus(missionData.status || "pending");
             setItemDetail({ type: "mission", ...missionData });
           }
         }
@@ -310,6 +318,30 @@ const ChatPage = () => {
         </div>
       </div>
 
+      {/* Status Banner */}
+      {shipmentId && (
+        <div className={`px-4 py-2.5 flex items-center gap-2.5 text-xs font-medium shrink-0 border-b border-border/40 ${
+          shipmentStatus === "delivered" ? "bg-green-500/10 text-green-700 dark:text-green-400" :
+          shipmentStatus === "in_transit" ? "bg-blue-500/10 text-blue-700 dark:text-blue-400" :
+          shipmentStatus === "picked_up" ? "bg-amber-500/10 text-amber-700 dark:text-amber-400" :
+          shipmentStatus === "accepted" ? "bg-primary/10 text-primary" :
+          "bg-muted text-muted-foreground"
+        }`}>
+          {shipmentStatus === "delivered" ? <PackageCheck size={14} /> :
+           shipmentStatus === "in_transit" ? <Truck size={14} /> :
+           shipmentStatus === "picked_up" ? <HandshakeIcon size={14} /> :
+           shipmentStatus === "accepted" ? <CheckCheck size={14} /> :
+           <CircleDot size={14} />}
+          <span>
+            {shipmentStatus === "delivered" ? "✅ Livré" :
+             shipmentStatus === "in_transit" ? "🚚 En transit" :
+             shipmentStatus === "picked_up" ? "🤝 Colis récupéré" :
+             shipmentStatus === "accepted" ? "✔️ Accepté" :
+             "⏳ En attente d'un voyageur"}
+          </span>
+        </div>
+      )}
+
       {/* Recap Card */}
       {itemDetail && (
         <motion.div
@@ -492,26 +524,77 @@ const ChatPage = () => {
         </AnimatePresence>
       </div>
 
-      {/* AI Quick Suggestions */}
-      {messages.length > 0 && messages.length <= 6 && (
-        <div className="px-4 pb-1 shrink-0">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar">
-            {[
-              "📍 Coordonnées de remise ?",
-              "📸 Photo du colis ?",
-              "📅 Dispo pour récupérer ?",
-            ].map((s) => (
+      {/* Quick Replies */}
+      <div className="px-4 pb-1 shrink-0">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+          {(() => {
+            const quickReplies: { emoji: string; label: string; message: string }[] = [];
+
+            // Status-based quick replies (voyageur actions)
+            if (isVoyageur) {
+              if (shipmentStatus === "accepted" || shipmentStatus === "pending") {
+                quickReplies.push(
+                  { emoji: "🤝", label: "Colis récupéré", message: "J'ai récupéré le colis ✅" },
+                  { emoji: "📍", label: "Point de RDV", message: "Voici le point de rendez-vous : " },
+                );
+              }
+              if (shipmentStatus === "picked_up") {
+                quickReplies.push(
+                  { emoji: "🚚", label: "En transit", message: "Le colis est en transit 🚚" },
+                  { emoji: "📸", label: "Photo colis", message: "Voici une photo du colis 📸" },
+                );
+              }
+              if (shipmentStatus === "in_transit") {
+                quickReplies.push(
+                  { emoji: "📦", label: "Colis remis", message: "Le colis a été remis au destinataire ✅" },
+                  { emoji: "📍", label: "Lieu de remise", message: "Je suis arrivé au lieu de remise 📍" },
+                );
+              }
+            } else {
+              // Demandeur quick replies
+              if (shipmentStatus === "pending") {
+                quickReplies.push(
+                  { emoji: "📅", label: "Dispo quand ?", message: "Quand êtes-vous disponible pour récupérer ?" },
+                );
+              }
+              if (shipmentStatus === "accepted" || shipmentStatus === "picked_up") {
+                quickReplies.push(
+                  { emoji: "📍", label: "Où en est-on ?", message: "Où en est le colis ?" },
+                );
+              }
+              if (shipmentStatus === "in_transit") {
+                quickReplies.push(
+                  { emoji: "🕐", label: "ETA ?", message: "Heure d'arrivée estimée ?" },
+                );
+              }
+            }
+
+            // Generic quick replies (always available)
+            quickReplies.push(
+              { emoji: "👍", label: "OK parfait", message: "OK parfait, merci !" },
+              { emoji: "📸", label: "Envoyer photo", message: "" },
+              { emoji: "📞", label: "On s'appelle ?", message: "On peut s'appeler pour coordonner ?" },
+            );
+
+            return quickReplies.map((qr) => (
               <button
-                key={s}
-                onClick={() => { setNewMessage(s.replace(/^..\s/, "")); }}
-                className="shrink-0 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors whitespace-nowrap"
+                key={qr.label}
+                onClick={() => {
+                  if (qr.label === "Envoyer photo") {
+                    fileRef.current?.click();
+                  } else {
+                    setNewMessage(qr.message);
+                  }
+                }}
+                className="shrink-0 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 active:scale-95 transition-all whitespace-nowrap flex items-center gap-1"
               >
-                {s}
+                <span>{qr.emoji}</span>
+                <span>{qr.label}</span>
               </button>
-            ))}
-          </div>
+            ));
+          })()}
         </div>
-      )}
+      </div>
 
       {/* Input */}
       <div className="bg-card/95 backdrop-blur-lg border-t border-border/60 px-4 py-3 pb-safe shrink-0">
