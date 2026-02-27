@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { successFeedback } from "@/lib/successFeedback";
 import BottomNav from "@/components/BottomNav";
 
 /** Searchable dropdown that only renders visible items (max 50 shown) */
@@ -256,7 +257,7 @@ const NewTrip = () => {
     if (error) {
       toast.error("Erreur lors de la création du voyage");
     } else {
-      toast.success("Voyage créé avec succès !");
+      successFeedback("Voyage publié !", { description: "Les demandeurs sur cet axe seront notifiés." });
       // Trigger match notifications
       supabase.functions.invoke("notify-match", { body: { type: "voyage", record_id: data.id } }).catch(() => {});
       navigate("/dashboard");

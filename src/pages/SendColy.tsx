@@ -8,6 +8,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { successFeedback } from "@/lib/successFeedback";
 import BottomNav from "@/components/BottomNav";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -506,7 +507,7 @@ const SendColy = () => {
       // Trigger match notifications
       supabase.functions.invoke("notify-match", { body: { type: "shipment", record_id: inserted.id } }).catch(() => {});
 
-      toast.success("Envoi COLY créé avec succès ! Un voyageur sera bientôt assigné.");
+      successFeedback("Envoi créé avec succès !", { description: "Nous cherchons un voyageur pour votre colis…" });
       navigate("/dashboard");
     } catch (err: any) {
       console.error("Shipment error:", err);
