@@ -100,10 +100,11 @@ const MyAccount = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="px-6 pt-12">
-        <h1 className="text-3xl font-bold text-foreground mb-8">Mon Compte</h1>
+        <h1 className="text-[28px] font-bold text-foreground mb-2">Mon Compte</h1>
+        <p className="text-sm text-muted-foreground mb-8">Gérez votre profil et vos paramètres</p>
 
         {/* Avatar + Info with inline edit */}
-        <div className="flex items-start gap-5 mb-6">
+        <div className="flex items-start gap-5 mb-8">
           <div className="relative shrink-0">
             <div
               className="w-28 h-28 rounded-2xl bg-muted flex items-center justify-center overflow-hidden cursor-pointer group"
@@ -124,11 +125,15 @@ const MyAccount = () => {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
 
-          <div className="flex-1 space-y-1">
-            <p className="font-bold text-foreground">Voyageur</p>
-            <p className="text-sm text-muted-foreground">N°{userId.toUpperCase()}</p>
-            <p className="font-bold text-foreground mt-2">Expéditeur</p>
-            <p className="text-sm text-muted-foreground">N°{(parseInt(userId, 16) % 999999).toString().padStart(6, "0")}</p>
+          <div className="flex-1 space-y-2.5">
+            <div>
+              <p className="text-base font-bold text-foreground">Voyageur</p>
+              <p className="text-xs text-muted-foreground">N°{userId.toUpperCase()}</p>
+            </div>
+            <div>
+              <p className="text-base font-bold text-foreground">Expéditeur</p>
+              <p className="text-xs text-muted-foreground">N°{(parseInt(userId, 16) % 999999).toString().padStart(6, "0")}</p>
+            </div>
           </div>
 
           <button
@@ -148,9 +153,9 @@ const MyAccount = () => {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden mb-6"
             >
-              <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
+              <div className="bg-muted/50 rounded-2xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground">Modifier mes informations</h3>
+                  <h3 className="text-lg font-semibold text-foreground">Modifier mes informations</h3>
                   <button onClick={() => setEditing(false)} className="text-muted-foreground"><X size={16} /></button>
                 </div>
                 <div>
@@ -177,7 +182,7 @@ const MyAccount = () => {
         </AnimatePresence>
 
         {/* Accordion sections */}
-        <div className="space-y-3 mb-6">
+        <div className="space-y-3 mb-8">
           {accordionSections.map((section) => {
             const isOpen = openAccordion === section.id;
             const Icon = section.icon;
@@ -190,7 +195,7 @@ const MyAccount = () => {
                   <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                     <Icon size={16} className="text-primary" />
                   </div>
-                  <span className="flex-1 text-sm font-semibold text-foreground">{section.label}</span>
+                  <span className="flex-1 text-base font-semibold text-foreground">{section.label}</span>
                   <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                     <ChevronDown size={16} className="text-muted-foreground" />
                   </motion.div>
@@ -209,7 +214,7 @@ const MyAccount = () => {
                           <button
                             key={idx}
                             onClick={item.onClick}
-                            className="w-full text-left px-4 py-3 text-sm text-foreground hover:bg-muted/50 transition-colors pl-14"
+                            className="w-full text-left px-4 py-3.5 text-sm text-foreground hover:bg-muted/50 transition-colors pl-14"
                           >
                             {item.label}
                           </button>
