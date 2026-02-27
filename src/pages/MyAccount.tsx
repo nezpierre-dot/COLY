@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock } from "lucide-react";
+import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ const MyAccount = () => {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
+  const isVoyageur = roles.includes("voyageur");
 
   const userId = user?.id?.slice(0, 6) || "000000";
   const meta = user?.user_metadata || {};
@@ -31,6 +32,30 @@ const MyAccount = () => {
   const [phone, setPhone] = useState(meta.phone || "");
   const [email] = useState(user?.email || "");
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+
+  // Stats & rating
+  const [rating, setRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
+  const [stats, setStats] = useState({ voyages: 0, shipments: 0, missions: 0 });
+
+  useEffect(() => {
+    if (!user) return;
+    // Load rating
+    supabase.rpc("get_user_rating", { _user_id: user.id }).then(({ data }) => {
+      if (data && data.length > 0 && data[0].total_ratings > 0) setRating(data[0]);
+    });
+    // Load stats
+    Promise.all([
+      supabase.from("voyages").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("shipments").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("needit_missions").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    ]).then(([v, s, m]) => {
+      setStats({
+        voyages: v.count || 0,
+        shipments: s.count || 0,
+        missions: m.count || 0,
+      });
+    });
+  }, [user]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -59,6 +84,15 @@ const MyAccount = () => {
   const toggleAccordion = (id: string) => setOpenAccordion(openAccordion === id ? null : id);
 
   const inputClass = "w-full border-b border-muted-foreground/30 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none bg-transparent text-sm";
+
+  // Badges
+  const badges = [
+    ...(stats.voyages >= 1 ? [{ emoji: "✈️", label: "Premier vol" }] : []),
+    ...(stats.voyages >= 10 ? [{ emoji: "🌍", label: "Globe-trotter" }] : []),
+    ...(stats.shipments >= 5 ? [{ emoji: "📦", label: "Expéditeur actif" }] : []),
+    ...(stats.missions >= 3 ? [{ emoji: "🛒", label: "Chasseur NeedIt" }] : []),
+    ...(rating && rating.average_score >= 4.5 ? [{ emoji: "⭐", label: "Top noté" }] : []),
+  ];
 
   const accordionSections = [
     {
@@ -99,50 +133,124 @@ const MyAccount = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="px-6 pt-12">
-        <h1 className="text-[28px] font-bold text-foreground mb-2">Mon Compte</h1>
-        <p className="text-sm text-muted-foreground mb-8">Gérez votre profil et vos paramètres</p>
+      {/* Profile Hero Banner */}
+      <div
+        className="relative overflow-hidden px-6 pt-12 pb-8"
+        style={{
+          background: isVoyageur
+            ? "linear-gradient(135deg, hsl(252 40% 55%), hsl(214 80% 45%))"
+            : "linear-gradient(135deg, hsl(214 80% 45%), hsl(27 95% 50%))"
+        }}
+      >
+        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
+        <div className="absolute bottom-0 -left-6 w-24 h-24 rounded-full bg-white/5" />
 
-        {/* Avatar + Info with inline edit */}
-        <div className="flex items-start gap-5 mb-8">
+        <div className="relative z-10 flex items-start gap-4">
+          {/* Avatar */}
           <div className="relative shrink-0">
-            <div
-              className="w-28 h-28 rounded-2xl bg-muted flex items-center justify-center overflow-hidden cursor-pointer group"
+            <motion.div
+              whileTap={{ scale: 0.95 }}
+              className="w-24 h-24 rounded-2xl bg-white/20 flex items-center justify-center overflow-hidden cursor-pointer group backdrop-blur-sm"
               onClick={() => fileRef.current?.click()}
             >
               {avatar ? (
                 <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-4xl text-muted-foreground">👤</span>
+                <span className="text-4xl">👤</span>
               )}
-              <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
-                <Camera size={22} className="text-white" />
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
+                <Camera size={24} className="text-white" />
               </div>
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-green-500 flex items-center justify-center">
-              <CheckCircle2 size={16} className="text-white" />
+            </motion.div>
+            <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center border-2 border-background">
+              <CheckCircle2 size={14} className="text-white" />
             </div>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
 
-          <div className="flex-1 space-y-2.5">
-            <div>
-              <p className="text-base font-bold text-foreground">Voyageur</p>
-              <p className="text-xs text-muted-foreground">N°{userId.toUpperCase()}</p>
-            </div>
-            <div>
-              <p className="text-base font-bold text-foreground">Expéditeur</p>
-              <p className="text-xs text-muted-foreground">N°{(parseInt(userId, 16) % 999999).toString().padStart(6, "0")}</p>
-            </div>
+          {/* Name & rating */}
+          <div className="flex-1 min-w-0 pt-1">
+            <h1 className="text-xl font-bold text-white truncate">
+              {fullName || "Utilisateur"}
+            </h1>
+            <p className="text-white/60 text-xs mt-0.5">
+              {isVoyageur ? "Voyageur" : "Expéditeur"} · N°{userId.toUpperCase()}
+            </p>
+
+            {/* Star rating */}
+            {rating ? (
+              <div className="flex items-center gap-1.5 mt-2">
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Star
+                      key={s}
+                      size={14}
+                      className={s <= Math.round(rating.average_score) ? "text-amber-400" : "text-white/20"}
+                      fill={s <= Math.round(rating.average_score) ? "currentColor" : "none"}
+                    />
+                  ))}
+                </div>
+                <span className="text-white/80 text-xs font-semibold">{rating.average_score}</span>
+                <span className="text-white/40 text-[10px]">({rating.total_ratings} avis)</span>
+              </div>
+            ) : (
+              <p className="text-white/40 text-xs mt-2">Pas encore noté</p>
+            )}
           </div>
 
-          <button
+          <motion.button
+            whileTap={{ scale: 0.9 }}
             onClick={() => editing ? handleSave() : setEditing(true)}
-            className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors"
+            className="shrink-0 w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors backdrop-blur-sm"
           >
             {editing ? <Save size={20} /> : <Pencil size={20} />}
-          </button>
+          </motion.button>
         </div>
+      </div>
+
+      <div className="px-6 -mt-4 relative z-10">
+        {/* Quick stats row */}
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          {[
+            { value: stats.voyages, label: "Voyages", icon: Plane },
+            { value: stats.shipments, label: "Envois", icon: Package },
+            { value: stats.missions, label: "Missions", icon: TrendingUp },
+          ].map((s) => (
+            <motion.div
+              key={s.label}
+              whileTap={{ scale: 0.97 }}
+              className="bg-card border border-border rounded-2xl p-3 text-center shadow-sm"
+            >
+              <s.icon size={18} className="text-primary mx-auto mb-1" />
+              <p className="text-lg font-bold text-foreground">{s.value}</p>
+              <p className="text-[10px] text-muted-foreground font-medium">{s.label}</p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Badges */}
+        {badges.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Award size={14} className="text-accent" />
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Badges</h3>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {badges.map((b, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-xl"
+                >
+                  <span className="text-sm">{b.emoji}</span>
+                  <span className="text-xs font-semibold text-foreground">{b.label}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Inline edit panel */}
         <AnimatePresence>
@@ -170,12 +278,13 @@ const MyAccount = () => {
                   <label className="text-xs text-muted-foreground">Email</label>
                   <p className="text-sm text-muted-foreground py-2">{email}</p>
                 </div>
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
                   onClick={handleSave}
                   className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity"
                 >
                   Enregistrer
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           )}
@@ -188,7 +297,8 @@ const MyAccount = () => {
             const Icon = section.icon;
             return (
               <div key={section.id} className="bg-card rounded-2xl border border-border overflow-hidden">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.99 }}
                   onClick={() => toggleAccordion(section.id)}
                   className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-muted/30 transition-colors"
                 >
@@ -199,7 +309,7 @@ const MyAccount = () => {
                   <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                     <ChevronDown size={16} className="text-muted-foreground" />
                   </motion.div>
-                </button>
+                </motion.button>
                 <AnimatePresence>
                   {isOpen && (
                     <motion.div
@@ -211,13 +321,14 @@ const MyAccount = () => {
                     >
                       <div className="border-t border-border divide-y divide-border">
                         {section.items.map((item, idx) => (
-                          <button
+                          <motion.button
                             key={idx}
+                            whileTap={{ scale: 0.98 }}
                             onClick={item.onClick}
                             className="w-full text-left px-4 py-3.5 text-sm text-foreground hover:bg-muted/50 transition-colors pl-14"
                           >
                             {item.label}
-                          </button>
+                          </motion.button>
                         ))}
                       </div>
                     </motion.div>
@@ -230,12 +341,12 @@ const MyAccount = () => {
 
         {/* FAQ / Aide */}
         <div className="flex gap-4 mb-4">
-          <button className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
+          <motion.button whileTap={{ scale: 0.97 }} className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
             <HelpCircle size={20} /> FAQ
-          </button>
-          <button className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.97 }} className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
             <HelpCircle size={20} /> Aide
-          </button>
+          </motion.button>
         </div>
 
         {/* 2FA Security Prompt */}
@@ -259,12 +370,13 @@ const MyAccount = () => {
           </div>
         </div>
 
-        <button
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={() => setShowLogoutConfirm(true)}
           className="w-full py-3.5 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive font-semibold text-sm hover:bg-destructive/20 transition-colors"
         >
           Se déconnecter
-        </button>
+        </motion.button>
 
         {/* Logout confirmation dialog */}
         <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>

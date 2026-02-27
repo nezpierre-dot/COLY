@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2, ScanBarcode, CheckCircle2, Pencil } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import VoyageurAvailability from "@/components/VoyageurAvailability";
+import PullToRefresh from "@/components/PullToRefresh";
 
 interface NeeditMission {
   id: string;
@@ -107,6 +108,7 @@ const MesNeeditMissions = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <PageTransition>
+      <PullToRefresh onRefresh={loadMissions}>
       <div className="px-6 pt-12">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
@@ -360,6 +362,7 @@ const MesNeeditMissions = () => {
           </motion.div>
         )}
       </div>
+      </PullToRefresh>
       </PageTransition>
       <BottomNav />
     </div>
