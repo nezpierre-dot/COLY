@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode } from "l
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { successFeedback } from "@/lib/successFeedback";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -407,7 +408,7 @@ const NeeditMission = () => {
             .eq("id", editId)
             .eq("user_id", user.id);
           if (error) throw error;
-          toast.success("Mission mise à jour !");
+          successFeedback("Mission mise à jour !", { description: "Les changements sont enregistrés." });
         } else {
           // Create new mission
           const { data: inserted, error } = await supabase.from("needit_missions").insert({
@@ -417,7 +418,7 @@ const NeeditMission = () => {
           if (error) throw error;
           // Trigger match notifications
           supabase.functions.invoke("notify-match", { body: { type: "mission", record_id: inserted.id } }).catch(() => {});
-          toast.success("Mission NeedIt créée !");
+          successFeedback("Mission NeedIt créée !", { description: "Nous cherchons un voyageur sur cet axe…" });
         }
         navigate("/mes-missions-needit");
       } catch (err: any) {
