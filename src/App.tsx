@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import SplashScreen from "@/components/SplashScreen";
 import Welcome from "./pages/Welcome";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -39,52 +41,62 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <FavoritesProvider>
-          <Routes>
-            <Route path="/" element={<Welcome />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/send-coly" element={<ProtectedRoute><SendColy /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
-            <Route path="/needit-mission" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
-            <Route path="/needit-mission/:id" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
-            <Route path="/mes-missions-needit" element={<ProtectedRoute><MesNeeditMissions /></ProtectedRoute>} />
-            <Route path="/kyc" element={<ProtectedRoute><KycFlow /></ProtectedRoute>} />
-            <Route path="/my-info" element={<ProtectedRoute><MyInfo /></ProtectedRoute>} />
-            <Route path="/voyageur-settings" element={<ProtectedRoute><VoyageurSettings /></ProtectedRoute>} />
-            <Route path="/history/:type" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
-            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-            <Route path="/comptabilite" element={<ProtectedRoute><Comptabilite /></ProtectedRoute>} />
-            <Route path="/solde" element={<ProtectedRoute><SoldePage /></ProtectedRoute>} />
-            <Route path="/facturation" element={<ProtectedRoute><FacturationPage /></ProtectedRoute>} />
-            <Route path="/confidentialite" element={<ProtectedRoute><ConfidentialitePage /></ProtectedRoute>} />
-            <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
-            <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
-            <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
-            <Route path="/conversations" element={<ProtectedRoute><ConversationsPage /></ProtectedRoute>} />
-            <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-            <Route path="/voyageur-search" element={<ProtectedRoute><VoyageurSearch /></ProtectedRoute>} />
-            <Route path="/install" element={<ProtectedRoute><InstallPage /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-            </FavoritesProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
-);
+const App = () => {
+  const [splashDone, setSplashDone] = useState(() => {
+    // Only show splash once per session
+    if (sessionStorage.getItem("splash-shown")) return true;
+    sessionStorage.setItem("splash-shown", "1");
+    return false;
+  });
+
+  return (
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          {!splashDone && <SplashScreen onFinished={() => setSplashDone(true)} />}
+          <BrowserRouter>
+            <AuthProvider>
+              <FavoritesProvider>
+            <Routes>
+              <Route path="/" element={<Welcome />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/send-coly" element={<ProtectedRoute><SendColy /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
+              <Route path="/needit-mission" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
+              <Route path="/needit-mission/:id" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
+              <Route path="/mes-missions-needit" element={<ProtectedRoute><MesNeeditMissions /></ProtectedRoute>} />
+              <Route path="/kyc" element={<ProtectedRoute><KycFlow /></ProtectedRoute>} />
+              <Route path="/my-info" element={<ProtectedRoute><MyInfo /></ProtectedRoute>} />
+              <Route path="/voyageur-settings" element={<ProtectedRoute><VoyageurSettings /></ProtectedRoute>} />
+              <Route path="/history/:type" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+              <Route path="/comptabilite" element={<ProtectedRoute><Comptabilite /></ProtectedRoute>} />
+              <Route path="/solde" element={<ProtectedRoute><SoldePage /></ProtectedRoute>} />
+              <Route path="/facturation" element={<ProtectedRoute><FacturationPage /></ProtectedRoute>} />
+              <Route path="/confidentialite" element={<ProtectedRoute><ConfidentialitePage /></ProtectedRoute>} />
+              <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
+              <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
+              <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
+              <Route path="/conversations" element={<ProtectedRoute><ConversationsPage /></ProtectedRoute>} />
+              <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+              <Route path="/voyageur-search" element={<ProtectedRoute><VoyageurSearch /></ProtectedRoute>} />
+              <Route path="/install" element={<ProtectedRoute><InstallPage /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+              </FavoritesProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  );
+};
 
 export default App;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageCircle, Send as SendIcon } from "lucide-react";
 import { motion } from "framer-motion";
@@ -7,6 +7,7 @@ import EmptyState from "@/components/EmptyState";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import PullToRefresh from "@/components/PullToRefresh";
 
 interface Conversation {
   id: string;
@@ -26,63 +27,60 @@ const ConversationsPage = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const load = useCallback(async () => {
+    if (!user) return;
+    const { data: convos } = await supabase
+      .from("conversations")
+      .select("*")
+      .or(`demandeur_id.eq.${user.id},voyageur_id.eq.${user.id}`)
+      .order("last_message_at", { ascending: false });
+
+    if (!convos) { setLoading(false); return; }
+
+    const enriched = await Promise.all(
+      convos.map(async (c) => {
+        const otherId = c.demandeur_id === user.id ? c.voyageur_id : c.demandeur_id;
+        const isOtherVoyageur = c.voyageur_id === otherId;
+        const otherRef = (isOtherVoyageur ? "VOY-" : "EXP-") + otherId.substring(0, 8).toUpperCase();
+
+        const [msgRes, , shipRes] = await Promise.all([
+          supabase.from("messages").select("content").eq("conversation_id", c.id).order("created_at", { ascending: false }).limit(1),
+          Promise.resolve(),
+          supabase.from("shipments").select("departure_city, arrival_city").eq("id", c.shipment_id).maybeSingle(),
+        ]);
+
+        const { count } = await supabase
+          .from("messages")
+          .select("*", { count: "exact", head: true })
+          .eq("conversation_id", c.id)
+          .eq("is_read", false)
+          .neq("sender_id", user.id);
+
+        return {
+          ...c,
+          last_message: msgRes.data?.[0]?.content || "",
+          other_name: otherRef,
+          shipment_route: shipRes.data ? `${shipRes.data.departure_city || "—"} → ${shipRes.data.arrival_city}` : "",
+          unread_count: count || 0,
+        };
+      })
+    );
+
+    setConversations(enriched);
+    setLoading(false);
+  }, [user]);
+
   useEffect(() => {
     if (!user) return;
-
-    const load = async () => {
-      // Get conversations
-      const { data: convos } = await supabase
-        .from("conversations")
-        .select("*")
-        .or(`demandeur_id.eq.${user.id},voyageur_id.eq.${user.id}`)
-        .order("last_message_at", { ascending: false });
-
-      if (!convos) { setLoading(false); return; }
-
-      // Enrich with last message, other user name, and shipment route
-      const enriched = await Promise.all(
-        convos.map(async (c) => {
-          const otherId = c.demandeur_id === user.id ? c.voyageur_id : c.demandeur_id;
-          const isOtherVoyageur = c.voyageur_id === otherId;
-          const otherRef = (isOtherVoyageur ? "VOY-" : "EXP-") + otherId.substring(0, 8).toUpperCase();
-
-          const [msgRes, , shipRes] = await Promise.all([
-            supabase.from("messages").select("content").eq("conversation_id", c.id).order("created_at", { ascending: false }).limit(1),
-            Promise.resolve(),
-            supabase.from("shipments").select("departure_city, arrival_city").eq("id", c.shipment_id).maybeSingle(),
-          ]);
-
-          // Count unread
-          const { count } = await supabase
-            .from("messages")
-            .select("*", { count: "exact", head: true })
-            .eq("conversation_id", c.id)
-            .eq("is_read", false)
-            .neq("sender_id", user.id);
-
-          return {
-            ...c,
-            last_message: msgRes.data?.[0]?.content || "",
-            other_name: otherRef,
-            shipment_route: shipRes.data ? `${shipRes.data.departure_city || "—"} → ${shipRes.data.arrival_city}` : "",
-            unread_count: count || 0,
-          };
-        })
-      );
-
-      setConversations(enriched);
-      setLoading(false);
-    };
     load();
 
-    // Realtime updates
     const channel = supabase
       .channel("conversations-list")
       .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => load())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, load]);
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -96,6 +94,7 @@ const ConversationsPage = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       <PageTransition>
+        <PullToRefresh onRefresh={load}>
         <div className="px-6 pt-12">
           <div className="flex items-center gap-3 mb-6">
             <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground">
@@ -154,6 +153,7 @@ const ConversationsPage = () => {
             </motion.div>
           )}
         </div>
+        </PullToRefresh>
       </PageTransition>
       <BottomNav />
     </div>
