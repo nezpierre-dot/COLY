@@ -43,7 +43,7 @@ const Settings = () => {
   const Row = ({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) => (
     <div className="flex items-center justify-between px-4 py-4">
       <div className="flex items-center gap-3">
-        <Icon size={18} className="text-muted-foreground" />
+        <Icon size={22} className="text-foreground" />
         <span className="text-foreground text-sm font-medium">{label}</span>
       </div>
       {children}

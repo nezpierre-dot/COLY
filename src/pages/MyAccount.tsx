@@ -140,7 +140,7 @@ const MyAccount = () => {
             onClick={() => editing ? handleSave() : setEditing(true)}
             className="shrink-0 w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary/20 transition-colors"
           >
-            {editing ? <Save size={16} /> : <Pencil size={16} />}
+            {editing ? <Save size={20} /> : <Pencil size={20} />}
           </button>
         </div>
 
@@ -192,8 +192,8 @@ const MyAccount = () => {
                   onClick={() => toggleAccordion(section.id)}
                   className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-muted/30 transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon size={16} className="text-primary" />
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <Icon size={20} className="text-primary" />
                   </div>
                   <span className="flex-1 text-base font-semibold text-foreground">{section.label}</span>
                   <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -230,11 +230,11 @@ const MyAccount = () => {
 
         {/* FAQ / Aide */}
         <div className="flex gap-4 mb-4">
-          <button className="flex-1 py-3 rounded-2xl bg-accent/80 text-accent-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow flex items-center justify-center gap-2">
-            <HelpCircle size={16} /> FAQ
+          <button className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
+            <HelpCircle size={20} /> FAQ
           </button>
-          <button className="flex-1 py-3 rounded-2xl bg-accent/80 text-accent-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow flex items-center justify-center gap-2">
-            <HelpCircle size={16} /> Aide
+          <button className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
+            <HelpCircle size={20} /> Aide
           </button>
         </div>
 
@@ -242,7 +242,7 @@ const MyAccount = () => {
         <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 mb-4">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
-              <ShieldCheck size={18} className="text-accent" />
+              <ShieldCheck size={22} className="text-accent" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-foreground">Protégez votre compte</p>
