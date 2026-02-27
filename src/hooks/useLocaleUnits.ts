@@ -1,4 +1,5 @@
 // Locale-aware currency, weight, and dimension units based on country
+import { getPreferredCurrency } from "./useCurrencyPreference";
 
 const IMPERIAL_COUNTRIES = [
   "United States", "United States of America", "USA",
@@ -53,8 +54,13 @@ const CURRENCY_MAP: Record<string, { symbol: string; code: string }> = {
   "United Arab Emirates": { symbol: "AED", code: "AED" },
 };
 
-export const getCurrencyForCountry = (country: string): { symbol: string; code: string } => {
-  return CURRENCY_MAP[country] || { symbol: "$", code: "USD" };
+/**
+ * Returns the user's preferred currency symbol & code.
+ * Ignores the country parameter — always uses the user preference (defaults to EUR).
+ */
+export const getCurrencyForCountry = (_country?: string): { symbol: string; code: string } => {
+  const pref = getPreferredCurrency();
+  return { symbol: pref.symbol, code: pref.code };
 };
 
 export const getUnitsForCountry = (country: string) => {

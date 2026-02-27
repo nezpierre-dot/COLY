@@ -8,6 +8,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 
 type HistoryType = "voyageur" | "coly" | "needit";
 type AIFilter = "all" | "best" | "losses";
@@ -235,16 +236,16 @@ const HistoryPage = () => {
         <div className="grid grid-cols-3 gap-3 mb-4 foldable-grid" role="region" aria-label="Résumé financier">
           <div className="bg-primary/10 rounded-2xl p-3 text-center">
             <p className="text-xs text-muted-foreground uppercase font-semibold">Gains</p>
-            <p className="text-lg font-black text-primary">+{totalGains.toFixed(0)}€</p>
+            <p className="text-lg font-black text-primary">+{totalGains.toFixed(0)}{getCurrencySymbol()}</p>
           </div>
           <div className="bg-destructive/10 rounded-2xl p-3 text-center">
             <p className="text-xs text-muted-foreground uppercase font-semibold">Dépenses</p>
-            <p className="text-lg font-black text-destructive">-{totalExpenses.toFixed(0)}€</p>
+            <p className="text-lg font-black text-destructive">-{totalExpenses.toFixed(0)}{getCurrencySymbol()}</p>
           </div>
           <div className={`rounded-2xl p-3 text-center ${netBalance >= 0 ? "bg-primary/5" : "bg-destructive/10"}`}>
             <p className="text-xs text-muted-foreground uppercase font-semibold">Net</p>
             <p className={`text-lg font-black ${netBalance >= 0 ? "text-primary" : "text-destructive"}`}>
-              {netBalance >= 0 ? "+" : ""}{netBalance.toFixed(0)}€
+              {netBalance >= 0 ? "+" : ""}{netBalance.toFixed(0)}{getCurrencySymbol()}
             </p>
           </div>
         </div>
@@ -258,7 +259,7 @@ const HistoryPage = () => {
             <div>
               <p className="text-xs font-semibold text-accent">Économies vs. transporteur classique</p>
               <p className="text-sm font-bold text-foreground mt-0.5">
-                Vous avez économisé <span className="text-accent">+{savings.toFixed(0)}€</span> en utilisant la plateforme
+                Vous avez économisé <span className="text-accent">+{savings.toFixed(0)}{getCurrencySymbol()}</span> en utilisant la plateforme
               </p>
             </div>
           </div>
@@ -296,7 +297,7 @@ const HistoryPage = () => {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => `${value.toFixed(1)}€`}
+                    formatter={(value: number) => `${value.toFixed(1)}${getCurrencySymbol()}`}
                     contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", fontSize: "12px" }}
                   />
                 </PieChart>
@@ -320,7 +321,7 @@ const HistoryPage = () => {
                   <XAxis dataKey="month" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
                   <YAxis hide />
                   <Tooltip
-                    formatter={(value: number) => `${value.toFixed(1)}€`}
+                    formatter={(value: number) => `${value.toFixed(1)}${getCurrencySymbol()}`}
                     contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", fontSize: "12px" }}
                   />
                   <Bar dataKey="gains" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
@@ -381,7 +382,7 @@ const HistoryPage = () => {
             {loading ? "Chargement…" : `${filtered.length} transaction${filtered.length > 1 ? "s" : ""}`}
           </p>
           <p className={`text-lg font-bold ${total >= 0 ? "text-primary" : "text-destructive"}`}>
-            {total >= 0 ? "+" : ""}{total.toFixed(2)}€
+            {total >= 0 ? "+" : ""}{total.toFixed(2)}{getCurrencySymbol()}
           </p>
         </div>
 
@@ -436,7 +437,7 @@ const HistoryPage = () => {
                   </div>
                   <div className="text-right shrink-0">
                     <p className={`font-bold text-sm ${item.amount >= 0 ? "text-primary" : "text-destructive"}`}>
-                      {item.amount >= 0 ? "+" : ""}{item.amount.toFixed(1)}€
+                      {item.amount >= 0 ? "+" : ""}{item.amount.toFixed(1)}{getCurrencySymbol()}
                     </p>
                     <p className="text-xs text-muted-foreground">{item.date}</p>
                   </div>

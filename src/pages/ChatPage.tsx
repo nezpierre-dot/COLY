@@ -46,14 +46,12 @@ interface MissionDetail {
 
 type ItemDetail = ShipmentDetail | MissionDetail;
 
-const getCurrencyForCountry = (country: string) => {
-  const euroCountries = ["France", "Allemagne", "Espagne", "Italie", "Belgique", "Portugal", "Pays-Bas"];
-  if (euroCountries.some(c => country?.toLowerCase().includes(c.toLowerCase()))) return "€";
-  const cfaCountries = ["Sénégal", "Côte d'Ivoire", "Mali", "Cameroun", "Burkina", "Bénin", "Togo", "Niger", "Guinée-Bissau", "Tchad", "Congo", "Gabon", "Centrafrique"];
-  if (cfaCountries.some(c => country?.toLowerCase().includes(c.toLowerCase()))) return "FCFA";
-  if (country?.toLowerCase().includes("maroc")) return "MAD";
-  if (country?.toLowerCase().includes("tunis")) return "TND";
-  if (country?.toLowerCase().includes("algéri")) return "DZD";
+const getCurrencySymbol = () => {
+  try {
+    const stored = localStorage.getItem("preferred-currency");
+    const currencies: Record<string, string> = { EUR: "€", USD: "$", GBP: "£", CAD: "CA$", CHF: "CHF", XOF: "CFA", XAF: "CFA", MAD: "MAD", TND: "TND", DZD: "DZD" };
+    if (stored && currencies[stored]) return currencies[stored];
+  } catch {}
   return "€";
 };
 
@@ -352,7 +350,7 @@ const ChatPage = () => {
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <DollarSign size={11} />
-                <span>{isNaN(Number(itemDetail.tarif)) ? "Standard" : `${itemDetail.tarif} ${getCurrencyForCountry(itemDetail.arrival_country)}`}</span>
+                <span>{isNaN(Number(itemDetail.tarif)) ? "Standard" : `${itemDetail.tarif} ${getCurrencySymbol()}`}</span>
               </div>
               <div className="col-span-2 flex items-center gap-1.5 text-muted-foreground">
                 <Package size={11} />
@@ -372,7 +370,7 @@ const ChatPage = () => {
               {itemDetail.prix_max && (
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <DollarSign size={11} />
-                  <span>Max {itemDetail.prix_max} {getCurrencyForCountry(itemDetail.country)}</span>
+                  <span>Max {itemDetail.prix_max} {getCurrencySymbol()}</span>
                 </div>
               )}
               {itemDetail.poids && (
