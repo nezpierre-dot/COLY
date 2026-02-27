@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -319,6 +319,8 @@ const Dashboard = () => {
   // NeedIt missions & pending shipments
   const [needitMissions, setNeeditMissions] = useState<any[]>([]);
   const [pendingShipments, setPendingShipments] = useState<any[]>([]);
+  const [colisMatchOnly, setColisMatchOnly] = useState(false);
+  const [needitMatchOnly, setNeeditMatchOnly] = useState(false);
 
   useEffect(() => {
     if (!isVoyageur) return;
@@ -615,6 +617,26 @@ const Dashboard = () => {
 
               {/* ---- Colis tab ---- */}
               <TabsContent value="colis" className="space-y-3 mt-0">
+                {/* Match filter toggle */}
+                {pendingShipments.length > 0 && matchedShipments.length > 0 && (
+                  <button
+                    onClick={() => setColisMatchOnly(!colisMatchOnly)}
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      colisMatchOnly
+                        ? "bg-accent text-accent-foreground shadow-md"
+                        : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Zap size={14} />
+                    Correspondances uniquement
+                    <span className={`min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold ${
+                      colisMatchOnly ? "bg-accent-foreground/20 text-accent-foreground" : "bg-accent/15 text-accent"
+                    }`}>
+                      {matchedShipments.length}
+                    </span>
+                  </button>
+                )}
+
                 {/* Matched shipments */}
                 {matchedShipments.length > 0 && (
                   <div className="space-y-2">
@@ -649,8 +671,8 @@ const Dashboard = () => {
                   </div>
                 )}
 
-                {/* Other shipments */}
-                {unmatchedShipments.length > 0 && (
+                {/* Other shipments (hidden when filter active) */}
+                {!colisMatchOnly && unmatchedShipments.length > 0 && (
                   <div className="space-y-2">
                     {matchedShipments.length > 0 && (
                       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2">
@@ -723,6 +745,26 @@ const Dashboard = () => {
                   </div>
                 )}
 
+                {/* Match filter toggle */}
+                {needitMissions.length > 0 && matchedNeedit.length > 0 && (
+                  <button
+                    onClick={() => setNeeditMatchOnly(!needitMatchOnly)}
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      needitMatchOnly
+                        ? "bg-accent text-accent-foreground shadow-md"
+                        : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <Zap size={14} />
+                    Correspondances uniquement
+                    <span className={`min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold ${
+                      needitMatchOnly ? "bg-accent-foreground/20 text-accent-foreground" : "bg-accent/15 text-accent"
+                    }`}>
+                      {matchedNeedit.length}
+                    </span>
+                  </button>
+                )}
+
                 {/* Matched NeedIt */}
                 {matchedNeedit.length > 0 && (
                   <div className="space-y-2">
@@ -755,8 +797,8 @@ const Dashboard = () => {
                   </div>
                 )}
 
-                {/* Other NeedIt */}
-                {unmatchedNeedit.length > 0 && (
+                {/* Other NeedIt (hidden when filter active) */}
+                {!needitMatchOnly && unmatchedNeedit.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
                       <ShoppingBag size={12} className="text-muted-foreground" />
