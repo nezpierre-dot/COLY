@@ -88,11 +88,14 @@ const MesNeeditMissions = () => {
       <PageTransition>
       <div className="px-6 pt-12">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-8">
           <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground">
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-2xl font-bold text-foreground flex-1">Mes Missions NeedIt</h1>
+          <div>
+            <h1 className="text-[26px] font-bold text-foreground leading-tight">Mes Missions NeedIt</h1>
+            <p className="text-sm text-muted-foreground">Faites acheter vos produits par un voyageur</p>
+          </div>
         </div>
 
         {/* New mission button */}
@@ -100,7 +103,7 @@ const MesNeeditMissions = () => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate("/needit-mission")}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary/20 border border-primary/30 text-primary font-medium text-lg hover:bg-primary/30 transition-colors mb-6"
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary/20 border border-primary/30 text-primary font-semibold text-lg hover:bg-primary/30 transition-colors mb-8"
         >
           <Plus size={20} /> Nouvelle mission
         </motion.button>
@@ -204,14 +207,14 @@ const MesNeeditMissions = () => {
             {missions.map((m) => {
               const st = statusLabels[m.status] || statusLabels.pending;
               return (
-                <motion.div key={m.id} variants={staggerItem} className="bg-card border border-border rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-start justify-between mb-2">
+                <motion.div key={m.id} variants={staggerItem} className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <p className="font-semibold text-foreground">
+                      <p className="text-base font-bold text-foreground">
                         {m.product_name || m.category_path?.[m.category_path.length - 1] || "Produit non référencé"}
                       </p>
                       {m.category_path && m.category_path.length > 0 && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {m.category_path.join(" → ")}
                         </p>
                       )}
@@ -230,17 +233,17 @@ const MesNeeditMissions = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                    <span className="flex items-center gap-1.5">
                       <MapPin size={14} /> {m.country}{m.city ? `, ${m.city}` : ""}
                     </span>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1.5">
                       <Clock size={14} /> {m.timing === "asap" ? "Dès que possible" : "Date programmée"}
                     </span>
                   </div>
 
                   {m.prix_max && (
-                    <p className="text-sm font-medium text-foreground mt-2">Prix max : {m.prix_max}</p>
+                    <p className="text-base font-semibold text-foreground mt-3">Prix max : {m.prix_max}</p>
                   )}
 
                   {m.status === "pending" && (

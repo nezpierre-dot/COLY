@@ -225,26 +225,29 @@ const HistoryPage = () => {
     <div className="min-h-screen bg-background pb-24">
       <PageTransition>
         <main className="px-6 pt-12" id="main-content" role="main" aria-label="Historique des transactions">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-8">
           <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Retour">
             <ArrowLeft size={24} aria-hidden="true" />
           </button>
-          <h1 className="text-2xl font-bold text-foreground flex-1">Historique</h1>
+          <div>
+            <h1 className="text-[26px] font-bold text-foreground leading-tight">Historique</h1>
+            <p className="text-sm text-muted-foreground">Vos transactions et statistiques</p>
+          </div>
         </div>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-3 mb-4 foldable-grid" role="region" aria-label="Résumé financier">
-          <div className="bg-primary/10 rounded-2xl p-3 text-center">
-            <p className="text-xs text-muted-foreground uppercase font-semibold">Gains</p>
-            <p className="text-lg font-black text-primary">+{totalGains.toFixed(0)}{getCurrencySymbol()}</p>
+        <div className="grid grid-cols-3 gap-3 mb-6 foldable-grid" role="region" aria-label="Résumé financier">
+          <div className="bg-primary/10 rounded-2xl p-4 text-center">
+            <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wide">Gains</p>
+            <p className="text-xl font-black text-primary mt-1">+{totalGains.toFixed(0)}{getCurrencySymbol()}</p>
           </div>
-          <div className="bg-destructive/10 rounded-2xl p-3 text-center">
-            <p className="text-xs text-muted-foreground uppercase font-semibold">Dépenses</p>
-            <p className="text-lg font-black text-destructive">-{totalExpenses.toFixed(0)}{getCurrencySymbol()}</p>
+          <div className="bg-destructive/10 rounded-2xl p-4 text-center">
+            <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wide">Dépenses</p>
+            <p className="text-xl font-black text-destructive mt-1">-{totalExpenses.toFixed(0)}{getCurrencySymbol()}</p>
           </div>
-          <div className={`rounded-2xl p-3 text-center ${netBalance >= 0 ? "bg-primary/5" : "bg-destructive/10"}`}>
-            <p className="text-xs text-muted-foreground uppercase font-semibold">Net</p>
-            <p className={`text-lg font-black ${netBalance >= 0 ? "text-primary" : "text-destructive"}`}>
+          <div className={`rounded-2xl p-4 text-center ${netBalance >= 0 ? "bg-primary/5" : "bg-destructive/10"}`}>
+            <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wide">Net</p>
+            <p className={`text-xl font-black mt-1 ${netBalance >= 0 ? "text-primary" : "text-destructive"}`}>
               {netBalance >= 0 ? "+" : ""}{netBalance.toFixed(0)}{getCurrencySymbol()}
             </p>
           </div>
@@ -252,14 +255,14 @@ const HistoryPage = () => {
 
         {/* Savings card */}
         {savings > 0 && (
-          <div className="bg-gradient-to-r from-accent/10 to-primary/10 border border-accent/20 rounded-2xl p-3.5 mb-5 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
-              <TrendingUp size={18} className="text-accent" />
+          <div className="bg-gradient-to-r from-accent/10 to-primary/10 border border-accent/20 rounded-2xl p-4 mb-6 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <TrendingUp size={20} className="text-accent" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-accent">Économies vs. transporteur classique</p>
-              <p className="text-sm font-bold text-foreground mt-0.5">
-                Vous avez économisé <span className="text-accent">+{savings.toFixed(0)}{getCurrencySymbol()}</span> en utilisant la plateforme
+              <p className="text-xs font-semibold text-accent uppercase tracking-wide">Économies vs. transporteur classique</p>
+              <p className="text-base font-bold text-foreground mt-1">
+                Vous avez économisé <span className="text-accent">+{savings.toFixed(0)}{getCurrencySymbol()}</span>
               </p>
             </div>
           </div>
@@ -287,8 +290,8 @@ const HistoryPage = () => {
         {!loading && allData.length > 0 && (
           <div className="grid grid-cols-2 gap-3 mb-6 foldable-grid" role="region" aria-label="Graphiques">
             {/* Pie chart */}
-            <div className="bg-card rounded-2xl border border-border p-3">
-              <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Répartition</p>
+            <div className="bg-card rounded-2xl border border-border p-4">
+              <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide mb-2">Répartition</p>
               <ResponsiveContainer width="100%" height={120}>
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={30} outerRadius={50} dataKey="value" strokeWidth={0}>
@@ -313,8 +316,8 @@ const HistoryPage = () => {
             </div>
 
             {/* Bar chart */}
-            <div className="bg-card rounded-2xl border border-border p-3">
-              <p className="text-xs text-muted-foreground uppercase font-semibold mb-1">Timeline</p>
+            <div className="bg-card rounded-2xl border border-border p-4">
+              <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide mb-2">Timeline</p>
               <ResponsiveContainer width="100%" height={120}>
                 <BarChart data={barData} barSize={10}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
