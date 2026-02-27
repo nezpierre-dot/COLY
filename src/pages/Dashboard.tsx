@@ -16,6 +16,7 @@ import { getCurrencyForCountry } from "@/hooks/useLocaleUnits";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 import BottomNav from "@/components/BottomNav";
 import VoyageMap from "@/components/VoyageMap";
+import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PublicMissionsMap from "@/components/PublicMissionsMap";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -944,6 +945,11 @@ const Dashboard = () => {
                           </span>
                         </div>
                       </div>
+                      {s.status === "pending" && (
+                        <div className="relative z-10 mt-2">
+                          <VoyageurAvailability country={s.arrival_country} city={s.arrival_city} variant="full" />
+                        </div>
+                      )}
                     </div>
                   ))
                 )}
@@ -1007,6 +1013,11 @@ const Dashboard = () => {
                         </span>
                         {m.prix_max && <span className="font-medium text-foreground">{m.prix_max}</span>}
                       </div>
+                      {m.status === "pending" && (
+                        <div className="mt-1.5">
+                          <VoyageurAvailability country={m.country} city={m.city} variant="compact" />
+                        </div>
+                      )}
                     </div>
                   ))
                 )}

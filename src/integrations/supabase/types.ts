@@ -572,6 +572,10 @@ export type Database = {
           user_ref: string
         }[]
       }
+      count_voyageurs_for_destination: {
+        Args: { _city?: string; _country: string }
+        Returns: number
+      }
       get_admin_stats: { Args: never; Returns: Json }
       get_pending_needit_missions: {
         Args: never
