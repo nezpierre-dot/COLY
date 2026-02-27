@@ -37,16 +37,25 @@ const statusLabels: Record<string, { label: string; color: string }> = {
   cancelled: { label: "Annulée", color: "bg-destructive/15 text-destructive" },
 };
 
+const filterTabs = [
+  { key: "all", label: "Toutes" },
+  { key: "pending", label: "En attente" },
+  { key: "accepted", label: "En cours" },
+  { key: "completed", label: "Terminées" },
+] as const;
+
+type FilterKey = (typeof filterTabs)[number]["key"];
+
 const MesNeeditMissions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [missions, setMissions] = useState<NeeditMission[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanningMissionId, setScanningMissionId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
 
   const loadMissions = async () => {
     if (!user) return;
-    // Load missions where user is owner OR voyageur
     const { data: ownedData } = await supabase
       .from("needit_missions")
       .select("*")
@@ -60,7 +69,6 @@ const MesNeeditMissions = () => {
       .order("created_at", { ascending: false });
 
     const allMissions = [...(ownedData || []), ...(acceptedData || [])];
-    // Deduplicate
     const unique = Array.from(new Map(allMissions.map(m => [m.id, m])).values());
     setMissions(unique as unknown as NeeditMission[]);
     setLoading(false);
@@ -83,18 +91,61 @@ const MesNeeditMissions = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
+  // Counts per status
+  const counts = {
+    all: missions.filter(m => m.status !== "cancelled").length,
+    pending: missions.filter(m => m.status === "pending").length,
+    accepted: missions.filter(m => m.status === "accepted").length,
+    completed: missions.filter(m => m.status === "completed").length,
+  };
+
+  // Filtered missions
+  const filteredMissions = activeFilter === "all"
+    ? missions.filter(m => m.status !== "cancelled")
+    : missions.filter(m => m.status === activeFilter);
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <PageTransition>
       <div className="px-6 pt-12">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-4">
           <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground">
             <ArrowLeft size={24} />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-[26px] font-bold text-foreground leading-tight">Mes Missions NeedIt</h1>
             <p className="text-sm text-muted-foreground">Faites acheter vos produits par un voyageur</p>
+          </div>
+        </div>
+
+        {/* Sticky filter tabs with counters */}
+        <div className="sticky top-0 z-20 -mx-6 px-6 pt-2 pb-3 bg-background/80 backdrop-blur-xl border-b border-border/50">
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {filterTabs.map((tab) => {
+              const count = counts[tab.key];
+              const isActive = activeFilter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveFilter(tab.key)}
+                  className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {tab.label}
+                  {count > 0 && (
+                    <span className={`min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold ${
+                      isActive ? "bg-primary-foreground/20 text-primary-foreground" : "bg-primary/10 text-primary"
+                    }`}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -103,9 +154,9 @@ const MesNeeditMissions = () => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate("/needit-mission")}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary/20 border border-primary/30 text-primary font-semibold text-lg hover:bg-primary/30 transition-colors mb-8"
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-base hover:opacity-90 transition-opacity shadow-lg mt-4 mb-6"
         >
-          <Plus size={20} /> Nouvelle mission
+          <Plus size={22} /> Nouvelle mission
         </motion.button>
 
         {/* Missions list */}
@@ -120,8 +171,8 @@ const MesNeeditMissions = () => {
               title="Aucune mission pour le moment"
               description="Faites acheter ce que vous voulez par un voyageur, où que ce soit dans le monde."
               action={
-                <button onClick={() => navigate("/needit-mission")} className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
-                  <Plus size={16} className="inline mr-1.5 -mt-0.5" /> Créer ma première mission
+                <button onClick={() => navigate("/needit-mission")} className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold shadow-lg">
+                  <Plus size={20} className="inline mr-1.5 -mt-0.5" /> Créer ma première mission
                 </button>
               }
             />
@@ -133,7 +184,6 @@ const MesNeeditMissions = () => {
               transition={{ delay: 0.5 }}
               className="mt-6 rounded-2xl overflow-hidden border border-border shadow-sm"
             >
-              {/* Header */}
               <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/5 px-5 py-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
                   <span className="text-xl">💡</span>
@@ -143,13 +193,9 @@ const MesNeeditMissions = () => {
                   <p className="text-[11px] text-muted-foreground">4 étapes simples pour ta première mission</p>
                 </div>
               </div>
-
-              {/* Steps */}
               <div className="bg-card px-5 py-4">
                 <div className="relative">
-                  {/* Vertical connector line */}
                   <div className="absolute left-[15px] top-4 bottom-4 w-px bg-border" />
-
                   <div className="space-y-5">
                     {[
                       { step: 1, emoji: "🌍", title: "Choisis un pays", desc: "Espagne, Turquie, Japon…" },
@@ -176,15 +222,11 @@ const MesNeeditMissions = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Example tip */}
               <div className="bg-muted/40 border-t border-border px-5 py-3">
                 <p className="text-xs text-muted-foreground">
                   <span className="font-semibold text-foreground">Ex :</span> « Huile d'olive premium, Espagne, max 25 € » — un voyageur passant par Barcelone l'achète pour vous !
                 </p>
               </div>
-
-              {/* CTA */}
               <div className="px-5 pb-4 pt-2 bg-card">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -197,14 +239,18 @@ const MesNeeditMissions = () => {
               </div>
             </motion.div>
           </div>
+        ) : filteredMissions.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="text-muted-foreground text-sm">Aucune mission {filterTabs.find(t => t.key === activeFilter)?.label.toLowerCase()}</p>
+          </div>
         ) : (
           <motion.div
             variants={staggerContainer}
             initial="initial"
             animate="animate"
-            className="space-y-3"
+            className="space-y-3 mt-2"
           >
-            {missions.map((m) => {
+            {filteredMissions.map((m) => {
               const st = statusLabels[m.status] || statusLabels.pending;
               return (
                 <motion.div key={m.id} variants={staggerItem} className="bg-card border border-border rounded-2xl p-5 shadow-sm">
@@ -263,7 +309,6 @@ const MesNeeditMissions = () => {
                     <img src={m.photo_url} alt="Produit" className="mt-3 h-20 rounded-xl object-cover" />
                   )}
 
-                  {/* Scanner EAN for voyageur on accepted missions */}
                   {m.status === "accepted" && m.voyageur_id === user?.id && !m.ean_verified && (
                     <div className="mt-3">
                       {scanningMissionId === m.id ? (
