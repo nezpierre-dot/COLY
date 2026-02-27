@@ -8,6 +8,7 @@ import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
+import VoyageurAvailability from "@/components/VoyageurAvailability";
 
 interface NeeditMission {
   id: string;
@@ -240,6 +241,12 @@ const MesNeeditMissions = () => {
 
                   {m.prix_max && (
                     <p className="text-sm font-medium text-foreground mt-2">Prix max : {m.prix_max}</p>
+                  )}
+
+                  {m.status === "pending" && (
+                    <div className="mt-2">
+                      <VoyageurAvailability country={m.country} city={m.city} variant="full" />
+                    </div>
                   )}
 
                   {m.ean_code && (
