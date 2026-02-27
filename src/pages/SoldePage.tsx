@@ -44,27 +44,27 @@ export default function SoldePage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       <main className="px-6 pt-12" id="main-content" role="main" aria-label="Solde et transactions">
-        <button onClick={() => navigate("/comptabilite")} className="text-muted-foreground mb-4" aria-label="Retour">
+        <button onClick={() => navigate("/comptabilite")} className="text-muted-foreground mb-6" aria-label="Retour">
           <ArrowLeft size={24} aria-hidden="true" />
         </button>
 
         {/* Balance */}
-        <h1 className="text-3xl font-black text-foreground">SOLDE</h1>
+        <h1 className="text-[28px] font-black text-foreground leading-tight">SOLDE</h1>
         <p className="text-sm text-muted-foreground mt-1">au 03/02/2025 à 15h02</p>
-        <p className={`text-4xl font-black mt-2 ${balance >= 0 ? "text-foreground" : "text-destructive"}`} aria-label={`Solde: ${balance.toFixed(2)} ${currencySymbol}`}>
+        <p className={`text-4xl font-black mt-3 ${balance >= 0 ? "text-foreground" : "text-destructive"}`} aria-label={`Solde: ${balance.toFixed(2)} ${currencySymbol}`}>
           {balance >= 0 ? "+" : ""} {balance.toFixed(2)}{currencySymbol}
         </p>
 
         {/* Quick actions */}
-        <div className="flex gap-2 mt-4 mb-6">
+        <div className="flex gap-2 mt-5 mb-8">
           <button onClick={() => navigate("/payment-methods")}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors">
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors">
             <CreditCard size={16} aria-hidden="true" /> Moyens de paiement
           </button>
         </div>
 
         {/* Search */}
-        <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mb-6">
+        <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mb-4">
           <input
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             placeholder="Rechercher une transaction..."
@@ -74,6 +74,8 @@ export default function SoldePage() {
           />
           <Search size={18} className="text-muted-foreground" aria-hidden="true" />
         </div>
+
+        <h2 className="text-lg font-semibold text-foreground mb-3">Transactions</h2>
 
         {/* Transactions */}
         <ul className="space-y-3" role="list" aria-label="Liste des transactions">
@@ -89,8 +91,8 @@ export default function SoldePage() {
                   {iconMap[t.icon]}
                 </div>
                 <div className="flex-1 min-w-0 text-left">
-                  <p className="font-bold text-foreground text-sm">{t.type}</p>
-                  <p className="text-xs text-muted-foreground">{t.ref}</p>
+                  <p className="font-bold text-foreground text-base">{t.type}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t.ref}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <p className={`font-bold text-sm ${t.amount >= 0 ? "text-primary" : "text-destructive"}`}>

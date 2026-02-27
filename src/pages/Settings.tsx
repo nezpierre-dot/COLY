@@ -34,17 +34,17 @@ const Settings = () => {
   };
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="mb-6">
-      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{title}</h3>
+    <div className="mb-8">
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">{title}</h3>
       <div className="bg-card rounded-2xl border border-border divide-y divide-border">{children}</div>
     </div>
   );
 
   const Row = ({ icon: Icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) => (
-    <div className="flex items-center justify-between px-4 py-3.5">
+    <div className="flex items-center justify-between px-4 py-4">
       <div className="flex items-center gap-3">
         <Icon size={18} className="text-muted-foreground" />
-        <span className="text-foreground text-sm">{label}</span>
+        <span className="text-foreground text-sm font-medium">{label}</span>
       </div>
       {children}
     </div>
@@ -60,12 +60,13 @@ const Settings = () => {
     <div className="min-h-screen bg-background pb-24">
       <div className="px-6 pt-12">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-2">
           <button onClick={() => navigate("/dashboard")} className="text-foreground">
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-2xl font-bold text-foreground">Réglages</h1>
+          <h1 className="text-[26px] font-bold text-foreground leading-tight">Réglages</h1>
         </div>
+        <p className="text-sm text-muted-foreground mb-8 pl-10">Personnalisez votre expérience</p>
 
         {/* Role badge */}
         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 ${isVoyageur ? "bg-secondary/20 text-secondary" : "bg-primary/20 text-primary"}`}>

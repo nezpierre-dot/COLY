@@ -445,10 +445,10 @@ const Dashboard = () => {
 
           <div className="relative z-10 flex items-center justify-between mb-1">
             <div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-[26px] font-bold text-white leading-tight">
                 {isVoyageur ? "Espace Voyageur" : "Espace Demandeur"}
               </h1>
-              <p className="text-xs text-white/70 mt-0.5">
+              <p className="text-sm text-white/60 mt-1">
                 {isVoyageur ? "Gérez vos trajets et opportunités" : "Envoyez vos colis et missions"}
               </p>
             </div>
