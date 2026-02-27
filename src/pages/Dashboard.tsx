@@ -13,6 +13,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getCurrencyForCountry } from "@/hooks/useLocaleUnits";
+import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 import BottomNav from "@/components/BottomNav";
 import VoyageMap from "@/components/VoyageMap";
 import PublicMissionsMap from "@/components/PublicMissionsMap";
@@ -127,11 +128,11 @@ const AiRecommendation = ({ isVoyageur }: { isVoyageur: boolean }) => {
   const navigate = useNavigate();
   const recommendations = isVoyageur
     ? [
-        { text: "Basé sur tes trajets, propose Paris → Dakar pour +45€/voyage", cta: "Voir le trajet", action: () => {} },
-        { text: "3 demandes en attente sur ta zone. Active l'acceptation auto pour +20€", cta: "Paramètres", action: () => navigate("/settings") },
+        { text: `Basé sur tes trajets, propose Paris → Dakar pour +45${getCurrencySymbol()}/voyage`, cta: "Voir le trajet", action: () => {} },
+        { text: `3 demandes en attente sur ta zone. Active l'acceptation auto pour +20${getCurrencySymbol()}`, cta: "Paramètres", action: () => navigate("/settings") },
       ]
     : [
-        { text: "Basé sur tes envois, essaie NeedIt pour une mission d'achat et gagne +20€", cta: "Essayer NeedIt", action: () => navigate("/needit-mission") },
+        { text: `Basé sur tes envois, essaie NeedIt pour une mission d'achat et gagne +20${getCurrencySymbol()}`, cta: "Essayer NeedIt", action: () => navigate("/needit-mission") },
         { text: "Tes envois fréquents vers Casablanca ? Ajoute-le en favori pour un accès rapide", cta: "Ajouter", action: () => {} },
       ];
 

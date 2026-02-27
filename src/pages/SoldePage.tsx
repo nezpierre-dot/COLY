@@ -31,6 +31,7 @@ export default function SoldePage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const currencySymbol = (() => { try { const s = localStorage.getItem("preferred-currency"); const m: Record<string,string> = {EUR:"€",USD:"$",GBP:"£",CAD:"CA$",CHF:"CHF",XOF:"CFA",XAF:"CFA",MAD:"MAD",TND:"TND",DZD:"DZD"}; if(s&&m[s]) return m[s]; } catch{} return "€"; })();
 
   const balance = MOCK_TRANSACTIONS.reduce((s, t) => s + t.amount, 0);
   const filtered = MOCK_TRANSACTIONS.filter(
@@ -50,8 +51,8 @@ export default function SoldePage() {
         {/* Balance */}
         <h1 className="text-3xl font-black text-foreground">SOLDE</h1>
         <p className="text-sm text-muted-foreground mt-1">au 03/02/2025 à 15h02</p>
-        <p className={`text-4xl font-black mt-2 ${balance >= 0 ? "text-foreground" : "text-destructive"}`} aria-label={`Solde: ${balance.toFixed(2)} euros`}>
-          {balance >= 0 ? "+" : ""} {balance.toFixed(2)}€
+        <p className={`text-4xl font-black mt-2 ${balance >= 0 ? "text-foreground" : "text-destructive"}`} aria-label={`Solde: ${balance.toFixed(2)} ${currencySymbol}`}>
+          {balance >= 0 ? "+" : ""} {balance.toFixed(2)}{currencySymbol}
         </p>
 
         {/* Quick actions */}
@@ -93,7 +94,7 @@ export default function SoldePage() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className={`font-bold text-sm ${t.amount >= 0 ? "text-primary" : "text-destructive"}`}>
-                    {t.amount >= 0 ? "+" : ""}{t.amount.toFixed(1)}€
+                    {t.amount >= 0 ? "+" : ""}{t.amount.toFixed(1)}{currencySymbol}
                   </p>
                   <p className="text-xs text-muted-foreground">{t.date}</p>
                 </div>

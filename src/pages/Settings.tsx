@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight } from "lucide-react";
+import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight, DollarSign } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import BottomNav from "@/components/BottomNav";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useCurrencyPreference, AVAILABLE_CURRENCIES } from "@/hooks/useCurrencyPreference";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Settings = () => {
   const { canInstall, isInstalled, promptInstall } = usePWAInstall();
   const { permission, loading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
   const isNotifGranted = permission === "granted";
+  const { currency: preferredCurrency, setCurrency } = useCurrencyPreference();
 
   const [notifications, setNotifications] = useState(true);
   const [emailNotifs, setEmailNotifs] = useState(true);
@@ -100,14 +102,60 @@ const Settings = () => {
           </div>
         </Section>
 
-        {/* General settings */}
-        <Section title="Général">
+        {/* Langue & Région */}
+        <Section title="Langue & Région">
           <Row icon={User} label="Modifier le profil">
             <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
           </Row>
           <Row icon={Globe} label="Langue">
             <span className="text-sm text-muted-foreground">Français</span>
           </Row>
+          <div className="px-4 py-3.5">
+            <div className="flex items-center gap-3 mb-3">
+              <DollarSign size={18} className="text-muted-foreground" />
+              <span className="text-foreground text-sm">Devise</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {AVAILABLE_CURRENCIES.slice(0, 6).map((c) => (
+                <button
+                  key={c.code}
+                  onClick={() => {
+                    setCurrency(c.code);
+                    toast.success(`Devise changée : ${c.label}`);
+                  }}
+                  className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all text-center ${
+                    preferredCurrency.code === c.code
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/30"
+                  }`}
+                >
+                  <span className="text-base font-bold">{c.symbol}</span>
+                  <span className="text-[10px] font-medium">{c.code}</span>
+                </button>
+              ))}
+            </div>
+            {AVAILABLE_CURRENCIES.length > 6 && (
+              <div className="grid grid-cols-4 gap-2 mt-2">
+                {AVAILABLE_CURRENCIES.slice(6).map((c) => (
+                  <button
+                    key={c.code}
+                    onClick={() => {
+                      setCurrency(c.code);
+                      toast.success(`Devise changée : ${c.label}`);
+                    }}
+                    className={`flex flex-col items-center gap-0.5 py-2 rounded-xl border transition-all text-center ${
+                      preferredCurrency.code === c.code
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/30"
+                    }`}
+                  >
+                    <span className="text-sm font-bold">{c.symbol}</span>
+                    <span className="text-[9px] font-medium">{c.code}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </Section>
 
         {/* App & Notifications */}

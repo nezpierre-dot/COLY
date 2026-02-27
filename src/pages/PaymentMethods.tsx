@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CreditCard, Building2, Smartphone, Check, Plus, Shield, ChevronRight, Wallet, Apple, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import BottomNav from "@/components/BottomNav";
+import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 
 interface PaymentMethod {
   id: string;
@@ -45,19 +46,19 @@ export const CommissionBreakdown = ({ amount, showFull = false }: { amount: numb
       </div>
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">Montant brut</span>
-        <span className="font-semibold text-foreground">{amount.toFixed(2)}€</span>
+        <span className="font-semibold text-foreground">{amount.toFixed(2)}{getCurrencySymbol()}</span>
       </div>
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">Commission WeAppYou (18%)</span>
-        <span className="font-semibold text-destructive">-{commission.toFixed(2)}€</span>
+        <span className="font-semibold text-destructive">-{commission.toFixed(2)}{getCurrencySymbol()}</span>
       </div>
       <div className="flex justify-between text-sm">
         <span className="text-muted-foreground">Assurance AXA (2%)</span>
-        <span className="font-semibold text-destructive">-{assurance.toFixed(2)}€</span>
+        <span className="font-semibold text-destructive">-{assurance.toFixed(2)}{getCurrencySymbol()}</span>
       </div>
       <div className="border-t border-border pt-2 flex justify-between text-sm">
         <span className="font-bold text-foreground">Montant net</span>
-        <span className="font-black text-primary">{net.toFixed(2)}€</span>
+        <span className="font-black text-primary">{net.toFixed(2)}{getCurrencySymbol()}</span>
       </div>
       {showFull && (
         <p className="text-xs text-muted-foreground mt-1">
