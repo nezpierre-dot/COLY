@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -9,6 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
+import PullToRefresh from "@/components/PullToRefresh";
 
 type HistoryType = "voyageur" | "coly" | "needit";
 type AIFilter = "all" | "best" | "losses";
@@ -221,8 +222,39 @@ const HistoryPage = () => {
 
   const total = filtered.reduce((s, i) => s + i.amount, 0);
 
+  const handleRefresh = useCallback(async () => {
+    if (!user) return;
+    const [shipRes, missRes] = await Promise.all([
+      supabase.from("shipments").select("*").or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`).neq("status", "cancelled").order("created_at", { ascending: false }),
+      supabase.from("needit_missions").select("*").or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`).neq("status", "cancelled").order("created_at", { ascending: false }),
+    ]);
+    // Re-process same as initial load
+    const items: HistoryItem[] = [];
+    shipRes.data?.filter(s => s.user_id === user.id).forEach((s) => {
+      const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
+      items.push({ id: `s-dem-${s.id}`, type: "Envoi Coly", ref: `COLY-${s.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "coly", icon: "envoi" });
+    });
+    shipRes.data?.filter(s => s.voyageur_id === user.id).forEach((s) => {
+      const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
+      const gain = raw * (1 - PLATFORM_RATE);
+      if (gain > 0) items.push({ id: `s-voy-${s.id}`, type: "Transport Coly", ref: `COLY-${s.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "voyageur", icon: "transport" });
+    });
+    missRes.data?.filter(m => m.user_id === user.id).forEach((m) => {
+      const raw = parseFloat(m.prix_max?.replace(/[^0-9.]/g, "") ?? "0") || 0;
+      if (raw > 0) items.push({ id: `n-dem-${m.id}`, type: "Mission NeedIt", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "needit", icon: "needit" });
+    });
+    missRes.data?.filter(m => m.voyageur_id === user.id).forEach((m) => {
+      const raw = parseFloat(m.prix_max?.replace(/[^0-9.]/g, "") ?? "0") || 0;
+      const gain = raw * (1 - PLATFORM_RATE);
+      if (gain > 0) items.push({ id: `n-voy-${m.id}`, type: "Mission NeedIt (gain)", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "voyageur", icon: "transport" });
+    });
+    items.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
+    setAllData(items);
+  }, [user]);
+
   return (
     <div className="min-h-screen bg-background pb-24">
+      <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
         <main className="px-6 pt-12" id="main-content" role="main" aria-label="Historique des transactions">
         <div className="flex items-center gap-3 mb-8">
@@ -451,6 +483,7 @@ const HistoryPage = () => {
         )}
       </main>
       </PageTransition>
+      </PullToRefresh>
       <BottomNav />
     </div>
   );

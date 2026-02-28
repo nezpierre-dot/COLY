@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, MapPin, Calendar, Plane, Train, Car, Bus, Rocket, SlidersHorizontal, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import StarRating from "@/components/StarRating";
+import PullToRefresh from "@/components/PullToRefresh";
 
 interface Voyage {
   id: string;
@@ -61,33 +62,35 @@ const VoyageurSearch = () => {
   const [filterDeliver, setFilterDeliver] = useState(false);
   const [filterMethod, setFilterMethod] = useState<string>("");
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from("voyages")
-        .select("*")
-        .eq("status", "active")
-        .order("departure_date", { ascending: true });
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("voyages")
+      .select("*")
+      .eq("status", "active")
+      .order("departure_date", { ascending: true });
 
-      if (data) {
-        // Fetch ratings for each voyageur
-        const enriched = await Promise.all(
-          data.map(async (v) => {
-            const { data: ratingData } = await supabase.rpc("get_user_rating", { _user_id: v.user_id });
-            return {
-              ...v,
-              avg_rating: ratingData?.[0]?.average_score ?? null,
-              total_ratings: Number(ratingData?.[0]?.total_ratings ?? 0),
-            };
-          })
-        );
-        setVoyages(enriched);
-      }
-      setLoading(false);
-    };
-    load();
+    if (data) {
+      const enriched = await Promise.all(
+        data.map(async (v) => {
+          const { data: ratingData } = await supabase.rpc("get_user_rating", { _user_id: v.user_id });
+          return {
+            ...v,
+            avg_rating: ratingData?.[0]?.average_score ?? null,
+            total_ratings: Number(ratingData?.[0]?.total_ratings ?? 0),
+          };
+        })
+      );
+      setVoyages(enriched);
+    }
+    setLoading(false);
   }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const handleRefresh = useCallback(async () => {
+    await loadData();
+  }, [loadData]);
 
   const filtered = useMemo(() => {
     return voyages.filter((v) => {
@@ -123,6 +126,7 @@ const VoyageurSearch = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
         <main className="px-5 pt-10" id="main-content" role="main" aria-label="Recherche de voyageurs">
           {/* Header */}
@@ -344,6 +348,7 @@ const VoyageurSearch = () => {
           )}
         </main>
       </PageTransition>
+      </PullToRefresh>
       <BottomNav />
     </div>
   );
