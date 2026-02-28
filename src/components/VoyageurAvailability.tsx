@@ -5,14 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 interface VoyageurAvailabilityProps {
   country: string;
   city?: string | null;
-  /** compact = inline badge, full = card with suggestion */
   variant?: "compact" | "full";
 }
 
-/**
- * Shows how many active voyageurs are heading to a destination.
- * Green if >0, orange if 0 with a suggestion to broaden dates.
- */
 const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAvailabilityProps) => {
   const [count, setCount] = useState<number | null>(null);
 
@@ -35,48 +30,53 @@ const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAv
   if (variant === "compact") {
     return (
       <span
-        className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
-          hasVoyageurs
-            ? "bg-green-500/15 text-green-600 dark:text-green-400"
-            : "bg-orange-500/15 text-orange-600 dark:text-orange-400"
-        }`}
+        className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
+        style={{
+          background: hasVoyageurs ? "rgba(48,209,88,0.15)" : "rgba(255,69,58,0.15)",
+          color: hasVoyageurs ? "#30D158" : "#FF453A",
+        }}
       >
         <Users size={10} />
-        {hasVoyageurs
-          ? `${count} voyageur${count > 1 ? "s" : ""} dispo`
-          : "0 voyageur"}
+        {hasVoyageurs ? `${count} voyageur${count > 1 ? "s" : ""} dispo` : "0 voyageur"}
       </span>
     );
   }
 
+  if (hasVoyageurs) {
+    return (
+      <div
+        className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-xs"
+        style={{
+          background: "rgba(48,209,88,0.1)",
+          border: "1px solid rgba(48,209,88,0.2)",
+        }}
+      >
+        <Users size={14} style={{ color: "#30D158" }} />
+        <p className="font-semibold" style={{ color: "#30D158" }}>
+          {count} voyageur{count > 1 ? "s" : ""} potentiel{count > 1 ? "s" : ""} sur cet axe
+        </p>
+      </div>
+    );
+  }
+
+  // No voyageurs – alert box with solid background
   return (
     <div
-      className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs ${
-        hasVoyageurs
-          ? "bg-green-500/10 border border-green-500/20"
-          : "bg-orange-500/10 border border-orange-500/20"
-      }`}
+      className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-xs"
+      style={{
+        background: "#2A1F1C",
+        border: "1px solid #FF453A",
+      }}
     >
-      <Users
-        size={14}
-        className={hasVoyageurs ? "text-green-600 dark:text-green-400" : "text-orange-600 dark:text-orange-400"}
-      />
+      <Users size={14} style={{ color: "#FF453A" }} />
       <div className="flex-1 min-w-0">
-        <p
-          className={`font-semibold ${
-            hasVoyageurs ? "text-green-700 dark:text-green-300" : "text-orange-700 dark:text-orange-300"
-          }`}
-        >
-          {hasVoyageurs
-            ? `${count} voyageur${count > 1 ? "s" : ""} potentiel${count > 1 ? "s" : ""} sur cet axe`
-            : "Aucun voyageur sur cet axe actuellement"}
+        <p className="font-semibold" style={{ color: "#FF453A" }}>
+          Aucun voyageur sur cet axe actuellement
         </p>
-        {!hasVoyageurs && (
-          <p className="text-orange-600/70 dark:text-orange-400/70 mt-0.5 flex items-center gap-1">
-            <CalendarPlus size={10} />
-            Essayez d'élargir les dates ou la ville
-          </p>
-        )}
+        <p className="mt-0.5 flex items-center gap-1" style={{ color: "rgba(255,69,58,0.7)" }}>
+          <CalendarPlus size={10} />
+          Essayez d'élargir les dates ou la ville
+        </p>
       </div>
     </div>
   );
