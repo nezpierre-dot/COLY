@@ -411,10 +411,10 @@ const MyAccount = () => {
 
         {/* FAQ / Aide */}
         <div className="flex gap-4 mb-4">
-          <motion.button whileTap={{ scale: 0.97 }} className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
+          <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate("/faq")} className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
             <HelpCircle size={20} /> FAQ
           </motion.button>
-          <motion.button whileTap={{ scale: 0.97 }} className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
+          <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate("/aide")} className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
             <HelpCircle size={20} /> Aide
           </motion.button>
         </div>
