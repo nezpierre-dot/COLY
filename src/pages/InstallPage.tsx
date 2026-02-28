@@ -22,7 +22,7 @@ const InstallPage = () => {
         </button>
         <h1 className="text-2xl font-bold text-foreground mb-1">Installer l'application</h1>
         <p className="text-sm text-muted-foreground mb-8">
-          Accédez à WeAppYou depuis votre écran d'accueil, même sans connexion internet.
+          Accédez à Nidit depuis votre écran d'accueil, même sans connexion internet.
         </p>
 
         {/* Install card */}
@@ -32,10 +32,10 @@ const InstallPage = () => {
           className="bg-card border border-border rounded-2xl p-5 mb-4"
         >
           <div className="flex items-center gap-4 mb-4">
-            <img src="/icons/pwa-192x192.png" alt="WeAppYou" className="w-16 h-16 rounded-2xl shadow-md" />
+            <img src="/icons/pwa-192x192.png" alt="Nidit" className="w-16 h-16 rounded-2xl shadow-md" />
             <div>
-              <h2 className="font-bold text-foreground text-lg">WeAppYou</h2>
-              <p className="text-sm text-muted-foreground">Colis collaboratif</p>
+              <h2 className="font-bold text-foreground text-lg">Nidit</h2>
+              <p className="text-sm text-muted-foreground">Transport collaboratif</p>
               {isInstalled && (
                 <div className="flex items-center gap-1.5 mt-1">
                   <CheckCircle2 size={14} className="text-primary" />
