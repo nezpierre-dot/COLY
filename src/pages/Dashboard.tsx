@@ -461,9 +461,7 @@ const Dashboard = () => {
           transition={{ duration: 0.5 }}
           className="relative overflow-hidden px-5 pt-12 pb-6"
           style={{
-            background: isVoyageur
-              ? "linear-gradient(135deg, hsl(252 40% 55%), hsl(214 80% 45%), hsl(200 80% 50%))"
-              : "linear-gradient(135deg, hsl(214 80% 45%), hsl(33 90% 48%), hsl(15 85% 55%))"
+            background: "linear-gradient(135deg, #0066CC, #00A3FF, rgba(52, 199, 89, 0.15))"
           }}
         >
           {/* Decorative circles */}
@@ -473,10 +471,10 @@ const Dashboard = () => {
 
           <div className="relative z-10 flex items-center justify-between mb-1">
             <div>
-              <h1 className="text-[26px] font-bold text-white leading-tight">
+              <h1 className="text-[26px] font-bold text-white leading-tight text-on-gradient">
                 {isVoyageur ? "Espace Voyageur" : "Espace Demandeur"}
               </h1>
-              <p className="text-sm text-white/60 mt-1">
+              <p className="text-sm text-white/70 mt-1 text-on-gradient">
                 {isVoyageur ? "Gérez vos trajets et opportunités" : "Envoyez vos colis et missions"}
               </p>
             </div>
