@@ -21,7 +21,7 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
           transition={{ duration: 0.5 }}
           className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
           style={{
-            background: "linear-gradient(135deg, #0066CC, #00A3FF, rgba(52, 199, 89, 0.15))"
+            background: "linear-gradient(to bottom, #005BB5, #007AFF, rgba(52, 199, 89, 0.12))"
           }}
         >
           {/* Decorative circles */}
