@@ -1,8 +1,17 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import OnboardingFlow from "@/components/OnboardingFlow";
 
 const Welcome = () => {
   const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => !localStorage.getItem("onboarding-done")
+  );
+
+  if (showOnboarding) {
+    return <OnboardingFlow onComplete={() => setShowOnboarding(false)} />;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-coly-blue relative overflow-hidden">
