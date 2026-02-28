@@ -462,34 +462,35 @@ const Dashboard = () => {
           className="relative"
         >
           {/* Top accent bar */}
+          {/* Top accent bar */}
           <div
-            className="h-1 w-full"
-            style={{ background: isVoyageur ? "#007AFF" : "#34C759" }}
+            className="h-[5px] w-full"
+            style={{ background: isVoyageur ? "#0D84FF" : "#30D158" }}
           />
 
-          <div className="bg-[#FAFAFA] px-5 pt-5 pb-5">
+          <div className="bg-[#F8FAFC] dark:bg-[#0F1115] px-5 pt-5 pb-5">
             {/* Role switch capsule – top right */}
             <div className="flex justify-between items-start mb-4">
               <NotificationBell />
               <button
                 onClick={toggleRole}
-                className="px-3 py-1.5 rounded-full text-[13px] font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.97]"
-                style={{ background: "#FF6B6B" }}
+                className="px-3.5 py-1.5 rounded-full text-[13px] font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.97]"
+                style={{ background: isVoyageur ? "#30D158" : "#0D84FF" }}
                 aria-label={`Changer vers ${isVoyageur ? "demandeur" : "voyageur"}`}
               >
-                {isVoyageur ? "Mode Demandeur" : "Mode Voyageur"}
+                {isVoyageur ? "Passer Demandeur" : "Passer Voyageur"}
               </button>
             </div>
 
             {/* Title row */}
             <div className="flex items-center gap-3">
               {isVoyageur ? (
-                <Plane size={36} style={{ color: "#007AFF" }} strokeWidth={1.8} aria-hidden="true" />
+                <Plane size={38} style={{ color: "#0D84FF" }} strokeWidth={1.8} aria-hidden="true" />
               ) : (
-                <Package size={36} style={{ color: "#34C759" }} strokeWidth={1.8} aria-hidden="true" />
+                <Package size={38} style={{ color: "#30D158" }} strokeWidth={1.8} aria-hidden="true" />
               )}
               <div>
-                <h1 className="text-[26px] font-bold leading-tight" style={{ color: "#0F172A" }}>
+                <h1 className="text-[28px] font-bold leading-tight" style={{ color: isVoyageur ? "#0D84FF" : "#30D158" }}>
                   {isVoyageur ? "Voyageur" : "Demandeur"}
                 </h1>
                 <p className="text-[15px] mt-0.5" style={{ color: "#64748B" }}>
