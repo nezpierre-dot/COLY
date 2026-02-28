@@ -54,7 +54,7 @@ const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData }: { voyag
   const stats = [
     { value: voyagesCount, label: "Voyages", gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
     { value: colisCount, label: "Colis dispo", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
-    { value: matchCount, label: "Matchs", gradient: "from-accent to-accent/70", textColor: "text-accent-foreground" },
+    { value: matchCount, label: "Matchs", gradient: "from-warning to-warning/70", textColor: "text-warning-foreground" },
   ];
   return (
     <div className="space-y-3 mb-4">
@@ -881,7 +881,7 @@ const Dashboard = () => {
                 {[
                   { value: demandeurShipments.length, label: "Envois", gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
                   { value: demandeurMissions.length, label: "Missions", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
-                  { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", gradient: "from-accent to-accent/70", textColor: "text-accent-foreground" },
+                  { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", gradient: "from-warning to-warning/70", textColor: "text-warning-foreground" },
                 ].map((stat) => (
                   <motion.div
                     key={stat.label}
