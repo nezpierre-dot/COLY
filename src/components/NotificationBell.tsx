@@ -51,6 +51,7 @@ export default function NotificationBell() {
   }, [open]);
 
   const recent = notifications.slice(0, 5);
+  const hasUnread = unreadCount > 0;
 
   return (
     <>
@@ -60,9 +61,17 @@ export default function NotificationBell() {
         className="relative p-2 rounded-full hover:bg-muted transition-colors"
         aria-label="Notifications"
       >
-        <Bell size={22} className="text-foreground" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1">
+        <Bell size={24} style={{ color: hasUnread ? "#FF453A" : "#64748B" }} />
+        {hasUnread && (
+          <span
+            className="absolute -top-1 -left-1 min-w-[22px] h-[22px] rounded-full flex items-center justify-center px-1 text-[11px] font-bold text-white animate-bounce"
+            style={{
+              background: "#FF453A",
+              border: "1px solid #FFFFFF",
+              animationDuration: "1.5s",
+              animationIterationCount: "3",
+            }}
+          >
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
