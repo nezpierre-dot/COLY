@@ -39,6 +39,10 @@
     --success: 142 69% 49%;
     --success-foreground: 0 0% 100%;
 
+    /* #F59E0B – warning / amber for matchs, pending */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
     --coly-blue: 211 100% 50%;
     --coly-blue-dark: 211 100% 35%;
     --coly-orange: 0 100% 71%;
@@ -100,6 +104,9 @@
 
     --success: 142 69% 49%;
     --success-foreground: 225 24% 8%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
