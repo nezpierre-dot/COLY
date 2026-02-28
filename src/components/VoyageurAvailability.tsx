@@ -32,8 +32,8 @@ const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAv
       <span
         className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full"
         style={{
-          background: hasVoyageurs ? "rgba(48,209,88,0.15)" : "rgba(245,158,11,0.15)",
-          color: hasVoyageurs ? "#30D158" : "#F59E0B",
+          background: hasVoyageurs ? "rgba(48,209,88,0.15)" : "hsl(var(--muted))",
+          color: hasVoyageurs ? "#30D158" : "hsl(var(--muted-foreground))",
         }}
       >
         <Users size={10} />
@@ -62,18 +62,14 @@ const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAv
   // No voyageurs – alert box with solid background (amber/warning tone)
   return (
     <div
-      className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-xs"
-      style={{
-        background: "#2A2314",
-        border: "1px solid hsl(38, 92%, 50%)",
-      }}
+      className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-xs bg-muted/60 border border-border"
     >
-      <Users size={14} className="text-warning" />
+      <Users size={14} className="text-muted-foreground" />
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-warning">
+        <p className="font-semibold text-foreground/80">
           Aucun voyageur sur cet axe actuellement
         </p>
-        <p className="mt-0.5 flex items-center gap-1 text-warning/70">
+        <p className="mt-0.5 flex items-center gap-1 text-muted-foreground">
           <CalendarPlus size={10} />
           Essayez d'élargir les dates ou la ville
         </p>
