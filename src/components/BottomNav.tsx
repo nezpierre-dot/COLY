@@ -1,5 +1,6 @@
 import { Home, Copy, LayoutGrid, MessageCircle, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { hapticLight } from "@/lib/haptics";
 
 const tabs = [
   { icon: Home, path: "/dashboard", label: "Accueil" },
@@ -31,7 +32,7 @@ const BottomNav = () => {
             return (
               <button
                 key={i}
-                onClick={() => navigate(tab.path)}
+                onClick={() => { hapticLight(); navigate(tab.path); }}
                 aria-label="Menu principal"
                 className="relative -mt-7 group"
               >
@@ -45,7 +46,7 @@ const BottomNav = () => {
           return (
             <button
               key={i}
-              onClick={() => navigate(tab.path)}
+              onClick={() => { hapticLight(); navigate(tab.path); }}
               aria-label={tab.label}
               aria-current={active ? "page" : undefined}
               className="flex flex-col items-center gap-0.5 px-4 py-1 transition-colors"
