@@ -50,7 +50,7 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="text-3xl font-black text-white tracking-tight mb-2"
           >
-            WeAppYou
+            Coly
           </motion.h1>
 
           {/* Tagline */}
@@ -60,7 +60,7 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
             transition={{ delay: 0.5, duration: 0.5 }}
             className="text-white/60 text-sm font-medium text-center max-w-[260px] leading-relaxed"
           >
-            Partagez vos trajets, économisez & protégez la planète 🌍
+            Partagez vos trajets, économisez &amp; protégez la planète 🌍
           </motion.p>
 
           {/* Loading dots */}
