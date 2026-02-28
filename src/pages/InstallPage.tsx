@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Download, Smartphone, Share2, MoreHorizontal, Plus, Bell, BellOff, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Download, Smartphone, Share2, MoreHorizontal, Plus, Bell, BellOff, CheckCircle2, ArrowLeft, PartyPopper, XCircle, AlertTriangle, Zap, Wifi, Maximize, Rocket, HardDrive } from "lucide-react";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import BottomNav from "@/components/BottomNav";
@@ -103,7 +103,7 @@ const InstallPage = () => {
 
           {isInstalled && (
             <div className="bg-primary/8 border border-primary/15 rounded-xl p-3.5 text-sm text-foreground">
-              🎉 L'application est installée ! Retrouvez-la sur votre écran d'accueil.
+              <PartyPopper size={16} className="inline mr-1.5 text-primary" /> L'application est installée ! Retrouvez-la sur votre écran d'accueil.
             </div>
           )}
         </motion.div>
@@ -125,13 +125,13 @@ const InstallPage = () => {
 
           {isNotifUnsupported && (
             <div className="bg-muted rounded-xl p-3.5 text-sm text-muted-foreground">
-              ⚠️ Les notifications push ne sont pas supportées sur ce navigateur.
+              <AlertTriangle size={16} className="inline mr-1.5" /> Les notifications push ne sont pas supportées sur ce navigateur.
             </div>
           )}
 
           {isNotifDenied && (
             <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-3.5 text-sm text-destructive">
-              ❌ Notifications bloquées. Allez dans les paramètres de votre navigateur et autorisez les notifications pour ce site.
+              <XCircle size={16} className="inline mr-1.5" /> Notifications bloquées. Allez dans les paramètres de votre navigateur et autorisez les notifications pour ce site.
             </div>
           )}
 
@@ -176,15 +176,15 @@ const InstallPage = () => {
           <h3 className="font-semibold text-foreground mb-3 text-sm">Avantages de l'app installée</h3>
           <ul className="space-y-2.5">
             {[
-              "⚡ Chargement instantané, même hors connexion",
-              "🔔 Notifications en temps réel pour vos colis",
-              "📱 Expérience plein écran native",
-              "🚀 Accès rapide depuis l'écran d'accueil",
-              "💾 Données mises en cache pour une utilisation offline",
-            ].map((benefit) => (
-              <li key={benefit} className="text-sm text-foreground flex items-start gap-2">
-                <span className="shrink-0">{benefit.slice(0, 2)}</span>
-                <span>{benefit.slice(3)}</span>
+              { icon: <Zap size={16} className="text-amber-400" />, text: "Chargement instantané, même hors connexion" },
+              { icon: <Bell size={16} className="text-primary" />, text: "Notifications en temps réel pour vos colis" },
+              { icon: <Maximize size={16} className="text-accent" />, text: "Expérience plein écran native" },
+              { icon: <Rocket size={16} className="text-emerald-400" />, text: "Accès rapide depuis l'écran d'accueil" },
+              { icon: <HardDrive size={16} className="text-muted-foreground" />, text: "Données mises en cache pour une utilisation offline" },
+            ].map((benefit, i) => (
+              <li key={i} className="text-sm text-foreground flex items-start gap-2.5">
+                <span className="shrink-0 mt-0.5">{benefit.icon}</span>
+                <span>{benefit.text}</span>
               </li>
             ))}
           </ul>

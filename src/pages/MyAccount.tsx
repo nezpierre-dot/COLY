@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins } from "lucide-react";
+import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins, Globe, Rocket, ShoppingCart, Trophy, Wallet } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -127,15 +127,15 @@ const MyAccount = () => {
 
   // Badges
   const badges = [
-    ...(kycStatus === "verified" ? [{ emoji: "✅", label: "Vérifié", highlight: true }] : []),
-    ...(stats.voyages >= 1 ? [{ emoji: "✈️", label: "Premier vol" }] : []),
-    ...(stats.voyages >= 10 ? [{ emoji: "🌍", label: "Globe-trotter" }] : []),
-    ...(stats.shipments >= 5 ? [{ emoji: "📦", label: "Expéditeur actif" }] : []),
-    ...(stats.shipments >= 20 ? [{ emoji: "🚀", label: "Expert envoi" }] : []),
-    ...(stats.missions >= 3 ? [{ emoji: "🛒", label: "Chasseur NeedIt" }] : []),
-    ...(stats.missions >= 10 ? [{ emoji: "🏆", label: "10 missions" }] : []),
-    ...(totalEarned >= 100 ? [{ emoji: "💰", label: "100€ gagnés" }] : []),
-    ...(rating && rating.average_score >= 4.5 ? [{ emoji: "⭐", label: "Top noté" }] : []),
+    ...(kycStatus === "verified" ? [{ icon: <BadgeCheck size={14} className="text-emerald-400" />, label: "Vérifié", highlight: true }] : []),
+    ...(stats.voyages >= 1 ? [{ icon: <Plane size={14} className="text-primary" />, label: "Premier vol" }] : []),
+    ...(stats.voyages >= 10 ? [{ icon: <Globe size={14} className="text-blue-400" />, label: "Globe-trotter" }] : []),
+    ...(stats.shipments >= 5 ? [{ icon: <Package size={14} className="text-accent" />, label: "Expéditeur actif" }] : []),
+    ...(stats.shipments >= 20 ? [{ icon: <Rocket size={14} className="text-purple-400" />, label: "Expert envoi" }] : []),
+    ...(stats.missions >= 3 ? [{ icon: <ShoppingCart size={14} className="text-secondary" />, label: "Chasseur NeedIt" }] : []),
+    ...(stats.missions >= 10 ? [{ icon: <Trophy size={14} className="text-amber-400" />, label: "10 missions" }] : []),
+    ...(totalEarned >= 100 ? [{ icon: <Wallet size={14} className="text-emerald-400" />, label: "100€ gagnés" }] : []),
+    ...(rating && rating.average_score >= 4.5 ? [{ icon: <Star size={14} className="text-amber-400" />, label: "Top noté" }] : []),
   ];
 
   const accordionSections = [
@@ -200,7 +200,7 @@ const MyAccount = () => {
               {avatar ? (
                 <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-4xl">👤</span>
+                <User size={40} className="text-white/60" />
               )}
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
                 <Camera size={24} className="text-white" />
@@ -304,7 +304,7 @@ const MyAccount = () => {
                       : "bg-accent/10 border-accent/20"
                   }`}
                 >
-                  <span className="text-sm">{b.emoji}</span>
+                  <span className="shrink-0">{(b as any).icon}</span>
                   <span className="text-xs font-semibold text-foreground">{b.label}</span>
                 </motion.div>
               ))}

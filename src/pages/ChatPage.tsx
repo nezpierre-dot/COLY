@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin,
   Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck,
-  Clock, Truck, PackageCheck, HandshakeIcon, CircleDot
+  Clock, Truck, PackageCheck, HandshakeIcon, CircleDot, ShieldCheck,
+  Navigation, Camera, Phone, ThumbsUp, CalendarDays, MapPinned
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
@@ -333,11 +334,11 @@ const ChatPage = () => {
            shipmentStatus === "accepted" ? <CheckCheck size={14} /> :
            <CircleDot size={14} />}
           <span>
-            {shipmentStatus === "delivered" ? "✅ Livré" :
-             shipmentStatus === "in_transit" ? "🚚 En transit" :
-             shipmentStatus === "picked_up" ? "🤝 Colis récupéré" :
-             shipmentStatus === "accepted" ? "✔️ Accepté" :
-             "⏳ En attente d'un voyageur"}
+            {shipmentStatus === "delivered" ? "Livré" :
+             shipmentStatus === "in_transit" ? "En transit" :
+             shipmentStatus === "picked_up" ? "Colis récupéré" :
+             shipmentStatus === "accepted" ? "Accepté" :
+             "En attente d'un voyageur"}
           </span>
         </div>
       )}
@@ -361,7 +362,7 @@ const ChatPage = () => {
                 </div>
               )}
               <span className="text-xs font-bold text-foreground">
-                {itemDetail.type === "shipment" ? "📦 Récap Colis" : "🛒 Récap Mission NeedIt"}
+                {itemDetail.type === "shipment" ? "Récap Colis" : "Récap Mission NeedIt"}
               </span>
             </div>
           </div>
@@ -386,7 +387,7 @@ const ChatPage = () => {
               </div>
               <div className="col-span-2 flex items-center gap-1.5 text-muted-foreground">
                 <Package size={11} />
-                <span>{itemDetail.departure_method === "main" ? "En main propre" : itemDetail.departure_method === "relay" ? "Point relais" : itemDetail.departure_method === "address" ? "À domicile" : itemDetail.departure_method}{itemDetail.insured ? " • Assuré ✅" : ""}</span>
+                <span>{itemDetail.departure_method === "main" ? "En main propre" : itemDetail.departure_method === "relay" ? "Point relais" : itemDetail.departure_method === "address" ? "À domicile" : itemDetail.departure_method}{itemDetail.insured ? " • Assuré" : ""}{itemDetail.insured && <ShieldCheck size={10} className="inline ml-0.5 text-emerald-400" />}</span>
               </div>
             </div>
           ) : (
@@ -528,52 +529,52 @@ const ChatPage = () => {
       <div className="px-4 pb-1 shrink-0">
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
           {(() => {
-            const quickReplies: { emoji: string; label: string; message: string }[] = [];
+            const quickReplies: { icon: React.ReactNode; label: string; message: string }[] = [];
 
             // Status-based quick replies (voyageur actions)
             if (isVoyageur) {
               if (shipmentStatus === "accepted" || shipmentStatus === "pending") {
                 quickReplies.push(
-                  { emoji: "🤝", label: "Colis récupéré", message: "J'ai récupéré le colis ✅" },
-                  { emoji: "📍", label: "Point de RDV", message: "Voici le point de rendez-vous : " },
+                  { icon: <HandshakeIcon size={12} />, label: "Colis récupéré", message: "J'ai récupéré le colis !" },
+                  { icon: <MapPinned size={12} />, label: "Point de RDV", message: "Voici le point de rendez-vous : " },
                 );
               }
               if (shipmentStatus === "picked_up") {
                 quickReplies.push(
-                  { emoji: "🚚", label: "En transit", message: "Le colis est en transit 🚚" },
-                  { emoji: "📸", label: "Photo colis", message: "Voici une photo du colis 📸" },
+                  { icon: <Truck size={12} />, label: "En transit", message: "Le colis est en transit" },
+                  { icon: <Camera size={12} />, label: "Photo colis", message: "Voici une photo du colis" },
                 );
               }
               if (shipmentStatus === "in_transit") {
                 quickReplies.push(
-                  { emoji: "📦", label: "Colis remis", message: "Le colis a été remis au destinataire ✅" },
-                  { emoji: "📍", label: "Lieu de remise", message: "Je suis arrivé au lieu de remise 📍" },
+                  { icon: <PackageCheck size={12} />, label: "Colis remis", message: "Le colis a été remis au destinataire" },
+                  { icon: <Navigation size={12} />, label: "Lieu de remise", message: "Je suis arrivé au lieu de remise" },
                 );
               }
             } else {
               // Demandeur quick replies
               if (shipmentStatus === "pending") {
                 quickReplies.push(
-                  { emoji: "📅", label: "Dispo quand ?", message: "Quand êtes-vous disponible pour récupérer ?" },
+                  { icon: <CalendarDays size={12} />, label: "Dispo quand ?", message: "Quand êtes-vous disponible pour récupérer ?" },
                 );
               }
               if (shipmentStatus === "accepted" || shipmentStatus === "picked_up") {
                 quickReplies.push(
-                  { emoji: "📍", label: "Où en est-on ?", message: "Où en est le colis ?" },
+                  { icon: <MapPinned size={12} />, label: "Où en est-on ?", message: "Où en est le colis ?" },
                 );
               }
               if (shipmentStatus === "in_transit") {
                 quickReplies.push(
-                  { emoji: "🕐", label: "ETA ?", message: "Heure d'arrivée estimée ?" },
+                  { icon: <Clock size={12} />, label: "ETA ?", message: "Heure d'arrivée estimée ?" },
                 );
               }
             }
 
             // Generic quick replies (always available)
             quickReplies.push(
-              { emoji: "👍", label: "OK parfait", message: "OK parfait, merci !" },
-              { emoji: "📸", label: "Envoyer photo", message: "" },
-              { emoji: "📞", label: "On s'appelle ?", message: "On peut s'appeler pour coordonner ?" },
+              { icon: <ThumbsUp size={12} />, label: "OK parfait", message: "OK parfait, merci !" },
+              { icon: <Camera size={12} />, label: "Envoyer photo", message: "" },
+              { icon: <Phone size={12} />, label: "On s'appelle ?", message: "On peut s'appeler pour coordonner ?" },
             );
 
             return quickReplies.map((qr) => (
@@ -588,7 +589,7 @@ const ChatPage = () => {
                 }}
                 className="shrink-0 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 active:scale-95 transition-all whitespace-nowrap flex items-center gap-1"
               >
-                <span>{qr.emoji}</span>
+                {qr.icon}
                 <span>{qr.label}</span>
               </button>
             ));

@@ -108,12 +108,12 @@ const SearchableSelect = ({
 // — Constants —
 
 const SIZES_BASE = [
-  { id: "S", label: "S — Max 1kg", dim: "217×150×50", icon: "📦" },
-  { id: "M", label: "M — Max 3kg", dim: "230×130×100", icon: "📦" },
-  { id: "L", label: "L — Max 5kg", dim: "315×210×157", icon: "📦" },
-  { id: "XL", label: "XL — Max 7kg", dim: "383×250×195", icon: "📦" },
-  { id: "XXL", label: "XXL — Max 10kg", dim: "400×425×200", icon: "📦" },
-  { id: "other", label: "Autres dimensions", dim: "", icon: "📐" },
+  { id: "S", label: "S — Max 1kg", dim: "217×150×50", Icon: Package },
+  { id: "M", label: "M — Max 3kg", dim: "230×130×100", Icon: Package },
+  { id: "L", label: "L — Max 5kg", dim: "315×210×157", Icon: Package },
+  { id: "XL", label: "XL — Max 7kg", dim: "383×250×195", Icon: Package },
+  { id: "XXL", label: "XXL — Max 10kg", dim: "400×425×200", Icon: Package },
+  { id: "other", label: "Autres dimensions", dim: "", Icon: Ruler },
 ];
 
 const getSizes = (country: string) =>
@@ -720,7 +720,7 @@ const SendColy = () => {
                     className={`text-left px-3 py-3 rounded-xl border transition-all ${
                       size === s.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"
                     }`}>
-                    <span className="text-lg">{s.icon}</span>
+                    <s.Icon size={20} className="text-primary" />
                     <p className="text-sm font-medium text-foreground mt-1">{s.label}</p>
                     {s.dim && <p className="text-[11px] text-muted-foreground">{s.dim}</p>}
                   </button>
@@ -871,7 +871,7 @@ const SendColy = () => {
                   className={`py-3 rounded-xl border font-medium transition-all text-sm ${
                     insured === true ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"
                   }`}>
-                  ✅ Oui, assurer
+                  <ShieldCheck size={14} className="inline mr-1" /> Oui, assurer
                 </button>
                 <button onClick={() => { setInsured(false); clearError("insured"); }}
                   className={`py-3 rounded-xl border font-medium transition-all text-sm ${

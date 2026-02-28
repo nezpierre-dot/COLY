@@ -1,19 +1,22 @@
-import { ArrowLeft, Check, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Trash2, Info, CheckCircle2, AlertTriangle, XCircle, IdCard, Package, ShoppingCart, Bell, Star, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import BottomNav from "@/components/BottomNav";
+import { ReactNode } from "react";
 
-const typeIcon: Record<string, string> = {
-  info: "ℹ️",
-  success: "✅",
-  warning: "⚠️",
-  error: "❌",
-  kyc: "🪪",
-  coly: "📦",
-  needit: "🛒",
+const typeIcon: Record<string, ReactNode> = {
+  info: <Info size={18} className="text-blue-400" />,
+  success: <CheckCircle2 size={18} className="text-emerald-400" />,
+  warning: <AlertTriangle size={18} className="text-amber-400" />,
+  error: <XCircle size={18} className="text-destructive" />,
+  kyc: <IdCard size={18} className="text-purple-400" />,
+  coly: <Package size={18} className="text-primary" />,
+  needit: <ShoppingCart size={18} className="text-accent" />,
 };
+
+const defaultIcon = <Bell size={18} className="text-muted-foreground" />;
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
@@ -47,7 +50,9 @@ export default function NotificationsPage() {
           </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <span className="text-5xl mb-4">🔔</span>
+            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+              <Bell size={28} className="text-muted-foreground" />
+            </div>
             <p className="text-lg font-semibold text-foreground">Aucune notification</p>
             <p className="text-sm text-muted-foreground mt-1 max-w-[260px]">
               Vous recevrez ici les mises à jour de votre compte
@@ -59,16 +64,16 @@ export default function NotificationsPage() {
                 Exemples de notifications à venir
               </p>
               {[
-                { emoji: "✅", title: "Voyageur accepté !", desc: "Un voyageur a pris en charge votre colis Paris → Dakar", type: "success" },
-                { emoji: "📦", title: "Colis en transit", desc: "Votre envoi est en route vers sa destination", type: "coly" },
-                { emoji: "🛍️", title: "Mission NeedIt disponible", desc: "Une nouvelle mission correspond à votre trajet", type: "needit" },
-                { emoji: "⭐", title: "Nouvel avis reçu", desc: "Un demandeur vous a noté 5/5 — bravo !", type: "info" },
+                { icon: <CheckCircle2 size={16} className="text-emerald-400" />, title: "Voyageur accepté !", desc: "Un voyageur a pris en charge votre colis Paris → Dakar" },
+                { icon: <Package size={16} className="text-primary" />, title: "Colis en transit", desc: "Votre envoi est en route vers sa destination" },
+                { icon: <ShoppingBag size={16} className="text-accent" />, title: "Mission NeedIt disponible", desc: "Une nouvelle mission correspond à votre trajet" },
+                { icon: <Star size={16} className="text-amber-400" />, title: "Nouvel avis reçu", desc: "Un demandeur vous a noté 5/5 — bravo !" },
               ].map((notif, i) => (
                 <div
                   key={i}
                   className="flex items-start gap-3 rounded-xl px-4 py-3 bg-muted/40 border border-border/60 opacity-60"
                 >
-                  <span className="text-lg mt-0.5">{notif.emoji}</span>
+                  <span className="mt-0.5 shrink-0">{notif.icon}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">{notif.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{notif.desc}</p>
@@ -88,7 +93,7 @@ export default function NotificationsPage() {
                     : "bg-card border-border"
                 }`}
               >
-                <span className="text-xl mt-0.5">{typeIcon[n.type] || "🔔"}</span>
+                <span className="mt-0.5 shrink-0">{typeIcon[n.type] || defaultIcon}</span>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>
                     {n.title}
