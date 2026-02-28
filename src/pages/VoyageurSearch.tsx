@@ -9,6 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import StarRating from "@/components/StarRating";
 import PullToRefresh from "@/components/PullToRefresh";
+import { hapticLight, hapticMedium } from "@/lib/haptics";
 
 interface Voyage {
   id: string;
@@ -181,7 +182,7 @@ const VoyageurSearch = () => {
               {loading ? "Recherche…" : `${filtered.length} voyageur${filtered.length > 1 ? "s" : ""} disponible${filtered.length > 1 ? "s" : ""}`}
             </p>
             <button
-              onClick={() => setFilterOpen(!filterOpen)}
+              onClick={() => { hapticLight(); setFilterOpen(!filterOpen); }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors relative ${
                 filterOpen ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
@@ -213,7 +214,7 @@ const VoyageurSearch = () => {
                       {["", "avion", "train", "voiture", "bus"].map((m) => (
                         <button
                           key={m}
-                          onClick={() => setFilterMethod(m)}
+                          onClick={() => { hapticLight(); setFilterMethod(m); }}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                             filterMethod === m
                               ? "bg-primary text-primary-foreground"
@@ -337,8 +338,8 @@ const VoyageurSearch = () => {
 
                   {/* CTA */}
                   <button
-                    onClick={() => navigate("/send-coly")}
-                    className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                    onClick={() => { hapticMedium(); navigate("/send-coly"); }}
+                    className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity active:scale-[0.97] transition-all duration-150"
                   >
                     Envoyer un colis avec ce voyageur
                   </button>

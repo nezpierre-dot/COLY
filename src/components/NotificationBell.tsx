@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { hapticLight, hapticMedium } from "@/lib/haptics";
 
 const typeIcon: Record<string, string> = {
   info: "ℹ️",
@@ -55,7 +56,7 @@ export default function NotificationBell() {
     <>
       <button
         ref={buttonRef}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => { hapticLight(); setOpen((o) => !o); }}
         className="relative p-2 rounded-full hover:bg-muted transition-colors"
         aria-label="Notifications"
       >
@@ -79,7 +80,7 @@ export default function NotificationBell() {
               <h3 className="font-bold text-foreground text-sm">Notifications</h3>
               {unreadCount > 0 && (
                 <button
-                  onClick={() => markAllAsRead()}
+                  onClick={() => { hapticMedium(); markAllAsRead(); }}
                   className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
                 >
                   <Check size={12} /> Tout lire
@@ -98,6 +99,7 @@ export default function NotificationBell() {
                   <button
                     key={n.id}
                     onClick={() => {
+                      hapticLight();
                       if (!n.is_read) markAsRead(n.id);
                       setOpen(false);
                     }}

@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { hapticSuccess } from "@/lib/haptics";
 
 /**
  * Show a strong visual success confirmation with optional haptic vibration.
@@ -9,9 +10,7 @@ export const successFeedback = (
   options?: { description?: string; duration?: number }
 ) => {
   // Haptic vibration (mobile)
-  if (navigator.vibrate) {
-    navigator.vibrate([50, 30, 50]);
-  }
+  hapticSuccess();
 
   toast.success(message, {
     description: options?.description,

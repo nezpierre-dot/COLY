@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { hapticLight, hapticSuccess } from "@/lib/haptics";
+import SuccessCheck from "@/components/SuccessCheck";
 
 interface RatingDialogProps {
   open: boolean;
@@ -21,6 +23,7 @@ const RatingDialog = ({ open, onClose, shipmentId, ratedUserId, raterRole }: Rat
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const label = raterRole === "demandeur"
     ? "Comment s'est passée la livraison par le voyageur ?"
@@ -42,8 +45,13 @@ const RatingDialog = ({ open, onClose, shipmentId, ratedUserId, raterRole }: Rat
     if (error) {
       toast.error("Erreur lors de l'envoi de la note");
     } else {
-      toast.success("Merci pour votre évaluation !");
-      onClose();
+      hapticSuccess();
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        toast.success("Merci pour votre évaluation !");
+        onClose();
+      }, 1200);
     }
     setSubmitting(false);
   };
@@ -56,7 +64,10 @@ const RatingDialog = ({ open, onClose, shipmentId, ratedUserId, raterRole }: Rat
         </DialogHeader>
 
         <div className="space-y-5 py-2">
-          <p className="text-sm text-muted-foreground text-center leading-relaxed">{label}</p>
+          <div className="flex justify-center">
+            <SuccessCheck show={submitted} size={56} />
+          </div>
+          {!submitted && <p className="text-sm text-muted-foreground text-center leading-relaxed">{label}</p>}
 
           {/* Stars */}
           <div className="flex justify-center gap-2">
@@ -65,7 +76,7 @@ const RatingDialog = ({ open, onClose, shipmentId, ratedUserId, raterRole }: Rat
                 key={star}
                 onMouseEnter={() => setHovered(star)}
                 onMouseLeave={() => setHovered(0)}
-                onClick={() => setScore(star)}
+                onClick={() => { setScore(star); hapticLight(); }}
                 className="transition-transform hover:scale-110 active:scale-95"
               >
                 <Star
