@@ -454,39 +454,50 @@ const Dashboard = () => {
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
       <main className="px-0 pt-0" id="main-content" role="main" aria-label="Tableau de bord">
-        {/* Colorful Hero Header */}
+        {/* Qonto-inspired Header */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="relative overflow-hidden px-5 pt-12 pb-6"
-          style={{
-            background: "linear-gradient(to bottom, #005BB5, #007AFF, rgba(52, 199, 89, 0.12))"
-          }}
+          className="relative"
         >
-          {/* Decorative circles */}
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
-          <div className="absolute bottom-0 -left-6 w-24 h-24 rounded-full bg-white/5" />
-          <div className="absolute top-12 right-20 w-16 h-16 rounded-full bg-white/5" />
+          {/* Top accent bar */}
+          <div
+            className="h-1 w-full"
+            style={{ background: isVoyageur ? "#007AFF" : "#34C759" }}
+          />
 
-          <div className="relative z-10 flex items-center justify-between mb-1">
-            <div>
-              <h1 className="text-[26px] font-bold text-white leading-tight text-on-gradient">
-                {isVoyageur ? "Espace Voyageur" : "Espace Demandeur"}
-              </h1>
-              <p className="text-sm text-white/70 mt-1 text-on-gradient">
-                {isVoyageur ? "Gérez vos trajets et opportunités" : "Envoyez vos colis et missions"}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
+          <div className="bg-[#FAFAFA] px-5 pt-5 pb-5">
+            {/* Role switch capsule – top right */}
+            <div className="flex justify-between items-start mb-4">
               <NotificationBell />
-              <button onClick={toggleRole} aria-label={`Changer vers ${isVoyageur ? "demandeur" : "voyageur"}`}
-                className={`w-12 h-7 rounded-full relative transition-colors ${isVoyageur ? "bg-white/30" : "bg-white/20"}`}>
-                <div className={`w-5 h-5 rounded-full bg-white shadow-sm absolute top-1 transition-transform ${isVoyageur ? "translate-x-6" : "translate-x-1"}`} />
+              <button
+                onClick={toggleRole}
+                className="px-3 py-1.5 rounded-full text-[13px] font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.97]"
+                style={{ background: "#FF6B6B" }}
+                aria-label={`Changer vers ${isVoyageur ? "demandeur" : "voyageur"}`}
+              >
+                {isVoyageur ? "Mode Demandeur" : "Mode Voyageur"}
               </button>
-              <button onClick={handleLogout} className="text-white/70 hover:text-white" aria-label="Se déconnecter">
-                <LogOut size={18} aria-hidden="true" />
-              </button>
+            </div>
+
+            {/* Title row */}
+            <div className="flex items-center gap-3">
+              {isVoyageur ? (
+                <Plane size={36} style={{ color: "#007AFF" }} strokeWidth={1.8} aria-hidden="true" />
+              ) : (
+                <Package size={36} style={{ color: "#34C759" }} strokeWidth={1.8} aria-hidden="true" />
+              )}
+              <div>
+                <h1 className="text-[26px] font-bold leading-tight" style={{ color: "#0F172A" }}>
+                  {isVoyageur ? "Voyageur" : "Demandeur"}
+                </h1>
+                <p className="text-[15px] mt-0.5" style={{ color: "#64748B" }}>
+                  {isVoyageur
+                    ? "Propose tes trajets et gagne de l'argent"
+                    : "Trouve un voyageur et économise jusqu'à 70 %"}
+                </p>
+              </div>
             </div>
           </div>
         </motion.div>
