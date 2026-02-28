@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +18,8 @@ import BottomNav from "@/components/BottomNav";
 import VoyageMap from "@/components/VoyageMap";
 import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PublicMissionsMap from "@/components/PublicMissionsMap";
+import PullToRefresh from "@/components/PullToRefresh";
+import { hapticLight } from "@/lib/haptics";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -228,14 +230,15 @@ const Dashboard = () => {
       if (type === "shipment") {
         const { data, error } = await supabase.rpc("accept_shipment", { _shipment_id: id });
         if (error) throw error;
+        hapticLight();
         toast.success("Colis accepté ! Vous pouvez maintenant discuter.");
-        // Remove from local state immediately
         setPendingShipments(prev => prev.filter(s => s.id !== id));
         setAcceptDialog(null);
         navigate(`/chat/${data}`);
       } else {
         const { data, error } = await supabase.rpc("accept_needit_mission", { _mission_id: id });
         if (error) throw error;
+        hapticLight();
         toast.success("Mission acceptée ! Vous pouvez maintenant discuter.");
         setNeeditMissions(prev => prev.filter(m => m.id !== id));
         setAcceptDialog(null);
@@ -414,6 +417,7 @@ const Dashboard = () => {
   const handleToggleFavorite = (from: string, to: string) => {
     if (!isFavorite(from, to)) {
       addFavorite(from, to);
+      hapticLight();
       toast.success(`${from} → ${to} ajouté aux favoris`);
     }
   };
@@ -424,8 +428,30 @@ const Dashboard = () => {
     } catch { return dateStr; }
   };
 
+  const handleRefresh = useCallback(async () => {
+    if (!user) return;
+    if (isVoyageur) {
+      const [vRes, sRes, nRes] = await Promise.all([
+        supabase.from("voyages").select("*").eq("user_id", user.id).neq("status", "cancelled").order("departure_date", { ascending: true }),
+        supabase.rpc("get_pending_shipments"),
+        supabase.rpc("get_pending_needit_missions"),
+      ]);
+      if (vRes.data) { setVoyages(vRes.data); if (vRes.data.length > 0 && !selectedVoyage) setSelectedVoyage(vRes.data[0].id); }
+      if (sRes.data) setPendingShipments(sRes.data);
+      if (nRes.data) setNeeditMissions(nRes.data);
+    } else {
+      const [shipRes, missRes] = await Promise.all([
+        supabase.from("shipments").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
+        supabase.from("needit_missions").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
+      ]);
+      if (shipRes.data) setDemandeurShipments(shipRes.data);
+      if (missRes.data) setDemandeurMissions(missRes.data);
+    }
+  }, [user, isVoyageur, selectedVoyage]);
+
   return (
     <div className="min-h-screen bg-background pb-24">
+      <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
       <main className="px-0 pt-0" id="main-content" role="main" aria-label="Tableau de bord">
         {/* Colorful Hero Header */}
@@ -1192,6 +1218,7 @@ const Dashboard = () => {
         </div>
       </main>
       </PageTransition>
+      </PullToRefresh>
 
       <BottomNav />
 
