@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, MapPin, Calendar, Plane, Train, Car, Bus, Rocket, SlidersHorizontal, X } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Calendar, Plane, Train, Car, Bus, Rocket, SlidersHorizontal, X, ShoppingCart, Package, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,13 +39,13 @@ const transportIcon = (method: string) => {
   }
 };
 
-const transportEmoji = (method: string) => {
+const transportFilterIcon = (method: string) => {
   switch (method?.toLowerCase()) {
-    case "avion": return "✈️";
-    case "train": return "🚄";
-    case "voiture": return "🚗";
-    case "bus": return "🚌";
-    default: return "🚀";
+    case "avion": return <Plane size={14} className="inline" />;
+    case "train": return <Train size={14} className="inline" />;
+    case "voiture": return <Car size={14} className="inline" />;
+    case "bus": return <Bus size={14} className="inline" />;
+    default: return <Rocket size={14} className="inline" />;
   }
 };
 
@@ -221,7 +221,7 @@ const VoyageurSearch = () => {
                               : "bg-muted text-muted-foreground hover:bg-muted/80"
                           }`}
                         >
-                          {m ? `${transportEmoji(m)} ${m.charAt(0).toUpperCase() + m.slice(1)}` : "Tous"}
+                          {m ? <span className="flex items-center gap-1">{transportFilterIcon(m)} {m.charAt(0).toUpperCase() + m.slice(1)}</span> : "Tous"}
                         </button>
                       ))}
                     </div>
@@ -320,18 +320,18 @@ const VoyageurSearch = () => {
                   {/* Options badges */}
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {v.accept_needit && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-secondary/15 text-secondary">
-                        🛒 NeedIt
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-secondary/15 text-secondary flex items-center gap-1">
+                        <ShoppingCart size={10} /> NeedIt
                       </span>
                     )}
                     {v.can_pickup && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                        📦 Récupération
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                        <Package size={10} /> Récupération
                       </span>
                     )}
                     {v.deliver_to_address && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent">
-                        🏠 Livraison adresse
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent flex items-center gap-1">
+                        <Home size={10} /> Livraison adresse
                       </span>
                     )}
                   </div>
