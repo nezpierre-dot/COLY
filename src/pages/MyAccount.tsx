@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award } from "lucide-react";
+import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { motion, AnimatePresence } from "framer-motion";
+import { hapticLight, hapticSuccess } from "@/lib/haptics";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,12 +31,15 @@ const MyAccount = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
   const [fullName, setFullName] = useState(meta.full_name || "");
   const [phone, setPhone] = useState(meta.phone || "");
+  const [bio, setBio] = useState("");
   const [email] = useState(user?.email || "");
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
   // Stats & rating
   const [rating, setRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
   const [stats, setStats] = useState({ voyages: 0, shipments: 0, missions: 0 });
+  const [kycStatus, setKycStatus] = useState("pending");
+  const [totalEarned, setTotalEarned] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -43,35 +47,71 @@ const MyAccount = () => {
     supabase.rpc("get_user_rating", { _user_id: user.id }).then(({ data }) => {
       if (data && data.length > 0 && data[0].total_ratings > 0) setRating(data[0]);
     });
-    // Load stats
+    // Load profile (bio, avatar, kyc)
+    supabase.from("profiles").select("bio, avatar_url, kyc_status").eq("user_id", user.id).single().then(({ data }) => {
+      if (data) {
+        setBio((data as any).bio || "");
+        if ((data as any).avatar_url) setAvatar((data as any).avatar_url);
+        setKycStatus(data.kyc_status || "pending");
+      }
+    });
+    // Load stats + earnings
     Promise.all([
       supabase.from("voyages").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("shipments").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("shipments").select("id, tarif", { count: "exact" }).eq("user_id", user.id),
       supabase.from("needit_missions").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-    ]).then(([v, s, m]) => {
+      // Shipments where user is voyageur (earned money)
+      supabase.from("shipments").select("tarif").eq("voyageur_id", user.id).eq("status", "delivered"),
+    ]).then(([v, s, m, earned]) => {
       setStats({
         voyages: v.count || 0,
         shipments: s.count || 0,
         missions: m.count || 0,
       });
+      // Sum up earned tarifs
+      const total = (earned.data || []).reduce((sum, sh) => {
+        const num = parseFloat(sh.tarif?.replace(/[^0-9.,]/g, "").replace(",", ".") || "0");
+        return sum + (isNaN(num) ? 0 : num);
+      }, 0);
+      setTotalEarned(total);
     });
   }, [user]);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
     if (file.size > 5 * 1024 * 1024) { toast.error("Image trop volumineuse (max 5 Mo)"); return; }
+
+    // Preview immediately
     const reader = new FileReader();
     reader.onload = () => setAvatar(reader.result as string);
     reader.readAsDataURL(file);
+
+    // Upload to storage
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/avatar.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    if (uploadError) { toast.error("Erreur upload avatar"); return; }
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const publicUrl = urlData.publicUrl + "?t=" + Date.now();
+
+    // Save to profile
+    await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
+    setAvatar(publicUrl);
+    hapticSuccess();
+    toast.success("Photo de profil mise à jour");
   };
 
   const handleSave = async () => {
+    if (!user) return;
     const { error } = await supabase.auth.updateUser({
       data: { full_name: fullName.trim(), phone: phone.trim() },
     });
+    // Save bio to profile
+    await supabase.from("profiles").update({ bio: bio.trim() } as any).eq("user_id", user.id);
     if (error) toast.error(error.message);
-    else { toast.success("Profil mis à jour"); setEditing(false); }
+    else { hapticSuccess(); toast.success("Profil mis à jour"); setEditing(false); }
   };
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -81,16 +121,20 @@ const MyAccount = () => {
     navigate("/");
   };
 
-  const toggleAccordion = (id: string) => setOpenAccordion(openAccordion === id ? null : id);
+  const toggleAccordion = (id: string) => { hapticLight(); setOpenAccordion(openAccordion === id ? null : id); };
 
   const inputClass = "w-full border-b border-muted-foreground/30 py-2 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none bg-transparent text-sm";
 
   // Badges
   const badges = [
+    ...(kycStatus === "verified" ? [{ emoji: "✅", label: "Vérifié", highlight: true }] : []),
     ...(stats.voyages >= 1 ? [{ emoji: "✈️", label: "Premier vol" }] : []),
     ...(stats.voyages >= 10 ? [{ emoji: "🌍", label: "Globe-trotter" }] : []),
     ...(stats.shipments >= 5 ? [{ emoji: "📦", label: "Expéditeur actif" }] : []),
+    ...(stats.shipments >= 20 ? [{ emoji: "🚀", label: "Expert envoi" }] : []),
     ...(stats.missions >= 3 ? [{ emoji: "🛒", label: "Chasseur NeedIt" }] : []),
+    ...(stats.missions >= 10 ? [{ emoji: "🏆", label: "10 missions" }] : []),
+    ...(totalEarned >= 100 ? [{ emoji: "💰", label: "100€ gagnés" }] : []),
     ...(rating && rating.average_score >= 4.5 ? [{ emoji: "⭐", label: "Top noté" }] : []),
   ];
 
@@ -162,13 +206,19 @@ const MyAccount = () => {
                 <Camera size={24} className="text-white" />
               </div>
             </motion.div>
-            <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center border-2 border-background">
-              <CheckCircle2 size={14} className="text-white" />
-            </div>
+            {kycStatus === "verified" ? (
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center border-2 border-background">
+                <BadgeCheck size={14} className="text-white" />
+              </div>
+            ) : (
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center border-2 border-background">
+                <CheckCircle2 size={14} className="text-white" />
+              </div>
+            )}
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
 
-          {/* Name & rating */}
+          {/* Name, bio & rating */}
           <div className="flex-1 min-w-0 pt-1">
             <h1 className="text-xl font-bold text-white truncate">
               {fullName || "Utilisateur"}
@@ -176,6 +226,11 @@ const MyAccount = () => {
             <p className="text-white/60 text-xs mt-0.5">
               {isVoyageur ? "Voyageur" : "Expéditeur"} · N°{userId.toUpperCase()}
             </p>
+
+            {/* Bio */}
+            {bio && !editing && (
+              <p className="text-white/70 text-xs mt-1.5 line-clamp-2 italic">"{bio}"</p>
+            )}
 
             {/* Star rating */}
             {rating ? (
@@ -200,7 +255,7 @@ const MyAccount = () => {
 
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => editing ? handleSave() : setEditing(true)}
+            onClick={() => { hapticLight(); editing ? handleSave() : setEditing(true); }}
             className="shrink-0 w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors backdrop-blur-sm"
           >
             {editing ? <Save size={20} /> : <Pencil size={20} />}
@@ -210,19 +265,20 @@ const MyAccount = () => {
 
       <div className="px-6 -mt-4 relative z-10">
         {/* Quick stats row */}
-        <div className="grid grid-cols-3 gap-2 mb-6">
+        <div className="grid grid-cols-4 gap-2 mb-6">
           {[
             { value: stats.voyages, label: "Voyages", icon: Plane },
             { value: stats.shipments, label: "Envois", icon: Package },
             { value: stats.missions, label: "Missions", icon: TrendingUp },
+            { value: `${totalEarned.toFixed(0)}€`, label: "Gagnés", icon: Coins },
           ].map((s) => (
             <motion.div
               key={s.label}
               whileTap={{ scale: 0.97 }}
               className="bg-card border border-border rounded-2xl p-3 text-center shadow-sm"
             >
-              <s.icon size={18} className="text-primary mx-auto mb-1" />
-              <p className="text-lg font-bold text-foreground">{s.value}</p>
+              <s.icon size={16} className="text-primary mx-auto mb-1" />
+              <p className="text-base font-bold text-foreground">{s.value}</p>
               <p className="text-[10px] text-muted-foreground font-medium">{s.label}</p>
             </motion.div>
           ))}
@@ -241,8 +297,12 @@ const MyAccount = () => {
                   key={i}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-xl"
+                  transition={{ delay: i * 0.08, type: "spring", stiffness: 400, damping: 20 }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border ${
+                    (b as any).highlight
+                      ? "bg-emerald-500/15 border-emerald-500/30"
+                      : "bg-accent/10 border-accent/20"
+                  }`}
                 >
                   <span className="text-sm">{b.emoji}</span>
                   <span className="text-xs font-semibold text-foreground">{b.label}</span>
@@ -269,6 +329,18 @@ const MyAccount = () => {
                 <div>
                   <label className="text-xs text-muted-foreground">Nom complet</label>
                   <input className={inputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Prénom Nom" />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Bio</label>
+                  <textarea
+                    className={`${inputClass} resize-none`}
+                    rows={2}
+                    maxLength={120}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Décrivez-vous en quelques mots…"
+                  />
+                  <p className="text-[10px] text-muted-foreground text-right mt-0.5">{bio.length}/120</p>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Téléphone</label>
