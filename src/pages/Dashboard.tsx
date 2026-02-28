@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -82,7 +82,7 @@ const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData }: { voyag
             >
               {stat.value}
             </motion.p>
-            <p className={`text-[10px] ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
+            <p className={`text-xs ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
           </motion.div>
         ))}
       </motion.div>
@@ -100,7 +100,7 @@ const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData }: { voyag
               <BarChart3 size={13} className="text-primary" />
               <span className="text-xs font-semibold text-foreground">Activité récente</span>
             </div>
-            <span className="text-[10px] text-muted-foreground">30 derniers jours</span>
+            <span className="text-xs text-muted-foreground">30 derniers jours</span>
           </div>
           <div className="h-14">
             <ResponsiveContainer width="100%" height="100%">
@@ -148,11 +148,11 @@ const AiRecommendation = ({ isVoyageur }: { isVoyageur: boolean }) => {
           <Sparkles size={14} className="text-accent" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-semibold text-accent mb-0.5">Recommandation IA</p>
+          <p className="text-xs font-semibold text-accent mb-0.5">Recommandation IA</p>
           <p className="text-xs text-foreground leading-relaxed">{rec.text}</p>
           <button
             onClick={rec.action}
-            className="mt-1.5 text-[11px] font-semibold text-primary hover:underline flex items-center gap-1"
+            className="mt-1.5 text-xs font-semibold text-primary hover:underline flex items-center gap-1"
           >
             {rec.cta} <ArrowRight size={10} />
           </button>
@@ -178,7 +178,7 @@ const FavoriteRoutes = () => {
           <div key={fav.id}
             className="shrink-0 bg-accent/10 border border-accent/20 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5"
           >
-            <span className="text-[11px] font-medium text-foreground">{fav.from} → {fav.to}</span>
+            <span className="text-xs font-medium text-foreground">{fav.from} → {fav.to}</span>
             <button onClick={() => removeFavorite(fav.id)} className="text-accent hover:text-destructive transition-colors">
               <Heart size={10} fill="currentColor" />
             </button>
@@ -675,13 +675,13 @@ const Dashboard = () => {
                         className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 space-y-1.5 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-[9px] font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">MATCH</span>
+                            <span className="text-xs font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">MATCH</span>
                             <p className="font-semibold text-foreground text-sm truncate">
                               {s.departure_city || "—"} → {s.arrival_city}, {s.arrival_country}
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            {s.insured && <span className="text-[9px]">🛡</span>}
+                            {s.insured && <Shield size={12} className="text-primary" />}
                             <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-md">{s.size}</span>
                             <ChevronRight size={14} className="text-accent" />
                           </div>
@@ -712,12 +712,12 @@ const Dashboard = () => {
                              <p className="font-medium text-foreground text-sm truncate">
                                {s.departure_city || "—"} → {s.arrival_city}, {s.arrival_country}
                              </p>
-                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               {formatDate(s.departure_date)} · Taille {s.size}
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            {s.insured && <span className="text-[9px]">🛡</span>}
+                            {s.insured && <Shield size={12} className="text-primary" />}
                             <span className="text-xs font-semibold text-foreground">{s.tarif === "custom" ? "Sur devis" : s.tarif}</span>
                           </div>
                         </div>
@@ -749,7 +749,7 @@ const Dashboard = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-bold text-foreground text-sm">{currentVoyage.departure_city} → {currentVoyage.arrival_city}</p>
-                        <p className="text-[11px] text-muted-foreground">{formatDate(currentVoyage.departure_date)} {currentVoyage.departure_time ? `à ${currentVoyage.departure_time}` : ""}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(currentVoyage.departure_date)} {currentVoyage.departure_time ? `à ${currentVoyage.departure_time}` : ""}</p>
                       </div>
                       <span className="text-base">{getTransportIcon(currentVoyage.transport_method)}</span>
                     </div>
@@ -764,7 +764,7 @@ const Dashboard = () => {
                   <div className="flex gap-1.5 overflow-x-auto pb-1">
                     {voyages.map((v) => (
                       <button key={v.id} onClick={() => setSelectedVoyage(v.id)}
-                        className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${selectedVoyage === v.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                        className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${selectedVoyage === v.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
                         {v.departure_city} → {v.arrival_city}
                       </button>
                     ))}
@@ -809,7 +809,7 @@ const Dashboard = () => {
                                 {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Produit"}
                               </p>
                             </div>
-                            <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                               <MapPin size={10} /> {m.country}{m.city ? `, ${m.city}` : ""}
                             </p>
                           </div>
@@ -837,7 +837,7 @@ const Dashboard = () => {
                             <p className="font-medium text-foreground text-sm truncate">
                               {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Produit"}
                             </p>
-                            <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                               <MapPin size={10} /> {m.country}{m.city ? `, ${m.city}` : ""}
                             </p>
                           </div>
@@ -890,7 +890,7 @@ const Dashboard = () => {
                     >
                       {stat.value}
                     </motion.p>
-                    <p className={`text-[10px] ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
+                    <p className={`text-xs ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
                   </motion.div>
                 ))}
               </motion.div>
@@ -908,7 +908,7 @@ const Dashboard = () => {
                       <BarChart3 size={13} className="text-primary" />
                       <span className="text-xs font-semibold text-foreground">Mes envois</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">30 derniers jours</span>
+                    <span className="text-xs text-muted-foreground">30 derniers jours</span>
                   </div>
                   <div className="h-14">
                     <ResponsiveContainer width="100%" height="100%">
@@ -1003,7 +1003,7 @@ const Dashboard = () => {
                               <X size={12} />
                             </button>
                           )}
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                             s.status === "pending" ? "bg-primary-foreground/20 text-primary-foreground" :
                             s.status === "accepted" ? "bg-accent/30 text-accent-foreground" :
                             s.status === "cancelled" ? "bg-destructive/20 text-destructive" :
@@ -1068,7 +1068,7 @@ const Dashboard = () => {
                           >
                             <X size={11} />
                           </button>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                             m.status === "pending" ? "bg-accent/15 text-accent" : "bg-muted text-muted-foreground"
                           }`}>
                             {m.status === "pending" ? "En attente" : m.status}
@@ -1200,7 +1200,7 @@ const Dashboard = () => {
                           <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
                           <p className="text-xs text-muted-foreground">{item.subtitle}</p>
                         </div>
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
                           item.status === "pending" ? "bg-accent/15 text-accent" :
                           item.status === "accepted" ? "bg-primary/15 text-primary" :
                           "bg-muted text-muted-foreground"

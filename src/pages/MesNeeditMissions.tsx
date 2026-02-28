@@ -192,7 +192,7 @@ const MesNeeditMissions = () => {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-foreground">Comment ça marche ?</p>
-                  <p className="text-[11px] text-muted-foreground">4 étapes simples pour ta première mission</p>
+                  <p className="text-xs text-muted-foreground">4 étapes simples pour ta première mission</p>
                 </div>
               </div>
               <div className="bg-card px-5 py-4">

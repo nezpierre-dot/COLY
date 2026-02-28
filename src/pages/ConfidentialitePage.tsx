@@ -93,7 +93,7 @@ export default function ConfidentialitePage() {
           </div>
           <div className="flex-1">
             <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Données protégées par AXA</p>
-            <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">Chiffrement de bout en bout • Conforme RGPD</p>
+            <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">Chiffrement de bout en bout • Conforme RGPD</p>
           </div>
           <Lock size={14} className="text-emerald-500 shrink-0" />
         </div>
@@ -122,7 +122,7 @@ export default function ConfidentialitePage() {
               <FileText size={16} className="text-primary" /> Politique de Confidentialité
             </h2>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-muted-foreground">Mise à jour : 20/02/2026</span>
+              <span className="text-xs text-muted-foreground">Mise à jour : 20/02/2026</span>
               <ChevronDown size={16} className={`text-muted-foreground transition-transform ${showPolicy ? "rotate-180" : ""}`} />
             </div>
           </button>
@@ -201,7 +201,7 @@ export default function ConfidentialitePage() {
                   <div key={svc.name} className="bg-muted/50 rounded-xl px-4 py-3 flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-foreground">{svc.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{svc.category}</p>
+                      <p className="text-xs text-muted-foreground">{svc.category}</p>
                     </div>
                     <Switch checked={svc.enabled} onCheckedChange={() => toggleService(svc.name)} />
                   </div>
@@ -225,7 +225,7 @@ export default function ConfidentialitePage() {
         </div>
 
         {/* Bottom trust */}
-        <div className="flex items-center justify-center gap-2 py-4 text-[10px] text-muted-foreground">
+        <div className="flex items-center justify-center gap-2 py-4 text-xs text-muted-foreground">
           <ShieldCheck size={12} className="text-emerald-500" />
           <span>Protégé par AXA • Chiffrement AES-256 • RGPD</span>
         </div>

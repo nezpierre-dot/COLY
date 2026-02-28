@@ -308,13 +308,13 @@ const ChatPage = () => {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground truncate">{otherName}</p>
             {shipmentRoute && (
-              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <Package size={10} /> {shipmentRoute}
               </p>
             )}
           </div>
           {isOtherTyping && (
-            <span className="text-[10px] text-primary animate-pulse shrink-0">en train d'écrire…</span>
+            <span className="text-xs text-primary animate-pulse shrink-0">en train d'écrire…</span>
           )}
         </div>
       </div>
@@ -440,7 +440,7 @@ const ChatPage = () => {
             {/* Date separator */}
             <div className="flex items-center gap-3 my-3">
               <div className="flex-1 h-px bg-border" />
-              <span className="text-[10px] font-medium text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 {formatDateSeparator(group.msgs[0].created_at)}
               </span>
               <div className="flex-1 h-px bg-border" />

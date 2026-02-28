@@ -99,7 +99,7 @@ export default function NotificationsPage() {
                     {n.title}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}
                   </p>
                 </div>

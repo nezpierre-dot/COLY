@@ -35,7 +35,7 @@ const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAv
   if (variant === "compact") {
     return (
       <span
-        className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+        className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
           hasVoyageurs
             ? "bg-green-500/15 text-green-600 dark:text-green-400"
             : "bg-orange-500/15 text-orange-600 dark:text-orange-400"
