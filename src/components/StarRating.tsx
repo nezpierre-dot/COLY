@@ -31,7 +31,7 @@ const StarRating = ({ score, total, size = 14, showEmpty = true }: StarRatingPro
         </span>
       )}
       {total !== undefined && (
-        <span className="text-[11px] text-muted-foreground">({total})</span>
+        <span className="text-xs text-muted-foreground">({total})</span>
       )}
     </div>
   );

@@ -165,14 +165,14 @@ const TrustBadge = ({ variant = "inline" }: { variant?: "inline" | "card" }) => 
         </div>
         <div>
           <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Sécurisé par AXA</p>
-          <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">Assurance & protection des envois</p>
+          <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">Assurance & protection des envois</p>
         </div>
         <Lock size={12} className="text-emerald-500 ml-auto shrink-0" />
       </div>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+    <span className="inline-flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-2 py-0.5 rounded-full">
       <ShieldCheck size={10} /> AXA Sécurisé
     </span>
   );
@@ -238,18 +238,18 @@ const CustomsInfoDialog = ({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">TVA locale</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">TVA locale</p>
                   <p className="text-sm font-bold text-foreground">{taxInfo.tva}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Droits douane</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Droits douane</p>
                   <p className="text-sm font-bold text-foreground">{taxInfo.douane}</p>
                 </div>
               </div>
               <div className="border-t border-border pt-2">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Estimation totale taxes</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Estimation totale taxes</p>
                 <p className="text-lg font-bold text-primary">{taxInfo.total}</p>
-                <p className="text-[10px] text-muted-foreground mt-1 italic">Pour colis {sizeLabel}</p>
+                <p className="text-xs text-muted-foreground mt-1 italic">Pour colis {sizeLabel}</p>
               </div>
             </div>
 
@@ -654,7 +654,7 @@ const SendColy = () => {
                   <Globe size={14} className="text-primary shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-xs text-foreground font-medium">Envoi international détecté</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">Des frais de douane peuvent s'appliquer. Une estimation vous sera proposée à l'étape suivante.</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Des frais de douane peuvent s'appliquer. Une estimation vous sera proposée à l'étape suivante.</p>
                   </div>
                   <TrustBadge />
                 </div>
@@ -722,7 +722,7 @@ const SendColy = () => {
                     }`}>
                     <s.Icon size={20} className="text-primary" />
                     <p className="text-sm font-medium text-foreground mt-1">{s.label}</p>
-                    {s.dim && <p className="text-[11px] text-muted-foreground">{s.dim}</p>}
+                    {s.dim && <p className="text-xs text-muted-foreground">{s.dim}</p>}
                   </button>
                 ))}
               </div>
@@ -750,7 +750,7 @@ const SendColy = () => {
                 <Globe size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">Frais de douane estimés</p>
-                  <p className="text-[10px] text-amber-600/70 dark:text-amber-400/70">Appuyez pour voir l'estimation IA vers {arrCountry}</p>
+                  <p className="text-xs text-amber-600/70 dark:text-amber-400/70">Appuyez pour voir l'estimation IA vers {arrCountry}</p>
                 </div>
                 <ArrowRight size={14} className="text-amber-500" />
               </button>
@@ -778,7 +778,7 @@ const SendColy = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-foreground">{aiSuggestion.prix}{getCurrencyForCountry(arrCountry).symbol}</p>
-                    <p className="text-[11px] text-muted-foreground">prix estimé</p>
+                    <p className="text-xs text-muted-foreground">prix estimé</p>
                   </div>
                 </div>
               </div>
@@ -805,7 +805,7 @@ const SendColy = () => {
                         tarif === t.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"
                       }`}>
                       {t.popular && (
-                        <span className="absolute -top-2 right-3 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        <span className="absolute -top-2 right-3 bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
                           Populaire
                         </span>
                       )}
@@ -823,7 +823,7 @@ const SendColy = () => {
                   );
                 })}
               </div>
-              <p className="text-[11px] text-muted-foreground text-center">*Le paiement est effectué à la remise du colis.</p>
+              <p className="text-xs text-muted-foreground text-center">*Le paiement est effectué à la remise du colis.</p>
             </div>
 
             {/* International tax summary inline */}
@@ -835,7 +835,7 @@ const SendColy = () => {
                 <Globe size={16} className="text-primary shrink-0" />
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-foreground">Taxes douanières estimées : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p>
-                  <p className="text-[10px] text-muted-foreground">Estimation IA basée RITA — appuyez pour détails</p>
+                  <p className="text-xs text-muted-foreground">Estimation IA basée RITA — appuyez pour détails</p>
                 </div>
                 <Sparkles size={12} className="text-accent shrink-0" />
               </button>
@@ -916,7 +916,7 @@ const SendColy = () => {
                 <Globe size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
                 <div className="flex-1">
                   <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">Taxes douane estimées : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p>
-                  <p className="text-[10px] text-amber-600/70 dark:text-amber-400/70">Voir le détail</p>
+                  <p className="text-xs text-amber-600/70 dark:text-amber-400/70">Voir le détail</p>
                 </div>
               </button>
             )}
@@ -960,7 +960,7 @@ const SendColy = () => {
                 <div className={`w-full h-1.5 rounded-full transition-all ${
                   i + 1 <= step ? "bg-primary-foreground" : "bg-primary-foreground/20"
                 }`} />
-                <span className={`text-[10px] transition-colors ${
+                <span className={`text-xs transition-colors ${
                   i + 1 === step ? "text-primary-foreground font-semibold" : "text-primary-foreground/50"
                 }`}>{title}</span>
               </div>
@@ -1014,11 +1014,11 @@ const SummaryRow = ({ icon: Icon, label, value, detail, onEdit, badge }: {
     <div className="flex items-start gap-3">
       <Icon size={16} className="text-primary mt-0.5" />
       <div>
-        <p className="text-[11px] text-muted-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-foreground">{value}</p>
           {badge === "international" && (
-            <span className="inline-flex items-center gap-0.5 bg-primary/10 text-primary text-[9px] font-semibold px-1.5 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-0.5 bg-primary/10 text-primary text-xs font-semibold px-1.5 py-0.5 rounded-full">
               <Globe size={8} /> International
             </span>
           )}

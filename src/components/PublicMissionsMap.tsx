@@ -237,7 +237,7 @@ const PublicMissionsMap = () => {
               {f.value === "needit" && <ShoppingBag size={10} />}
               {f.value === "all" && <Filter size={10} />}
               {f.label}
-              <span className={`text-[10px] ml-0.5 ${filterType === f.value ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>
+              <span className={`text-xs ml-0.5 ${filterType === f.value ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>
                 ({f.count})
               </span>
             </button>
@@ -305,7 +305,7 @@ const PublicMissionsMap = () => {
       )}
 
       {/* Legend */}
-      <div className="flex items-center gap-4 px-3 py-2 bg-card border-t border-border text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-4 px-3 py-2 bg-card border-t border-border text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-3 h-3 rounded-full bg-primary" />
           <Package size={10} /> Colis ({colisMissions.length})
@@ -314,7 +314,7 @@ const PublicMissionsMap = () => {
           <span className="inline-block w-3 h-3 rounded-full" style={{ background: "hsl(280,70%,55%)" }} />
           <ShoppingBag size={10} /> NeedIt ({needitMissions.length})
         </span>
-        <span className="ml-auto text-[10px] font-medium">
+        <span className="ml-auto text-xs font-medium">
           {filteredMissions.length} mission{filteredMissions.length > 1 ? "s" : ""}
           {searchQuery && ` pour "${searchQuery}"`}
         </span>

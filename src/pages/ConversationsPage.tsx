@@ -141,7 +141,7 @@ const ConversationsPage = () => {
                       <p className={`text-sm font-semibold truncate ${c.unread_count > 0 ? "text-foreground" : "text-foreground"}`}>
                         {c.other_name}
                       </p>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{formatTime(c.last_message_at)}</span>
+                      <span className="text-xs text-muted-foreground shrink-0">{formatTime(c.last_message_at)}</span>
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{c.shipment_route}</p>
                     <p className={`text-xs truncate mt-0.5 ${c.unread_count > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}>

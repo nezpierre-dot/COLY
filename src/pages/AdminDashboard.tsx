@@ -68,14 +68,14 @@ const StatCard = ({ icon: Icon, label, value, trend, color = "primary" }: {
         <Icon size={18} className={`text-${color}`} />
       </div>
       {trend !== undefined && (
-        <span className={`text-[11px] font-semibold flex items-center gap-0.5 ${trend >= 0 ? "text-green-500" : "text-red-500"}`}>
+        <span className={`text-xs font-semibold flex items-center gap-0.5 ${trend >= 0 ? "text-green-500" : "text-red-500"}`}>
           {trend >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
           {Math.abs(trend)}%
         </span>
       )}
     </div>
     <p className="text-2xl font-bold text-foreground">{value}</p>
-    <p className="text-[11px] text-muted-foreground font-medium">{label}</p>
+    <p className="text-xs text-muted-foreground font-medium">{label}</p>
   </div>
 );
 
@@ -90,7 +90,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   };
   const c = config[status] || { bg: "bg-muted", text: "text-muted-foreground", label: status };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${c.bg} ${c.text}`}>
+    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${c.bg} ${c.text}`}>
       {c.label}
     </span>
   );
@@ -289,7 +289,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="flex justify-center gap-4 mt-1">
                   {roleDistribution.map((d, i) => (
-                    <span key={d.name} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <span key={d.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: COLORS[i] }} />
                       {d.name} ({d.value})
                     </span>
@@ -312,7 +312,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="flex justify-center gap-4 mt-1">
                   {kycDistribution.map((d, i) => (
-                    <span key={d.name} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <span key={d.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: i === 0 ? "hsl(var(--accent))" : "hsl(var(--muted-foreground))" }} />
                       {d.name} ({d.value})
                     </span>
@@ -331,7 +331,7 @@ const AdminDashboard = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b border-border text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    <tr className="border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       <th className="px-4 py-2.5">Réf.</th>
                       <th className="px-4 py-2.5">Trajet</th>
                       <th className="px-4 py-2.5">Taille</th>
@@ -350,11 +350,11 @@ const AdminDashboard = () => {
                           {s.departure_city || "—"} → {s.arrival_city}
                         </td>
                         <td className="px-4 py-2.5">
-                          <span className="text-[10px] font-bold bg-muted px-1.5 py-0.5 rounded">{s.size}</span>
+                          <span className="text-xs font-bold bg-muted px-1.5 py-0.5 rounded">{s.size}</span>
                         </td>
                         <td className="px-4 py-2.5 text-xs font-medium text-foreground">{s.tarif}</td>
                         <td className="px-4 py-2.5"><StatusBadge status={s.status} /></td>
-                        <td className="px-4 py-2.5 text-[11px] text-muted-foreground">{formatDateTime(s.created_at)}</td>
+                        <td className="px-4 py-2.5 text-xs text-muted-foreground">{formatDateTime(s.created_at)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -372,7 +372,7 @@ const AdminDashboard = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b border-border text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    <tr className="border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       <th className="px-4 py-2.5">Réf.</th>
                       <th className="px-4 py-2.5">Nom</th>
                       <th className="px-4 py-2.5">Rôle</th>
@@ -388,7 +388,7 @@ const AdminDashboard = () => {
                         <td className="px-4 py-2.5 text-xs font-mono font-medium text-foreground">{u.user_ref}</td>
                         <td className="px-4 py-2.5 text-xs text-foreground">{u.full_name || "—"}</td>
                         <td className="px-4 py-2.5">
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                             u.role === "voyageur" ? "bg-secondary/10 text-secondary" :
                             u.role === "admin" ? "bg-primary/10 text-primary" :
                             "bg-muted text-muted-foreground"
@@ -397,7 +397,7 @@ const AdminDashboard = () => {
                           </span>
                         </td>
                         <td className="px-4 py-2.5"><StatusBadge status={u.kyc_status} /></td>
-                        <td className="px-4 py-2.5 text-[11px] text-muted-foreground">{formatDateTime(u.created_at)}</td>
+                        <td className="px-4 py-2.5 text-xs text-muted-foreground">{formatDateTime(u.created_at)}</td>
                       </tr>
                     ))}
                   </tbody>

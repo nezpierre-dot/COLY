@@ -142,7 +142,7 @@ const ShipmentTracking = () => {
               <p className="text-xs text-muted-foreground">COLY-{shipment.id.slice(0, 8).toUpperCase()}</p>
             </div>
             {isDelivered && (
-              <span className="text-[10px] font-bold bg-green-500/15 text-green-700 px-2 py-1 rounded-full flex items-center gap-1">
+              <span className="text-xs font-bold bg-green-500/15 text-green-700 px-2 py-1 rounded-full flex items-center gap-1">
                 <CheckCircle size={10} /> Livré
               </span>
             )}
@@ -187,7 +187,7 @@ const ShipmentTracking = () => {
                           <div className={`h-0.5 flex-1 ${i < currentStepIndex && shipment.status !== "cancelled" ? "bg-primary-foreground" : "bg-primary-foreground/20"}`} />
                         )}
                       </div>
-                      <span className={`text-[8px] font-semibold mt-1.5 text-center leading-tight ${isCompleted ? "text-primary-foreground" : "text-primary-foreground/35"}`}>
+                      <span className={`text-[9px] font-semibold mt-1.5 text-center leading-tight ${isCompleted ? "text-primary-foreground" : "text-primary-foreground/35"}`}>
                         {statusLabels[step]}
                       </span>
                     </div>
@@ -204,21 +204,21 @@ const ShipmentTracking = () => {
               <div className="flex items-center gap-2">
                 <MapPin size={14} className="text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Destination</p>
+                  <p className="text-xs text-muted-foreground">Destination</p>
                   <p className="text-sm font-medium text-foreground">{shipment.arrival_city}, {shipment.arrival_country}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar size={14} className="text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Départ</p>
+                  <p className="text-xs text-muted-foreground">Départ</p>
                   <p className="text-sm font-medium text-foreground">{formatDate(shipment.departure_date)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Package size={14} className="text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-[10px] text-muted-foreground">Taille</p>
+                  <p className="text-xs text-muted-foreground">Taille</p>
                   <p className="text-sm font-medium text-foreground">{shipment.size}</p>
                 </div>
               </div>
@@ -226,7 +226,7 @@ const ShipmentTracking = () => {
                 <div className="flex items-center gap-2">
                   <Shield size={14} className="text-primary shrink-0" />
                   <div>
-                    <p className="text-[10px] text-muted-foreground">Assurance</p>
+                    <p className="text-xs text-muted-foreground">Assurance</p>
                     <p className="text-sm font-medium text-primary">Assuré</p>
                   </div>
                 </div>
@@ -235,7 +235,7 @@ const ShipmentTracking = () => {
             {/* Voyageur rating */}
             {voyageurRating && voyageurRating.total_ratings > 0 && (
               <div className="pt-2 border-t border-border">
-                <p className="text-[10px] text-muted-foreground mb-1">Note du voyageur</p>
+                <p className="text-xs text-muted-foreground mb-1">Note du voyageur</p>
                 <StarRating score={Number(voyageurRating.average_score)} total={Number(voyageurRating.total_ratings)} />
               </div>
             )}
@@ -261,7 +261,7 @@ const ShipmentTracking = () => {
                 <h3 className="text-sm font-bold text-foreground">Preuve de livraison</h3>
               </div>
               <img src={deliveryProof.photo_url} alt="Preuve de livraison" className="w-full rounded-xl object-cover max-h-48" />
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
                 {deliveryProof.created_at && (
                   <span>📅 {new Date(deliveryProof.created_at).toLocaleString("fr-FR")}</span>
                 )}

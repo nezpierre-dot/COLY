@@ -246,7 +246,7 @@ const MyAccount = () => {
                   ))}
                 </div>
                 <span className="text-white/80 text-xs font-semibold">{rating.average_score}</span>
-                <span className="text-white/40 text-[10px]">({rating.total_ratings} avis)</span>
+                <span className="text-white/40 text-xs">({rating.total_ratings} avis)</span>
               </div>
             ) : (
               <p className="text-white/40 text-xs mt-2">Pas encore noté</p>
@@ -279,7 +279,7 @@ const MyAccount = () => {
             >
               <s.icon size={16} className="text-primary mx-auto mb-1" />
               <p className="text-base font-bold text-foreground">{s.value}</p>
-              <p className="text-[10px] text-muted-foreground font-medium">{s.label}</p>
+              <p className="text-xs text-muted-foreground font-medium">{s.label}</p>
             </motion.div>
           ))}
         </div>
@@ -340,7 +340,7 @@ const MyAccount = () => {
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Décrivez-vous en quelques mots…"
                   />
-                  <p className="text-[10px] text-muted-foreground text-right mt-0.5">{bio.length}/120</p>
+                  <p className="text-xs text-muted-foreground text-right mt-0.5">{bio.length}/120</p>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Téléphone</label>

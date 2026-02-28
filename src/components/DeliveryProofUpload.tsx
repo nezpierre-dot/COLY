@@ -154,7 +154,7 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
       </button>
 
       {/* Timestamp info */}
-      <p className="text-[11px] text-muted-foreground text-center">
+      <p className="text-xs text-muted-foreground text-center">
         📅 Horodatage automatique : {new Date().toLocaleString("fr-FR")}
       </p>
 

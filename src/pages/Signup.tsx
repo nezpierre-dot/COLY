@@ -122,7 +122,7 @@ const Signup = () => {
               )}
               {geoLoading ? "Détection en cours..." : "Utiliser ma position GPS"}
             </button>
-            <p className="text-[11px] text-muted-foreground text-center mb-4">
+            <p className="text-xs text-muted-foreground text-center mb-4">
               📍 Votre position est utilisée uniquement pour pré-remplir l'adresse et n'est pas conservée.
             </p>
 

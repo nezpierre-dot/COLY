@@ -270,15 +270,15 @@ const HistoryPage = () => {
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-3 mb-6 foldable-grid" role="region" aria-label="Résumé financier">
           <div className="bg-primary/10 rounded-2xl p-4 text-center">
-            <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wide">Gains</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">Gains</p>
             <p className="text-xl font-black text-primary mt-1">+{totalGains.toFixed(0)}{getCurrencySymbol()}</p>
           </div>
           <div className="bg-destructive/10 rounded-2xl p-4 text-center">
-            <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wide">Dépenses</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">Dépenses</p>
             <p className="text-xl font-black text-destructive mt-1">-{totalExpenses.toFixed(0)}{getCurrencySymbol()}</p>
           </div>
           <div className={`rounded-2xl p-4 text-center ${netBalance >= 0 ? "bg-primary/5" : "bg-destructive/10"}`}>
-            <p className="text-[11px] text-muted-foreground uppercase font-semibold tracking-wide">Net</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">Net</p>
             <p className={`text-xl font-black mt-1 ${netBalance >= 0 ? "text-primary" : "text-destructive"}`}>
               {netBalance >= 0 ? "+" : ""}{netBalance.toFixed(0)}{getCurrencySymbol()}
             </p>
@@ -460,7 +460,7 @@ const HistoryPage = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <p className="font-semibold text-foreground text-sm">{item.type}</p>
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
                         item.category === "voyageur" ? "bg-primary/10 text-primary" :
                         item.category === "coly" ? "bg-secondary/10 text-secondary" :
                         "bg-accent/10 text-accent"

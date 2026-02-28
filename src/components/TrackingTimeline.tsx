@@ -67,7 +67,7 @@ const TrackingTimeline = ({ events }: TrackingTimelineProps) => {
                 <p className={`text-sm font-semibold ${isLast ? "text-foreground" : "text-muted-foreground"}`}>
                   {event.label}
                 </p>
-                <span className="text-[10px] text-muted-foreground shrink-0">
+                <span className="text-xs text-muted-foreground shrink-0">
                   {formatTime(event.created_at)}
                 </span>
               </div>
@@ -76,7 +76,7 @@ const TrackingTimeline = ({ events }: TrackingTimelineProps) => {
                   {event.description}
                 </p>
               )}
-              <p className="text-[10px] text-muted-foreground/60 mt-1">
+              <p className="text-xs text-muted-foreground/60 mt-1">
                 {formatDate(event.created_at)}
               </p>
             </div>

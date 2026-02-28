@@ -320,17 +320,17 @@ const VoyageurSearch = () => {
                   {/* Options badges */}
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {v.accept_needit && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-secondary/15 text-secondary flex items-center gap-1">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary/15 text-secondary flex items-center gap-1">
                         <ShoppingCart size={10} /> NeedIt
                       </span>
                     )}
                     {v.can_pickup && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
                         <Package size={10} /> Récupération
                       </span>
                     )}
                     {v.deliver_to_address && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent flex items-center gap-1">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent flex items-center gap-1">
                         <Home size={10} /> Livraison adresse
                       </span>
                     )}

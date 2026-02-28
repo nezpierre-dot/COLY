@@ -131,7 +131,7 @@ const Settings = () => {
                   }`}
                 >
                   <span className="text-base font-bold">{c.symbol}</span>
-                  <span className="text-[10px] font-medium">{c.code}</span>
+                  <span className="text-xs font-medium">{c.code}</span>
                 </button>
               ))}
             </div>
