@@ -23,15 +23,19 @@ export default function NotificationBell() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
-  const [pos, setPos] = useState({ top: 0, right: 0 });
+  const [pos, setPos] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
 
-  // Position dropdown relative to button
+  // Position dropdown relative to button – open toward whichever side has more room
   useEffect(() => {
     if (open && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const bellCenter = rect.left + rect.width / 2;
+      const openRight = bellCenter < window.innerWidth / 2;
       setPos({
         top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
+        ...(openRight
+          ? { left: Math.max(8, rect.left), right: undefined }
+          : { right: Math.max(8, window.innerWidth - rect.right), left: undefined }),
       });
     }
   }, [open]);
@@ -82,7 +86,7 @@ export default function NotificationBell() {
           <div
             ref={dropdownRef}
             className="fixed w-80 bg-popover border border-border rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-            style={{ top: pos.top, right: pos.right, zIndex: 99999 }}
+            style={{ top: pos.top, left: pos.left, right: pos.right, zIndex: 99999 }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
