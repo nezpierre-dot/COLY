@@ -181,9 +181,7 @@ const MyAccount = () => {
       <div
         className="relative overflow-hidden px-6 pt-12 pb-8"
         style={{
-          background: isVoyageur
-            ? "linear-gradient(135deg, hsl(252 40% 55%), hsl(214 80% 45%))"
-            : "linear-gradient(135deg, hsl(214 80% 45%), hsl(27 95% 50%))"
+          background: "linear-gradient(to bottom, #005BB5, #007AFF, rgba(52, 199, 89, 0.12))"
         }}
       >
         <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
@@ -220,10 +218,10 @@ const MyAccount = () => {
 
           {/* Name, bio & rating */}
           <div className="flex-1 min-w-0 pt-1">
-            <h1 className="text-xl font-bold text-white truncate">
+            <h1 className="text-xl font-bold text-white truncate text-on-gradient">
               {fullName || "Utilisateur"}
             </h1>
-            <p className="text-white/60 text-xs mt-0.5">
+            <p className="text-white/70 text-xs mt-0.5 text-on-gradient">
               {isVoyageur ? "Voyageur" : "Expéditeur"} · N°{userId.toUpperCase()}
             </p>
 

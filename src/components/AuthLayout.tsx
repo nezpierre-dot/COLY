@@ -8,7 +8,7 @@ interface AuthLayoutProps {
 
 const AuthLayout = ({ title, subtitle, children }: AuthLayoutProps) => {
   return (
-    <div className="flex min-h-screen flex-col bg-coly-blue relative overflow-hidden">
+    <div className="flex min-h-screen flex-col relative overflow-hidden" style={{ background: "linear-gradient(to bottom, #005BB5, #007AFF, rgba(52, 199, 89, 0.12))" }}>
       {/* Decorative */}
       <div className="absolute top-12 left-1/2 -translate-x-1/3 w-40 h-40 rounded-full bg-white/10" />
       <div className="absolute top-16 right-8">
@@ -19,16 +19,16 @@ const AuthLayout = ({ title, subtitle, children }: AuthLayoutProps) => {
           <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/20" />
         ))}
       </div>
-      <div className="absolute top-40 left-0 w-24 h-24 rounded-full bg-coly-blue-dark/40 -translate-x-1/2" />
+      <div className="absolute top-40 left-0 w-24 h-24 rounded-full bg-white/10 -translate-x-1/2" />
 
       {/* Header text */}
       <div className="relative z-10 px-6 pt-12 pb-6">
-        {title && <h1 className="text-3xl font-bold text-white leading-tight">{title}</h1>}
-        {subtitle && <p className="text-white/90 mt-2 text-lg">{subtitle}</p>}
+        {title && <h1 className="text-3xl font-bold text-white leading-tight text-on-gradient">{title}</h1>}
+        {subtitle && <p className="text-white/90 mt-2 text-lg text-on-gradient">{subtitle}</p>}
       </div>
 
       {/* Card */}
-      <div className="relative z-10 flex-1 bg-white rounded-t-3xl px-6 pt-8 pb-8">
+      <div className="relative z-10 flex-1 bg-background rounded-t-3xl px-6 pt-8 pb-8">
         {children}
       </div>
     </div>
