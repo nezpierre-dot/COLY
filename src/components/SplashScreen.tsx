@@ -21,7 +21,7 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
           transition={{ duration: 0.5 }}
           className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
           style={{
-            background: "linear-gradient(135deg, hsl(214 80% 45%), hsl(220 70% 35%), hsl(252 40% 45%))"
+            background: "linear-gradient(135deg, #0066CC, #00A3FF, rgba(52, 199, 89, 0.15))"
           }}
         >
           {/* Decorative circles */}
@@ -48,7 +48,7 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="text-3xl font-black text-white tracking-tight mb-2"
+            className="text-3xl font-black text-white tracking-tight mb-2 text-on-gradient"
           >
             Coly
           </motion.h1>
@@ -58,7 +58,7 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
             initial={{ y: 15, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="text-white/60 text-sm font-medium text-center max-w-[260px] leading-relaxed"
+            className="text-white/80 text-sm font-medium text-center max-w-[260px] leading-relaxed text-on-gradient"
           >
             Partagez vos trajets, économisez &amp; protégez la planète 🌍
           </motion.p>
