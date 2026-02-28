@@ -37,6 +37,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminRoute from "./components/AdminRoute";
 import VoyageurSearch from "./pages/VoyageurSearch";
 import InstallPage from "./pages/InstallPage";
+import FaqPage from "./pages/FaqPage";
+import AidePage from "./pages/AidePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -88,6 +90,8 @@ const App = () => {
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               <Route path="/voyageur-search" element={<ProtectedRoute><VoyageurSearch /></ProtectedRoute>} />
               <Route path="/install" element={<ProtectedRoute><InstallPage /></ProtectedRoute>} />
+              <Route path="/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
+              <Route path="/aide" element={<ProtectedRoute><AidePage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
               </FavoritesProvider>
