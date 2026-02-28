@@ -461,7 +461,7 @@ const Dashboard = () => {
           transition={{ duration: 0.5 }}
           className="relative overflow-hidden px-5 pt-12 pb-6"
           style={{
-            background: "linear-gradient(135deg, #0066CC, #00A3FF, rgba(52, 199, 89, 0.15))"
+            background: "linear-gradient(to bottom, #005BB5, #007AFF, rgba(52, 199, 89, 0.12))"
           }}
         >
           {/* Decorative circles */}

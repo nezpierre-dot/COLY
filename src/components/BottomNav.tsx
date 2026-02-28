@@ -36,7 +36,7 @@ const BottomNav = () => {
                 aria-label="Menu principal"
                 className="relative -mt-7 group"
               >
-                <div className="w-[56px] h-[56px] rounded-2xl shadow-[0_4px_24px_rgba(0,102,204,0.4)] flex items-center justify-center transition-transform active:scale-95" style={{ background: "linear-gradient(135deg, #0066CC, #00A3FF)" }}>
+                <div className="w-[56px] h-[56px] rounded-2xl shadow-[0_4px_24px_rgba(0,91,181,0.4)] flex items-center justify-center transition-transform active:scale-95" style={{ background: "linear-gradient(to bottom, #005BB5, #007AFF)" }}>
                   <Icon size={28} className="text-primary-foreground" aria-hidden="true" />
                 </div>
               </button>
