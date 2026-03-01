@@ -265,7 +265,7 @@ const Signup = () => {
             <button
               onClick={handleNext}
               disabled={loading}
-              className="flex items-center gap-2 px-8 py-3 rounded-full bg-coly-orange text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
+              className="flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-primary-foreground text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
             >
               {loading ? "..." : step === 3 ? "Finaliser" : "Continuer"} <ArrowRight size={20} />
             </button>
