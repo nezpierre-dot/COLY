@@ -11,6 +11,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
 
   const inputClass = "w-full border-b border-muted-foreground/30 py-3 text-foreground placeholder:text-muted-foreground focus:border-coly-blue focus:outline-none bg-transparent";
 
@@ -28,6 +30,41 @@ const Login = () => {
       navigate("/dashboard");
     }
   };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      toast.error("Veuillez entrer votre adresse email");
+      return;
+    }
+    setResetLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setResetLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Un email de réinitialisation vous a été envoyé !");
+      setResetMode(false);
+    }
+  };
+
+  if (resetMode) {
+    return (
+      <AuthLayout title="Mot de passe oublié" subtitle="Entrez votre email pour recevoir un lien de réinitialisation.">
+        <div className="flex flex-col gap-4 flex-1">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Réinitialisation</h2>
+          <input className={inputClass} placeholder="johndoe@mail.com" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <div className="flex items-center justify-between pt-4">
+            <button onClick={() => setResetMode(false)} className="text-lg text-muted-foreground hover:text-foreground transition-colors">Retour</button>
+            <button onClick={handleResetPassword} disabled={resetLoading} className="flex items-center gap-2 px-8 py-3 rounded-full bg-coly-orange text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50">
+              {resetLoading ? "..." : "Envoyer"} <ArrowRight size={20} />
+            </button>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout title="Content de vous revoir !" subtitle="Connectez-vous pour continuer vos échanges en toute simplicité.">
@@ -47,7 +84,7 @@ const Login = () => {
           </button>
         </div>
         <div className="text-center mt-2">
-          <button className="text-coly-purple underline text-sm hover:opacity-80">Mot de passe oublié?</button>
+          <button onClick={() => setResetMode(true)} className="text-coly-purple underline text-sm hover:opacity-80">Mot de passe oublié?</button>
         </div>
       </div>
     </AuthLayout>
