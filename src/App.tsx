@@ -39,6 +39,7 @@ import VoyageurSearch from "./pages/VoyageurSearch";
 import InstallPage from "./pages/InstallPage";
 import FaqPage from "./pages/FaqPage";
 import AidePage from "./pages/AidePage";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => {
               <Route path="/" element={<Welcome />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/send-coly" element={<ProtectedRoute><SendColy /></ProtectedRoute>} />
