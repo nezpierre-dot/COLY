@@ -29,6 +29,7 @@ const Signup = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
+  const [triedNext, setTriedNext] = useState(false);
   const [form, setForm] = useState<FormData>({
     nom: "", prenom: "", email: "", telephone: "",
     pays: "", ville: "", codePostal: "", region: "", adresse: "",
@@ -38,7 +39,10 @@ const Signup = () => {
   const update = (field: keyof FormData, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const inputClass = "w-full border-b border-muted-foreground/30 py-3 text-foreground placeholder:text-muted-foreground focus:border-coly-blue focus:outline-none bg-transparent";
+  const inputClass = (value?: string) => {
+    const isEmpty = triedNext && step === 1 && value !== undefined && !value.trim();
+    return `w-full border-b py-3 text-foreground placeholder:text-muted-foreground focus:outline-none bg-transparent transition-colors ${isEmpty ? "border-destructive placeholder:text-destructive/60" : "border-muted-foreground/30 focus:border-coly-blue"}`;
+  };
 
   const totalSteps = 3;
 
@@ -97,10 +101,10 @@ const Signup = () => {
         return (
           <>
             <h2 className="text-2xl font-bold text-foreground mb-6">Inscrivez-vous</h2>
-            <input className={inputClass} placeholder="Nom" value={form.nom} onChange={(e) => update("nom", e.target.value)} />
-            <input className={inputClass} placeholder="Prénom" value={form.prenom} onChange={(e) => update("prenom", e.target.value)} />
-            <input className={inputClass} placeholder="Adresse Email" type="email" value={form.email} onChange={(e) => update("email", e.target.value)} />
-            <input className={inputClass} placeholder="Numéro de téléphone" type="tel" value={form.telephone} onChange={(e) => update("telephone", e.target.value)} />
+            <input className={inputClass(form.nom)} placeholder="Nom *" value={form.nom} onChange={(e) => update("nom", e.target.value)} />
+            <input className={inputClass(form.prenom)} placeholder="Prénom *" value={form.prenom} onChange={(e) => update("prenom", e.target.value)} />
+            <input className={inputClass(form.email)} placeholder="Adresse Email *" type="email" value={form.email} onChange={(e) => update("email", e.target.value)} />
+            <input className={inputClass(form.telephone)} placeholder="Numéro de téléphone *" type="tel" value={form.telephone} onChange={(e) => update("telephone", e.target.value)} />
           </>
         );
       case 2:
@@ -126,13 +130,13 @@ const Signup = () => {
               📍 Votre position est utilisée uniquement pour pré-remplir l'adresse et n'est pas conservée.
             </p>
 
-            <input className={inputClass} placeholder="Pays de résidence" value={form.pays} onChange={(e) => update("pays", e.target.value)} />
+            <input className={inputClass()} placeholder="Pays de résidence" value={form.pays} onChange={(e) => update("pays", e.target.value)} />
             <div className="flex gap-4">
-              <input className={`${inputClass} flex-1`} placeholder="Ville" value={form.ville} onChange={(e) => update("ville", e.target.value)} />
-              <input className={`${inputClass} flex-1`} placeholder="Code postal" value={form.codePostal} onChange={(e) => update("codePostal", e.target.value)} />
+              <input className={`${inputClass()} flex-1`} placeholder="Ville" value={form.ville} onChange={(e) => update("ville", e.target.value)} />
+              <input className={`${inputClass()} flex-1`} placeholder="Code postal" value={form.codePostal} onChange={(e) => update("codePostal", e.target.value)} />
             </div>
-            <input className={inputClass} placeholder="Région/Département" value={form.region} onChange={(e) => update("region", e.target.value)} />
-            <input className={inputClass} placeholder="Adresse postale" value={form.adresse} onChange={(e) => update("adresse", e.target.value)} />
+            <input className={inputClass()} placeholder="Région/Département" value={form.region} onChange={(e) => update("region", e.target.value)} />
+            <input className={inputClass()} placeholder="Adresse postale" value={form.adresse} onChange={(e) => update("adresse", e.target.value)} />
           </>
         );
       case 3:
@@ -140,18 +144,18 @@ const Signup = () => {
           <>
             <h2 className="text-2xl font-bold text-foreground mb-6">Protégez votre compte</h2>
             <div className="relative">
-              <input className={inputClass} placeholder="Mot de passe" type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => update("password", e.target.value)} />
+              <input className={inputClass()} placeholder="Mot de passe" type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => update("password", e.target.value)} />
               <button type="button" className="absolute right-0 top-3 text-coly-purple" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             <div className="relative">
-              <input className={inputClass} placeholder="Confirmez votre mot de passe" type={showConfirm ? "text" : "password"} value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} />
+              <input className={inputClass()} placeholder="Confirmez votre mot de passe" type={showConfirm ? "text" : "password"} value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} />
               <button type="button" className="absolute right-0 top-3 text-coly-purple" onClick={() => setShowConfirm(!showConfirm)}>
                 {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            <input className={inputClass} placeholder="Adresse mail de récupération (facultatif)" type="email" value={form.recoveryEmail} onChange={(e) => update("recoveryEmail", e.target.value)} />
+            <input className={inputClass()} placeholder="Adresse mail de récupération (facultatif)" type="email" value={form.recoveryEmail} onChange={(e) => update("recoveryEmail", e.target.value)} />
             <div className="flex items-start gap-3 mt-4">
               <Checkbox checked={form.acceptTerms} onCheckedChange={(v) => update("acceptTerms", !!v)} className="mt-1" />
               <span className="text-sm text-foreground">
@@ -169,9 +173,11 @@ const Signup = () => {
   const handleNext = async () => {
     if (step === 1) {
       if (!form.nom.trim() || !form.prenom.trim() || !form.email.trim() || !form.telephone.trim()) {
+        setTriedNext(true);
         toast.error("Veuillez remplir tous les champs obligatoires");
         return;
       }
+      setTriedNext(false);
       setStep(2);
       return;
     }
