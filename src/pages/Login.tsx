@@ -79,7 +79,7 @@ const Login = () => {
         </div>
         <div className="flex items-center justify-between pt-2">
           <button onClick={() => navigate("/")} className="text-lg text-muted-foreground hover:text-foreground transition-colors">Retour</button>
-          <button onClick={handleLogin} disabled={loading} className="flex items-center gap-2 px-8 py-3 rounded-full bg-coly-orange text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50">
+          <button onClick={handleLogin} disabled={loading} className="flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-primary-foreground text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50">
             {loading ? "..." : "Connexion"} <ArrowRight size={20} />
           </button>
         </div>
