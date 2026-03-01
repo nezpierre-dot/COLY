@@ -167,6 +167,14 @@ const Signup = () => {
   };
 
   const handleNext = async () => {
+    if (step === 1) {
+      if (!form.nom.trim() || !form.prenom.trim() || !form.email.trim() || !form.telephone.trim()) {
+        toast.error("Veuillez remplir tous les champs obligatoires");
+        return;
+      }
+      setStep(2);
+      return;
+    }
     if (step < 3) {
       setStep(step + 1);
       return;
