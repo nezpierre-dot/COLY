@@ -13,6 +13,7 @@ import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell
 } from "recharts";
+import { localizeCity } from "@/lib/geoLocalization";
 
 // --- Types ---
 interface AdminStats {
@@ -347,7 +348,7 @@ const AdminDashboard = () => {
                       <tr key={s.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                         <td className="px-4 py-2.5 text-xs font-mono font-medium text-foreground">{s.ref_number}</td>
                         <td className="px-4 py-2.5 text-xs text-foreground">
-                          {s.departure_city || "—"} → {s.arrival_city}
+                          {s.departure_city ? localizeCity(s.departure_city) : "—"} → {localizeCity(s.arrival_city)}
                         </td>
                         <td className="px-4 py-2.5">
                           <span className="text-xs font-bold bg-muted px-1.5 py-0.5 rounded">{s.size}</span>

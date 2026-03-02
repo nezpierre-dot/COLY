@@ -10,6 +10,7 @@ import BottomNav from "@/components/BottomNav";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useCurrencyPreference, AVAILABLE_CURRENCIES } from "@/hooks/useCurrencyPreference";
+import { useLanguagePreference, AVAILABLE_LANGUAGES } from "@/hooks/useLanguagePreference";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Settings = () => {
   const { permission, loading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
   const isNotifGranted = permission === "granted";
   const { currency: preferredCurrency, setCurrency } = useCurrencyPreference();
+  const { language, setLanguage, currentLabel } = useLanguagePreference();
 
   const [notifications, setNotifications] = useState(true);
   const [emailNotifs, setEmailNotifs] = useState(true);
@@ -108,9 +110,31 @@ const Settings = () => {
           <Row icon={User} label="Modifier le profil">
             <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
           </Row>
-          <Row icon={Globe} label="Langue">
-            <span className="text-sm text-muted-foreground">Français</span>
-          </Row>
+          <div className="px-4 py-3.5">
+            <div className="flex items-center gap-3 mb-3">
+              <Globe size={18} className="text-muted-foreground" />
+              <span className="text-foreground text-sm">Langue</span>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {AVAILABLE_LANGUAGES.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => {
+                    setLanguage(l.code);
+                    toast.success(`Langue : ${l.label}`);
+                  }}
+                  className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all text-center ${
+                    language === l.code
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/30"
+                  }`}
+                >
+                  <span className="text-base">{l.flag}</span>
+                  <span className="text-[10px] font-medium">{l.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="px-4 py-3.5">
             <div className="flex items-center gap-3 mb-3">
               <DollarSign size={18} className="text-muted-foreground" />

@@ -10,6 +10,7 @@ import DeliveryProofUpload from "@/components/DeliveryProofUpload";
 import StarRating from "@/components/StarRating";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
 
 const statusSteps = ["pending", "accepted", "picked_up", "in_transit", "delivered"];
 
@@ -160,7 +161,7 @@ const ShipmentTracking = () => {
               <div className="flex items-center gap-2 mb-3">
                 <Send size={18} className="text-primary-foreground" />
                 <span className="text-sm font-semibold text-primary-foreground/90">
-                  {shipment.departure_city || "—"} → {shipment.arrival_city}
+                  {shipment.departure_city ? localizeCity(shipment.departure_city) : "—"} → {localizeCity(shipment.arrival_city)}
                 </span>
               </div>
 
@@ -205,7 +206,7 @@ const ShipmentTracking = () => {
                 <MapPin size={14} className="text-muted-foreground shrink-0" />
                 <div>
                   <p className="text-xs text-muted-foreground">Destination</p>
-                  <p className="text-sm font-medium text-foreground">{shipment.arrival_city}, {shipment.arrival_country}</p>
+                  <p className="text-sm font-medium text-foreground">{localizeCity(shipment.arrival_city)}, {localizeCountry(shipment.arrival_country)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">

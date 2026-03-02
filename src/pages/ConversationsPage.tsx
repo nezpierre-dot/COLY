@@ -8,6 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import PullToRefresh from "@/components/PullToRefresh";
+import { localizeCity } from "@/lib/geoLocalization";
 
 interface Conversation {
   id: string;
@@ -60,7 +61,7 @@ const ConversationsPage = () => {
           ...c,
           last_message: msgRes.data?.[0]?.content || "",
           other_name: otherRef,
-          shipment_route: shipRes.data ? `${shipRes.data.departure_city || "—"} → ${shipRes.data.arrival_city}` : "",
+          shipment_route: shipRes.data ? `${shipRes.data.departure_city ? localizeCity(shipRes.data.departure_city) : "—"} → ${localizeCity(shipRes.data.arrival_city)}` : "",
           unread_count: count || 0,
         };
       })

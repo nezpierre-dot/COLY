@@ -20,6 +20,7 @@ import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PublicMissionsMap from "@/components/PublicMissionsMap";
 import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
+import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -610,7 +611,7 @@ const Dashboard = () => {
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-base">{getTransportIcon(v.transport_method)}</span>
                               <h3 className="font-bold text-base text-primary-foreground truncate">
-                                {v.departure_city} → {v.arrival_city}
+                                {localizeCity(v.departure_city)} → {localizeCity(v.arrival_city)}
                               </h3>
                             </div>
                             <div className="flex items-center gap-3 text-primary-foreground/80">
@@ -691,7 +692,7 @@ const Dashboard = () => {
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-xs font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">MATCH</span>
                             <p className="font-semibold text-foreground text-sm truncate">
-                              {s.departure_city || "—"} → {s.arrival_city}, {s.arrival_country}
+                              {s.departure_city ? localizeCity(s.departure_city) : "—"} → {localizeCity(s.arrival_city)}, {localizeCountry(s.arrival_country)}
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
@@ -724,8 +725,8 @@ const Dashboard = () => {
                         <div className="flex items-center justify-between">
                           <div className="min-w-0">
                              <p className="font-medium text-foreground text-sm truncate">
-                               {s.departure_city || "—"} → {s.arrival_city}, {s.arrival_country}
-                             </p>
+                               {s.departure_city ? localizeCity(s.departure_city) : "—"} → {localizeCity(s.arrival_city)}, {localizeCountry(s.arrival_country)}
+                              </p>
                             <p className="text-xs text-muted-foreground mt-0.5">
                               {formatDate(s.departure_date)} · Taille {s.size}
                             </p>
@@ -762,7 +763,7 @@ const Dashboard = () => {
                   <div className="bg-card rounded-xl border border-border p-3 shadow-sm">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-bold text-foreground text-sm">{currentVoyage.departure_city} → {currentVoyage.arrival_city}</p>
+                        <p className="font-bold text-foreground text-sm">{localizeCity(currentVoyage.departure_city)} → {localizeCity(currentVoyage.arrival_city)}</p>
                         <p className="text-xs text-muted-foreground">{formatDate(currentVoyage.departure_date)} {currentVoyage.departure_time ? `à ${currentVoyage.departure_time}` : ""}</p>
                       </div>
                       <span className="text-base">{getTransportIcon(currentVoyage.transport_method)}</span>
@@ -779,7 +780,7 @@ const Dashboard = () => {
                     {voyages.map((v) => (
                       <button key={v.id} onClick={() => setSelectedVoyage(v.id)}
                         className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${selectedVoyage === v.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-                        {v.departure_city} → {v.arrival_city}
+                        {localizeCity(v.departure_city)} → {localizeCity(v.arrival_city)}
                       </button>
                     ))}
                   </div>
@@ -824,7 +825,7 @@ const Dashboard = () => {
                               </p>
                             </div>
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                              <MapPin size={10} /> {m.country}{m.city ? `, ${m.city}` : ""}
+                              <MapPin size={10} /> {localizeCountry(m.country)}{m.city ? `, ${localizeCity(m.city)}` : ""}
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
@@ -852,7 +853,7 @@ const Dashboard = () => {
                               {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Produit"}
                             </p>
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                              <MapPin size={10} /> {m.country}{m.city ? `, ${m.city}` : ""}
+                              <MapPin size={10} /> {localizeCountry(m.country)}{m.city ? `, ${localizeCity(m.city)}` : ""}
                             </p>
                           </div>
                           {m.prix_max && <p className="text-sm font-bold text-foreground shrink-0">{m.prix_max} {getCurrencyForCountry(m.country).symbol}</p>}
@@ -993,7 +994,7 @@ const Dashboard = () => {
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-base">📦</span>
                             <h3 className="font-bold text-base text-primary-foreground truncate">
-                              {s.departure_city || "—"} → {s.arrival_city}
+                              {s.departure_city ? localizeCity(s.departure_city) : "—"} → {localizeCity(s.arrival_city)}
                             </h3>
                           </div>
                           <div className="flex items-center gap-3 text-primary-foreground/80">
@@ -1091,7 +1092,7 @@ const Dashboard = () => {
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
-                          <MapPin size={10} /> {m.country}{m.city ? `, ${m.city}` : ""}
+                          <MapPin size={10} /> {localizeCountry(m.country)}{m.city ? `, ${localizeCity(m.city)}` : ""}
                         </span>
                         {m.prix_max && <span className="font-medium text-foreground">{m.prix_max}</span>}
                       </div>
@@ -1181,7 +1182,7 @@ const Dashboard = () => {
                     {[...demandeurShipments.slice(0, 3).map(s => ({
                       id: s.id,
                       type: "coly" as const,
-                      title: `${s.departure_city || "—"} → ${s.arrival_city}`,
+                      title: `${s.departure_city ? localizeCity(s.departure_city) : "—"} → ${localizeCity(s.arrival_city)}`,
                       subtitle: `Taille ${s.size} · ${s.tarif}`,
                       status: s.status,
                       date: s.created_at,
@@ -1190,7 +1191,7 @@ const Dashboard = () => {
                       id: m.id,
                       type: "needit" as const,
                       title: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission",
-                      subtitle: `${m.country}${m.city ? `, ${m.city}` : ""}`,
+                      subtitle: `${localizeCountry(m.country)}${m.city ? `, ${localizeCity(m.city)}` : ""}`,
                       status: m.status,
                       date: m.created_at,
                     }))]

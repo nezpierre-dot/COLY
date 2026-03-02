@@ -10,6 +10,7 @@ import EmptyState from "@/components/EmptyState";
 import StarRating from "@/components/StarRating";
 import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight, hapticMedium } from "@/lib/haptics";
+import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
 
 interface Voyage {
   id: string;
@@ -305,11 +306,11 @@ const VoyageurSearch = () => {
                       <div className="flex items-center gap-2 mb-1">
                         {transportIcon(v.transport_method)}
                         <h3 className="font-bold text-foreground text-sm truncate">
-                          {v.departure_city} → {v.arrival_city}
+                          {localizeCity(v.departure_city)} → {localizeCity(v.arrival_city)}
                         </h3>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {v.departure_country} → {v.arrival_country}
+                        {localizeCountry(v.departure_country)} → {localizeCountry(v.arrival_country)}
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 ml-2">
