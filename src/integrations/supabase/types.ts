@@ -180,6 +180,7 @@ export type Database = {
       }
       needit_missions: {
         Row: {
+          auto_accept: boolean
           category_path: string[]
           city: string | null
           country: string
@@ -201,6 +202,7 @@ export type Database = {
           voyageur_id: string | null
         }
         Insert: {
+          auto_accept?: boolean
           category_path?: string[]
           city?: string | null
           country: string
@@ -222,6 +224,7 @@ export type Database = {
           voyageur_id?: string | null
         }
         Update: {
+          auto_accept?: boolean
           category_path?: string[]
           city?: string | null
           country?: string

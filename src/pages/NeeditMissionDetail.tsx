@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Package, Clock, Pencil, X, Check, Loader2, AlertTriangle, Scale, Maximize2, DollarSign, Bell } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Package, Clock, Pencil, X, Check, Loader2, AlertTriangle, Scale, Maximize2, DollarSign, Bell, Info, ShieldCheck } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import LiveLocationSharing from "@/components/LiveLocationSharing";
 import PageTransition from "@/components/PageTransition";
@@ -42,6 +44,7 @@ const NeeditMissionDetail = () => {
   const [city, setCity] = useState("");
   const [timing, setTiming] = useState("");
   const [prixMax, setPrixMax] = useState("");
+  const [autoAccept, setAutoAccept] = useState(false);
 
   const loadMission = useCallback(async () => {
     if (!id) return;
@@ -52,6 +55,7 @@ const NeeditMissionDetail = () => {
       setCity(data.city || "");
       setTiming(data.timing || "asap");
       setPrixMax(data.prix_max || "");
+      setAutoAccept((data as any).auto_accept ?? false);
     }
     setLoading(false);
   }, [id]);
@@ -70,7 +74,8 @@ const NeeditMissionDetail = () => {
       city: city || null,
       timing,
       prix_max: prixMax || null,
-    }).eq("id", id);
+      auto_accept: autoAccept,
+    } as any).eq("id", id);
     setSaving(false);
     if (error) {
       toast.error(t("common.error"));
@@ -175,7 +180,26 @@ const NeeditMissionDetail = () => {
                 <InfoRow icon={<Clock size={14} />} label={t("missions.timing")} value={mission.timing === "asap" ? t("missions.asap") : t("missions.scheduled")} />
                 {mission.poids && <InfoRow icon={<Scale size={14} />} label={t("sendColy.weight")} value={mission.poids} />}
                 {mission.dimension && <InfoRow icon={<Maximize2 size={14} />} label={t("sendColy.dimension")} value={mission.dimension} />}
-                {mission.prix_max && <InfoRow icon={<DollarSign size={14} />} label={t("missions.priceMax")} value={mission.prix_max} />}
+                {mission.prix_max && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-muted-foreground"><DollarSign size={14} /></span>
+                    <span className="text-xs text-muted-foreground w-28 shrink-0">{t("needit.budgetMax")}</span>
+                    <span className="text-sm font-bold" style={{ color: "#30D158" }}>{mission.prix_max}</span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild><Info size={12} className="text-muted-foreground cursor-help" /></TooltipTrigger>
+                        <TooltipContent className="max-w-[250px] text-xs">{t("needit.budgetTooltip")}</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <span className="text-muted-foreground"><ShieldCheck size={14} /></span>
+                  <span className="text-xs text-muted-foreground w-28 shrink-0">{t("needit.autoAccept")}</span>
+                  <span className={`text-sm font-bold ${(mission as any).auto_accept ? "text-[#0D84FF]" : "text-muted-foreground"}`}>
+                    {(mission as any).auto_accept ? t("needit.autoAcceptYes") : t("needit.autoAcceptNo")}
+                  </span>
+                </div>
                 {mission.ean_code && <InfoRow icon={<Package size={14} />} label="EAN" value={mission.ean_code} />}
               </div>
             ) : (
@@ -200,8 +224,15 @@ const NeeditMissionDetail = () => {
                   </select>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">{t("missions.priceMax")}</Label>
+                  <Label className="text-xs text-muted-foreground">{t("needit.budgetLabel")} <span className="text-destructive">*</span></Label>
                   <Input value={prixMax} onChange={(e) => setPrixMax(e.target.value)} placeholder="50€" />
+                </div>
+                <div className="flex items-center justify-between bg-muted/50 rounded-xl p-3">
+                  <div className="flex-1 mr-3">
+                    <p className="text-xs font-semibold text-foreground">{t("needit.autoAcceptLabel")}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{t("needit.autoAcceptHint")}</p>
+                  </div>
+                  <Switch checked={autoAccept} onCheckedChange={setAutoAccept} className="data-[state=checked]:bg-[#0D84FF]" />
                 </div>
               </div>
             )}

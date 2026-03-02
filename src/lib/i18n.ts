@@ -596,6 +596,15 @@ const fr: TranslationDict = {
   "needit.mustBeLoggedIn": "Vous devez être connecté",
   "needit.notFound": "Mission introuvable",
   "needit.onlyPendingEdit": "Seules les missions en attente peuvent être modifiées",
+  "needit.autoAcceptLabel": "Autoriser l'acceptation automatique par le voyageur ?",
+  "needit.autoAcceptHint": "Si activé, un voyageur peut accepter et acheter immédiatement sans attendre ton accord",
+  "needit.autoAcceptYes": "Oui",
+  "needit.autoAcceptNo": "Non",
+  "needit.budgetLabel": "Plafond budget total autorisé pour l'achat (produit + frais éventuels)",
+  "needit.budgetRequired": "Plafond budget requis",
+  "needit.budgetTooltip": "Le voyageur ne pourra pas dépasser ce montant. Tu reçois la différence si achat inférieur.",
+  "needit.budgetMax": "Budget max",
+  "needit.autoAccept": "Acceptation auto",
 
   // ─── Comptabilite ───
   "compta.title": "Mon Compte",
@@ -1485,6 +1494,15 @@ const en: TranslationDict = {
   "needit.mustBeLoggedIn": "You must be logged in",
   "needit.notFound": "Mission not found",
   "needit.onlyPendingEdit": "Only pending missions can be edited",
+  "needit.autoAcceptLabel": "Allow automatic acceptance by the traveler?",
+  "needit.autoAcceptHint": "If enabled, a traveler can accept and buy immediately without waiting for your approval",
+  "needit.autoAcceptYes": "Yes",
+  "needit.autoAcceptNo": "No",
+  "needit.budgetLabel": "Total authorized budget for purchase (product + possible fees)",
+  "needit.budgetRequired": "Budget cap required",
+  "needit.budgetTooltip": "The traveler cannot exceed this amount. You receive the difference if the purchase is lower.",
+  "needit.budgetMax": "Max budget",
+  "needit.autoAccept": "Auto accept",
 
   // ─── MyInfo ───
   "myinfo.title": "My Account",
