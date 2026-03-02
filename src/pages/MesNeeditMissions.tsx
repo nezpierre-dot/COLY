@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2, ScanBarcode, CheckCircle2, Pencil, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import EanScanner from "@/components/EanScanner";
@@ -57,6 +58,7 @@ const MesNeeditMissions = () => {
   const [loading, setLoading] = useState(true);
   const [scanningMissionId, setScanningMissionId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
+  const [sort, setSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
 
   const loadMissions = async () => {
     if (!user) return;
@@ -105,6 +107,11 @@ const MesNeeditMissions = () => {
   const filteredMissions = activeFilter === "all"
     ? missions.filter(m => m.status !== "cancelled")
     : missions.filter(m => m.status === activeFilter);
+
+  const sortedMissions = useMemo(
+    () => applySortOption(filteredMissions, sort, { dateCreated: "created_at", price: "prix_max", departureDate: "created_at", destination: "country" }),
+    [filteredMissions, sort]
+  );
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F1115] pb-24">
@@ -163,7 +170,12 @@ const MesNeeditMissions = () => {
           </div>
 
           <div className="px-5">
-            {/* ─── New mission button ─── */}
+            {/* Sort + New mission */}
+            {missions.length > 0 && (
+              <div className="mt-4 mb-3">
+                <SortSelect value={sort} onChange={setSort} t={t} keys={["dateCreated", "price", "destination"]} />
+              </div>
+            )}
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
@@ -267,7 +279,7 @@ const MesNeeditMissions = () => {
                 animate="animate"
                 className="space-y-4 mt-2"
               >
-                {filteredMissions.map((m) => {
+                {sortedMissions.map((m) => {
                   const st = statusLabels[m.status] || statusLabels.pending;
                   return (
                     <motion.div
