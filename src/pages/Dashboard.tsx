@@ -21,6 +21,7 @@ import PublicMissionsMap from "@/components/PublicMissionsMap";
 import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
+import { useTranslation } from "@/hooks/useTranslation";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -51,11 +52,11 @@ type Voyage = {
 // No mock data — only real DB data is displayed
 
 // --- Voyageur Quick Stats with mini chart ---
-const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData }: { voyagesCount: number; colisCount: number; matchCount: number; chartData: { name: string; value: number }[] }) => {
+const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData, t }: { voyagesCount: number; colisCount: number; matchCount: number; chartData: { name: string; value: number }[]; t: (k: string) => string }) => {
   const stats = [
-    { value: voyagesCount, label: "Voyages", gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
-    { value: colisCount, label: "Colis dispo", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
-    { value: matchCount, label: "Matchs", gradient: "from-warning to-warning/70", textColor: "text-warning-foreground" },
+    { value: voyagesCount, label: t("dashboard.voyages"), gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
+    { value: colisCount, label: t("dashboard.colisAvail"), gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
+    { value: matchCount, label: t("dashboard.matches"), gradient: "from-warning to-warning/70", textColor: "text-warning-foreground" },
   ];
   return (
     <div className="space-y-3 mb-4">
@@ -99,9 +100,9 @@ const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData }: { voyag
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5">
               <BarChart3 size={13} className="text-primary" />
-              <span className="text-xs font-semibold text-foreground">Activité récente</span>
+              <span className="text-xs font-semibold text-foreground">{t("dashboard.recentActivity")}</span>
             </div>
-            <span className="text-xs text-muted-foreground">30 derniers jours</span>
+            <span className="text-xs text-muted-foreground">{t("dashboard.last30")}</span>
           </div>
           <div className="h-14">
             <ResponsiveContainer width="100%" height="100%">
@@ -149,7 +150,7 @@ const AiRecommendation = ({ isVoyageur }: { isVoyageur: boolean }) => {
           <Sparkles size={14} className="text-accent" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-accent mb-0.5">Recommandation IA</p>
+          <p className="text-xs font-semibold text-accent mb-0.5">{useTranslation().t("dashboard.aiRec")}</p>
           <p className="text-xs text-foreground leading-relaxed">{rec.text}</p>
           <button
             onClick={rec.action}
@@ -208,6 +209,7 @@ const getTransportIcon = (method: string) => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { roles, user } = useAuth();
+  const { t } = useTranslation();
   const { addFavorite, isFavorite } = useFavorites();
   const isVoyageur = roles.includes("voyageur");
   const { canInstall, promptInstall } = usePWAInstall();
@@ -545,6 +547,7 @@ const Dashboard = () => {
               colisCount={pendingShipments.length}
               matchCount={totalMatches}
               chartData={activityChartData}
+              t={t}
             />
 
             {/* AI Recommendation */}
