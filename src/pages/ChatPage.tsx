@@ -11,6 +11,7 @@ import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
 
 interface Message {
   id: string;
@@ -110,7 +111,7 @@ const ChatPage = () => {
           .maybeSingle();
 
         if (shipData) {
-          setShipmentRoute(`${shipData.departure_city || "—"} → ${shipData.arrival_city}`);
+          setShipmentRoute(`${shipData.departure_city ? localizeCity(shipData.departure_city) : "—"} → ${localizeCity(shipData.arrival_city)}`);
           setShipmentStatus(shipData.status || "pending");
           setItemDetail({
             type: "shipment",
@@ -131,7 +132,7 @@ const ChatPage = () => {
             .maybeSingle();
 
           if (missionData) {
-            setShipmentRoute(`NeedIt → ${missionData.city || missionData.country}`);
+            setShipmentRoute(`NeedIt → ${missionData.city ? localizeCity(missionData.city) : localizeCountry(missionData.country)}`);
             setShipmentStatus(missionData.status || "pending");
             setItemDetail({ type: "mission", ...missionData });
           }
@@ -371,7 +372,7 @@ const ChatPage = () => {
             <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <MapPin size={11} />
-                <span>{itemDetail.departure_city || "—"} → {itemDetail.arrival_city}</span>
+                <span>{itemDetail.departure_city ? localizeCity(itemDetail.departure_city) : "—"} → {localizeCity(itemDetail.arrival_city)}</span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar size={11} />
@@ -398,7 +399,7 @@ const ChatPage = () => {
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <MapPin size={11} />
-                <span>{itemDetail.city ? `${itemDetail.city}, ` : ""}{itemDetail.country}</span>
+                <span>{itemDetail.city ? `${localizeCity(itemDetail.city)}, ` : ""}{localizeCountry(itemDetail.country)}</span>
               </div>
               {itemDetail.prix_max && (
                 <div className="flex items-center gap-1.5 text-muted-foreground">
