@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { successFeedback } from "@/lib/successFeedback";
 import BottomNav from "@/components/BottomNav";
+import { useTranslation } from "@/hooks/useTranslation";
 
 /** Searchable dropdown that only renders visible items (max 50 shown) */
 const SearchableSelect = ({
@@ -97,13 +98,13 @@ const SearchableSelect = ({
   );
 };
 
-const TRANSPORT_METHODS = [
-  { value: "avion", label: "Avion", icon: Plane },
-  { value: "train", label: "Train", icon: Train },
-  { value: "voiture", label: "Voiture", icon: Car },
-  { value: "bus", label: "Bus", icon: Bus },
-  { value: "bateau", label: "Bateau / Ferry", icon: Ship },
-  { value: "velo", label: "Vélo / E-Bike", icon: Bike },
+const getTransportMethods = (t: (k: string) => string) => [
+  { value: "avion", label: t("transport.avion"), icon: Plane },
+  { value: "train", label: t("transport.train"), icon: Train },
+  { value: "voiture", label: t("transport.voiture"), icon: Car },
+  { value: "bus", label: t("transport.bus"), icon: Bus },
+  { value: "bateau", label: t("transport.bateau"), icon: Ship },
+  { value: "velo", label: t("transport.velo"), icon: Bike },
 ];
 
 const CURRENCIES = [
@@ -138,6 +139,8 @@ const TOTAL_STEPS = 5;
 const NewTrip = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const TRANSPORT_METHODS = getTransportMethods(t);
   const [step, setStep] = useState(1);
 
   // Step 1
@@ -272,9 +275,9 @@ const NewTrip = () => {
     }).select("id").single();
     setSubmitting(false);
     if (error) {
-      toast.error("Erreur lors de la création du voyage");
+      toast.error(t("trip.errorCreate"));
     } else {
-      successFeedback("Voyage publié !", { description: "Les demandeurs sur cet axe seront notifiés." });
+      successFeedback(t("trip.published"), { description: t("trip.publishedDesc") });
       // Trigger match notifications
       supabase.functions.invoke("notify-match", { body: { type: "voyage", record_id: data.id } }).catch(() => {});
       navigate("/dashboard");
@@ -298,8 +301,8 @@ const NewTrip = () => {
         className="px-6 pt-12 pb-6 rounded-b-3xl"
         style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}
       >
-        <h1 className="text-3xl font-extrabold text-primary-foreground leading-tight">
-          Je partage mon<br />bagage !
+        <h1 className="text-3xl font-extrabold text-primary-foreground leading-tight whitespace-pre-line">
+          {t("trip.shareTitle")}
         </h1>
         {/* Step indicator */}
         <div className="flex gap-1.5 mt-4">
@@ -334,7 +337,7 @@ const NewTrip = () => {
                   {tripType === "new" && <Check size={12} className="text-primary-foreground" />}
                 </div>
                 <span className="text-sm font-medium text-foreground">
-                  Nouveau Trajet non enregistré
+                  {t("trip.newTrip")}
                 </span>
               </button>
 
@@ -352,7 +355,7 @@ const NewTrip = () => {
                   {tripType === "favorite" && <Check size={12} className="text-primary-foreground" />}
                 </div>
                 <span className="text-sm font-medium text-foreground">
-                  Je choisi un de mes trajets favoris
+                  {t("trip.favoriteTrip")}
                 </span>
               </button>
             </div>
@@ -361,26 +364,26 @@ const NewTrip = () => {
           {/* Step 2 – Departure */}
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-foreground">Information de voyage</h2>
+              <h2 className="text-lg font-bold text-foreground">{t("trip.travelInfo")}</h2>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-muted-foreground text-sm">Date de Départ</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.departDate")}</Label>
                   <Input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Heure de Départ</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.departTime")}</Label>
                   <Input type="time" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Pays de Départ</Label>
-                  <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder="Sélectionner un pays" />
+                  <Label className="text-muted-foreground text-sm">{t("trip.departCountry")}</Label>
+                  <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder={t("trip.selectCountry")} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Ville de Départ</Label>
-                  <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? "Sélectionner une ville" : "Choisir un pays d'abord"} disabled={!departureCountry} />
+                  <Label className="text-muted-foreground text-sm">{t("trip.departCity")}</Label>
+                  <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departureCountry} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Adresse de Départ</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.departAddress")}</Label>
                   <Input placeholder="123 rue…" value={departureAddress} onChange={(e) => setDepartureAddress(e.target.value)} />
                 </div>
               </div>
@@ -390,26 +393,26 @@ const NewTrip = () => {
           {/* Step 3 – Arrival */}
           {step === 3 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-foreground">Information de voyage</h2>
+              <h2 className="text-lg font-bold text-foreground">{t("trip.travelInfo")}</h2>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-muted-foreground text-sm">Date d'Arrivée</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.arrivalDate")}</Label>
                   <Input type="date" value={arrivalDate} onChange={(e) => setArrivalDate(e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Heure d'Arrivée</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.arrivalTime")}</Label>
                   <Input type="time" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Pays d'Arrivée</Label>
-                  <SearchableSelect value={arrivalCountry} onChange={handleArrivalCountry} options={countries} placeholder="Sélectionner un pays" />
+                  <Label className="text-muted-foreground text-sm">{t("trip.arrivalCountry")}</Label>
+                  <SearchableSelect value={arrivalCountry} onChange={handleArrivalCountry} options={countries} placeholder={t("trip.selectCountry")} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Ville d'Arrivée</Label>
-                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? "Sélectionner une ville" : "Choisir un pays d'abord"} disabled={!arrivalCountry} />
+                  <Label className="text-muted-foreground text-sm">{t("trip.arrivalCity")}</Label>
+                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">Adresse d'Arrivée</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.arrivalAddress")}</Label>
                   <Input placeholder="456 avenue…" value={arrivalAddress} onChange={(e) => setArrivalAddress(e.target.value)} />
                 </div>
               </div>
@@ -419,10 +422,10 @@ const NewTrip = () => {
           {/* Step 4 – Transport & Options */}
           {step === 4 && (
             <div className="space-y-5">
-              <h2 className="text-lg font-bold text-foreground">Information de voyage</h2>
+              <h2 className="text-lg font-bold text-foreground">{t("trip.travelInfo")}</h2>
 
               <div>
-                <Label className="text-muted-foreground text-sm mb-2 block">Sélectionner le(s) moyen(s) de transport</Label>
+                <Label className="text-muted-foreground text-sm mb-2 block">{t("trip.selectTransport")}</Label>
                 <TooltipProvider delayDuration={0}>
                   <div className="grid grid-cols-2 gap-2">
                     {TRANSPORT_METHODS.map((t) => {

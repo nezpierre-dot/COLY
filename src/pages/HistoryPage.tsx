@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 import PullToRefresh from "@/components/PullToRefresh";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type HistoryType = "voyageur" | "coly" | "needit";
 type AIFilter = "all" | "best" | "losses";
@@ -52,6 +53,7 @@ const HistoryPage = () => {
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
   const { user, roles } = useAuth();
+  const { t } = useTranslation();
   const isVoyageur = roles.includes("voyageur");
   const initialTab = (type as HistoryType) || (isVoyageur ? "voyageur" : "coly");
 
@@ -262,23 +264,23 @@ const HistoryPage = () => {
             <ArrowLeft size={24} aria-hidden="true" />
           </button>
           <div>
-            <h1 className="text-[26px] font-bold text-foreground leading-tight">Historique</h1>
-            <p className="text-sm text-muted-foreground">Vos transactions et statistiques</p>
+            <h1 className="text-[26px] font-bold text-foreground leading-tight">{t("history.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("history.subtitle")}</p>
           </div>
         </div>
 
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-3 mb-6 foldable-grid" role="region" aria-label="Résumé financier">
           <div className="bg-primary/10 rounded-2xl p-4 text-center">
-            <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">Gains</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">{t("history.gains")}</p>
             <p className="text-xl font-black text-primary mt-1">+{totalGains.toFixed(0)}{getCurrencySymbol()}</p>
           </div>
           <div className="bg-destructive/10 rounded-2xl p-4 text-center">
-            <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">Dépenses</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">{t("history.expenses")}</p>
             <p className="text-xl font-black text-destructive mt-1">-{totalExpenses.toFixed(0)}{getCurrencySymbol()}</p>
           </div>
           <div className={`rounded-2xl p-4 text-center ${netBalance >= 0 ? "bg-primary/5" : "bg-destructive/10"}`}>
-            <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">Net</p>
+            <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide">{t("history.net")}</p>
             <p className={`text-xl font-black mt-1 ${netBalance >= 0 ? "text-primary" : "text-destructive"}`}>
               {netBalance >= 0 ? "+" : ""}{netBalance.toFixed(0)}{getCurrencySymbol()}
             </p>
@@ -292,9 +294,9 @@ const HistoryPage = () => {
               <TrendingUp size={20} className="text-accent" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-accent uppercase tracking-wide">Économies vs. transporteur classique</p>
+              <p className="text-xs font-semibold text-accent uppercase tracking-wide">{t("history.savings")}</p>
               <p className="text-base font-bold text-foreground mt-1">
-                Vous avez économisé <span className="text-accent">+{savings.toFixed(0)}{getCurrencySymbol()}</span>
+                {t("history.youSaved")} <span className="text-accent">+{savings.toFixed(0)}{getCurrencySymbol()}</span>
               </p>
             </div>
           </div>
@@ -323,7 +325,7 @@ const HistoryPage = () => {
           <div className="grid grid-cols-2 gap-3 mb-6 foldable-grid" role="region" aria-label="Graphiques">
             {/* Pie chart */}
             <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide mb-2">Répartition</p>
+              <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide mb-2">{t("history.distribution")}</p>
               <ResponsiveContainer width="100%" height={120}>
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={30} outerRadius={50} dataKey="value" strokeWidth={0}>
@@ -349,7 +351,7 @@ const HistoryPage = () => {
 
             {/* Bar chart */}
             <div className="bg-card rounded-2xl border border-border p-4">
-              <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide mb-2">Timeline</p>
+              <p className="text-xs text-muted-foreground uppercase font-semibold tracking-wide mb-2">{t("history.timeline")}</p>
               <ResponsiveContainer width="100%" height={120}>
                 <BarChart data={barData} barSize={10}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -366,11 +368,11 @@ const HistoryPage = () => {
               <div className="flex gap-3 mt-1">
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 rounded-full bg-primary" />
-                  <span className="text-xs text-muted-foreground">Gains</span>
+                    <span className="text-xs text-muted-foreground">{t("history.gains")}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-secondary" />
-                  <span className="text-xs text-muted-foreground">Dépenses</span>
+                   <div className="w-2 h-2 rounded-full bg-secondary" />
+                   <span className="text-xs text-muted-foreground">{t("history.expenses")}</span>
                 </div>
               </div>
             </div>
@@ -382,7 +384,7 @@ const HistoryPage = () => {
           <Search size={16} className="text-muted-foreground shrink-0" />
           <input
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-            placeholder="Rechercher par ref, type…"
+            placeholder={t("history.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             aria-label="Rechercher des transactions"
@@ -392,9 +394,9 @@ const HistoryPage = () => {
         {/* AI filter pills */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
           {([
-            { key: "all" as AIFilter, label: "Tout", icon: null },
-            { key: "best" as AIFilter, label: "Meilleurs gains", icon: <TrendingUp size={12} /> },
-            { key: "losses" as AIFilter, label: "Dépenses", icon: <Sparkles size={12} /> },
+            { key: "all" as AIFilter, label: t("common.all"), icon: null },
+            { key: "best" as AIFilter, label: t("history.aiBest"), icon: <TrendingUp size={12} /> },
+            { key: "losses" as AIFilter, label: t("history.aiLosses"), icon: <Sparkles size={12} /> },
           ]).map((f) => (
             <button
               key={f.key}
@@ -414,7 +416,7 @@ const HistoryPage = () => {
         {/* Total for current filter */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-muted-foreground">
-            {loading ? "Chargement…" : `${filtered.length} transaction${filtered.length > 1 ? "s" : ""}`}
+            {loading ? t("common.loading") : `${filtered.length} transaction${filtered.length > 1 ? "s" : ""}`}
           </p>
           <p className={`text-lg font-bold ${total >= 0 ? "text-primary" : "text-destructive"}`}>
             {total >= 0 ? "+" : ""}{total.toFixed(2)}{getCurrencySymbol()}
@@ -445,7 +447,7 @@ const HistoryPage = () => {
           >
             {filtered.length === 0 ? (
               <li className="text-center py-12">
-                <p className="text-muted-foreground text-sm">Aucune transaction trouvée</p>
+                <p className="text-muted-foreground text-sm">{t("history.noResultFilter")}</p>
               </li>
             ) : (
               filtered.map((item) => (

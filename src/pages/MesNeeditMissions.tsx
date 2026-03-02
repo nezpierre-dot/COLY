@@ -11,6 +11,7 @@ import BottomNav from "@/components/BottomNav";
 import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PullToRefresh from "@/components/PullToRefresh";
 import NotificationBell from "@/components/NotificationBell";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface NeeditMission {
   id: string;
@@ -39,18 +40,19 @@ const statusLabels: Record<string, { label: string; bgClass: string; textColor: 
   cancelled: { label: "Annulée", bgClass: "bg-[#FF453A]", textColor: "text-white" },
 };
 
-const filterTabs = [
-  { key: "all", label: "Toutes" },
-  { key: "pending", label: "En attente" },
-  { key: "accepted", label: "En cours" },
-  { key: "completed", label: "Terminées" },
-] as const;
+const getFilterTabs = (t: (k: string) => string) => [
+  { key: "all" as const, label: t("missions.all") },
+  { key: "pending" as const, label: t("missions.pending") },
+  { key: "accepted" as const, label: t("missions.inProgress") },
+  { key: "completed" as const, label: t("missions.completed") },
+];
 
-type FilterKey = (typeof filterTabs)[number]["key"];
+type FilterKey = "all" | "pending" | "accepted" | "completed";
 
 const MesNeeditMissions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [missions, setMissions] = useState<NeeditMission[]>([]);
   const [loading, setLoading] = useState(true);
   const [scanningMissionId, setScanningMissionId] = useState<string | null>(null);
@@ -120,11 +122,11 @@ const MesNeeditMissions = () => {
                   <ArrowLeft size={28} style={{ color: "#0D84FF" }} strokeWidth={2} />
                 </button>
                 <div>
-                  <h1 className="text-[22px] font-bold leading-tight text-[#0F172A] dark:text-[#F1F5F9]">
-                    Mes Missions NeedIt
+                   <h1 className="text-[22px] font-bold leading-tight text-[#0F172A] dark:text-[#F1F5F9]">
+                    {t("missions.title")}
                   </h1>
                   <p className="text-[14px] mt-0.5" style={{ color: "#64748B" }}>
-                    Faites acheter vos produits par un voyageur
+                    {t("missions.subtitle")}
                   </p>
                 </div>
               </div>
@@ -133,7 +135,7 @@ const MesNeeditMissions = () => {
 
             {/* ─── Tabs segment control ─── */}
             <div className="flex gap-1.5 bg-[#E2E8F0] dark:bg-[#1A1F2E] rounded-2xl p-1">
-              {filterTabs.map((tab) => {
+              {getFilterTabs(t).map((tab) => {
                 const count = counts[tab.key];
                 const isActive = activeFilter === tab.key;
                 return (
@@ -169,7 +171,7 @@ const MesNeeditMissions = () => {
               className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-[17px] text-white shadow-lg mt-4 mb-6 transition-opacity hover:opacity-90"
               style={{ background: "#0D84FF" }}
             >
-              <Plus size={22} /> Nouvelle mission
+              <Plus size={22} /> {t("missions.new")}
             </motion.button>
 
             {/* ─── Missions list ─── */}
@@ -181,15 +183,15 @@ const MesNeeditMissions = () => {
               <div className="py-6 px-2">
                 <EmptyState
                   icon={Package}
-                  title="Aucune mission pour le moment"
-                  description="Faites acheter ce que vous voulez par un voyageur, où que ce soit dans le monde."
+                  title={t("missions.empty")}
+                  description={t("missions.emptyDesc")}
                   action={
                     <button
                       onClick={() => navigate("/needit-mission")}
                       className="px-5 py-3 rounded-2xl text-white text-sm font-bold shadow-lg"
                       style={{ background: "#0D84FF" }}
                     >
-                      <Plus size={20} className="inline mr-1.5 -mt-0.5" /> Créer ma première mission
+                      <Plus size={20} className="inline mr-1.5 -mt-0.5" /> {t("missions.createFirst")}
                     </button>
                   }
                 />
@@ -206,8 +208,8 @@ const MesNeeditMissions = () => {
                       <Package size={20} style={{ color: "#0D84FF" }} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-[#0F172A] dark:text-[#F1F5F9]">Comment ça marche ?</p>
-                      <p className="text-xs" style={{ color: "#64748B" }}>4 étapes simples pour ta première mission</p>
+                      <p className="text-sm font-bold text-[#0F172A] dark:text-[#F1F5F9]">{t("missions.howItWorks")}</p>
+                      <p className="text-xs" style={{ color: "#64748B" }}>{t("missions.howItWorksDesc")}</p>
                     </div>
                   </div>
                   <div className="bg-white dark:bg-[#1A1F2E] px-5 py-4">
@@ -215,10 +217,10 @@ const MesNeeditMissions = () => {
                       <div className="absolute left-[15px] top-4 bottom-4 w-px bg-[#E2E8F0] dark:bg-[#2A3245]" />
                       <div className="space-y-5">
                         {[
-                          { step: 1, icon: MapPin, title: "Choisis un pays", desc: "Espagne, Turquie, Japon…" },
-                          { step: 2, icon: Package, title: "Sélectionne un produit", desc: "Catalogue ou description libre" },
-                          { step: 3, icon: ScanBarcode, title: "Ajoute une photo", desc: "Aide le voyageur à identifier le bon article" },
-                          { step: 4, icon: CheckCircle2, title: "Un voyageur accepte", desc: "Coordonnez-vous via la messagerie" },
+                          { step: 1, icon: MapPin, title: t("missions.step1"), desc: t("missions.step1Desc") },
+                          { step: 2, icon: Package, title: t("missions.step2"), desc: t("missions.step2Desc") },
+                          { step: 3, icon: ScanBarcode, title: t("missions.step3"), desc: t("missions.step3Desc") },
+                          { step: 4, icon: CheckCircle2, title: t("missions.step4"), desc: t("missions.step4Desc") },
                         ].map((s) => (
                           <motion.div
                             key={s.step}
@@ -247,7 +249,7 @@ const MesNeeditMissions = () => {
                       className="w-full py-3 rounded-2xl text-white font-semibold text-sm shadow-sm"
                       style={{ background: "#0D84FF" }}
                     >
-                      C'est parti !
+                      {t("missions.letsGo")}
                     </motion.button>
                   </div>
                 </motion.div>
@@ -255,7 +257,7 @@ const MesNeeditMissions = () => {
             ) : filteredMissions.length === 0 ? (
               <div className="py-12 text-center">
                 <p className="text-sm" style={{ color: "#64748B" }}>
-                  Aucune mission {filterTabs.find(t => t.key === activeFilter)?.label.toLowerCase()}
+                  {t("common.noResult")}
                 </p>
               </div>
             ) : (
@@ -318,14 +320,14 @@ const MesNeeditMissions = () => {
                               <MapPin size={14} /> {m.country}{m.city ? `, ${m.city}` : ""}
                             </span>
                             <span className="flex items-center gap-1 text-[13px]" style={{ color: "#64748B" }}>
-                              <Clock size={14} /> {m.timing === "asap" ? "Dès que possible" : "Programmé"}
+                              <Clock size={14} /> {m.timing === "asap" ? t("missions.asap") : t("missions.scheduled")}
                             </span>
                           </div>
 
                           {/* Price */}
                           {m.prix_max && (
                             <p className="text-[15px] font-bold mt-2" style={{ color: "#30D158" }}>
-                              Prix max : {m.prix_max}
+                              {t("missions.priceMax")} : {m.prix_max}
                             </p>
                           )}
                         </div>

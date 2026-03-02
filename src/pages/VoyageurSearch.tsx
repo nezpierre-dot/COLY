@@ -11,6 +11,7 @@ import StarRating from "@/components/StarRating";
 import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight, hapticMedium } from "@/lib/haptics";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Voyage {
   id: string;
@@ -58,6 +59,7 @@ const transportFilterIcon = (method: string) => {
 const VoyageurSearch = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [voyages, setVoyages] = useState<Voyage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,8 +147,8 @@ const VoyageurSearch = () => {
               <ArrowLeft size={24} />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Trouver un voyageur</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Recherchez par destination</p>
+              <h1 className="text-2xl font-bold text-foreground">{t("search.title")}</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">{t("search.subtitle")}</p>
             </div>
           </div>
 
@@ -156,7 +158,7 @@ const VoyageurSearch = () => {
               <MapPin size={16} className="text-muted-foreground shrink-0" />
               <input
                 className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                placeholder="Départ : ville ou pays…"
+                placeholder={t("search.departPlaceholder")}
                 value={originQuery}
                 onChange={(e) => setOriginQuery(e.target.value)}
                 aria-label="Ville ou pays de départ"
@@ -171,7 +173,7 @@ const VoyageurSearch = () => {
               <Search size={16} className="text-primary shrink-0" />
               <input
                 className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                placeholder="Destination : ville ou pays…"
+                placeholder={t("search.destPlaceholder")}
                 value={destQuery}
                 onChange={(e) => setDestQuery(e.target.value)}
                 aria-label="Ville ou pays de destination"
@@ -188,7 +190,7 @@ const VoyageurSearch = () => {
           {/* Filter toggle */}
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-muted-foreground">
-              {loading ? "Recherche…" : `${filtered.length} voyageur${filtered.length > 1 ? "s" : ""} disponible${filtered.length > 1 ? "s" : ""}`}
+              {loading ? t("common.loading") : `${filtered.length} ${t("search.results")}`}
             </p>
             <button
               onClick={() => { hapticLight(); setFilterOpen(!filterOpen); }}
@@ -197,7 +199,7 @@ const VoyageurSearch = () => {
               }`}
             >
               <SlidersHorizontal size={13} />
-              Filtres
+              {t("common.filters")}
               {activeFiltersCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-accent text-accent-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
                   {activeFiltersCount}
@@ -218,7 +220,7 @@ const VoyageurSearch = () => {
                 <div className="bg-card border border-border rounded-2xl p-4 space-y-4">
                   {/* Transport method */}
                   <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Transport</p>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("search.transport")}</p>
                     <div className="flex flex-wrap gap-2">
                       {["", "avion", "train", "voiture", "bus", "bateau", "velo"].map((m) => (
                         <button
@@ -230,7 +232,7 @@ const VoyageurSearch = () => {
                               : "bg-muted text-muted-foreground hover:bg-muted/80"
                           }`}
                         >
-                          {m ? <span className="flex items-center gap-1">{transportFilterIcon(m)} {m.charAt(0).toUpperCase() + m.slice(1)}</span> : "Tous"}
+                          {m ? <span className="flex items-center gap-1">{transportFilterIcon(m)} {m.charAt(0).toUpperCase() + m.slice(1)}</span> : t("common.all")}
                         </button>
                       ))}
                     </div>
@@ -238,12 +240,12 @@ const VoyageurSearch = () => {
 
                   {/* Options */}
                   <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Options</p>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("search.options")}</p>
                     <div className="space-y-2">
                       {[
-                        { label: "Accepte les missions NeedIt", val: filterNeedit, set: setFilterNeedit },
-                        { label: "Peut récupérer le colis", val: filterPickup, set: setFilterPickup },
-                        { label: "Livre à l'adresse", val: filterDeliver, set: setFilterDeliver },
+                        { label: t("search.acceptsNeedit"), val: filterNeedit, set: setFilterNeedit },
+                        { label: t("search.canPickup"), val: filterPickup, set: setFilterPickup },
+                        { label: t("search.deliverAddress"), val: filterDeliver, set: setFilterDeliver },
                       ].map((opt) => (
                         <label key={opt.label} className="flex items-center gap-2.5 cursor-pointer">
                           <input
@@ -263,7 +265,7 @@ const VoyageurSearch = () => {
                       onClick={() => { setFilterNeedit(false); setFilterPickup(false); setFilterDeliver(false); setFilterMethod(""); }}
                       className="text-xs text-destructive hover:underline"
                     >
-                      Réinitialiser les filtres
+                      {t("common.resetFilters")}
                     </button>
                   )}
                 </div>
@@ -284,8 +286,8 @@ const VoyageurSearch = () => {
           ) : filtered.length === 0 ? (
             <EmptyState
               icon={Search}
-              title="Aucun voyageur trouvé"
-              description={destQuery || originQuery ? "Essayez de modifier vos critères de recherche" : "Il n'y a pas encore de voyageurs actifs disponibles"}
+              title={t("search.noResults")}
+              description={destQuery || originQuery ? t("search.noResultsDesc") : t("search.noActive")}
             />
           ) : (
             <motion.div
@@ -350,7 +352,7 @@ const VoyageurSearch = () => {
                     onClick={() => { hapticMedium(); navigate("/send-coly"); }}
                     className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity active:scale-[0.97] transition-all duration-150"
                   >
-                    Envoyer un colis avec ce voyageur
+                    {t("search.sendWith")}
                   </button>
                 </motion.div>
               ))}

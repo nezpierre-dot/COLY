@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/hooks/useTranslation";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
 import {
   AlertDialog,
@@ -21,6 +22,7 @@ import {
 const MyAccount = () => {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
+  const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const isVoyageur = roles.includes("voyageur");
 
@@ -80,7 +82,7 @@ const MyAccount = () => {
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("Image trop volumineuse (max 5 Mo)"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error(t("account.avatarTooLarge")); return; }
 
     // Preview immediately
     const reader = new FileReader();
@@ -100,7 +102,7 @@ const MyAccount = () => {
     await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
     setAvatar(publicUrl);
     hapticSuccess();
-    toast.success("Photo de profil mise à jour");
+    toast.success(t("account.avatarUpdated"));
   };
 
   const handleSave = async () => {
@@ -111,7 +113,7 @@ const MyAccount = () => {
     // Save bio to profile
     await supabase.from("profiles").update({ bio: bio.trim() } as any).eq("user_id", user.id);
     if (error) toast.error(error.message);
-    else { hapticSuccess(); toast.success("Profil mis à jour"); setEditing(false); }
+    else { hapticSuccess(); toast.success(t("account.profileUpdated")); setEditing(false); }
   };
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -142,35 +144,35 @@ const MyAccount = () => {
     {
       id: "profile",
       icon: User,
-      label: "Mon Profil",
+      label: t("account.myProfile"),
       items: [
-        { label: "Mes informations", onClick: () => navigate("/my-info") },
+        { label: t("account.myInfo"), onClick: () => navigate("/my-info") },
       ],
     },
     {
       id: "settings",
       icon: Settings,
-      label: "Réglages",
+      label: t("account.settingsLabel"),
       items: [
-        { label: "Réglage voyageur", onClick: () => navigate("/voyageur-settings") },
-        { label: "Réglage expéditeur", onClick: () => navigate("/settings") },
-        { label: "Paramètres de l'application", onClick: () => navigate("/settings") },
+        { label: t("account.voyageurSetting"), onClick: () => navigate("/voyageur-settings") },
+        { label: t("account.senderSetting"), onClick: () => navigate("/settings") },
+        { label: t("account.appSettings"), onClick: () => navigate("/settings") },
       ],
     },
     {
       id: "finance",
       icon: CreditCard,
-      label: "Finance & Comptabilité",
+      label: t("account.finance"),
       items: [
-        { label: "Comptabilité", onClick: () => navigate("/comptabilite") },
+        { label: t("account.accounting"), onClick: () => navigate("/comptabilite") },
       ],
     },
     {
       id: "security",
       icon: Lock,
-      label: "Sécurité",
+      label: t("account.securitySection"),
       items: [
-        { label: "Confidentialité / Mentions légales", onClick: () => navigate("/confidentialite") },
+        { label: t("account.privacy"), onClick: () => navigate("/confidentialite") },
       ],
     },
   ];
@@ -219,10 +221,10 @@ const MyAccount = () => {
           {/* Name, bio & rating */}
           <div className="flex-1 min-w-0 pt-1">
             <h1 className="text-xl font-bold text-white truncate text-on-gradient">
-              {fullName || "Utilisateur"}
+            {fullName || t("account.user")}
             </h1>
             <p className="text-white/70 text-xs mt-0.5 text-on-gradient">
-              {isVoyageur ? "Voyageur" : "Expéditeur"} · N°{userId.toUpperCase()}
+              {isVoyageur ? t("account.voyageur") : t("account.sender")} · N°{userId.toUpperCase()}
             </p>
 
             {/* Bio */}
@@ -244,10 +246,10 @@ const MyAccount = () => {
                   ))}
                 </div>
                 <span className="text-white/80 text-xs font-semibold">{rating.average_score}</span>
-                <span className="text-white/40 text-xs">({rating.total_ratings} avis)</span>
+                <span className="text-white/40 text-xs">({rating.total_ratings} {t("account.reviews")})</span>
               </div>
             ) : (
-              <p className="text-white/40 text-xs mt-2">Pas encore noté</p>
+              <p className="text-white/40 text-xs mt-2">{t("account.notRated")}</p>
             )}
           </div>
 
@@ -265,10 +267,10 @@ const MyAccount = () => {
         {/* Quick stats row */}
         <div className="grid grid-cols-4 gap-2 mb-6">
           {[
-            { value: stats.voyages, label: "Voyages", icon: Plane },
-            { value: stats.shipments, label: "Envois", icon: Package },
-            { value: stats.missions, label: "Missions", icon: TrendingUp },
-            { value: `${totalEarned.toFixed(0)}€`, label: "Gagnés", icon: Coins },
+            { value: stats.voyages, label: t("account.voyages"), icon: Plane },
+            { value: stats.shipments, label: t("account.sends"), icon: Package },
+            { value: stats.missions, label: t("account.missionsStat"), icon: TrendingUp },
+            { value: `${totalEarned.toFixed(0)}€`, label: t("account.earned"), icon: Coins },
           ].map((s) => (
             <motion.div
               key={s.label}
@@ -287,7 +289,7 @@ const MyAccount = () => {
           <div className="mb-6">
             <div className="flex items-center gap-1.5 mb-2">
               <Award size={14} className="text-accent" />
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Badges</h3>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("account.badges")}</h3>
             </div>
             <div className="flex gap-2 flex-wrap">
               {badges.map((b, i) => (
@@ -321,22 +323,22 @@ const MyAccount = () => {
             >
               <div className="bg-muted/50 rounded-2xl p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-foreground">Modifier mes informations</h3>
+                  <h3 className="text-lg font-semibold text-foreground">{t("account.editInfo")}</h3>
                   <button onClick={() => setEditing(false)} className="text-muted-foreground"><X size={16} /></button>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground">Nom complet</label>
+                  <label className="text-xs text-muted-foreground">{t("account.fullName")}</label>
                   <input className={inputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Prénom Nom" />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground">Bio</label>
+                  <label className="text-xs text-muted-foreground">{t("account.bio")}</label>
                   <textarea
                     className={`${inputClass} resize-none`}
                     rows={2}
                     maxLength={120}
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    placeholder="Décrivez-vous en quelques mots…"
+                    placeholder={t("account.bioPlaceholder")}
                   />
                   <p className="text-xs text-muted-foreground text-right mt-0.5">{bio.length}/120</p>
                 </div>
@@ -353,7 +355,7 @@ const MyAccount = () => {
                   onClick={handleSave}
                   className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity"
                 >
-                  Enregistrer
+                  {t("common.save")}
                 </motion.button>
               </div>
             </motion.div>
@@ -445,25 +447,25 @@ const MyAccount = () => {
           onClick={() => setShowLogoutConfirm(true)}
           className="w-full py-3.5 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive font-semibold text-sm hover:bg-destructive/20 transition-colors"
         >
-          Se déconnecter
+          {t("common.logout")}
         </motion.button>
 
         {/* Logout confirmation dialog */}
         <AlertDialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
           <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
             <AlertDialogHeader>
-              <AlertDialogTitle>Se déconnecter ?</AlertDialogTitle>
+              <AlertDialogTitle>{t("account.logoutConfirm")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Êtes-vous sûr de vouloir vous déconnecter de votre compte ? Vous devrez vous reconnecter pour accéder à vos données.
+                {t("account.logoutDesc")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleLogout}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                Déconnexion
+                {t("common.logout")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

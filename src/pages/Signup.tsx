@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import AuthLayout from "@/components/AuthLayout";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface FormData {
   nom: string;
@@ -25,6 +26,7 @@ interface FormData {
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -91,9 +93,9 @@ const Signup = () => {
   };
 
   const titles: Record<number, { title: string; subtitle: string }> = {
-    1: { title: "", subtitle: "Créez votre compte pour commencer à partager le trajet." },
-    2: { title: "Plus qu'une étape !", subtitle: "Créez votre compte pour commencer à partager le trajet." },
-    3: { title: "", subtitle: "Créez votre compte pour commencer à partager le trajet." },
+    1: { title: "", subtitle: t("signup.subtitle") },
+    2: { title: t("signup.step2Title"), subtitle: t("signup.subtitle") },
+    3: { title: "", subtitle: t("signup.subtitle") },
   };
 
   const renderStep = () => {
@@ -101,17 +103,17 @@ const Signup = () => {
       case 1:
         return (
           <>
-            <h2 className="text-2xl font-bold text-foreground mb-6">Inscrivez-vous</h2>
-            <input className={inputClass(form.nom)} placeholder="Nom *" value={form.nom} onChange={(e) => update("nom", e.target.value)} />
-            <input className={inputClass(form.prenom)} placeholder="Prénom *" value={form.prenom} onChange={(e) => update("prenom", e.target.value)} />
-            <input className={inputClass(form.email)} placeholder="Adresse Email *" type="email" value={form.email} onChange={(e) => update("email", e.target.value)} />
-            <input className={inputClass(form.telephone)} placeholder="Numéro de téléphone *" type="tel" value={form.telephone} onChange={(e) => update("telephone", e.target.value)} />
+            <h2 className="text-2xl font-bold text-foreground mb-6">{t("signup.title")}</h2>
+            <input className={inputClass(form.nom)} placeholder={`${t("common.name")} *`} value={form.nom} onChange={(e) => update("nom", e.target.value)} />
+            <input className={inputClass(form.prenom)} placeholder={`${t("common.firstName")} *`} value={form.prenom} onChange={(e) => update("prenom", e.target.value)} />
+            <input className={inputClass(form.email)} placeholder={`${t("common.email")} *`} type="email" value={form.email} onChange={(e) => update("email", e.target.value)} />
+            <input className={inputClass(form.telephone)} placeholder={`${t("common.phone")} *`} type="tel" value={form.telephone} onChange={(e) => update("telephone", e.target.value)} />
           </>
         );
       case 2:
         return (
           <>
-            <h2 className="text-2xl font-bold text-foreground mb-2">Où êtes-vous ?</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-2">{t("signup.step2Heading")}</h2>
 
             {/* GPS auto-fill button */}
             <button
@@ -125,44 +127,44 @@ const Signup = () => {
               ) : (
                 <MapPin size={16} />
               )}
-              {geoLoading ? "Détection en cours..." : "Utiliser ma position GPS"}
+              {geoLoading ? t("signup.geoDetecting") : t("signup.geolocate")}
             </button>
             <p className="text-xs text-muted-foreground text-center mb-4">
-              📍 Votre position est utilisée uniquement pour pré-remplir l'adresse et n'est pas conservée.
+              {t("signup.geoNotice")}
             </p>
 
-            <input className={inputClass()} placeholder="Pays de résidence" value={form.pays} onChange={(e) => update("pays", e.target.value)} />
+            <input className={inputClass()} placeholder={t("signup.country")} value={form.pays} onChange={(e) => update("pays", e.target.value)} />
             <div className="flex gap-4">
-              <input className={`${inputClass()} flex-1`} placeholder="Ville" value={form.ville} onChange={(e) => update("ville", e.target.value)} />
-              <input className={`${inputClass()} flex-1`} placeholder="Code postal" value={form.codePostal} onChange={(e) => update("codePostal", e.target.value)} />
+              <input className={`${inputClass()} flex-1`} placeholder={t("signup.city")} value={form.ville} onChange={(e) => update("ville", e.target.value)} />
+              <input className={`${inputClass()} flex-1`} placeholder={t("signup.postalCode")} value={form.codePostal} onChange={(e) => update("codePostal", e.target.value)} />
             </div>
-            <input className={inputClass()} placeholder="Région/Département" value={form.region} onChange={(e) => update("region", e.target.value)} />
-            <input className={inputClass()} placeholder="Adresse postale" value={form.adresse} onChange={(e) => update("adresse", e.target.value)} />
+            <input className={inputClass()} placeholder={t("signup.region")} value={form.region} onChange={(e) => update("region", e.target.value)} />
+            <input className={inputClass()} placeholder={t("signup.address")} value={form.adresse} onChange={(e) => update("adresse", e.target.value)} />
           </>
         );
       case 3:
         return (
           <>
-            <h2 className="text-2xl font-bold text-foreground mb-6">Protégez votre compte</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-6">{t("signup.step3Title")}</h2>
             <div className="relative">
-              <input className={inputClass()} placeholder="Mot de passe" type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => update("password", e.target.value)} />
+              <input className={inputClass()} placeholder={t("common.password")} type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => update("password", e.target.value)} />
               <button type="button" className="absolute right-0 top-3 text-coly-purple" onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             <div className="relative">
-              <input className={inputClass()} placeholder="Confirmez votre mot de passe" type={showConfirm ? "text" : "password"} value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} />
+              <input className={inputClass()} placeholder={t("signup.confirmPassword")} type={showConfirm ? "text" : "password"} value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} />
               <button type="button" className="absolute right-0 top-3 text-coly-purple" onClick={() => setShowConfirm(!showConfirm)}>
                 {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            <input className={inputClass()} placeholder="Adresse mail de récupération (facultatif)" type="email" value={form.recoveryEmail} onChange={(e) => update("recoveryEmail", e.target.value)} />
+            <input className={inputClass()} placeholder={t("signup.recoveryEmail")} type="email" value={form.recoveryEmail} onChange={(e) => update("recoveryEmail", e.target.value)} />
             <div className="flex items-start gap-3 mt-4">
               <Checkbox checked={form.acceptTerms} onCheckedChange={(v) => update("acceptTerms", !!v)} className="mt-1" />
               <span className="text-sm text-foreground">
-                Je confirme que les informations fournies sont exactes et que j'accepte les{" "}
+                {t("signup.acceptTerms")}{" "}
                 <button type="button" onClick={() => navigate("/terms")} className="text-primary underline">
-                  termes et conditions d'utilisation
+                  {t("signup.termsLink")}
                 </button>.
               </span>
             </div>
@@ -175,7 +177,7 @@ const Signup = () => {
     if (step === 1) {
       if (!form.nom.trim() || !form.prenom.trim() || !form.email.trim() || !form.telephone.trim()) {
         setTriedNext(true);
-        toast.error("Veuillez remplir tous les champs obligatoires");
+        toast.error(t("signup.fillRequired"));
         return;
       }
       setTriedNext(false);
@@ -194,15 +196,15 @@ const Signup = () => {
     }
 
     if (form.password.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      toast.error(t("signup.passwordMin"));
       return;
     }
     if (form.password !== form.confirmPassword) {
-      toast.error("Les mots de passe ne correspondent pas");
+      toast.error(t("signup.passwordMismatch"));
       return;
     }
     if (!form.acceptTerms) {
-      toast.error("Veuillez accepter les conditions d'utilisation");
+      toast.error(t("signup.acceptTermsError"));
       return;
     }
 
@@ -228,7 +230,7 @@ const Signup = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Vérifiez votre email pour confirmer votre inscription !");
+      toast.success(t("signup.checkEmail"));
       navigate("/login");
     }
   };
@@ -276,7 +278,7 @@ const Signup = () => {
               className="w-full flex items-center justify-center gap-3 py-3 rounded-full border border-muted-foreground/20 bg-background text-foreground font-medium hover:bg-muted transition-colors"
             >
               <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.01 24.01 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-              Continuer avec Google
+              {t("login.continueGoogle")}
             </button>
 
             <button
@@ -289,7 +291,7 @@ const Signup = () => {
               className="w-full flex items-center justify-center gap-3 py-3 rounded-full border border-muted-foreground/20 bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-              Continuer avec Apple
+              {t("login.continueApple")}
             </button>
           </>
         )}
@@ -300,7 +302,7 @@ const Signup = () => {
             onClick={() => (step > 1 ? setStep(step - 1) : navigate("/"))}
             className="text-lg text-muted-foreground hover:text-foreground transition-colors"
           >
-            Retour
+            {t("common.back")}
           </button>
 
           <div className="flex items-center gap-3">
@@ -310,7 +312,7 @@ const Signup = () => {
                 onClick={handleSkip}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors underline"
               >
-                Plus tard
+                {t("common.later")}
               </button>
             )}
             <button
@@ -318,7 +320,7 @@ const Signup = () => {
               disabled={loading}
               className="flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-primary-foreground text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50"
             >
-              {loading ? "..." : step === 3 ? "Finaliser" : "Continuer"} <ArrowRight size={20} />
+              {loading ? "..." : step === 3 ? t("signup.finalize") : t("common.next")} <ArrowRight size={20} />
             </button>
           </div>
         </div>
