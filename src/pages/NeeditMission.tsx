@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +17,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { localizeCountry } from "@/lib/geoLocalization";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
+import { useFavorites } from "@/hooks/useFavorites";
 
 type CategoryNode = { label: string; children?: CategoryNode[]; };
 
@@ -72,6 +73,7 @@ const NeeditMission = () => {
   const navigate = useNavigate();
   const { id: editId } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { addProduct } = useFavorites();
   const { t } = useTranslation();
   const { language } = useLanguagePreference();
   const countryDisplay = useCallback((v: string) => localizeCountry(v, language), [language]);
@@ -267,7 +269,35 @@ const NeeditMission = () => {
                         </div>
                       )}
 
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-6">{t("needit.priceNote")}<br />{t("needit.debitNote")}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">{t("needit.priceNote")}<br />{t("needit.debitNote")}</p>
+
+                      {/* Save as favorite product */}
+                      {!editId && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const pathLabels = categoryPath.map((n) => n.label);
+                            if (selectedLeaf) pathLabels.push(selectedLeaf);
+                            await addProduct({
+                              product_name: isUnlisted ? (unlistedName || "Produit") : (selectedLeaf || "Produit"),
+                              country: pays,
+                              city: ville || null,
+                              category_path: pathLabels,
+                              prix_max: prixMax || null,
+                              poids: poids || null,
+                              dimension: dimension || null,
+                              photo_url: photoPreview || null,
+                              ean_code: eanCode || null,
+                              is_unlisted: isUnlisted,
+                              unlisted_description: isUnlisted ? unlistedName : null,
+                            });
+                            toast.success(t("favorites.productSaved"));
+                          }}
+                          className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-accent/10 text-accent font-semibold text-sm hover:bg-accent/20 transition-colors mb-2"
+                        >
+                          <Heart size={16} /> {t("favorites.saveProduct")}
+                        </button>
+                      )}
                     </>
                   );
                 })()}

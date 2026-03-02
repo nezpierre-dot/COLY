@@ -110,6 +110,81 @@ export type Database = {
         }
         Relationships: []
       }
+      favorite_products: {
+        Row: {
+          category_path: string[]
+          city: string | null
+          country: string
+          created_at: string
+          dimension: string | null
+          ean_code: string | null
+          id: string
+          is_unlisted: boolean
+          photo_url: string | null
+          poids: string | null
+          prix_max: string | null
+          product_name: string
+          unlisted_description: string | null
+          user_id: string
+        }
+        Insert: {
+          category_path?: string[]
+          city?: string | null
+          country: string
+          created_at?: string
+          dimension?: string | null
+          ean_code?: string | null
+          id?: string
+          is_unlisted?: boolean
+          photo_url?: string | null
+          poids?: string | null
+          prix_max?: string | null
+          product_name: string
+          unlisted_description?: string | null
+          user_id: string
+        }
+        Update: {
+          category_path?: string[]
+          city?: string | null
+          country?: string
+          created_at?: string
+          dimension?: string | null
+          ean_code?: string | null
+          id?: string
+          is_unlisted?: boolean
+          photo_url?: string | null
+          poids?: string | null
+          prix_max?: string | null
+          product_name?: string
+          unlisted_description?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      favorite_routes: {
+        Row: {
+          created_at: string
+          from_city: string
+          id: string
+          to_city: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_city: string
+          id?: string
+          to_city: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_city?: string
+          id?: string
+          to_city?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       live_locations: {
         Row: {
           created_at: string

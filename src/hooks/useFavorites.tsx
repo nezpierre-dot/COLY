@@ -1,55 +1,109 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface FavRoute {
   id: string;
-  from: string;
-  to: string;
-  addedAt: string;
+  from_city: string;
+  to_city: string;
+  created_at: string;
+}
+
+interface FavProduct {
+  id: string;
+  product_name: string;
+  country: string;
+  city: string | null;
+  category_path: string[];
+  prix_max: string | null;
+  poids: string | null;
+  dimension: string | null;
+  photo_url: string | null;
+  ean_code: string | null;
+  is_unlisted: boolean;
+  unlisted_description: string | null;
+  created_at: string;
 }
 
 interface FavoritesContextType {
-  favorites: FavRoute[];
-  addFavorite: (from: string, to: string) => void;
-  removeFavorite: (id: string) => void;
-  isFavorite: (from: string, to: string) => boolean;
+  routes: FavRoute[];
+  products: FavProduct[];
+  loadingRoutes: boolean;
+  loadingProducts: boolean;
+  addRoute: (from: string, to: string) => Promise<void>;
+  removeRoute: (id: string) => Promise<void>;
+  isRouteFavorite: (from: string, to: string) => boolean;
+  addProduct: (product: Omit<FavProduct, "id" | "created_at">) => Promise<void>;
+  removeProduct: (id: string) => Promise<void>;
+  refreshRoutes: () => void;
+  refreshProducts: () => void;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [favorites, setFavorites] = useState<FavRoute[]>(() => {
-    try {
-      const stored = localStorage.getItem("coly-fav-routes");
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  const { user } = useAuth();
+  const [routes, setRoutes] = useState<FavRoute[]>([]);
+  const [products, setProducts] = useState<FavProduct[]>([]);
+  const [loadingRoutes, setLoadingRoutes] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
-  useEffect(() => {
-    localStorage.setItem("coly-fav-routes", JSON.stringify(favorites));
-  }, [favorites]);
+  const fetchRoutes = useCallback(async () => {
+    if (!user) { setRoutes([]); return; }
+    setLoadingRoutes(true);
+    const { data } = await supabase
+      .from("favorite_routes")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setRoutes((data as FavRoute[]) ?? []);
+    setLoadingRoutes(false);
+  }, [user]);
 
-  const addFavorite = (from: string, to: string) => {
-    if (isFavorite(from, to)) return;
-    setFavorites((prev) => [
-      ...prev,
-      { id: `${from}-${to}-${Date.now()}`, from, to, addedAt: new Date().toISOString() },
-    ]);
+  const fetchProducts = useCallback(async () => {
+    if (!user) { setProducts([]); return; }
+    setLoadingProducts(true);
+    const { data } = await supabase
+      .from("favorite_products")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setProducts((data as FavProduct[]) ?? []);
+    setLoadingProducts(false);
+  }, [user]);
+
+  useEffect(() => { fetchRoutes(); fetchProducts(); }, [fetchRoutes, fetchProducts]);
+
+  const addRoute = async (from: string, to: string) => {
+    if (!user) return;
+    await supabase.from("favorite_routes").insert({ user_id: user.id, from_city: from, to_city: to });
+    fetchRoutes();
   };
 
-  const removeFavorite = (id: string) => {
-    setFavorites((prev) => prev.filter((f) => f.id !== id));
+  const removeRoute = async (id: string) => {
+    await supabase.from("favorite_routes").delete().eq("id", id);
+    setRoutes((prev) => prev.filter((r) => r.id !== id));
   };
 
-  const isFavorite = (from: string, to: string) => {
-    return favorites.some(
-      (f) => f.from.toLowerCase() === from.toLowerCase() && f.to.toLowerCase() === to.toLowerCase()
-    );
+  const isRouteFavorite = (from: string, to: string) =>
+    routes.some((r) => r.from_city.toLowerCase() === from.toLowerCase() && r.to_city.toLowerCase() === to.toLowerCase());
+
+  const addProduct = async (product: Omit<FavProduct, "id" | "created_at">) => {
+    if (!user) return;
+    await supabase.from("favorite_products").insert({ ...product, user_id: user.id });
+    fetchProducts();
+  };
+
+  const removeProduct = async (id: string) => {
+    await supabase.from("favorite_products").delete().eq("id", id);
+    setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
   return (
-    <FavoritesContext.Provider value={{ favorites, addFavorite, removeFavorite, isFavorite }}>
+    <FavoritesContext.Provider value={{
+      routes, products, loadingRoutes, loadingProducts,
+      addRoute, removeRoute, isRouteFavorite,
+      addProduct, removeProduct,
+      refreshRoutes: fetchRoutes, refreshProducts: fetchProducts,
+    }}>
       {children}
     </FavoritesContext.Provider>
   );

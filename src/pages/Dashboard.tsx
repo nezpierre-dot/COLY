@@ -166,9 +166,9 @@ const AiRecommendation = ({ isVoyageur, t }: { isVoyageur: boolean; t: (k: strin
 
 // Favorite Routes Section
 const FavoriteRoutes = ({ t }: { t: (k: string) => string }) => {
-  const { favorites, removeFavorite } = useFavorites();
+  const { routes, removeRoute } = useFavorites();
 
-  if (favorites.length === 0) return null;
+  if (routes.length === 0) return null;
 
   return (
     <div className="space-y-1.5 mb-3">
@@ -176,12 +176,12 @@ const FavoriteRoutes = ({ t }: { t: (k: string) => string }) => {
         <Star size={12} className="text-accent" /> {t("dashboard.favorites")}
       </h3>
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {favorites.map((fav) => (
+        {routes.map((fav) => (
           <div key={fav.id}
             className="shrink-0 bg-accent/10 border border-accent/20 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5"
           >
-            <span className="text-xs font-medium text-foreground">{fav.from} → {fav.to}</span>
-            <button onClick={() => removeFavorite(fav.id)} className="text-accent hover:text-destructive transition-colors">
+            <span className="text-xs font-medium text-foreground">{fav.from_city} → {fav.to_city}</span>
+            <button onClick={() => removeRoute(fav.id)} className="text-accent hover:text-destructive transition-colors">
               <Heart size={10} fill="currentColor" />
             </button>
           </div>
@@ -209,7 +209,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { roles, user } = useAuth();
   const { t, language } = useTranslation();
-  const { addFavorite, isFavorite } = useFavorites();
+  const { addRoute, isRouteFavorite } = useFavorites();
   const isVoyageur = roles.includes("voyageur");
   const { canInstall, promptInstall } = usePWAInstall();
   const [dismissedBanner, setDismissedBanner] = useState(() => localStorage.getItem("pwa-banner-dismissed") === "1");
@@ -440,8 +440,8 @@ const Dashboard = () => {
   const currentVoyage = voyages.find((v) => v.id === selectedVoyage);
 
   const handleToggleFavorite = (from: string, to: string) => {
-    if (!isFavorite(from, to)) {
-      addFavorite(from, to);
+    if (!isRouteFavorite(from, to)) {
+      addRoute(from, to);
       hapticLight();
       toast.success(`${from} → ${to} ${t("dashboard.addedToFav")}`);
     }
@@ -615,7 +615,7 @@ const Dashboard = () => {
                 ) : (
                   voyages.map((v) => {
                     const isSelected = selectedVoyage === v.id;
-                    const fav = isFavorite(v.departure_city, v.arrival_city);
+                    const fav = isRouteFavorite(v.departure_city, v.arrival_city);
                     return (
                       <button key={v.id} onClick={() => navigate(`/voyage/${v.id}`)}
                         className={`w-full text-left rounded-2xl p-4 relative overflow-hidden transition-all ${

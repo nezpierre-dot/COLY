@@ -13,7 +13,7 @@ const VoyageurSettings = () => {
     { label: t("voySettings.travelerHistory"), path: "/history/voyageur" },
     { label: t("voySettings.colyHistory"), path: "/history/coly" },
     { label: t("voySettings.needitHistory"), path: "/history/needit" },
-    { label: t("voySettings.favoriteTrips"), path: "" },
+    { label: t("voySettings.favoriteTrips"), path: "/favorites" },
   ];
 
   const menuItems2 = [
