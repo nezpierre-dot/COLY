@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { successFeedback } from "@/lib/successFeedback";
 import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
+import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 
 /** Searchable dropdown that only renders visible items (max 50 shown) */
 const SearchableSelect = ({
@@ -258,6 +259,8 @@ const NewTrip = () => {
   };
 
   const [submitting, setSubmitting] = useState(false);
+  const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
+  const [showReminderPrompt, setShowReminderPrompt] = useState(false);
 
   const handleSubmit = async () => {
     if (!user) return;
@@ -288,7 +291,16 @@ const NewTrip = () => {
       successFeedback(t("trip.published"), { description: t("trip.publishedDesc") });
       // Trigger match notifications
       supabase.functions.invoke("notify-match", { body: { type: "voyage", record_id: data.id } }).catch(() => {});
-      navigate("/dashboard");
+      // Show reminder prompt
+      setCreatedReminderInfo({
+        itemType: "voyage",
+        itemId: data.id,
+        departureCity: departureCity,
+        arrivalCity: arrivalCity,
+        departureDate: departureDate,
+        departureTime: departureTime || null,
+      });
+      setShowReminderPrompt(true);
     }
   };
 
@@ -583,6 +595,18 @@ const NewTrip = () => {
       </div>
 
       <BottomNav />
+
+      {/* Reminder prompt after creation */}
+      {createdReminderInfo && (
+        <ReminderDialog
+          info={createdReminderInfo}
+          open={showReminderPrompt}
+          onOpenChange={(open) => {
+            setShowReminderPrompt(open);
+            if (!open) navigate("/dashboard");
+          }}
+        />
+      )}
     </div>
   );
 };
