@@ -44,6 +44,7 @@ import NotFound from "./pages/NotFound";
 import VoyageDetail from "./pages/VoyageDetail";
 import ShipmentDetail from "./pages/ShipmentDetail";
 import NeeditMissionDetail from "./pages/NeeditMissionDetail";
+import FavoritesPage from "./pages/FavoritesPage";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +101,7 @@ const App = () => {
               <Route path="/install" element={<ProtectedRoute><InstallPage /></ProtectedRoute>} />
               <Route path="/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
               <Route path="/aide" element={<ProtectedRoute><AidePage /></ProtectedRoute>} />
+              <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
               </FavoritesProvider>
