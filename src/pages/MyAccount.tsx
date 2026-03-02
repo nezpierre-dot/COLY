@@ -45,11 +45,9 @@ const MyAccount = () => {
 
   useEffect(() => {
     if (!user) return;
-    // Load rating
     supabase.rpc("get_user_rating", { _user_id: user.id }).then(({ data }) => {
       if (data && data.length > 0 && data[0].total_ratings > 0) setRating(data[0]);
     });
-    // Load profile (bio, avatar, kyc)
     supabase.from("profiles").select("bio, avatar_url, kyc_status").eq("user_id", user.id).single().then(({ data }) => {
       if (data) {
         setBio((data as any).bio || "");
@@ -57,12 +55,10 @@ const MyAccount = () => {
         setKycStatus(data.kyc_status || "pending");
       }
     });
-    // Load stats + earnings
     Promise.all([
       supabase.from("voyages").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       supabase.from("shipments").select("id, tarif", { count: "exact" }).eq("user_id", user.id),
       supabase.from("needit_missions").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      // Shipments where user is voyageur (earned money)
       supabase.from("shipments").select("tarif").eq("voyageur_id", user.id).eq("status", "delivered"),
     ]).then(([v, s, m, earned]) => {
       setStats({
@@ -70,7 +66,6 @@ const MyAccount = () => {
         shipments: s.count || 0,
         missions: m.count || 0,
       });
-      // Sum up earned tarifs
       const total = (earned.data || []).reduce((sum, sh) => {
         const num = parseFloat(sh.tarif?.replace(/[^0-9.,]/g, "").replace(",", ".") || "0");
         return sum + (isNaN(num) ? 0 : num);
@@ -84,21 +79,18 @@ const MyAccount = () => {
     if (!file || !user) return;
     if (file.size > 5 * 1024 * 1024) { toast.error(t("account.avatarTooLarge")); return; }
 
-    // Preview immediately
     const reader = new FileReader();
     reader.onload = () => setAvatar(reader.result as string);
     reader.readAsDataURL(file);
 
-    // Upload to storage
     const ext = file.name.split(".").pop();
     const path = `${user.id}/avatar.${ext}`;
     const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-    if (uploadError) { toast.error("Erreur upload avatar"); return; }
+    if (uploadError) { toast.error(t("account.uploadError")); return; }
 
     const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
     const publicUrl = urlData.publicUrl + "?t=" + Date.now();
 
-    // Save to profile
     await supabase.from("profiles").update({ avatar_url: publicUrl } as any).eq("user_id", user.id);
     setAvatar(publicUrl);
     hapticSuccess();
@@ -110,7 +102,6 @@ const MyAccount = () => {
     const { error } = await supabase.auth.updateUser({
       data: { full_name: fullName.trim(), phone: phone.trim() },
     });
-    // Save bio to profile
     await supabase.from("profiles").update({ bio: bio.trim() } as any).eq("user_id", user.id);
     if (error) toast.error(error.message);
     else { hapticSuccess(); toast.success(t("account.profileUpdated")); setEditing(false); }
@@ -129,15 +120,15 @@ const MyAccount = () => {
 
   // Badges
   const badges = [
-    ...(kycStatus === "verified" ? [{ icon: <BadgeCheck size={14} className="text-emerald-400" />, label: "Vérifié", highlight: true }] : []),
-    ...(stats.voyages >= 1 ? [{ icon: <Plane size={14} className="text-primary" />, label: "Premier vol" }] : []),
-    ...(stats.voyages >= 10 ? [{ icon: <Globe size={14} className="text-blue-400" />, label: "Globe-trotter" }] : []),
-    ...(stats.shipments >= 5 ? [{ icon: <Package size={14} className="text-accent" />, label: "Expéditeur actif" }] : []),
-    ...(stats.shipments >= 20 ? [{ icon: <Rocket size={14} className="text-purple-400" />, label: "Expert envoi" }] : []),
-    ...(stats.missions >= 3 ? [{ icon: <ShoppingCart size={14} className="text-secondary" />, label: "Chasseur NeedIt" }] : []),
-    ...(stats.missions >= 10 ? [{ icon: <Trophy size={14} className="text-amber-400" />, label: "10 missions" }] : []),
-    ...(totalEarned >= 100 ? [{ icon: <Wallet size={14} className="text-emerald-400" />, label: "100€ gagnés" }] : []),
-    ...(rating && rating.average_score >= 4.5 ? [{ icon: <Star size={14} className="text-amber-400" />, label: "Top noté" }] : []),
+    ...(kycStatus === "verified" ? [{ icon: <BadgeCheck size={14} className="text-emerald-400" />, label: t("account.badge.verified"), highlight: true }] : []),
+    ...(stats.voyages >= 1 ? [{ icon: <Plane size={14} className="text-primary" />, label: t("account.badge.firstFlight") }] : []),
+    ...(stats.voyages >= 10 ? [{ icon: <Globe size={14} className="text-blue-400" />, label: t("account.badge.globeTrotter") }] : []),
+    ...(stats.shipments >= 5 ? [{ icon: <Package size={14} className="text-accent" />, label: t("account.badge.activeSender") }] : []),
+    ...(stats.shipments >= 20 ? [{ icon: <Rocket size={14} className="text-purple-400" />, label: t("account.badge.sendExpert") }] : []),
+    ...(stats.missions >= 3 ? [{ icon: <ShoppingCart size={14} className="text-secondary" />, label: t("account.badge.needitHunter") }] : []),
+    ...(stats.missions >= 10 ? [{ icon: <Trophy size={14} className="text-amber-400" />, label: t("account.badge.tenMissions") }] : []),
+    ...(totalEarned >= 100 ? [{ icon: <Wallet size={14} className="text-emerald-400" />, label: t("account.badge.earned100") }] : []),
+    ...(rating && rating.average_score >= 4.5 ? [{ icon: <Star size={14} className="text-amber-400" />, label: t("account.badge.topRated") }] : []),
   ];
 
   const accordionSections = [
@@ -227,12 +218,10 @@ const MyAccount = () => {
               {isVoyageur ? t("account.voyageur") : t("account.sender")} · N°{userId.toUpperCase()}
             </p>
 
-            {/* Bio */}
             {bio && !editing && (
               <p className="text-white/70 text-xs mt-1.5 line-clamp-2 italic">"{bio}"</p>
             )}
 
-            {/* Star rating */}
             {rating ? (
               <div className="flex items-center gap-1.5 mt-2">
                 <div className="flex items-center gap-0.5">
@@ -328,7 +317,7 @@ const MyAccount = () => {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">{t("account.fullName")}</label>
-                  <input className={inputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Prénom Nom" />
+                  <input className={inputClass} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={t("account.namePlaceholder")} />
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">{t("account.bio")}</label>
@@ -343,11 +332,11 @@ const MyAccount = () => {
                   <p className="text-xs text-muted-foreground text-right mt-0.5">{bio.length}/120</p>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground">Téléphone</label>
+                  <label className="text-xs text-muted-foreground">{t("account.phoneLabel")}</label>
                   <input className={inputClass} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+33 6 12 34 56 78" />
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground">Email</label>
+                  <label className="text-xs text-muted-foreground">{t("account.emailLabel")}</label>
                   <p className="text-sm text-muted-foreground py-2">{email}</p>
                 </div>
                 <motion.button
@@ -411,13 +400,13 @@ const MyAccount = () => {
           })}
         </div>
 
-        {/* FAQ / Aide */}
+        {/* FAQ / Help */}
         <div className="flex gap-4 mb-4">
           <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate("/faq")} className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
             <HelpCircle size={20} /> FAQ
           </motion.button>
           <motion.button whileTap={{ scale: 0.97 }} onClick={() => navigate("/aide")} className="flex-1 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-90 transition-opacity shadow-lg flex items-center justify-center gap-2">
-            <HelpCircle size={20} /> Aide
+            <HelpCircle size={20} /> {t("account.helpLabel")}
           </motion.button>
         </div>
 
@@ -428,15 +417,15 @@ const MyAccount = () => {
               <ShieldCheck size={22} className="text-accent" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-foreground">Protégez votre compte</p>
+              <p className="text-sm font-semibold text-foreground">{t("account.protectAccount")}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Activez l'authentification à deux facteurs (2FA) pour renforcer la sécurité de votre compte.
+                {t("account.protectAccountDesc")}
               </p>
               <button
-                onClick={() => toast.info("La double authentification sera bientôt disponible")}
+                onClick={() => toast.info(t("account.2FASoon"))}
                 className="mt-2 text-xs font-semibold text-accent hover:underline flex items-center gap-1"
               >
-                <Lock size={11} /> Activer la 2FA →
+                <Lock size={11} /> {t("account.enable2FA")} →
               </button>
             </div>
           </div>
