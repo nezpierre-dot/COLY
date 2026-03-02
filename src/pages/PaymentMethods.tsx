@@ -157,12 +157,7 @@ export default function PaymentMethods() {
       });
       if (error) throw error;
 
-      const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-      if (!stripePublicKey) {
-        toast.error("Configuration Stripe manquante");
-        setAddingType(null);
-        return;
-      }
+      const stripePublicKey = "pk_test_51T6c66EDbbBFPXhZ39PmSTzs7u4zNxVW6tt6LluzpWwQaa5ZoIxC1QKQ69t1qdVFaRsO3acwqHMU3Aof4V1aquil00G1U5C3tg";
 
       const stripe = await loadStripe(stripePublicKey);
       if (!stripe) {
