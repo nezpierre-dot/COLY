@@ -157,7 +157,7 @@ export default function PaymentMethods() {
       });
       if (error) throw error;
 
-      const stripePublicKey = "pk_test_51T6c66EDbbBFPXhZ39PmSTzs7u4zNxVW6tt6LluzpWwQaa5ZoIxC1QKQ69t1qdVFaRsO3acwqHMU3Aof4V1aquil00G1U5C3tg";
+      const stripePublicKey = "pk_live_51T6c5zCbt9PiILTReMvupOylNkzyHGUy4A48QkRMDKn3CrBzweGsnkOugSvCp5CVclPkFNs023t8YRO5YSAyQOIv00HQh7f31s";
 
       const stripe = await loadStripe(stripePublicKey);
       if (!stripe) {
