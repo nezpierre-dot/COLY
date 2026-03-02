@@ -41,6 +41,8 @@ import FaqPage from "./pages/FaqPage";
 import AidePage from "./pages/AidePage";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import VoyageDetail from "./pages/VoyageDetail";
+import ShipmentDetail from "./pages/ShipmentDetail";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +89,8 @@ const App = () => {
               <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
               <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
               <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
+              <Route path="/voyage/:id" element={<ProtectedRoute><VoyageDetail /></ProtectedRoute>} />
+              <Route path="/shipment/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
               <Route path="/conversations" element={<ProtectedRoute><ConversationsPage /></ProtectedRoute>} />
               <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
