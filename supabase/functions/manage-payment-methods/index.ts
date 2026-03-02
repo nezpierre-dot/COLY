@@ -45,6 +45,16 @@ serve(async (req) => {
 
     let customerId = profile?.stripe_customer_id;
 
+    // Verify customer exists in Stripe, recreate if not (e.g. switching test→live keys)
+    if (customerId) {
+      try {
+        await stripe.customers.retrieve(customerId);
+      } catch (_e) {
+        // Customer doesn't exist in this Stripe account, reset
+        customerId = null;
+      }
+    }
+
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
