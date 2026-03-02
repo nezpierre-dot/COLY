@@ -1,15 +1,22 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAuth } from "@/hooks/useAuth";
 
 const Welcome = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user, loading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("onboarding-done")
   );
+
+  // If user is already authenticated (e.g. after Google OAuth redirect), go to dashboard
+  if (!loading && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   if (showOnboarding) {
     return <OnboardingFlow onComplete={() => setShowOnboarding(false)} />;
