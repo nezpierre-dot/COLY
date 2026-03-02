@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield } from "lucide-react";
+import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -330,6 +331,12 @@ const Dashboard = () => {
   const [colisMatchOnly, setColisMatchOnly] = useState(false);
   const [needitMatchOnly, setNeeditMatchOnly] = useState(false);
 
+  // Sort state
+  const [voyageurColisSort, setVoyageurColisSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
+  const [voyageurNeeditSort, setVoyageurNeeditSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
+  const [demandeurEnvoisSort, setDemandeurEnvoisSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
+  const [demandeurMissionsSort, setDemandeurMissionsSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
+
   useEffect(() => {
     if (!isVoyageur) return;
     const loadNeedit = async () => {
@@ -387,6 +394,16 @@ const Dashboard = () => {
   }, [needitMissions, matchedNeedit]);
 
   const totalMatches = matchedShipments.length + matchedNeedit.length;
+
+  // Sorted lists for voyageur tabs
+  const sortedMatchedShipments = useMemo(() => applySortOption(matchedShipments, voyageurColisSort, { dateCreated: "created_at", price: "tarif", departureDate: "departure_date", destination: "arrival_city" }), [matchedShipments, voyageurColisSort]);
+  const sortedUnmatchedShipments = useMemo(() => applySortOption(unmatchedShipments, voyageurColisSort, { dateCreated: "created_at", price: "tarif", departureDate: "departure_date", destination: "arrival_city" }), [unmatchedShipments, voyageurColisSort]);
+  const sortedMatchedNeedit = useMemo(() => applySortOption(matchedNeedit, voyageurNeeditSort, { dateCreated: "created_at", price: "prix_max", departureDate: "created_at", destination: "country" }), [matchedNeedit, voyageurNeeditSort]);
+  const sortedUnmatchedNeedit = useMemo(() => applySortOption(unmatchedNeedit, voyageurNeeditSort, { dateCreated: "created_at", price: "prix_max", departureDate: "created_at", destination: "country" }), [unmatchedNeedit, voyageurNeeditSort]);
+
+  // Sorted lists for demandeur tabs
+  const sortedDemandeurShipments = useMemo(() => applySortOption(demandeurShipments, demandeurEnvoisSort, { dateCreated: "created_at", price: "tarif", departureDate: "departure_date", destination: "arrival_city" }), [demandeurShipments, demandeurEnvoisSort]);
+  const sortedDemandeurMissions = useMemo(() => applySortOption(demandeurMissions, demandeurMissionsSort, { dateCreated: "created_at", price: "prix_max", departureDate: "created_at", destination: "country" }), [demandeurMissions, demandeurMissionsSort]);
 
   // Locale for date formatting
   const dateLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : language === "de" ? "de-DE" : language === "pt" ? "pt-BR" : language === "it" ? "it-IT" : language === "ar" ? "ar-SA" : "fr-FR";
@@ -660,31 +677,36 @@ const Dashboard = () => {
 
               {/* ---- Colis tab ---- */}
               <TabsContent value="colis" className="space-y-3 mt-0">
-                {pendingShipments.length > 0 && matchedShipments.length > 0 && (
-                  <button
-                    onClick={() => setColisMatchOnly(!colisMatchOnly)}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      colisMatchOnly
-                        ? "bg-accent text-accent-foreground shadow-md"
-                        : "bg-muted/60 text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <Zap size={14} />
-                    {t("dashboard.matchOnlyLabel")}
-                    <span className={`min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold ${
-                      colisMatchOnly ? "bg-accent-foreground/20 text-accent-foreground" : "bg-accent/15 text-accent"
-                    }`}>
-                      {matchedShipments.length}
-                    </span>
-                  </button>
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {pendingShipments.length > 0 && matchedShipments.length > 0 && (
+                    <button
+                      onClick={() => setColisMatchOnly(!colisMatchOnly)}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                        colisMatchOnly
+                          ? "bg-accent text-accent-foreground shadow-md"
+                          : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      <Zap size={14} />
+                      {t("dashboard.matchOnlyLabel")}
+                      <span className={`min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold ${
+                        colisMatchOnly ? "bg-accent-foreground/20 text-accent-foreground" : "bg-accent/15 text-accent"
+                      }`}>
+                        {matchedShipments.length}
+                      </span>
+                    </button>
+                  )}
+                  {pendingShipments.length > 0 && (
+                    <SortSelect value={voyageurColisSort} onChange={setVoyageurColisSort} t={t} />
+                  )}
+                </div>
 
                 {matchedShipments.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
                       <Zap size={12} className="text-accent" /> {t("dashboard.matches_label")} ({matchedShipments.length})
                     </h3>
-                    {matchedShipments.map((s: any) => (
+                    {sortedMatchedShipments.map((s: any) => (
                       <button key={s.id}
                         onClick={() => setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
                         className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 space-y-1.5 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
@@ -719,7 +741,7 @@ const Dashboard = () => {
                         {t("dashboard.otherShipments")} ({unmatchedShipments.length})
                       </h3>
                     )}
-                    {unmatchedShipments.map((s: any) => (
+                    {sortedUnmatchedShipments.map((s: any) => (
                       <div key={s.id} className="bg-card rounded-xl px-3 py-2.5 border border-border">
                         <div className="flex items-center justify-between">
                           <div className="min-w-0">
@@ -784,31 +806,36 @@ const Dashboard = () => {
                   </div>
                 )}
 
-                {needitMissions.length > 0 && matchedNeedit.length > 0 && (
-                  <button
-                    onClick={() => setNeeditMatchOnly(!needitMatchOnly)}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-                      needitMatchOnly
-                        ? "bg-accent text-accent-foreground shadow-md"
-                        : "bg-muted/60 text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    <Zap size={14} />
-                    {t("dashboard.matchOnlyLabel")}
-                    <span className={`min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold ${
-                      needitMatchOnly ? "bg-accent-foreground/20 text-accent-foreground" : "bg-accent/15 text-accent"
-                    }`}>
-                      {matchedNeedit.length}
-                    </span>
-                  </button>
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {needitMissions.length > 0 && matchedNeedit.length > 0 && (
+                    <button
+                      onClick={() => setNeeditMatchOnly(!needitMatchOnly)}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                        needitMatchOnly
+                          ? "bg-accent text-accent-foreground shadow-md"
+                          : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      <Zap size={14} />
+                      {t("dashboard.matchOnlyLabel")}
+                      <span className={`min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold ${
+                        needitMatchOnly ? "bg-accent-foreground/20 text-accent-foreground" : "bg-accent/15 text-accent"
+                      }`}>
+                        {matchedNeedit.length}
+                      </span>
+                    </button>
+                  )}
+                  {needitMissions.length > 0 && (
+                    <SortSelect value={voyageurNeeditSort} onChange={setVoyageurNeeditSort} t={t} keys={["dateCreated", "price", "destination"]} />
+                  )}
+                </div>
 
                 {matchedNeedit.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
                       <Zap size={12} className="text-accent" /> {t("dashboard.matchingMissions")} ({matchedNeedit.length})
                     </h3>
-                    {matchedNeedit.map((m: any) => (
+                    {sortedMatchedNeedit.map((m: any) => (
                       <button key={m.id}
                         onClick={() => setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission" })}
                         className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
@@ -843,7 +870,7 @@ const Dashboard = () => {
                       <ShoppingBag size={12} className="text-muted-foreground" />
                       {matchedNeedit.length > 0 ? `${t("dashboard.otherMissions")} (${unmatchedNeedit.length})` : `${t("dashboard.availableMissions")} (${unmatchedNeedit.length})`}
                     </h3>
-                    {unmatchedNeedit.map((m: any) => (
+                    {sortedUnmatchedNeedit.map((m: any) => (
                       <div key={m.id} className="bg-card rounded-xl px-3 py-2.5 border border-border">
                         <div className="flex items-start justify-between">
                           <div className="min-w-0">
@@ -973,6 +1000,9 @@ const Dashboard = () => {
 
               {/* ---- Envois tab ---- */}
               <TabsContent value="envois" className="space-y-3 mt-0">
+                {demandeurShipments.length > 0 && (
+                  <SortSelect value={demandeurEnvoisSort} onChange={setDemandeurEnvoisSort} t={t} />
+                )}
                 {demandeurShipments.length === 0 ? (
                   <EmptyState
                     icon={Send}
@@ -985,7 +1015,7 @@ const Dashboard = () => {
                     }
                   />
                 ) : (
-                  demandeurShipments.map((s) => (
+                  sortedDemandeurShipments.map((s) => (
                     <div key={s.id} className="w-full text-left rounded-2xl p-4 relative overflow-hidden transition-all ring-1 ring-primary/20 hover:ring-2 hover:ring-primary hover:shadow-lg"
                       style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}>
                       <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-primary-foreground/8" />
@@ -1044,6 +1074,9 @@ const Dashboard = () => {
 
               {/* ---- Missions NeedIt tab ---- */}
               <TabsContent value="missions" className="space-y-3 mt-0">
+                {demandeurMissions.length > 0 && (
+                  <SortSelect value={demandeurMissionsSort} onChange={setDemandeurMissionsSort} t={t} keys={["dateCreated", "price", "destination"]} />
+                )}
                 {demandeurMissions.length === 0 ? (
                   <EmptyState
                     icon={ShoppingBag}
@@ -1056,7 +1089,7 @@ const Dashboard = () => {
                     }
                   />
                 ) : (
-                  demandeurMissions.map((m) => (
+                  sortedDemandeurMissions.map((m) => (
                     <div key={m.id} className="bg-card rounded-xl p-3 border border-border space-y-1.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 min-w-0">

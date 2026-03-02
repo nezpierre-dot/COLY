@@ -908,6 +908,15 @@ const fr: TranslationDict = {
   "reminder.deleted": "Rappel supprimé",
   "reminder.addToCalendar": "Ajouter au calendrier",
   "reminder.btnLabel": "Rappel",
+
+  // ─── Sort ───
+  "sort.label": "Trier par",
+  "sort.dateCreated": "Date de création",
+  "sort.price": "Prix / Budget",
+  "sort.departureDate": "Date de départ",
+  "sort.destination": "Destination",
+  "sort.asc": "Croissant",
+  "sort.desc": "Décroissant",
 };
 
 const en: TranslationDict = {
@@ -1790,6 +1799,15 @@ const en: TranslationDict = {
   "reminder.deleted": "Reminder deleted",
   "reminder.addToCalendar": "Add to calendar",
   "reminder.btnLabel": "Reminder",
+
+  // ─── Sort ───
+  "sort.label": "Sort by",
+  "sort.dateCreated": "Date created",
+  "sort.price": "Price / Budget",
+  "sort.departureDate": "Departure date",
+  "sort.destination": "Destination",
+  "sort.asc": "Ascending",
+  "sort.desc": "Descending",
 };
 
 const es: TranslationDict = {
