@@ -1,11 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins, Globe, Rocket, ShoppingCart, Trophy, Wallet } from "lucide-react";
+import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins, Globe, Rocket, ShoppingCart, Trophy, Wallet, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { motion, AnimatePresence } from "framer-motion";
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
 import {
@@ -42,6 +43,7 @@ const MyAccount = () => {
   const [stats, setStats] = useState({ voyages: 0, shipments: 0, missions: 0 });
   const [kycStatus, setKycStatus] = useState("pending");
   const [totalEarned, setTotalEarned] = useState(0);
+  const [activityDates, setActivityDates] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -56,9 +58,9 @@ const MyAccount = () => {
       }
     });
     Promise.all([
-      supabase.from("voyages").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      supabase.from("shipments").select("id, tarif", { count: "exact" }).eq("user_id", user.id),
-      supabase.from("needit_missions").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+      supabase.from("voyages").select("id, created_at", { count: "exact" }).eq("user_id", user.id),
+      supabase.from("shipments").select("id, tarif, created_at", { count: "exact" }).eq("user_id", user.id),
+      supabase.from("needit_missions").select("id, created_at", { count: "exact", head: false }).eq("user_id", user.id),
       supabase.from("shipments").select("tarif").eq("voyageur_id", user.id).eq("status", "delivered"),
     ]).then(([v, s, m, earned]) => {
       setStats({
@@ -71,8 +73,29 @@ const MyAccount = () => {
         return sum + (isNaN(num) ? 0 : num);
       }, 0);
       setTotalEarned(total);
+      // Collect all activity dates
+      const dates: string[] = [];
+      (v.data || []).forEach((item: any) => dates.push(item.created_at));
+      (s.data || []).forEach((item: any) => dates.push(item.created_at));
+      (m.data || []).forEach((item: any) => dates.push(item.created_at));
+      setActivityDates(dates);
     });
   }, [user]);
+
+  // Activity chart data (last 30 days)
+  const activityChartData = useMemo(() => {
+    const now = new Date();
+    const days: { name: string; value: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+      const count = activityDates.filter(dt => dt?.startsWith(key)).length;
+      days.push({ name: label, value: count });
+    }
+    return days;
+  }, [activityDates]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -299,6 +322,42 @@ const MyAccount = () => {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Recent activity chart */}
+        {activityChartData.some(d => d.value > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-card border border-border rounded-2xl p-4 mb-6 shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-1.5">
+                <BarChart3 size={14} className="text-primary" />
+                <span className="text-sm font-semibold text-foreground">{t("account.recentActivity") || "Activité récente"}</span>
+              </div>
+              <span className="text-xs text-muted-foreground">30j</span>
+            </div>
+            <div className="h-20">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={activityChartData}>
+                  <defs>
+                    <linearGradient id="colorProfileActivity" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="name" hide />
+                  <Tooltip
+                    contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid hsl(var(--border))" }}
+                    labelStyle={{ fontWeight: 600 }}
+                  />
+                  <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorProfileActivity)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
         )}
 
         {/* Inline edit panel */}
