@@ -12,6 +12,8 @@ import { getCurrencyForCountry, getUnitsForCountry } from "@/hooks/useLocaleUnit
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import EanScanner from "@/components/EanScanner";
 import { useTranslation } from "@/hooks/useTranslation";
+import { localizeCountry } from "@/lib/geoLocalization";
+import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 
 type CategoryNode = { label: string; children?: CategoryNode[]; };
 
@@ -38,23 +40,24 @@ const fetchCities = async (country: string): Promise<string[]> => {
   } catch { return []; }
 };
 
-const SearchableDropdown = ({ label, placeholder, items, value, onChange, loading, disabled, error }: any) => {
+const SearchableDropdown = ({ label, placeholder, items, value, onChange, loading, disabled, error, displayFn }: any) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const filtered = search ? items.filter((i: string) => i.toLowerCase().includes(search.toLowerCase())) : items;
+  const display = displayFn ?? ((v: string) => v);
+  const filtered = search ? items.filter((i: string) => i.toLowerCase().includes(search.toLowerCase()) || display(i).toLowerCase().includes(search.toLowerCase())) : items;
   return (
     <div>
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button disabled={disabled} className={`w-full flex items-center justify-between border-b py-3 text-left bg-transparent transition-colors disabled:opacity-50 ${error ? "border-destructive text-destructive" : "border-primary/30 focus:border-primary"} ${value ? "text-foreground" : "text-muted-foreground"}`}>
-            <span className="truncate">{loading ? "Chargement..." : value || placeholder}</span>
+            <span className="truncate">{loading ? "Chargement..." : value ? display(value) : placeholder}</span>
             {loading ? <Loader2 size={16} className="animate-spin text-muted-foreground shrink-0" /> : <ChevronDown size={16} className="text-muted-foreground shrink-0" />}
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-popover border border-border shadow-lg z-50" align="start">
           <div className="flex items-center gap-2 px-3 py-2 border-b border-border"><Search size={14} /><input className="flex-1 text-sm bg-transparent focus:outline-none" placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus /></div>
-          <div className="max-h-60 overflow-y-auto">{filtered.map((item: string) => (<button key={item} onClick={() => { onChange(item); setOpen(false); setSearch(""); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted">{item}</button>))}</div>
+          <div className="max-h-60 overflow-y-auto">{filtered.map((item: string) => (<button key={item} onClick={() => { onChange(item); setOpen(false); setSearch(""); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted">{display(item)}</button>))}</div>
         </PopoverContent>
       </Popover>
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}
@@ -67,6 +70,8 @@ const NeeditMission = () => {
   const { id: editId } = useParams<{ id: string }>();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { language } = useLanguagePreference();
+  const countryDisplay = useCallback((v: string) => localizeCountry(v, language), [language]);
   const [submitting, setSubmitting] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
@@ -170,7 +175,7 @@ const NeeditMission = () => {
               <>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.fromWhere")}</h3>
                 <div className="space-y-4 mb-8">
-                  <SearchableDropdown label={t("sendcoly.country")} placeholder={t("trip.selectCountry")} items={countries} value={pays} onChange={handleCountryChange} loading={loadingCountries} error={errors.pays} />
+                  <SearchableDropdown label={t("sendcoly.country")} placeholder={t("trip.selectCountry")} items={countries} value={pays} onChange={handleCountryChange} loading={loadingCountries} error={errors.pays} displayFn={countryDisplay} />
                   <SearchableDropdown label={`${t("sendcoly.city")} (facultatif)`} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => setVille(v)} loading={loadingCities} disabled={!pays} />
                 </div>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.when")}</h3>

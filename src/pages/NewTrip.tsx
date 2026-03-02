@@ -1,6 +1,8 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, ChevronDown } from "lucide-react";
+import { localizeCountry } from "@/lib/geoLocalization";
+import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import { useTransportFeasibility } from "@/hooks/useTransportFeasibility";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
@@ -23,22 +25,26 @@ const SearchableSelect = ({
   options,
   placeholder,
   disabled = false,
+  displayFn,
 }: {
   value: string;
   onChange: (v: string) => void;
   options: string[];
   placeholder: string;
   disabled?: boolean;
+  displayFn?: (v: string) => string;
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const display = displayFn ?? ((v: string) => v);
+
   const filtered = useMemo(() => {
     if (!search) return options.slice(0, 50);
     const q = search.toLowerCase();
-    return options.filter((o) => o.toLowerCase().includes(q)).slice(0, 50);
-  }, [options, search]);
+    return options.filter((o) => o.toLowerCase().includes(q) || display(o).toLowerCase().includes(q)).slice(0, 50);
+  }, [options, search, display]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -59,7 +65,7 @@ const SearchableSelect = ({
         className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className={value ? "text-foreground" : "text-muted-foreground"}>
-          {value || placeholder}
+          {value ? display(value) : placeholder}
         </span>
         <ChevronDown className="h-4 w-4 opacity-50" />
       </button>
@@ -87,7 +93,7 @@ const SearchableSelect = ({
                     item === value ? "bg-primary/10 font-medium" : ""
                   }`}
                 >
-                  {item}
+                  {display(item)}
                 </button>
               ))
             )}
@@ -140,6 +146,8 @@ const NewTrip = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { language } = useLanguagePreference();
+  const countryDisplay = useCallback((v: string) => localizeCountry(v, language), [language]);
   const TRANSPORT_METHODS = getTransportMethods(t);
   const [step, setStep] = useState(1);
 
@@ -376,7 +384,7 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.departCountry")}</Label>
-                  <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder={t("trip.selectCountry")} />
+                  <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.departCity")}</Label>
@@ -405,7 +413,7 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalCountry")}</Label>
-                  <SearchableSelect value={arrivalCountry} onChange={handleArrivalCountry} options={countries} placeholder={t("trip.selectCountry")} />
+                  <SearchableSelect value={arrivalCountry} onChange={handleArrivalCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalCity")}</Label>
