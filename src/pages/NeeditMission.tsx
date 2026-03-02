@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode } from "lucide-react";
+import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -96,7 +98,7 @@ const NeeditMission = () => {
   const [poids, setPoids] = useState("");
   const [prixMax, setPrixMax] = useState("");
   const [eanCode, setEanCode] = useState("");
-
+  const [autoAccept, setAutoAccept] = useState(false);
   useEffect(() => { fetchCountries().then((data) => { setCountries(data); setLoadingCountries(false); }); }, []);
 
   useEffect(() => {
@@ -108,6 +110,7 @@ const NeeditMission = () => {
       setPays(data.country || ""); setVille(data.city || ""); setTiming(data.timing || ""); setIsUnlisted(data.is_unlisted || false);
       setUnlistedName(data.unlisted_description || data.product_name || ""); setSelectedLeaf(data.is_unlisted ? "" : (data.product_name || ""));
       setPhotoPreview(data.photo_url || null); setDimension(data.dimension || ""); setPoids(data.poids || ""); setPrixMax(data.prix_max || ""); setEanCode(data.ean_code || "");
+      setAutoAccept((data as any).auto_accept ?? false);
       if (data.country) { setLoadingCities(true); fetchCities(data.country).then((c) => { setCities(c); setLoadingCities(false); }); }
       setLoadingEdit(false);
     };
@@ -139,6 +142,7 @@ const NeeditMission = () => {
     else if (step === 2 && validateStep2()) setStep(3);
     else if (step === 3) setStep(4);
     else if (step === 4) {
+      if (!prixMax.trim()) { setErrors({ prixMax: t("needit.budgetRequired") }); toast.error(t("needit.budgetRequired")); return; }
       if (!user) { toast.error(t("needit.mustBeLoggedIn")); return; }
       setSubmitting(true);
       try {
@@ -149,7 +153,7 @@ const NeeditMission = () => {
           if (!uploadErr) { const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90); photo_url = data?.signedUrl ?? null; }
         }
         const pathLabels = categoryPath.map((n) => n.label); if (selectedLeaf) pathLabels.push(selectedLeaf);
-        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: prixMax || null, ean_code: eanCode || null };
+        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: prixMax || null, ean_code: eanCode || null, auto_accept: autoAccept };
         if (editId) {
           await supabase.from("needit_missions").update(missionData as any).eq("id", editId).eq("user_id", user.id);
           successFeedback(t("needit.missionUpdated"), { description: t("needit.missionUpdatedDesc") });
@@ -229,8 +233,40 @@ const NeeditMission = () => {
                       <div className="space-y-4 mb-4">
                         <div className="relative"><Input placeholder={units.dimensionPlaceholder} value={dimension} onChange={(e) => setDimension(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.dimension}</span></div>
                         <div className="relative"><Input placeholder={units.weightPlaceholder} value={poids} onChange={(e) => setPoids(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.weight}</span></div>
-                        <div className="relative"><Input placeholder={`${t("missions.priceMax")} (${currency.code})`} value={prixMax} onChange={(e) => setPrixMax(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">{currency.symbol}</span></div>
+                        <div>
+                          <div className="flex items-center gap-1 mb-1">
+                            <p className="text-xs text-muted-foreground">{t("needit.budgetLabel")} <span className="text-destructive">*</span></p>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild><Info size={12} className="text-muted-foreground cursor-help" /></TooltipTrigger>
+                                <TooltipContent className="max-w-[250px] text-xs">{t("needit.budgetTooltip")}</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="relative">
+                            <Input placeholder={`${t("missions.priceMax")} (${currency.code})`} value={prixMax} onChange={(e) => { setPrixMax(e.target.value); if (errors.prixMax) setErrors(p => { const n = {...p}; delete n.prixMax; return n; }); }} className={`border-0 border-b rounded-none px-0 pr-12 focus-visible:ring-0 ${errors.prixMax ? "border-destructive" : "border-primary/30 focus-visible:border-primary"}`} />
+                            <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">{currency.symbol}</span>
+                          </div>
+                          {errors.prixMax && <p className="text-xs mt-1" style={{ color: "#FF453A" }}>{errors.prixMax}</p>}
+                        </div>
                       </div>
+
+                      {/* Auto accept toggle */}
+                      <div className="flex items-center justify-between bg-muted/50 rounded-2xl p-4 mb-4">
+                        <div className="flex-1 mr-3">
+                          <p className="text-sm font-semibold text-foreground">{t("needit.autoAcceptLabel")}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{t("needit.autoAcceptHint")}</p>
+                        </div>
+                        <Switch checked={autoAccept} onCheckedChange={setAutoAccept} className="data-[state=checked]:bg-[#0D84FF]" />
+                      </div>
+
+                      {/* Recap budget */}
+                      {prixMax && (
+                        <div className="text-center mb-2">
+                          <span className="text-lg font-bold" style={{ color: "#30D158" }}>{t("needit.budgetMax")} : {prixMax} {currency.symbol}</span>
+                        </div>
+                      )}
+
                       <p className="text-sm text-muted-foreground leading-relaxed mb-6">{t("needit.priceNote")}<br />{t("needit.debitNote")}</p>
                     </>
                   );

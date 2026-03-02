@@ -823,9 +823,12 @@ const Dashboard = () => {
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                               <MapPin size={10} /> {localizeCountry(m.country)}{m.city ? `, ${localizeCity(m.city)}` : ""}
                             </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              {m.prix_max && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ color: "#30D158", background: "rgba(48,209,88,0.1)" }}>{t("needit.budgetMax")}: {m.prix_max} {getCurrencyForCountry(m.country).symbol}</span>}
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${m.auto_accept ? "text-[#0D84FF] bg-[#0D84FF]/10" : "text-muted-foreground bg-muted"}`}>{t("needit.autoAccept")}: {m.auto_accept ? t("needit.autoAcceptYes") : t("needit.autoAcceptNo")}</span>
+                            </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            {m.prix_max && <p className="text-sm font-bold text-foreground">{m.prix_max} {getCurrencyForCountry(m.country).symbol}</p>}
                             <ChevronRight size={14} className="text-accent" />
                           </div>
                         </div>
@@ -850,6 +853,10 @@ const Dashboard = () => {
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                               <MapPin size={10} /> {localizeCountry(m.country)}{m.city ? `, ${localizeCity(m.city)}` : ""}
                             </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              {m.prix_max && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ color: "#30D158", background: "rgba(48,209,88,0.1)" }}>{t("needit.budgetMax")}: {m.prix_max} {getCurrencyForCountry(m.country).symbol}</span>}
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${m.auto_accept ? "text-[#0D84FF] bg-[#0D84FF]/10" : "text-muted-foreground bg-muted"}`}>{t("needit.autoAccept")}: {m.auto_accept ? t("needit.autoAcceptYes") : t("needit.autoAcceptNo")}</span>
+                            </div>
                           </div>
                           {m.prix_max && <p className="text-sm font-bold text-foreground shrink-0">{m.prix_max} {getCurrencyForCountry(m.country).symbol}</p>}
                         </div>
