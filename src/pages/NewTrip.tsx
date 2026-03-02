@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2 } from "lucide-react";
 import { localizeCountry } from "@/lib/geoLocalization";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import { useTransportFeasibility } from "@/hooks/useTransportFeasibility";
@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { getCurrencyForCountry, getUnitsForCountry } from "@/hooks/useLocaleUnits";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,92 +17,11 @@ import { successFeedback } from "@/lib/successFeedback";
 import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
+import SearchableSelect from "@/components/SearchableSelect";
+import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 
-/** Searchable dropdown that only renders visible items (max 50 shown) */
-const SearchableSelect = ({
-  value,
-  onChange,
-  options,
-  placeholder,
-  disabled = false,
-  displayFn,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-  placeholder: string;
-  disabled?: boolean;
-  displayFn?: (v: string) => string;
-}) => {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  const display = displayFn ?? ((v: string) => v);
 
-  const filtered = useMemo(() => {
-    if (!search) return options.slice(0, 50);
-    const q = search.toLowerCase();
-    return options.filter((o) => o.toLowerCase().includes(q) || display(o).toLowerCase().includes(q)).slice(0, 50);
-  }, [options, search, display]);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  return (
-    <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => { if (!disabled) { setOpen(!open); setSearch(""); } }}
-        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <span className={value ? "text-foreground" : "text-muted-foreground"}>
-          {value ? display(value) : placeholder}
-        </span>
-        <ChevronDown className="h-4 w-4 opacity-50" />
-      </button>
-      {open && (
-        <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-card border border-border rounded-md shadow-lg">
-          <div className="p-2">
-            <Input
-              autoFocus
-              placeholder="Rechercher..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-8 text-sm"
-            />
-          </div>
-          <div className="max-h-48 overflow-y-auto">
-            {filtered.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-muted-foreground">Aucun résultat</div>
-            ) : (
-              filtered.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => { onChange(item); setOpen(false); setSearch(""); }}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-muted/80 transition-colors ${
-                    item === value ? "bg-primary/10 font-medium" : ""
-                  }`}
-                >
-                  {display(item)}
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 const getTransportMethods = (t: (k: string) => string) => [
   { value: "avion", label: t("transport.avion"), icon: Plane },
@@ -149,6 +67,7 @@ const NewTrip = () => {
   const { t } = useTranslation();
   const { language } = useLanguagePreference();
   const countryDisplay = useCallback((v: string) => localizeCountry(v, language), [language]);
+  const { recentCountries, recentCities } = useRecentLocations();
   const TRANSPORT_METHODS = getTransportMethods(t);
   const [step, setStep] = useState(1);
 
@@ -396,11 +315,11 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.departCountry")}</Label>
-                  <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} />
+                  <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.departCity")}</Label>
-                  <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departureCountry} />
+                  <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departureCountry} recentItems={recentCities} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.departAddress")}</Label>
@@ -425,11 +344,11 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalCountry")}</Label>
-                  <SearchableSelect value={arrivalCountry} onChange={handleArrivalCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} />
+                  <SearchableSelect value={arrivalCountry} onChange={handleArrivalCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalCity")}</Label>
-                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} />
+                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} recentItems={recentCities} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalAddress")}</Label>
