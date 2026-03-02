@@ -273,7 +273,8 @@ const MesNeeditMissions = () => {
                     <motion.div
                       key={m.id}
                       variants={staggerItem}
-                      className="bg-white dark:bg-[#1A1F2E] border border-[#E2E8F0] dark:border-[#2A3245] rounded-2xl p-5 shadow-sm"
+                      onClick={() => navigate(`/mission/${m.id}`)}
+                      className="bg-white dark:bg-[#1A1F2E] border border-[#E2E8F0] dark:border-[#2A3245] rounded-2xl p-5 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
                     >
                       <div className="flex items-start gap-3">
                         {/* Product image */}
