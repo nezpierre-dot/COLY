@@ -18,6 +18,7 @@ import { localizeCountry } from "@/lib/geoLocalization";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 
 type CategoryNode = { label: string; children?: CategoryNode[]; };
 
@@ -44,11 +45,19 @@ const fetchCities = async (country: string): Promise<string[]> => {
   } catch { return []; }
 };
 
-const SearchableDropdown = ({ label, placeholder, items, value, onChange, loading, disabled, error, displayFn }: any) => {
+const SearchableDropdown = ({ label, placeholder, items, value, onChange, loading, disabled, error, displayFn, popularItems = [], recentItems = [] }: any) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const display = displayFn ?? ((v: string) => v);
   const filtered = search ? items.filter((i: string) => i.toLowerCase().includes(search.toLowerCase()) || display(i).toLowerCase().includes(search.toLowerCase())) : items;
+  const validPopular = popularItems.filter((p: string) => items.includes(p));
+  const validRecent = recentItems.filter((r: string) => items.includes(r) && !validPopular.includes(r));
+  const hasSearch = search.length > 0;
+  const showSections = !hasSearch && (validPopular.length > 0 || validRecent.length > 0);
+  const remaining = !hasSearch ? items.filter((o: string) => !validPopular.includes(o) && !validRecent.includes(o)).slice(0, 30) : [];
+  const renderBtn = (item: string) => (
+    <button key={item} onClick={() => { onChange(item); setOpen(false); setSearch(""); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted">{display(item)}</button>
+  );
   return (
     <div>
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
@@ -61,7 +70,17 @@ const SearchableDropdown = ({ label, placeholder, items, value, onChange, loadin
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-popover border border-border shadow-lg z-50" align="start">
           <div className="flex items-center gap-2 px-3 py-2 border-b border-border"><Search size={14} /><input className="flex-1 text-sm bg-transparent focus:outline-none" placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} autoFocus /></div>
-          <div className="max-h-60 overflow-y-auto">{filtered.map((item: string) => (<button key={item} onClick={() => { onChange(item); setOpen(false); setSearch(""); }} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted">{display(item)}</button>))}</div>
+          <div className="max-h-60 overflow-y-auto">
+            {hasSearch ? (
+              filtered.length === 0 ? <div className="px-4 py-2.5 text-sm text-muted-foreground">Aucun résultat</div> : filtered.slice(0, 50).map(renderBtn)
+            ) : showSections ? (
+              <>
+                {validRecent.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Récents</div>{validRecent.map(renderBtn)}</>)}
+                {validPopular.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Populaires</div>{validPopular.map(renderBtn)}</>)}
+                {remaining.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">A – Z</div>{remaining.map(renderBtn)}</>)}
+              </>
+            ) : filtered.slice(0, 50).map(renderBtn)}
+          </div>
         </PopoverContent>
       </Popover>
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}
@@ -77,6 +96,7 @@ const NeeditMission = () => {
   const { t } = useTranslation();
   const { language } = useLanguagePreference();
   const countryDisplay = useCallback((v: string) => localizeCountry(v, language), [language]);
+  const { recentCountries, recentCities } = useRecentLocations();
   const [submitting, setSubmitting] = useState(false);
   const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
   const [showReminderPrompt, setShowReminderPrompt] = useState(false);
@@ -192,8 +212,8 @@ const NeeditMission = () => {
               <>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.fromWhere")}</h3>
                 <div className="space-y-4 mb-8">
-                  <SearchableDropdown label={t("sendcoly.country")} placeholder={t("trip.selectCountry")} items={countries} value={pays} onChange={handleCountryChange} loading={loadingCountries} error={errors.pays} displayFn={countryDisplay} />
-                  <SearchableDropdown label={`${t("sendcoly.city")} (facultatif)`} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => setVille(v)} loading={loadingCities} disabled={!pays} />
+                  <SearchableDropdown label={t("sendcoly.country")} placeholder={t("trip.selectCountry")} items={countries} value={pays} onChange={handleCountryChange} loading={loadingCountries} error={errors.pays} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
+                  <SearchableDropdown label={`${t("sendcoly.city")} (facultatif)`} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => setVille(v)} loading={loadingCities} disabled={!pays} recentItems={recentCities} />
                 </div>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.when")}</h3>
                 {errors.timing && <p className="text-xs text-destructive mb-2">{errors.timing}</p>}
