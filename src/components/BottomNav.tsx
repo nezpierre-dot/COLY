@@ -1,17 +1,20 @@
 import { Home, LayoutGrid, MessageCircle, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { hapticLight } from "@/lib/haptics";
+import { useTranslation } from "@/hooks/useTranslation";
 
-const tabs = [
-  { icon: Home, path: "/dashboard", label: "Accueil" },
-  { icon: LayoutGrid, path: "/mes-missions-needit", label: "Missions" },
-  { icon: MessageCircle, path: "/conversations", label: "Messages" },
-  { icon: User, path: "/my-account", label: "Profil" },
+const tabsDef = [
+  { icon: Home, path: "/dashboard", key: "nav.home" },
+  { icon: LayoutGrid, path: "/mes-missions-needit", key: "nav.missions" },
+  { icon: MessageCircle, path: "/conversations", key: "nav.messages" },
+  { icon: User, path: "/my-account", key: "nav.profile" },
 ];
 
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const tabs = tabsDef.map(tab => ({ ...tab, label: t(tab.key) }));
 
   return (
     <nav

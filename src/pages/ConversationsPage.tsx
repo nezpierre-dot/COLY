@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import PullToRefresh from "@/components/PullToRefresh";
 import { localizeCity } from "@/lib/geoLocalization";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Conversation {
   id: string;
@@ -25,6 +26,7 @@ interface Conversation {
 const ConversationsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -87,9 +89,9 @@ const ConversationsPage = () => {
     const d = new Date(dateStr);
     const now = new Date();
     const diffDays = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays === 0) return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-    if (diffDays === 1) return "Hier";
-    return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+    if (diffDays === 0) return d.toLocaleTimeString(language === "fr" ? "fr-FR" : language, { hour: "2-digit", minute: "2-digit" });
+    if (diffDays === 1) return t("conversations.yesterday");
+    return d.toLocaleDateString(language === "fr" ? "fr-FR" : language, { day: "2-digit", month: "short" });
   };
 
   return (
@@ -101,7 +103,7 @@ const ConversationsPage = () => {
             <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground">
               <ArrowLeft size={24} />
             </button>
-            <h1 className="text-2xl font-bold text-foreground flex-1">Messages</h1>
+            <h1 className="text-2xl font-bold text-foreground flex-1">{t("conversations.title")}</h1>
           </div>
 
           {loading ? (
@@ -111,8 +113,8 @@ const ConversationsPage = () => {
           ) : conversations.length === 0 ? (
             <EmptyState
               icon={MessageCircle}
-              title="Aucune conversation"
-              description="Les discussions avec les voyageurs apparaîtront ici quand un colis est accepté"
+              title={t("conversations.empty")}
+              description={t("conversations.emptyDesc")}
             />
           ) : (
             <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-2">
@@ -124,7 +126,6 @@ const ConversationsPage = () => {
                   onClick={() => navigate(`/chat/${c.id}`)}
                   className="w-full flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3.5 hover:shadow-sm transition-shadow text-left"
                 >
-                  {/* Avatar */}
                   <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0 relative">
                     <span className="text-sm font-bold text-primary">
                       {c.other_name?.charAt(0)?.toUpperCase() || "?"}
@@ -136,17 +137,16 @@ const ConversationsPage = () => {
                     )}
                   </div>
 
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={`text-sm font-semibold truncate ${c.unread_count > 0 ? "text-foreground" : "text-foreground"}`}>
+                      <p className="text-sm font-semibold truncate text-foreground">
                         {c.other_name}
                       </p>
                       <span className="text-xs text-muted-foreground shrink-0">{formatTime(c.last_message_at)}</span>
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{c.shipment_route}</p>
                     <p className={`text-xs truncate mt-0.5 ${c.unread_count > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                      {c.last_message || "Aucun message"}
+                      {c.last_message || t("conversations.noMessage")}
                     </p>
                   </div>
                 </motion.button>
