@@ -110,6 +110,39 @@ export type Database = {
         }
         Relationships: []
       }
+      live_locations: {
+        Row: {
+          created_at: string
+          id: string
+          is_sharing: boolean
+          latitude: number
+          longitude: number
+          shipment_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_sharing?: boolean
+          latitude: number
+          longitude: number
+          shipment_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_sharing?: boolean
+          latitude?: number
+          longitude?: number
+          shipment_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

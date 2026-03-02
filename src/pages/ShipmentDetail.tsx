@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Package, Shield, Clock, Pencil, X, Check, Loader2, AlertTriangle, User, Phone, Mail } from "lucide-react";
+import LiveLocationSharing from "@/components/LiveLocationSharing";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -225,6 +226,15 @@ const ShipmentDetail = () => {
             <div className="bg-card border border-border rounded-2xl p-4">
               <img src={shipment.photo_url} alt="Colis" className="w-full h-48 object-cover rounded-xl" />
             </div>
+          )}
+
+          {/* Live location sharing - visible when mission is accepted */}
+          {shipment.voyageur_id && shipment.status !== "pending" && shipment.status !== "cancelled" && shipment.status !== "delivered" && (
+            <LiveLocationSharing
+              itemId={shipment.id}
+              voyageurId={shipment.voyageur_id}
+              isVoyageur={user?.id === shipment.voyageur_id}
+            />
           )}
 
           {/* Tracking link */}
