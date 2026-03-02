@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Check, Loader2, ChevronDown } from "lucide-react";
+import { useTransportFeasibility } from "@/hooks/useTransportFeasibility";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { getCurrencyForCountry, getUnitsForCountry } from "@/hooks/useLocaleUnits";
 import { Label } from "@/components/ui/label";
@@ -200,6 +202,14 @@ const NewTrip = () => {
   };
   // Step 4 – Transport & options
   const [transportMethod, setTransportMethod] = useState("");
+  const disabledTransports = useTransportFeasibility(departureCountry, departureCity, arrivalCountry, arrivalCity);
+
+  // Reset transport if it becomes disabled
+  useEffect(() => {
+    if (transportMethod && disabledTransports[transportMethod]) {
+      setTransportMethod("");
+    }
+  }, [disabledTransports, transportMethod]);
   const [canPickup, setCanPickup] = useState(false);
   const [canMove, setCanMove] = useState(false);
   const [deliverToAddress, setDeliverToAddress] = useState(false);
@@ -406,22 +416,51 @@ const NewTrip = () => {
 
               <div>
                 <Label className="text-muted-foreground text-sm mb-2 block">Sélectionner le moyen de transports</Label>
-                <RadioGroup value={transportMethod} onValueChange={setTransportMethod} className="grid grid-cols-2 gap-2">
-                  {TRANSPORT_METHODS.map((t) => (
-                    <label
-                      key={t.value}
-                      className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors ${
-                        transportMethod === t.value
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:bg-muted/50"
-                      }`}
-                    >
-                      <RadioGroupItem value={t.value} className="sr-only" />
-                      <t.icon size={18} className="text-primary" />
-                      <span className="text-sm font-medium text-foreground">{t.label}</span>
-                    </label>
-                  ))}
-                </RadioGroup>
+                <TooltipProvider delayDuration={0}>
+                  <RadioGroup value={transportMethod} onValueChange={setTransportMethod} className="grid grid-cols-2 gap-2">
+                    {TRANSPORT_METHODS.map((t) => {
+                      const isDisabled = !!disabledTransports[t.value];
+                      const label = (
+                        <label
+                          key={t.value}
+                          className={`flex items-center gap-2 p-3 rounded-xl border transition-colors relative overflow-hidden ${
+                            isDisabled
+                              ? "border-slate-300 cursor-not-allowed opacity-40"
+                              : transportMethod === t.value
+                                ? "border-primary bg-primary/5 cursor-pointer"
+                                : "border-border hover:bg-muted/50 cursor-pointer"
+                          }`}
+                          onClick={(e) => { if (isDisabled) e.preventDefault(); }}
+                        >
+                          <RadioGroupItem value={t.value} className="sr-only" disabled={isDisabled} />
+                          <div className="relative">
+                            <t.icon size={18} className={isDisabled ? "text-slate-400" : "text-primary"} />
+                            {isDisabled && (
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="w-[140%] h-[1.5px] bg-slate-400 rotate-45 -translate-x-[10%]" />
+                              </div>
+                            )}
+                          </div>
+                          <span className={`text-sm font-medium ${isDisabled ? "text-slate-400 line-through decoration-slate-400/60" : "text-foreground"}`}>
+                            {t.label}
+                          </span>
+                        </label>
+                      );
+
+                      if (isDisabled) {
+                        return (
+                          <Tooltip key={t.value}>
+                            <TooltipTrigger asChild>{label}</TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[220px] text-xs text-center">
+                              {disabledTransports[t.value]}
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      }
+                      return label;
+                    })}
+                  </RadioGroup>
+                </TooltipProvider>
               </div>
 
               <div className="space-y-3">
