@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, MapPin, Calendar, Plane, Train, Car, Bus, Rocket, SlidersHorizontal, X, ShoppingCart, Package, Home } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Rocket, SlidersHorizontal, X, ShoppingCart, Package, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,11 +30,14 @@ interface Voyage {
 }
 
 const transportIcon = (method: string) => {
-  switch (method?.toLowerCase()) {
+  const first = method?.split(",")[0]?.trim().toLowerCase();
+  switch (first) {
     case "avion": return <Plane size={16} className="text-primary" />;
     case "train": return <Train size={16} className="text-secondary" />;
     case "voiture": return <Car size={16} className="text-accent" />;
     case "bus": return <Bus size={16} className="text-muted-foreground" />;
+    case "bateau": return <Ship size={16} className="text-primary" />;
+    case "velo": return <Bike size={16} className="text-secondary" />;
     default: return <Rocket size={16} className="text-muted-foreground" />;
   }
 };
@@ -45,6 +48,8 @@ const transportFilterIcon = (method: string) => {
     case "train": return <Train size={14} className="inline" />;
     case "voiture": return <Car size={14} className="inline" />;
     case "bus": return <Bus size={14} className="inline" />;
+    case "bateau": return <Ship size={14} className="inline" />;
+    case "velo": return <Bike size={14} className="inline" />;
     default: return <Rocket size={14} className="inline" />;
   }
 };
@@ -112,7 +117,10 @@ const VoyageurSearch = () => {
       if (filterNeedit && !v.accept_needit) return false;
       if (filterPickup && !v.can_pickup) return false;
       if (filterDeliver && !v.deliver_to_address) return false;
-      if (filterMethod && v.transport_method?.toLowerCase() !== filterMethod) return false;
+      if (filterMethod) {
+        const methods = v.transport_method?.toLowerCase().split(",").map((m: string) => m.trim()) || [];
+        if (!methods.includes(filterMethod)) return false;
+      }
       return true;
     });
   }, [voyages, destQuery, originQuery, filterNeedit, filterPickup, filterDeliver, filterMethod]);
@@ -211,7 +219,7 @@ const VoyageurSearch = () => {
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Transport</p>
                     <div className="flex flex-wrap gap-2">
-                      {["", "avion", "train", "voiture", "bus"].map((m) => (
+                      {["", "avion", "train", "voiture", "bus", "bateau", "velo"].map((m) => (
                         <button
                           key={m}
                           onClick={() => { hapticLight(); setFilterMethod(m); }}

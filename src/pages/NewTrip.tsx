@@ -1,13 +1,13 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Check, Loader2, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, ChevronDown } from "lucide-react";
 import { useTransportFeasibility } from "@/hooks/useTransportFeasibility";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { getCurrencyForCountry, getUnitsForCountry } from "@/hooks/useLocaleUnits";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,6 +102,8 @@ const TRANSPORT_METHODS = [
   { value: "train", label: "Train", icon: Train },
   { value: "voiture", label: "Voiture", icon: Car },
   { value: "bus", label: "Bus", icon: Bus },
+  { value: "bateau", label: "Bateau / Ferry", icon: Ship },
+  { value: "velo", label: "Vélo / E-Bike", icon: Bike },
 ];
 
 const CURRENCIES = [
@@ -200,16 +202,21 @@ const NewTrip = () => {
     setArrivalCity("");
     fetchCities(v, setArrivalCities);
   };
-  // Step 4 – Transport & options
-  const [transportMethod, setTransportMethod] = useState("");
+  // Step 4 – Transport & options (multi-select)
+  const [selectedTransports, setSelectedTransports] = useState<string[]>([]);
   const disabledTransports = useTransportFeasibility(departureCountry, departureCity, arrivalCountry, arrivalCity);
 
-  // Reset transport if it becomes disabled
+  // Remove disabled transports from selection
   useEffect(() => {
-    if (transportMethod && disabledTransports[transportMethod]) {
-      setTransportMethod("");
-    }
-  }, [disabledTransports, transportMethod]);
+    setSelectedTransports((prev) => prev.filter((t) => !disabledTransports[t]));
+  }, [disabledTransports]);
+
+  const toggleTransport = (value: string) => {
+    if (disabledTransports[value]) return;
+    setSelectedTransports((prev) =>
+      prev.includes(value) ? prev.filter((t) => t !== value) : [...prev, value]
+    );
+  };
   const [canPickup, setCanPickup] = useState(false);
   const [canMove, setCanMove] = useState(false);
   const [deliverToAddress, setDeliverToAddress] = useState(false);
@@ -233,7 +240,7 @@ const NewTrip = () => {
       case 1: return tripType !== null;
       case 2: return departureDate && departureCity;
       case 3: return arrivalCity;
-      case 4: return !!transportMethod;
+      case 4: return selectedTransports.length > 0;
       case 5: return true;
       default: return false;
     }
@@ -256,7 +263,7 @@ const NewTrip = () => {
       arrival_address: arrivalAddress || null,
       arrival_date: arrivalDate || null,
       arrival_time: arrivalTime || null,
-      transport_method: transportMethod,
+      transport_method: selectedTransports.join(","),
       can_pickup: canPickup,
       can_move: canMove,
       deliver_to_address: deliverToAddress,
@@ -415,51 +422,55 @@ const NewTrip = () => {
               <h2 className="text-lg font-bold text-foreground">Information de voyage</h2>
 
               <div>
-                <Label className="text-muted-foreground text-sm mb-2 block">Sélectionner le moyen de transports</Label>
+                <Label className="text-muted-foreground text-sm mb-2 block">Sélectionner le(s) moyen(s) de transport</Label>
                 <TooltipProvider delayDuration={0}>
-                  <RadioGroup value={transportMethod} onValueChange={setTransportMethod} className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {TRANSPORT_METHODS.map((t) => {
                       const isDisabled = !!disabledTransports[t.value];
-                      const label = (
-                        <label
+                      const isSelected = selectedTransports.includes(t.value);
+                      const card = (
+                        <button
                           key={t.value}
+                          type="button"
+                          onClick={() => toggleTransport(t.value)}
                           className={`flex items-center gap-2 p-3 rounded-xl border transition-colors relative overflow-hidden ${
                             isDisabled
-                              ? "border-slate-300 cursor-not-allowed opacity-40"
-                              : transportMethod === t.value
+                              ? "border-muted cursor-not-allowed opacity-40"
+                              : isSelected
                                 ? "border-primary bg-primary/5 cursor-pointer"
                                 : "border-border hover:bg-muted/50 cursor-pointer"
                           }`}
-                          onClick={(e) => { if (isDisabled) e.preventDefault(); }}
                         >
-                          <RadioGroupItem value={t.value} className="sr-only" disabled={isDisabled} />
                           <div className="relative">
-                            <t.icon size={18} className={isDisabled ? "text-slate-400" : "text-primary"} />
+                            <t.icon size={18} className={isDisabled ? "text-muted-foreground" : "text-primary"} />
                             {isDisabled && (
                               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="w-[140%] h-[1.5px] bg-slate-400 rotate-45 -translate-x-[10%]" />
+                                <div className="w-[140%] h-[1.5px] bg-muted-foreground rotate-45 -translate-x-[10%]" />
                               </div>
                             )}
                           </div>
-                          <span className={`text-sm font-medium ${isDisabled ? "text-slate-400 line-through decoration-slate-400/60" : "text-foreground"}`}>
+                          <span className={`text-sm font-medium ${isDisabled ? "text-muted-foreground line-through decoration-muted-foreground/60" : "text-foreground"}`}>
                             {t.label}
                           </span>
-                        </label>
+                          {isSelected && !isDisabled && (
+                            <Check size={14} className="ml-auto text-primary" />
+                          )}
+                        </button>
                       );
 
                       if (isDisabled) {
                         return (
                           <Tooltip key={t.value}>
-                            <TooltipTrigger asChild>{label}</TooltipTrigger>
+                            <TooltipTrigger asChild>{card}</TooltipTrigger>
                             <TooltipContent side="top" className="max-w-[220px] text-xs text-center">
                               {disabledTransports[t.value]}
                             </TooltipContent>
                           </Tooltip>
                         );
                       }
-                      return label;
+                      return card;
                     })}
-                  </RadioGroup>
+                  </div>
                 </TooltipProvider>
               </div>
 

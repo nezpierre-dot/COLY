@@ -191,11 +191,15 @@ const FavoriteRoutes = () => {
 
 // Transport method icon helper
 const getTransportIcon = (method: string) => {
-  switch (method?.toLowerCase()) {
+  // Support comma-separated multi-transport
+  const first = method?.split(",")[0]?.trim().toLowerCase();
+  switch (first) {
     case "avion": return "✈️";
     case "train": return "🚄";
     case "voiture": return "🚗";
     case "bus": return "🚌";
+    case "bateau": return "⛴️";
+    case "velo": return "🚲";
     default: return "🚀";
   }
 };
