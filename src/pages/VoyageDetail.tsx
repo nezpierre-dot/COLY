@@ -77,14 +77,17 @@ const VoyageDetail = () => {
 
   useEffect(() => { loadVoyage(); }, [loadVoyage]);
 
-  // Check if shipments have been matched to this voyageur for the same route
+  // Check if any shipment has been accepted by a voyageur for this specific voyage route
   useEffect(() => {
     if (!voyage || !user) return;
+    // A voyage is "accepted" if a shipment matching this route has been assigned to this voyageur
     supabase
       .from("shipments")
       .select("id")
       .eq("voyageur_id", user.id)
-      .eq("status", "accepted")
+      .in("status", ["accepted", "picked_up", "in_transit"])
+      .eq("arrival_city", voyage.arrival_city)
+      .eq("arrival_country", voyage.arrival_country)
       .limit(1)
       .then(({ data }) => setHasAcceptedShipments((data?.length || 0) > 0));
   }, [voyage, user]);
