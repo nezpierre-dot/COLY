@@ -9,6 +9,8 @@ interface SearchableSelectProps {
   placeholder: string;
   disabled?: boolean;
   className?: string;
+  /** Optional function to transform the display of each option (e.g. localize country names) */
+  displayFn?: (v: string) => string;
 }
 
 /**
@@ -22,16 +24,19 @@ const SearchableSelect = ({
   placeholder,
   disabled = false,
   className = "",
+  displayFn,
 }: SearchableSelectProps) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const display = displayFn ?? ((v: string) => v);
+
   const filtered = useMemo(() => {
     if (!search) return options.slice(0, 50);
     const q = search.toLowerCase();
-    return options.filter((o) => o.toLowerCase().includes(q)).slice(0, 50);
-  }, [options, search]);
+    return options.filter((o) => o.toLowerCase().includes(q) || display(o).toLowerCase().includes(q)).slice(0, 50);
+  }, [options, search, display]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -57,7 +62,7 @@ const SearchableSelect = ({
         className="flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className={value ? "text-foreground" : "text-muted-foreground"}>
-          {value || placeholder}
+          {value ? display(value) : placeholder}
         </span>
         <ChevronDown className="h-4 w-4 opacity-50" />
       </button>
@@ -89,7 +94,7 @@ const SearchableSelect = ({
                     item === value ? "bg-primary/10 font-medium text-primary" : ""
                   }`}
                 >
-                  {item}
+                  {display(item)}
                 </button>
               ))
             )}
