@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import OnboardingFlow from "@/components/OnboardingFlow";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Welcome = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("onboarding-done")
   );
@@ -32,8 +34,8 @@ const Welcome = () => {
         <svg className="mb-4" width="40" height="20" viewBox="0 0 40 20">
           <path d="M2 10c5-8 10-8 16 0s10 8 16 0" stroke="white" strokeWidth="2.5" fill="none"/>
         </svg>
-        <h1 className="text-4xl font-bold text-white leading-tight">
-          Partagez le trajet,<br />facilitez vos<br />échanges.
+        <h1 className="text-4xl font-bold text-white leading-tight whitespace-pre-line">
+          {t("welcome.tagline")}
         </h1>
       </div>
 
@@ -46,13 +48,13 @@ const Welcome = () => {
           onClick={() => navigate("/login")}
           className="w-full py-4 rounded-2xl border-2 border-white/40 bg-coly-blue-dark/60 text-white text-lg font-medium backdrop-blur-sm hover:bg-coly-blue-dark/80 transition-colors"
         >
-          J'ai déjà un compte
+          {t("welcome.haveAccount")}
         </button>
         <button
           onClick={() => navigate("/signup")}
           className="w-full py-4 rounded-2xl border-2 border-white/40 bg-coly-blue-dark/60 text-white text-lg font-medium backdrop-blur-sm hover:bg-coly-blue-dark/80 transition-colors"
         >
-          Inscription
+          {t("welcome.signup")}
         </button>
       </div>
     </div>

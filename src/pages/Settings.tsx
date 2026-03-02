@@ -10,18 +10,19 @@ import BottomNav from "@/components/BottomNav";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useCurrencyPreference, AVAILABLE_CURRENCIES } from "@/hooks/useCurrencyPreference";
-import { useLanguagePreference, AVAILABLE_LANGUAGES } from "@/hooks/useLanguagePreference";
+import { AVAILABLE_LANGUAGES } from "@/hooks/useLanguagePreference";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { t, language, setLanguage } = useTranslation();
   const isVoyageur = roles.includes("voyageur");
   const { canInstall, isInstalled, promptInstall } = usePWAInstall();
   const { permission, loading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
   const isNotifGranted = permission === "granted";
   const { currency: preferredCurrency, setCurrency } = useCurrencyPreference();
-  const { language, setLanguage, currentLabel } = useLanguagePreference();
 
   const [notifications, setNotifications] = useState(true);
   const [emailNotifs, setEmailNotifs] = useState(true);
@@ -53,35 +54,32 @@ const Settings = () => {
   );
 
   const themeOptions: { value: "light" | "dark" | "system"; icon: React.ElementType; label: string }[] = [
-    { value: "light", icon: Sun, label: "Clair" },
-    { value: "dark", icon: Moon, label: "Sombre" },
-    { value: "system", icon: Monitor, label: "Auto" },
+    { value: "light", icon: Sun, label: t("settings.light") },
+    { value: "dark", icon: Moon, label: t("settings.dark") },
+    { value: "system", icon: Monitor, label: t("settings.auto") },
   ];
 
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="px-6 pt-12">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-2">
           <button onClick={() => navigate("/dashboard")} className="text-foreground">
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-[26px] font-bold text-foreground leading-tight">Réglages</h1>
+          <h1 className="text-[26px] font-bold text-foreground leading-tight">{t("settings.title")}</h1>
         </div>
-        <p className="text-sm text-muted-foreground mb-8 pl-10">Personnalisez votre expérience</p>
+        <p className="text-sm text-muted-foreground mb-8 pl-10">{t("settings.subtitle")}</p>
 
-        {/* Role badge */}
         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 ${isVoyageur ? "bg-secondary/20 text-secondary" : "bg-primary/20 text-primary"}`}>
           {isVoyageur ? <Plane size={14} /> : <Package size={14} />}
-          {isVoyageur ? "Mode Voyageur" : "Mode Demandeur"}
+          {isVoyageur ? t("settings.voyageurMode") : t("settings.demandeurMode")}
         </div>
 
-        {/* Apparence */}
-        <Section title="Apparence">
+        <Section title={t("settings.appearance")}>
           <div className="px-4 py-3.5">
             <div className="flex items-center gap-3 mb-3">
               <Sun size={18} className="text-muted-foreground" />
-              <span className="text-foreground text-sm">Thème</span>
+              <span className="text-foreground text-sm">{t("settings.theme")}</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {themeOptions.map((opt) => {
@@ -105,15 +103,14 @@ const Settings = () => {
           </div>
         </Section>
 
-        {/* Langue & Région */}
-        <Section title="Langue & Région">
-          <Row icon={User} label="Modifier le profil">
+        <Section title={t("settings.langRegion")}>
+          <Row icon={User} label={t("settings.editProfile")}>
             <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
           </Row>
           <div className="px-4 py-3.5">
             <div className="flex items-center gap-3 mb-3">
               <Globe size={18} className="text-muted-foreground" />
-              <span className="text-foreground text-sm">Langue</span>
+              <span className="text-foreground text-sm">{t("settings.language")}</span>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {AVAILABLE_LANGUAGES.map((l) => (
@@ -121,7 +118,7 @@ const Settings = () => {
                   key={l.code}
                   onClick={() => {
                     setLanguage(l.code);
-                    toast.success(`Langue : ${l.label}`);
+                    toast.success(`${t("settings.language")} : ${l.label}`);
                   }}
                   className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all text-center ${
                     language === l.code
@@ -138,7 +135,7 @@ const Settings = () => {
           <div className="px-4 py-3.5">
             <div className="flex items-center gap-3 mb-3">
               <DollarSign size={18} className="text-muted-foreground" />
-              <span className="text-foreground text-sm">Devise</span>
+              <span className="text-foreground text-sm">{t("settings.currency")}</span>
             </div>
             <div className="grid grid-cols-3 gap-2">
               {AVAILABLE_CURRENCIES.slice(0, 6).map((c) => (
@@ -146,7 +143,7 @@ const Settings = () => {
                   key={c.code}
                   onClick={() => {
                     setCurrency(c.code);
-                    toast.success(`Devise changée : ${c.label}`);
+                    toast.success(`${t("settings.currency")} : ${c.label}`);
                   }}
                   className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all text-center ${
                     preferredCurrency.code === c.code
@@ -166,7 +163,7 @@ const Settings = () => {
                     key={c.code}
                     onClick={() => {
                       setCurrency(c.code);
-                      toast.success(`Devise changée : ${c.label}`);
+                      toast.success(`${t("settings.currency")} : ${c.label}`);
                     }}
                     className={`flex flex-col items-center gap-0.5 py-2 rounded-xl border transition-all text-center ${
                       preferredCurrency.code === c.code
@@ -183,16 +180,15 @@ const Settings = () => {
           </div>
         </Section>
 
-        {/* App & Notifications */}
-        <Section title="Application & Notifications">
-          <Row icon={isNotifGranted ? BellRing : Bell} label="Notifications push">
+        <Section title={t("settings.appNotif")}>
+          <Row icon={isNotifGranted ? BellRing : Bell} label={t("settings.pushNotif")}>
             <Switch
               checked={isNotifGranted}
               onCheckedChange={(v) => v ? subscribe() : unsubscribe()}
               disabled={pushLoading || permission === "denied" || permission === "unsupported"}
             />
           </Row>
-          <Row icon={Bell} label="Notifications email">
+          <Row icon={Bell} label={t("settings.emailNotif")}>
             <Switch checked={emailNotifs} onCheckedChange={setEmailNotifs} />
           </Row>
           {(canInstall || !isInstalled) && (
@@ -203,7 +199,7 @@ const Settings = () => {
               <div className="flex items-center gap-3">
                 <Download size={18} className="text-muted-foreground" />
                 <span className="text-foreground text-sm">
-                  {isInstalled ? "Appli installée ✓" : "Installer l'application"}
+                  {isInstalled ? t("settings.appInstalled") : t("settings.installApp")}
                 </span>
               </div>
               <ChevronRight size={16} className="text-muted-foreground" />
@@ -211,46 +207,43 @@ const Settings = () => {
           )}
         </Section>
 
-        {/* Role-specific settings */}
         {isVoyageur ? (
-          <Section title="Paramètres Voyageur">
-            <Row icon={Plane} label="Acceptation auto des demandes">
+          <Section title={t("settings.voyageurSettings")}>
+            <Row icon={Plane} label={t("settings.autoAccept")}>
               <Switch checked={autoAccept} onCheckedChange={setAutoAccept} />
             </Row>
-            <Row icon={Shield} label="Afficher mon itinéraire">
+            <Row icon={Shield} label={t("settings.showItinerary")}>
               <Switch checked={showItinerary} onCheckedChange={setShowItinerary} />
             </Row>
-            <Row icon={CreditCard} label="Tarifs par défaut">
+            <Row icon={CreditCard} label={t("settings.defaultRates")}>
               <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
             </Row>
           </Section>
         ) : (
-          <Section title="Paramètres Demandeur">
-            <Row icon={Package} label="Alertes de suivi">
+          <Section title={t("settings.demandeurSettings")}>
+            <Row icon={Package} label={t("settings.trackingAlerts")}>
               <Switch checked={trackingAlerts} onCheckedChange={setTrackingAlerts} />
             </Row>
-            <Row icon={Shield} label="Demandes publiques">
+            <Row icon={Shield} label={t("settings.publicRequests")}>
               <Switch checked={publicRequests} onCheckedChange={setPublicRequests} />
             </Row>
-            <Row icon={CreditCard} label="Moyens de paiement">
+            <Row icon={CreditCard} label={t("settings.paymentMethods")}>
               <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
             </Row>
           </Section>
         )}
 
-        {/* Security */}
-        <Section title="Sécurité">
-          <Row icon={Shield} label="Changer le mot de passe">
+        <Section title={t("settings.security")}>
+          <Row icon={Shield} label={t("settings.changePassword")}>
             <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
           </Row>
         </Section>
 
-        {/* Logout */}
         <button
           onClick={handleLogout}
           className="w-full py-3.5 rounded-2xl border border-destructive/30 text-destructive font-medium text-sm hover:bg-destructive/10 transition-colors mt-2"
         >
-          Se déconnecter
+          {t("common.logout")}
         </button>
       </div>
 
