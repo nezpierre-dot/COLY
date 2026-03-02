@@ -88,41 +88,7 @@ const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData, t }: { vo
         ))}
       </motion.div>
 
-      {/* Mini progression chart */}
-      {chartData.length > 1 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card border border-border rounded-2xl p-3 shadow-sm"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5">
-              <BarChart3 size={13} className="text-primary" />
-              <span className="text-xs font-semibold text-foreground">{t("dashboard.recentActivity")}</span>
-            </div>
-            <span className="text-xs text-muted-foreground">{t("dashboard.last30")}</span>
-          </div>
-          <div className="h-14">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" hide />
-                <Tooltip
-                  contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid hsl(var(--border))" }}
-                  labelStyle={{ fontWeight: 600 }}
-                />
-                <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorActivity)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </motion.div>
-      )}
+      {/* Activity chart moved to profile page */}
     </div>
   );
 };
@@ -569,7 +535,8 @@ const Dashboard = () => {
               t={t}
             />
 
-            <AiRecommendation isVoyageur={true} t={t} />
+            {/* AiRecommendation hidden – backend logic preserved */}
+            {/* <AiRecommendation isVoyageur={true} t={t} /> */}
 
             <FavoriteRoutes t={t} />
 
@@ -939,41 +906,11 @@ const Dashboard = () => {
                 ))}
               </motion.div>
 
-              {/* Mini progression chart for demandeur */}
-              {activityChartData.some(d => d.value > 0) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-card border border-border rounded-2xl p-3 shadow-sm"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-1.5">
-                      <BarChart3 size={13} className="text-primary" />
-                      <span className="text-xs font-semibold text-foreground">{t("dashboard.myShipmentsChart")}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">{t("dashboard.last30")}</span>
-                  </div>
-                  <div className="h-14">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={activityChartData}>
-                        <defs>
-                          <linearGradient id="colorDemandeur" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <XAxis dataKey="name" hide />
-                        <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid hsl(var(--border))" }} labelStyle={{ fontWeight: 600 }} />
-                        <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorDemandeur)" />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </motion.div>
-              )}
+              {/* Activity chart moved to profile page */}
             </div>
 
-            <AiRecommendation isVoyageur={false} t={t} />
+            {/* AiRecommendation hidden – backend logic preserved */}
+            {/* <AiRecommendation isVoyageur={false} t={t} /> */}
 
             <FavoriteRoutes t={t} />
 
