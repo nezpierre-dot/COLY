@@ -600,7 +600,7 @@ const Dashboard = () => {
                     const isSelected = selectedVoyage === v.id;
                     const fav = isFavorite(v.departure_city, v.arrival_city);
                     return (
-                      <button key={v.id} onClick={() => setSelectedVoyage(v.id)}
+                      <button key={v.id} onClick={() => navigate(`/voyage/${v.id}`)}
                         className={`w-full text-left rounded-2xl p-4 relative overflow-hidden transition-all ${
                           isSelected
                             ? "ring-2 ring-primary shadow-lg"
@@ -983,7 +983,7 @@ const Dashboard = () => {
                       style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}>
                       <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-primary-foreground/8" />
                       <div className="flex items-start justify-between relative z-10">
-                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(`/tracking/${s.id}`)}>
+                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(`/shipment/${s.id}`)}>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-base">📦</span>
                             <h3 className="font-bold text-base text-primary-foreground truncate">
