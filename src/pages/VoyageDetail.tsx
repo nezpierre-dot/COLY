@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell } from "lucide-react";
+import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { motion } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
@@ -47,6 +48,7 @@ const VoyageDetail = () => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [showReminder, setShowReminder] = useState(false);
 
   // Editable fields
   const [departureDate, setDepartureDate] = useState("");
@@ -273,7 +275,26 @@ const VoyageDetail = () => {
                   {t("dashboard.cancelVoyage")}
                 </button>
               )}
+
+              {/* Reminder button */}
+              {!editing && (
+                <button
+                  onClick={() => setShowReminder(true)}
+                  className="w-full py-3 rounded-2xl border border-primary/30 text-primary font-semibold text-sm flex items-center justify-center gap-2"
+                >
+                  <Bell size={14} /> {t("reminder.btnLabel")}
+                </button>
+              )}
             </div>
+          )}
+          {/* Reminder button (always visible when voyage exists and active) */}
+          {voyage.status === "active" && !canEdit && (
+            <button
+              onClick={() => setShowReminder(true)}
+              className="w-full py-3 rounded-2xl border border-primary/30 text-primary font-semibold text-sm flex items-center justify-center gap-2"
+            >
+              <Bell size={14} /> {t("reminder.btnLabel")}
+            </button>
           )}
         </div>
       </PageTransition>
@@ -294,6 +315,22 @@ const VoyageDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reminder dialog */}
+      {voyage && (
+        <ReminderDialog
+          info={{
+            itemType: "voyage",
+            itemId: voyage.id,
+            departureCity: voyage.departure_city,
+            arrivalCity: voyage.arrival_city,
+            departureDate: voyage.departure_date,
+            departureTime: voyage.departure_time,
+          }}
+          open={showReminder}
+          onOpenChange={setShowReminder}
+        />
+      )}
     </div>
   );
 };

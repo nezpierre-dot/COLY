@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Package, Clock, Pencil, X, Check, Loader2, AlertTriangle, Scale, Maximize2, DollarSign } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Package, Clock, Pencil, X, Check, Loader2, AlertTriangle, Scale, Maximize2, DollarSign, Bell } from "lucide-react";
+import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import LiveLocationSharing from "@/components/LiveLocationSharing";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
@@ -34,6 +35,7 @@ const NeeditMissionDetail = () => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [showReminder, setShowReminder] = useState(false);
 
   // Editable fields
   const [country, setCountry] = useState("");
@@ -214,6 +216,16 @@ const NeeditMissionDetail = () => {
             />
           )}
 
+          {/* Reminder button */}
+          {mission.status !== "cancelled" && mission.status !== "completed" && (
+            <button
+              onClick={() => setShowReminder(true)}
+              className="w-full py-3 rounded-2xl border border-primary/30 text-primary font-semibold text-sm flex items-center justify-center gap-2"
+            >
+              <Bell size={14} /> {t("reminder.btnLabel")}
+            </button>
+          )}
+
           {/* Action buttons */}
           {canEdit && (
             <div className="space-y-3">
@@ -271,6 +283,21 @@ const NeeditMissionDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reminder dialog */}
+      {mission && (
+        <ReminderDialog
+          info={{
+            itemType: "needit_mission",
+            itemId: mission.id,
+            departureCity: mission.city || mission.country,
+            arrivalCity: mission.country,
+            departureDate: new Date().toISOString().split("T")[0],
+          }}
+          open={showReminder}
+          onOpenChange={setShowReminder}
+        />
+      )}
     </div>
   );
 };

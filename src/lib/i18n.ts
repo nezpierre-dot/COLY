@@ -883,6 +883,22 @@ const fr: TranslationDict = {
   "account.emailLabel": "Email",
   "account.namePlaceholder": "Prénom Nom",
   "account.helpLabel": "Aide",
+
+  // ─── Reminders ───
+  "reminder.add": "Ajouter un rappel",
+  "reminder.manage": "Gérer le rappel",
+  "reminder.chooseDelay": "Me rappeler…",
+  "reminder.24hBefore": "24h avant",
+  "reminder.2hBefore": "2h avant",
+  "reminder.30minBefore": "30 min avant",
+  "reminder.activate": "Activer le rappel",
+  "reminder.update": "Modifier le rappel",
+  "reminder.delete": "Supprimer le rappel",
+  "reminder.created": "🔔 Rappel activé !",
+  "reminder.updated": "Rappel mis à jour",
+  "reminder.deleted": "Rappel supprimé",
+  "reminder.addToCalendar": "Ajouter au calendrier",
+  "reminder.btnLabel": "Rappel",
 };
 
 const en: TranslationDict = {
@@ -1740,6 +1756,22 @@ const en: TranslationDict = {
   "account.emailLabel": "Email",
   "account.namePlaceholder": "First Last",
   "account.helpLabel": "Help",
+
+  // ─── Reminders ───
+  "reminder.add": "Add reminder",
+  "reminder.manage": "Manage reminder",
+  "reminder.chooseDelay": "Remind me…",
+  "reminder.24hBefore": "24h before",
+  "reminder.2hBefore": "2h before",
+  "reminder.30minBefore": "30 min before",
+  "reminder.activate": "Set reminder",
+  "reminder.update": "Update reminder",
+  "reminder.delete": "Delete reminder",
+  "reminder.created": "🔔 Reminder set!",
+  "reminder.updated": "Reminder updated",
+  "reminder.deleted": "Reminder deleted",
+  "reminder.addToCalendar": "Add to calendar",
+  "reminder.btnLabel": "Reminder",
 };
 
 const es: TranslationDict = {

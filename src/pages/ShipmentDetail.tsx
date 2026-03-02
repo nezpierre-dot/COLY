@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Package, Shield, Clock, Pencil, X, Check, Loader2, AlertTriangle, User, Phone, Mail } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Package, Shield, Clock, Pencil, X, Check, Loader2, AlertTriangle, User, Phone, Mail, Bell } from "lucide-react";
+import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import LiveLocationSharing from "@/components/LiveLocationSharing";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
@@ -34,6 +35,7 @@ const ShipmentDetail = () => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
+  const [showReminder, setShowReminder] = useState(false);
 
   // Editable fields
   const [departureDate, setDepartureDate] = useState("");
@@ -237,6 +239,16 @@ const ShipmentDetail = () => {
             />
           )}
 
+          {/* Reminder button */}
+          {shipment.status !== "cancelled" && shipment.status !== "delivered" && (
+            <button
+              onClick={() => setShowReminder(true)}
+              className="w-full py-3 rounded-2xl border border-primary/30 text-primary font-semibold text-sm flex items-center justify-center gap-2"
+            >
+              <Bell size={14} /> {t("reminder.btnLabel")}
+            </button>
+          )}
+
           {/* Tracking link */}
           {shipment.status !== "pending" && shipment.status !== "cancelled" && (
             <button
@@ -303,6 +315,21 @@ const ShipmentDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reminder dialog */}
+      {shipment && (
+        <ReminderDialog
+          info={{
+            itemType: "shipment",
+            itemId: shipment.id,
+            departureCity: shipment.departure_city || "—",
+            arrivalCity: shipment.arrival_city,
+            departureDate: shipment.departure_date,
+          }}
+          open={showReminder}
+          onOpenChange={setShowReminder}
+        />
+      )}
     </div>
   );
 };
