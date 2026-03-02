@@ -1,21 +1,27 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import AuthLayout from "@/components/AuthLayout";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+
+  if (!loading && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const inputClass = "w-full border-b border-muted-foreground/30 py-3 text-foreground placeholder:text-muted-foreground focus:border-coly-blue focus:outline-none bg-transparent";
 
@@ -24,9 +30,9 @@ const Login = () => {
       toast.error(t("login.fillAll"));
       return;
     }
-    setLoading(true);
+    setLoginLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    setLoginLoading(false);
     if (error) {
       toast.error(error.message);
     } else {
@@ -82,8 +88,8 @@ const Login = () => {
         </div>
         <div className="flex items-center justify-between pt-2">
           <button onClick={() => navigate("/")} className="text-lg text-muted-foreground hover:text-foreground transition-colors">{t("common.back")}</button>
-          <button onClick={handleLogin} disabled={loading} className="flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-primary-foreground text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50">
-            {loading ? "..." : t("login.heading")} <ArrowRight size={20} />
+          <button onClick={handleLogin} disabled={loginLoading} className="flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-primary-foreground text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50">
+            {loginLoading ? "..." : t("login.heading")} <ArrowRight size={20} />
           </button>
         </div>
         <div className="text-center mt-2">
