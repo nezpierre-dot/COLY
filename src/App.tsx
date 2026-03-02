@@ -43,6 +43,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import VoyageDetail from "./pages/VoyageDetail";
 import ShipmentDetail from "./pages/ShipmentDetail";
+import NeeditMissionDetail from "./pages/NeeditMissionDetail";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,7 @@ const App = () => {
               <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
               <Route path="/voyage/:id" element={<ProtectedRoute><VoyageDetail /></ProtectedRoute>} />
               <Route path="/shipment/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
+              <Route path="/mission/:id" element={<ProtectedRoute><NeeditMissionDetail /></ProtectedRoute>} />
               <Route path="/conversations" element={<ProtectedRoute><ConversationsPage /></ProtectedRoute>} />
               <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
               <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
