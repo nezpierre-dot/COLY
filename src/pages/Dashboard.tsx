@@ -49,8 +49,6 @@ type Voyage = {
   status: string;
 };
 
-// No mock data — only real DB data is displayed
-
 // --- Voyageur Quick Stats with mini chart ---
 const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData, t }: { voyagesCount: number; colisCount: number; matchCount: number; chartData: { name: string; value: number }[]; t: (k: string) => string }) => {
   const stats = [
@@ -129,16 +127,17 @@ const QuickStats = ({ voyagesCount, colisCount, matchCount, chartData, t }: { vo
 };
 
 // AI Recommendation Card
-const AiRecommendation = ({ isVoyageur }: { isVoyageur: boolean }) => {
+const AiRecommendation = ({ isVoyageur, t }: { isVoyageur: boolean; t: (k: string) => string }) => {
   const navigate = useNavigate();
+  const currency = getCurrencySymbol();
   const recommendations = isVoyageur
     ? [
-        { text: `Basé sur tes trajets, propose Paris → Dakar pour +45${getCurrencySymbol()}/voyage`, cta: "Voir le trajet", action: () => {} },
-        { text: `3 demandes en attente sur ta zone. Active l'acceptation auto pour +20${getCurrencySymbol()}`, cta: "Paramètres", action: () => navigate("/settings") },
+        { text: t("dashboard.aiRecVoyageur1").replace("{currency}", currency), cta: t("dashboard.aiCtaVoyageur1"), action: () => {} },
+        { text: t("dashboard.aiRecVoyageur2").replace("{currency}", currency), cta: t("dashboard.aiCtaVoyageur2"), action: () => navigate("/settings") },
       ]
     : [
-        { text: `Basé sur tes envois, essaie NeedIt pour une mission d'achat et gagne +20${getCurrencySymbol()}`, cta: "Essayer NeedIt", action: () => navigate("/needit-mission") },
-        { text: "Tes envois fréquents vers Casablanca ? Ajoute-le en favori pour un accès rapide", cta: "Ajouter", action: () => {} },
+        { text: t("dashboard.aiRecDemandeur1").replace("{currency}", currency), cta: t("dashboard.aiCtaDemandeur1"), action: () => navigate("/needit-mission") },
+        { text: t("dashboard.aiRecDemandeur2"), cta: t("dashboard.aiCtaDemandeur2"), action: () => {} },
       ];
 
   const rec = recommendations[Math.floor(Math.random() * recommendations.length)];
@@ -150,7 +149,7 @@ const AiRecommendation = ({ isVoyageur }: { isVoyageur: boolean }) => {
           <Sparkles size={14} className="text-accent" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-accent mb-0.5">{useTranslation().t("dashboard.aiRec")}</p>
+          <p className="text-xs font-semibold text-accent mb-0.5">{t("dashboard.aiRec")}</p>
           <p className="text-xs text-foreground leading-relaxed">{rec.text}</p>
           <button
             onClick={rec.action}
@@ -165,7 +164,7 @@ const AiRecommendation = ({ isVoyageur }: { isVoyageur: boolean }) => {
 };
 
 // Favorite Routes Section
-const FavoriteRoutes = () => {
+const FavoriteRoutes = ({ t }: { t: (k: string) => string }) => {
   const { favorites, removeFavorite } = useFavorites();
 
   if (favorites.length === 0) return null;
@@ -173,7 +172,7 @@ const FavoriteRoutes = () => {
   return (
     <div className="space-y-1.5 mb-3">
       <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 px-1 uppercase tracking-wider">
-        <Star size={12} className="text-accent" /> Favoris
+        <Star size={12} className="text-accent" /> {t("dashboard.favorites")}
       </h3>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {favorites.map((fav) => (
@@ -193,7 +192,6 @@ const FavoriteRoutes = () => {
 
 // Transport method icon helper
 const getTransportIcon = (method: string) => {
-  // Support comma-separated multi-transport
   const first = method?.split(",")[0]?.trim().toLowerCase();
   switch (first) {
     case "avion": return "✈️";
@@ -209,7 +207,7 @@ const getTransportIcon = (method: string) => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { roles, user } = useAuth();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { addFavorite, isFavorite } = useFavorites();
   const isVoyageur = roles.includes("voyageur");
   const { canInstall, promptInstall } = usePWAInstall();
@@ -238,7 +236,7 @@ const Dashboard = () => {
         const { data, error } = await supabase.rpc("accept_shipment", { _shipment_id: id });
         if (error) throw error;
         hapticLight();
-        toast.success("Colis accepté ! Vous pouvez maintenant discuter.");
+        toast.success(t("dashboard.acceptedShipment"));
         setPendingShipments(prev => prev.filter(s => s.id !== id));
         setAcceptDialog(null);
         navigate(`/chat/${data}`);
@@ -246,13 +244,13 @@ const Dashboard = () => {
         const { data, error } = await supabase.rpc("accept_needit_mission", { _mission_id: id });
         if (error) throw error;
         hapticLight();
-        toast.success("Mission acceptée ! Vous pouvez maintenant discuter.");
+        toast.success(t("dashboard.acceptedMission"));
         setNeeditMissions(prev => prev.filter(m => m.id !== id));
         setAcceptDialog(null);
         navigate(`/chat/${data}`);
       }
     } catch (err: any) {
-      toast.error(err.message || "Erreur lors de l'acceptation");
+      toast.error(err.message || t("dashboard.acceptError"));
     } finally {
       setAccepting(false);
       actionInProgressRef.current = false;
@@ -276,9 +274,9 @@ const Dashboard = () => {
     }
 
     if (error) {
-      toast.error("Erreur lors de l'annulation");
+      toast.error(t("dashboard.cancelError"));
     } else {
-      toast.success("Annulé avec succès");
+      toast.success(t("dashboard.cancelledSuccess"));
     }
     setCancelDialog(null);
   };
@@ -390,6 +388,9 @@ const Dashboard = () => {
 
   const totalMatches = matchedShipments.length + matchedNeedit.length;
 
+  // Locale for date formatting
+  const dateLocale = language === "en" ? "en-US" : language === "es" ? "es-ES" : language === "de" ? "de-DE" : language === "pt" ? "pt-BR" : language === "it" ? "it-IT" : language === "ar" ? "ar-SA" : "fr-FR";
+
   // Generate chart data from voyages creation dates (last 30 days)
   const activityChartData = useMemo(() => {
     const now = new Date();
@@ -398,18 +399,18 @@ const Dashboard = () => {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
       const key = d.toISOString().slice(0, 10);
-      const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+      const label = d.toLocaleDateString(dateLocale, { day: "2-digit", month: "short" });
       const count = voyages.filter(v => v.departure_date && v.departure_date.startsWith(key)).length
         + (isVoyageur ? 0 : demandeurShipments.filter(s => s.created_at?.startsWith(key)).length);
       days.push({ name: label, value: count });
     }
     return days;
-  }, [voyages, isVoyageur, demandeurShipments]);
+  }, [voyages, isVoyageur, demandeurShipments, dateLocale]);
 
   const toggleRole = async () => {
     if (!user) return;
     const { error } = await supabase.rpc("toggle_user_role", { _user_id: user.id });
-    if (error) toast.error("Erreur lors du changement de rôle");
+    if (error) toast.error(t("dashboard.roleError"));
     else window.location.reload();
   };
 
@@ -425,14 +426,23 @@ const Dashboard = () => {
     if (!isFavorite(from, to)) {
       addFavorite(from, to);
       hapticLight();
-      toast.success(`${from} → ${to} ajouté aux favoris`);
+      toast.success(`${from} → ${to} ${t("dashboard.addedToFav")}`);
     }
   };
 
   const formatDate = (dateStr: string) => {
     try {
-      return new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+      return new Date(dateStr).toLocaleDateString(dateLocale, { day: "numeric", month: "short" });
     } catch { return dateStr; }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "pending": return t("dashboard.statusPending");
+      case "accepted": return t("dashboard.statusAccepted");
+      case "cancelled": return t("dashboard.statusCancelled");
+      default: return status;
+    }
   };
 
   const handleRefresh = useCallback(async () => {
@@ -460,36 +470,31 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background pb-24">
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
-      <main className="px-0 pt-0" id="main-content" role="main" aria-label="Tableau de bord">
-        {/* Qonto-inspired Header */}
+      <main className="px-0 pt-0" id="main-content" role="main">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
           className="relative"
         >
-          {/* Top accent bar */}
-          {/* Top accent bar */}
           <div
             className="h-[5px] w-full"
             style={{ background: isVoyageur ? "#0D84FF" : "#30D158" }}
           />
 
           <div className="bg-[#F8FAFC] dark:bg-[#0F1115] px-5 pt-5 pb-5">
-            {/* Role switch capsule – top right */}
             <div className="flex justify-between items-start mb-4">
               <NotificationBell />
               <button
                 onClick={toggleRole}
                 className="px-3.5 py-1.5 rounded-full text-[13px] font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.97]"
                 style={{ background: isVoyageur ? "#30D158" : "#0D84FF" }}
-                aria-label={`Changer vers ${isVoyageur ? "demandeur" : "voyageur"}`}
               >
-                {isVoyageur ? "Passer Demandeur" : "Passer Voyageur"}
+                {isVoyageur ? t("dashboard.switchToDemandeur") : t("dashboard.switchToVoyageur")}
               </button>
             </div>
 
-            {/* Title row */}
             <div className="flex items-center gap-3">
               {isVoyageur ? (
                 <Plane size={38} style={{ color: "#0D84FF" }} strokeWidth={1.8} aria-hidden="true" />
@@ -498,12 +503,10 @@ const Dashboard = () => {
               )}
               <div>
                 <h1 className="text-[28px] font-bold leading-tight" style={{ color: isVoyageur ? "#0D84FF" : "#30D158" }}>
-                  {isVoyageur ? "Voyageur" : "Demandeur"}
+                  {isVoyageur ? t("dashboard.roleVoyageur") : t("dashboard.roleDemandeur")}
                 </h1>
                 <p className="text-[15px] mt-0.5" style={{ color: "#64748B" }}>
-                  {isVoyageur
-                    ? "Propose tes trajets et gagne de l'argent"
-                    : "Trouve un voyageur et économise jusqu'à 70 %"}
+                  {isVoyageur ? t("dashboard.voyageurSubtitle") : t("dashboard.demandeurSubtitle")}
                 </p>
               </div>
             </div>
@@ -525,11 +528,11 @@ const Dashboard = () => {
                 <Download size={18} className="text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">Installer WeAppYou</p>
-                <p className="text-xs text-muted-foreground">Accès rapide & mode hors-ligne</p>
+                <p className="text-sm font-semibold text-foreground">{t("dashboard.installWeAppYou")}</p>
+                <p className="text-xs text-muted-foreground">{t("dashboard.installQuick")}</p>
               </div>
               <button onClick={promptInstall} className="shrink-0 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity">
-                Installer
+                {t("dashboard.installBtn")}
               </button>
               <button onClick={() => { setDismissedBanner(true); localStorage.setItem("pwa-banner-dismissed", "1"); }} className="text-muted-foreground shrink-0">
                 <X size={16} />
@@ -541,7 +544,6 @@ const Dashboard = () => {
         {isVoyageur ? (
           /* ============ VOYAGEUR ============ */
           <div className="space-y-4">
-            {/* Quick Stats */}
             <QuickStats
               voyagesCount={voyages.length}
               colisCount={pendingShipments.length}
@@ -550,19 +552,17 @@ const Dashboard = () => {
               t={t}
             />
 
-            {/* AI Recommendation */}
-            <AiRecommendation isVoyageur={true} />
+            <AiRecommendation isVoyageur={true} t={t} />
 
-            {/* Favorite Routes */}
-            <FavoriteRoutes />
+            <FavoriteRoutes t={t} />
 
             <Tabs defaultValue="voyages" className="space-y-3">
               <TabsList className="w-full glass rounded-xl p-1 h-auto">
                 <TabsTrigger value="voyages" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Plane size={13} className="mr-1" /> Voyages
+                  <Plane size={13} className="mr-1" /> {t("dashboard.tabVoyages")}
                 </TabsTrigger>
                 <TabsTrigger value="colis" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative transition-all">
-                  <Package size={13} className="mr-1" /> Colis
+                  <Package size={13} className="mr-1" /> {t("dashboard.tabColis")}
                   {pendingShipments.length > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
                       {pendingShipments.length}
@@ -570,10 +570,10 @@ const Dashboard = () => {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="carte" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Map size={13} className="mr-1" /> Carte
+                  <Map size={13} className="mr-1" /> {t("dashboard.tabCarte")}
                 </TabsTrigger>
                 <TabsTrigger value="demandes" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground relative transition-all">
-                  <ShoppingBag size={13} className="mr-1" /> NeedIt
+                  <ShoppingBag size={13} className="mr-1" /> {t("dashboard.tabNeedit")}
                   {needitMissions.length > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
                       {needitMissions.length}
@@ -587,11 +587,11 @@ const Dashboard = () => {
               {voyages.length === 0 ? (
                   <EmptyState
                     icon={Plane}
-                    title="Aucun voyage enregistré"
-                    description="Commencez par ajouter votre premier trajet pour recevoir des colis"
+                    title={t("dashboard.noVoyageRegistered")}
+                    description={t("dashboard.noVoyageRegisteredDesc")}
                     action={
                        <button onClick={() => navigate("/new-trip")} className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg">
-                        <Plus size={20} className="inline mr-1.5 -mt-0.5" /> Ajouter un voyage
+                        <Plus size={20} className="inline mr-1.5 -mt-0.5" /> {t("dashboard.addTrip")}
                       </button>
                     }
                   />
@@ -634,7 +634,6 @@ const Dashboard = () => {
                             <button
                               onClick={(e) => { e.stopPropagation(); setCancelDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
                               className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
-                              aria-label="Annuler ce voyage"
                             >
                               <X size={12} />
                             </button>
@@ -655,13 +654,12 @@ const Dashboard = () => {
 
                 <button onClick={() => navigate("/new-trip")}
                   className="w-full py-3.5 rounded-2xl border-2 border-dashed border-primary/30 bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-md">
-                  <Plus size={22} /> Ajouter un voyage
+                  <Plus size={22} /> {t("dashboard.addTrip")}
                 </button>
               </TabsContent>
 
               {/* ---- Colis tab ---- */}
               <TabsContent value="colis" className="space-y-3 mt-0">
-                {/* Match filter toggle */}
                 {pendingShipments.length > 0 && matchedShipments.length > 0 && (
                   <button
                     onClick={() => setColisMatchOnly(!colisMatchOnly)}
@@ -672,7 +670,7 @@ const Dashboard = () => {
                     }`}
                   >
                     <Zap size={14} />
-                    Correspondances uniquement
+                    {t("dashboard.matchOnlyLabel")}
                     <span className={`min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold ${
                       colisMatchOnly ? "bg-accent-foreground/20 text-accent-foreground" : "bg-accent/15 text-accent"
                     }`}>
@@ -681,11 +679,10 @@ const Dashboard = () => {
                   </button>
                 )}
 
-                {/* Matched shipments */}
                 {matchedShipments.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
-                      <Zap size={12} className="text-accent" /> Correspondances ({matchedShipments.length})
+                      <Zap size={12} className="text-accent" /> {t("dashboard.matches_label")} ({matchedShipments.length})
                     </h3>
                     {matchedShipments.map((s: any) => (
                       <button key={s.id}
@@ -708,19 +705,18 @@ const Dashboard = () => {
                           <span className="flex items-center gap-1">
                             <Calendar size={10} /> {formatDate(s.departure_date)}
                           </span>
-                          <span className="font-medium text-foreground">{s.tarif === "custom" ? "Sur devis" : s.tarif}</span>
+                          <span className="font-medium text-foreground">{s.tarif === "custom" ? t("dashboard.onQuote") : s.tarif}</span>
                         </div>
                       </button>
                     ))}
                   </div>
                 )}
 
-                {/* Other shipments (hidden when filter active) */}
                 {!colisMatchOnly && unmatchedShipments.length > 0 && (
                   <div className="space-y-2">
                     {matchedShipments.length > 0 && (
                       <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2">
-                        Autres envois ({unmatchedShipments.length})
+                        {t("dashboard.otherShipments")} ({unmatchedShipments.length})
                       </h3>
                     )}
                     {unmatchedShipments.map((s: any) => (
@@ -731,12 +727,12 @@ const Dashboard = () => {
                                {s.departure_city ? localizeCity(s.departure_city) : "—"} → {localizeCity(s.arrival_city)}, {localizeCountry(s.arrival_country)}
                               </p>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              {formatDate(s.departure_date)} · Taille {s.size}
+                              {formatDate(s.departure_date)} · {t("dashboard.size")} {s.size}
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
                             {s.insured && <Shield size={12} className="text-primary" />}
-                            <span className="text-xs font-semibold text-foreground">{s.tarif === "custom" ? "Sur devis" : s.tarif}</span>
+                            <span className="text-xs font-semibold text-foreground">{s.tarif === "custom" ? t("dashboard.onQuote") : s.tarif}</span>
                           </div>
                         </div>
                       </div>
@@ -747,8 +743,8 @@ const Dashboard = () => {
                 {pendingShipments.length === 0 && (
                   <EmptyState
                     icon={Package}
-                    title="Aucun colis disponible"
-                    description="Les envois des demandeurs apparaîtront ici automatiquement"
+                    title={t("dashboard.noColisAvailable")}
+                    description={t("dashboard.noColisAvailableDesc")}
                   />
                 )}
               </TabsContent>
@@ -767,7 +763,7 @@ const Dashboard = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-bold text-foreground text-sm">{localizeCity(currentVoyage.departure_city)} → {localizeCity(currentVoyage.arrival_city)}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(currentVoyage.departure_date)} {currentVoyage.departure_time ? `à ${currentVoyage.departure_time}` : ""}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(currentVoyage.departure_date)} {currentVoyage.departure_time ? `${currentVoyage.departure_time}` : ""}</p>
                       </div>
                       <span className="text-base">{getTransportIcon(currentVoyage.transport_method)}</span>
                     </div>
@@ -777,7 +773,6 @@ const Dashboard = () => {
 
               {/* ---- NeedIt / Demandes tab ---- */}
               <TabsContent value="demandes" className="space-y-3 mt-0">
-                {/* Voyage selector chips */}
                 {voyages.length > 0 && (
                   <div className="flex gap-1.5 overflow-x-auto pb-1">
                     {voyages.map((v) => (
@@ -789,7 +784,6 @@ const Dashboard = () => {
                   </div>
                 )}
 
-                {/* Match filter toggle */}
                 {needitMissions.length > 0 && matchedNeedit.length > 0 && (
                   <button
                     onClick={() => setNeeditMatchOnly(!needitMatchOnly)}
@@ -800,7 +794,7 @@ const Dashboard = () => {
                     }`}
                   >
                     <Zap size={14} />
-                    Correspondances uniquement
+                    {t("dashboard.matchOnlyLabel")}
                     <span className={`min-w-[20px] h-5 flex items-center justify-center rounded-full text-xs font-bold ${
                       needitMatchOnly ? "bg-accent-foreground/20 text-accent-foreground" : "bg-accent/15 text-accent"
                     }`}>
@@ -809,11 +803,10 @@ const Dashboard = () => {
                   </button>
                 )}
 
-                {/* Matched NeedIt */}
                 {matchedNeedit.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
-                      <Zap size={12} className="text-accent" /> Missions correspondantes ({matchedNeedit.length})
+                      <Zap size={12} className="text-accent" /> {t("dashboard.matchingMissions")} ({matchedNeedit.length})
                     </h3>
                     {matchedNeedit.map((m: any) => (
                       <button key={m.id}
@@ -824,7 +817,7 @@ const Dashboard = () => {
                             <div className="flex items-center gap-2 mb-0.5">
                               <span className="text-[9px] font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">MATCH</span>
                               <p className="font-semibold text-foreground text-sm truncate">
-                                {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Produit"}
+                                {m.product_name || m.category_path?.[m.category_path?.length - 1] || "—"}
                               </p>
                             </div>
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
@@ -841,19 +834,18 @@ const Dashboard = () => {
                   </div>
                 )}
 
-                {/* Other NeedIt (hidden when filter active) */}
                 {!needitMatchOnly && unmatchedNeedit.length > 0 && (
                   <div className="space-y-2">
                     <h3 className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 uppercase tracking-wider">
                       <ShoppingBag size={12} className="text-muted-foreground" />
-                      {matchedNeedit.length > 0 ? `Autres missions (${unmatchedNeedit.length})` : `Missions disponibles (${unmatchedNeedit.length})`}
+                      {matchedNeedit.length > 0 ? `${t("dashboard.otherMissions")} (${unmatchedNeedit.length})` : `${t("dashboard.availableMissions")} (${unmatchedNeedit.length})`}
                     </h3>
                     {unmatchedNeedit.map((m: any) => (
                       <div key={m.id} className="bg-card rounded-xl px-3 py-2.5 border border-border">
                         <div className="flex items-start justify-between">
                           <div className="min-w-0">
                             <p className="font-medium text-foreground text-sm truncate">
-                              {m.product_name || m.category_path?.[m.category_path?.length - 1] || "Produit"}
+                              {m.product_name || m.category_path?.[m.category_path?.length - 1] || "—"}
                             </p>
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                               <MapPin size={10} /> {localizeCountry(m.country)}{m.city ? `, ${localizeCity(m.city)}` : ""}
@@ -869,8 +861,8 @@ const Dashboard = () => {
                 {needitMissions.length === 0 && (
                   <EmptyState
                     icon={ShoppingBag}
-                    title="Aucune mission disponible"
-                    description="Les missions NeedIt apparaîtront ici"
+                    title={t("dashboard.noMissionAvailable")}
+                    description={t("dashboard.noMissionAvailableDesc")}
                   />
                 )}
               </TabsContent>
@@ -887,9 +879,9 @@ const Dashboard = () => {
                 className="grid grid-cols-3 gap-2"
               >
                 {[
-                  { value: demandeurShipments.length, label: "Envois", gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
+                  { value: demandeurShipments.length, label: t("dashboard.tabEnvois"), gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
                   { value: demandeurMissions.length, label: "Missions", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
-                  { value: demandeurShipments.filter(s => s.status === "pending").length, label: "En attente", gradient: "from-warning to-warning/70", textColor: "text-warning-foreground" },
+                  { value: demandeurShipments.filter(s => s.status === "pending").length, label: t("dashboard.statusPending"), gradient: "from-warning to-warning/70", textColor: "text-warning-foreground" },
                 ].map((stat) => (
                   <motion.div
                     key={stat.label}
@@ -924,9 +916,9 @@ const Dashboard = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-1.5">
                       <BarChart3 size={13} className="text-primary" />
-                      <span className="text-xs font-semibold text-foreground">Mes envois</span>
+                      <span className="text-xs font-semibold text-foreground">{t("dashboard.myShipmentsChart")}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">30 derniers jours</span>
+                    <span className="text-xs text-muted-foreground">{t("dashboard.last30")}</span>
                   </div>
                   <div className="h-14">
                     <ResponsiveContainer width="100%" height="100%">
@@ -947,19 +939,17 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* AI Recommendation */}
-            <AiRecommendation isVoyageur={false} />
+            <AiRecommendation isVoyageur={false} t={t} />
 
-            {/* Favorite Routes */}
-            <FavoriteRoutes />
+            <FavoriteRoutes t={t} />
 
             <Tabs defaultValue="envois" className="space-y-3">
               <TabsList className="w-full glass rounded-xl p-1 h-auto">
                 <TabsTrigger value="envois" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Send size={13} className="mr-1" /> Envois
+                  <Send size={13} className="mr-1" /> {t("dashboard.tabEnvois")}
                 </TabsTrigger>
                 <TabsTrigger value="missions" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative transition-all">
-                  <ShoppingBag size={13} className="mr-1" /> NeedIt
+                  <ShoppingBag size={13} className="mr-1" /> {t("dashboard.tabNeedit")}
                   {demandeurMissions.length > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-accent text-accent-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
                       {demandeurMissions.length}
@@ -967,10 +957,10 @@ const Dashboard = () => {
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="carte" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Map size={13} className="mr-1" /> Carte
+                  <Map size={13} className="mr-1" /> {t("dashboard.tabCarte")}
                 </TabsTrigger>
                 <TabsTrigger value="actions" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
-                  <Zap size={13} className="mr-1" /> Actions
+                  <Zap size={13} className="mr-1" /> {t("dashboard.tabActions")}
                 </TabsTrigger>
               </TabsList>
 
@@ -979,11 +969,11 @@ const Dashboard = () => {
                 {demandeurShipments.length === 0 ? (
                   <EmptyState
                     icon={Send}
-                    title="Aucun envoi enregistré"
-                    description="Commencez par envoyer votre premier colis"
+                    title={t("dashboard.noShipmentRegistered")}
+                    description={t("dashboard.noShipmentRegisteredDesc")}
                     action={
                       <button onClick={() => navigate("/send-coly")} className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg">
-                        <Plus size={20} className="inline mr-1.5 -mt-0.5" /> Envoyer un colis
+                        <Plus size={20} className="inline mr-1.5 -mt-0.5" /> {t("dashboard.sendParcel")}
                       </button>
                     }
                   />
@@ -1007,7 +997,7 @@ const Dashboard = () => {
                             </span>
                             <span className="flex items-center gap-1 text-xs">
                               <Package size={11} />
-                              Taille {s.size}
+                              {t("dashboard.size")} {s.size}
                             </span>
                           </div>
                         </div>
@@ -1016,7 +1006,6 @@ const Dashboard = () => {
                             <button
                               onClick={() => setCancelDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
                               className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
-                              aria-label="Annuler cet envoi"
                             >
                               <X size={12} />
                             </button>
@@ -1027,7 +1016,7 @@ const Dashboard = () => {
                             s.status === "cancelled" ? "bg-destructive/20 text-destructive" :
                             "bg-primary-foreground/15 text-primary-foreground/80"
                           }`}>
-                            {s.status === "pending" ? "En attente" : s.status === "accepted" ? "Accepté" : s.status === "cancelled" ? "Annulé" : s.status}
+                            {getStatusLabel(s.status)}
                           </span>
                         </div>
                       </div>
@@ -1042,7 +1031,7 @@ const Dashboard = () => {
 
                 <button onClick={() => navigate("/send-coly")}
                   className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-md">
-                  <Plus size={22} /> Envoyer un colis
+                  <Plus size={22} /> {t("dashboard.sendParcel")}
                 </button>
               </TabsContent>
 
@@ -1051,11 +1040,11 @@ const Dashboard = () => {
                 {demandeurMissions.length === 0 ? (
                   <EmptyState
                     icon={ShoppingBag}
-                    title="Aucune mission NeedIt"
-                    description="Créez une mission d'achat pour vos besoins"
+                    title={t("dashboard.noNeeditMission")}
+                    description={t("dashboard.noNeeditMissionDesc")}
                     action={
                       <button onClick={() => navigate("/needit-mission")} className="px-5 py-3 rounded-xl bg-secondary text-secondary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg">
-                        <Plus size={20} className="inline mr-1.5 -mt-0.5" /> Créer une mission
+                        <Plus size={20} className="inline mr-1.5 -mt-0.5" /> {t("dashboard.createMission")}
                       </button>
                     }
                   />
@@ -1074,22 +1063,20 @@ const Dashboard = () => {
                             <button
                               onClick={() => navigate(`/needit-mission/${m.id}`)}
                               className="w-6 h-6 rounded-full bg-primary/10 text-primary hover:bg-primary/20 flex items-center justify-center transition-colors"
-                              aria-label="Modifier cette mission"
                             >
                               <Pencil size={11} />
                             </button>
                           )}
                           <button
-                            onClick={() => setCancelDialog({ type: "mission", id: m.id, label: m.product_name || "cette mission" })}
+                            onClick={() => setCancelDialog({ type: "mission", id: m.id, label: m.product_name || "—" })}
                             className="w-6 h-6 rounded-full bg-muted hover:bg-destructive/20 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
-                            aria-label="Annuler cette mission"
                           >
                             <X size={11} />
                           </button>
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                             m.status === "pending" ? "bg-accent/15 text-accent" : "bg-muted text-muted-foreground"
                           }`}>
-                            {m.status === "pending" ? "En attente" : m.status}
+                            {getStatusLabel(m.status)}
                           </span>
                         </div>
                       </div>
@@ -1110,7 +1097,7 @@ const Dashboard = () => {
 
                 <button onClick={() => navigate("/needit-mission")}
                   className="w-full py-3.5 rounded-2xl bg-secondary text-secondary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-md">
-                  <Plus size={22} /> Créer une mission
+                  <Plus size={22} /> {t("dashboard.createMission")}
                 </button>
               </TabsContent>
 
@@ -1131,7 +1118,7 @@ const Dashboard = () => {
                     <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
                       <Send size={24} className="text-primary-foreground" />
                     </div>
-                    <span className="text-sm font-bold text-foreground">Envoyer un colis</span>
+                    <span className="text-sm font-bold text-foreground">{t("dashboard.sendParcel")}</span>
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -1142,16 +1129,16 @@ const Dashboard = () => {
                     <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
                       <ShoppingBag size={24} className="text-secondary-foreground" />
                     </div>
-                    <span className="text-sm font-bold text-foreground">Mission NeedIt</span>
+                    <span className="text-sm font-bold text-foreground">{t("dashboard.missionNeedit")}</span>
                   </motion.button>
                 </div>
 
                 <div className="space-y-2 mt-2">
                   {[
-                    { label: "Trouver un voyageur", icon: Search, path: "/voyageur-search", color: "primary" },
-                    { label: "Mes Missions NeedIt", count: demandeurMissions.length, icon: ShoppingBag, path: "/mes-missions-needit", color: "secondary" },
-                    { label: "Historique", icon: Receipt, path: "/history/coly", color: "primary" },
-                    { label: "Mon solde", icon: Wallet, path: "/solde", color: "accent" },
+                    { label: t("dashboard.findTraveler"), icon: Search, path: "/voyageur-search", color: "primary" },
+                    { label: t("dashboard.myNeeditMissions"), count: demandeurMissions.length, icon: ShoppingBag, path: "/mes-missions-needit", color: "secondary" },
+                    { label: t("dashboard.history"), icon: Receipt, path: "/history/coly", color: "primary" },
+                    { label: t("dashboard.myBalance"), icon: Wallet, path: "/solde", color: "accent" },
                   ].map((link) => (
                     <motion.button
                       key={link.path}
@@ -1177,8 +1164,8 @@ const Dashboard = () => {
                 {demandeurShipments.length === 0 && demandeurMissions.length === 0 ? (
                   <EmptyState
                     icon={Package}
-                    title="Aucune activité"
-                    description="Vos envois et missions apparaîtront ici"
+                    title={t("dashboard.noActivity")}
+                    description={t("dashboard.noActivityDesc")}
                   />
                 ) : (
                   <div className="space-y-2">
@@ -1186,7 +1173,7 @@ const Dashboard = () => {
                       id: s.id,
                       type: "coly" as const,
                       title: `${s.departure_city ? localizeCity(s.departure_city) : "—"} → ${localizeCity(s.arrival_city)}`,
-                      subtitle: `Taille ${s.size} · ${s.tarif}`,
+                      subtitle: `${t("dashboard.size")} ${s.size} · ${s.tarif}`,
                       status: s.status,
                       date: s.created_at,
                     })),
@@ -1223,7 +1210,7 @@ const Dashboard = () => {
                           item.status === "accepted" ? "bg-primary/15 text-primary" :
                           "bg-muted text-muted-foreground"
                         }`}>
-                          {item.status === "pending" ? "En attente" : item.status === "accepted" ? "Accepté" : item.status}
+                          {getStatusLabel(item.status)}
                         </span>
                       </motion.div>
                     ))}
@@ -1244,20 +1231,20 @@ const Dashboard = () => {
       <AlertDialog open={!!cancelDialog} onOpenChange={(open) => { if (!open) setCancelDialog(null); }}>
         <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr d'annuler ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dashboard.cancelTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Vous êtes sur le point d'annuler{" "}
+              {t("dashboard.cancelDesc")}{" "}
               <span className="font-semibold text-foreground">{cancelDialog?.label}</span>.
-              Cette action est irréversible.
+              {" "}{t("dashboard.cancelIrreversible")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Non, garder</AlertDialogCancel>
+            <AlertDialogCancel>{t("dashboard.cancelNo")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancelItem}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Oui, annuler
+              {t("dashboard.cancelYes")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1268,22 +1255,22 @@ const Dashboard = () => {
         <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {acceptDialog?.type === "shipment" ? "Accepter ce colis ?" : "Accepter cette mission ?"}
+              {acceptDialog?.type === "shipment" ? t("dashboard.acceptShipmentTitle") : t("dashboard.acceptMissionTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Voulez-vous prendre en charge{" "}
+              {t("dashboard.acceptDesc")}{" "}
               <span className="font-semibold text-foreground">{acceptDialog?.label}</span> ?
-              Une conversation sera créée pour coordonner les détails avec le demandeur.
+              {" "}{t("dashboard.acceptConvoDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={accepting}>Non, passer</AlertDialogCancel>
+            <AlertDialogCancel disabled={accepting}>{t("dashboard.acceptNo")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleAcceptItem}
               disabled={accepting}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {accepting ? "Acceptation..." : "Oui, accepter"}
+              {accepting ? t("dashboard.accepting") : t("dashboard.acceptYes")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Users, CalendarPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface VoyageurAvailabilityProps {
   country: string;
@@ -10,6 +11,7 @@ interface VoyageurAvailabilityProps {
 
 const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAvailabilityProps) => {
   const [count, setCount] = useState<number | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!country) return;
@@ -37,7 +39,9 @@ const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAv
         }}
       >
         <Users size={10} />
-        {hasVoyageurs ? `${count} voyageur${count > 1 ? "s" : ""} dispo` : "0 voyageur"}
+        {hasVoyageurs
+          ? (count > 1 ? t("availability.countPlural") : t("availability.countSingle")).replace("{count}", String(count))
+          : t("availability.zeroCompact")}
       </span>
     );
   }
@@ -53,13 +57,12 @@ const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAv
       >
         <Users size={14} style={{ color: "#30D158" }} />
         <p className="font-semibold" style={{ color: "#30D158" }}>
-          {count} voyageur{count > 1 ? "s" : ""} potentiel{count > 1 ? "s" : ""} sur cet axe
+          {(count > 1 ? t("availability.potentialPlural") : t("availability.potentialSingle")).replace("{count}", String(count))}
         </p>
       </div>
     );
   }
 
-  // No voyageurs – alert box with solid background (amber/warning tone)
   return (
     <div
       className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-xs bg-muted/60 border border-border"
@@ -67,11 +70,11 @@ const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAv
       <Users size={14} className="text-muted-foreground" />
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-foreground/80">
-          Aucun voyageur sur cet axe actuellement
+          {t("availability.none")}
         </p>
         <p className="mt-0.5 flex items-center gap-1 text-muted-foreground">
           <CalendarPlus size={10} />
-          Essayez d'élargir les dates ou la ville
+          {t("availability.hint")}
         </p>
       </div>
     </div>
