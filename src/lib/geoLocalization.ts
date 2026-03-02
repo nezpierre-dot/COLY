@@ -166,6 +166,64 @@ const COUNTRY_NAMES: Record<string, Partial<Record<AppLocale, string>>> = {
   "Zimbabwe": { fr: "Zimbabwe", es: "Zimbabue", de: "Simbabwe", pt: "Zimbábue", it: "Zimbabwe", ar: "زيمبابوي" },
 };
 
+/** Map of country English names to ISO 3166-1 alpha-2 codes for flag emoji generation */
+const COUNTRY_ISO: Record<string, string> = {
+  "Afghanistan": "AF", "Albania": "AL", "Algeria": "DZ", "Andorra": "AD", "Angola": "AO",
+  "Argentina": "AR", "Armenia": "AM", "Australia": "AU", "Austria": "AT", "Azerbaijan": "AZ",
+  "Bahrain": "BH", "Bangladesh": "BD", "Belarus": "BY", "Belgium": "BE", "Benin": "BJ",
+  "Bolivia": "BO", "Bosnia And Herzegovina": "BA", "Botswana": "BW", "Brazil": "BR",
+  "Bulgaria": "BG", "Burkina Faso": "BF", "Cambodia": "KH", "Cameroon": "CM", "Canada": "CA",
+  "Chad": "TD", "Chile": "CL", "China": "CN", "Colombia": "CO", "Congo": "CG",
+  "Costa Rica": "CR", "Croatia": "HR", "Cuba": "CU", "Cyprus": "CY", "Czech Republic": "CZ",
+  "Democratic Republic Of The Congo": "CD", "Denmark": "DK", "Dominican Republic": "DO",
+  "Ecuador": "EC", "Egypt": "EG", "Estonia": "EE", "Ethiopia": "ET", "Finland": "FI",
+  "France": "FR", "Gabon": "GA", "Georgia": "GE", "Germany": "DE", "Ghana": "GH",
+  "Greece": "GR", "Guatemala": "GT", "Guinea": "GN", "Haiti": "HT", "Honduras": "HN",
+  "Hungary": "HU", "Iceland": "IS", "India": "IN", "Indonesia": "ID", "Iran": "IR",
+  "Iraq": "IQ", "Ireland": "IE", "Israel": "IL", "Italy": "IT",
+  "Ivory Coast": "CI", "Ivory Coast (Cote D'Ivoire)": "CI", "Cote D'Ivoire (Ivory Coast)": "CI",
+  "Jamaica": "JM", "Japan": "JP", "Jordan": "JO", "Kenya": "KE", "Kosovo": "XK",
+  "Kuwait": "KW", "Latvia": "LV", "Lebanon": "LB", "Libya": "LY", "Liechtenstein": "LI",
+  "Lithuania": "LT", "Luxembourg": "LU", "Madagascar": "MG", "Malaysia": "MY", "Mali": "ML",
+  "Malta": "MT", "Mauritania": "MR", "Mauritius": "MU", "Mexico": "MX", "Moldova": "MD",
+  "Monaco": "MC", "Mongolia": "MN", "Montenegro": "ME", "Morocco": "MA", "Mozambique": "MZ",
+  "Myanmar": "MM", "Namibia": "NA", "Nepal": "NP", "Netherlands": "NL", "New Zealand": "NZ",
+  "Niger": "NE", "Nigeria": "NG", "North Korea": "KP", "North Macedonia": "MK", "Norway": "NO",
+  "Oman": "OM", "Pakistan": "PK", "Panama": "PA", "Paraguay": "PY", "Peru": "PE",
+  "Philippines": "PH", "Poland": "PL", "Portugal": "PT", "Qatar": "QA", "Romania": "RO",
+  "Russia": "RU", "Rwanda": "RW", "San Marino": "SM", "Saudi Arabia": "SA", "Senegal": "SN",
+  "Serbia": "RS", "Singapore": "SG", "Slovakia": "SK", "Slovenia": "SI", "South Africa": "ZA",
+  "South Korea": "KR", "Spain": "ES", "Sri Lanka": "LK", "Sudan": "SD", "Sweden": "SE",
+  "Switzerland": "CH", "Syria": "SY", "Taiwan": "TW", "Tanzania": "TZ", "Thailand": "TH",
+  "Togo": "TG", "Tunisia": "TN", "Turkey": "TR", "Uganda": "UG", "Ukraine": "UA",
+  "United Arab Emirates": "AE", "United Kingdom": "GB", "United States": "US",
+  "United States of America": "US", "Uruguay": "UY", "Uzbekistan": "UZ",
+  "Vatican City": "VA", "Venezuela": "VE", "Vietnam": "VN", "Yemen": "YE",
+  "Zambia": "ZM", "Zimbabwe": "ZW",
+  // CountriesNow alternate names
+  "Congo (Kinshasa)": "CD", "Congo (Brazzaville)": "CG",
+};
+
+/**
+ * Convert an ISO 3166-1 alpha-2 code to a flag emoji.
+ * Uses regional indicator symbols: each letter is offset from 'A' (0x41) to 🇦 (0x1F1E6).
+ */
+const isoToFlag = (iso: string): string => {
+  const codePoints = iso
+    .toUpperCase()
+    .split("")
+    .map((c) => 0x1f1e6 + c.charCodeAt(0) - 0x41);
+  return String.fromCodePoint(...codePoints);
+};
+
+/**
+ * Get the flag emoji for a country name. Returns empty string if unknown.
+ */
+export const countryFlag = (country: string): string => {
+  const iso = COUNTRY_ISO[country];
+  return iso ? isoToFlag(iso) : "";
+};
+
 // City translations (only cities whose name changes between languages)
 const CITY_NAMES: Record<string, Partial<Record<AppLocale, string>>> = {
   "London": { fr: "Londres", es: "Londres", de: "London", pt: "Londres", it: "Londra", ar: "لندن" },
@@ -239,14 +297,14 @@ export const setPreferredLanguage = (locale: AppLocale) => {
 };
 
 /**
- * Localize a country name to the user's preferred language.
+ * Localize a country name to the user's preferred language, with flag emoji.
  * Falls back to the original name if no translation found.
  */
 export const localizeCountry = (country: string, locale?: AppLocale): string => {
   const lang = locale ?? getPreferredLanguage();
-  if (lang === "en") return country; // canonical names are in English
-  const translations = COUNTRY_NAMES[country];
-  return translations?.[lang] ?? country;
+  const flag = countryFlag(country);
+  const name = lang === "en" ? country : (COUNTRY_NAMES[country]?.[lang] ?? country);
+  return flag ? `${flag} ${name}` : name;
 };
 
 /**
