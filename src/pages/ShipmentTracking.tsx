@@ -11,23 +11,25 @@ import StarRating from "@/components/StarRating";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const statusSteps = ["pending", "accepted", "picked_up", "in_transit", "delivered"];
-
-const statusLabels: Record<string, string> = {
-  pending: "En attente",
-  accepted: "Accepté",
-  picked_up: "Récupéré",
-  in_transit: "En transit",
-  delivered: "Livré",
-  cancelled: "Annulé",
-};
 
 const ShipmentTracking = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user, roles } = useAuth();
+  const { t } = useTranslation();
   const isVoyageur = roles.includes("voyageur");
+
+  const statusLabels: Record<string, string> = {
+    pending: t("tracking.pending"),
+    accepted: t("tracking.accepted"),
+    picked_up: t("tracking.pickedUp"),
+    in_transit: t("tracking.inTransit"),
+    delivered: t("tracking.delivered"),
+    cancelled: t("tracking.cancelled"),
+  };
 
   const [shipment, setShipment] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
@@ -49,7 +51,6 @@ const ShipmentTracking = () => {
 
       if (shipRes.data) {
         setShipment(shipRes.data);
-        // Load voyageur rating if voyageur is assigned
         if (shipRes.data.voyageur_id) {
           const { data: ratingData } = await supabase.rpc("get_user_rating" as any, { _user_id: shipRes.data.voyageur_id });
           if (ratingData?.[0]) setVoyageurRating(ratingData[0]);
@@ -61,7 +62,6 @@ const ShipmentTracking = () => {
     };
     loadData();
 
-    // Check if user already rated
     const checkRating = async () => {
       const { data } = await supabase
         .from("ratings" as any)
@@ -88,7 +88,6 @@ const ShipmentTracking = () => {
 
   const handleDeliveryConfirmed = () => {
     setShipment((prev: any) => ({ ...prev, status: "delivered" }));
-    // Prompt rating after short delay
     setTimeout(() => setShowRatingDialog(true), 1500);
   };
 
@@ -107,7 +106,7 @@ const ShipmentTracking = () => {
           <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground mb-4">
             <ArrowLeft size={24} />
           </button>
-          <p className="text-center text-muted-foreground mt-12">Envoi introuvable</p>
+          <p className="text-center text-muted-foreground mt-12">{t("tracking.notFound")}</p>
         </div>
         <BottomNav />
       </div>
@@ -118,8 +117,6 @@ const ShipmentTracking = () => {
   const isDelivered = shipment.status === "delivered";
   const isDemandeur = shipment.user_id === user?.id;
   const isAssignedVoyageur = shipment.voyageur_id === user?.id;
-
-  // Who to rate: demandeur rates voyageur, voyageur rates demandeur
   const ratedUserId = isDemandeur ? shipment.voyageur_id : shipment.user_id;
   const raterRole = isDemandeur ? "demandeur" : "voyageur";
 
@@ -139,12 +136,12 @@ const ShipmentTracking = () => {
               <ArrowLeft size={24} />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-foreground">Suivi du colis</h1>
+              <h1 className="text-xl font-bold text-foreground">{t("tracking.title")}</h1>
               <p className="text-xs text-muted-foreground">COLY-{shipment.id.slice(0, 8).toUpperCase()}</p>
             </div>
             {isDelivered && (
               <span className="text-xs font-bold bg-green-500/15 text-green-700 px-2 py-1 rounded-full flex items-center gap-1">
-                <CheckCircle size={10} /> Livré
+                <CheckCircle size={10} /> {t("tracking.delivered")}
               </span>
             )}
           </div>
@@ -200,26 +197,26 @@ const ShipmentTracking = () => {
 
           {/* Shipment details */}
           <motion.div {...staggerItem} className="bg-card border border-border rounded-2xl p-4 space-y-3">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Détails</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("tracking.details")}</h3>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2">
                 <MapPin size={14} className="text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Destination</p>
+                  <p className="text-xs text-muted-foreground">{t("tracking.destination")}</p>
                   <p className="text-sm font-medium text-foreground">{localizeCity(shipment.arrival_city)}, {localizeCountry(shipment.arrival_country)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar size={14} className="text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Départ</p>
+                  <p className="text-xs text-muted-foreground">{t("tracking.departure")}</p>
                   <p className="text-sm font-medium text-foreground">{formatDate(shipment.departure_date)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Package size={14} className="text-muted-foreground shrink-0" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Taille</p>
+                  <p className="text-xs text-muted-foreground">{t("tracking.size")}</p>
                   <p className="text-sm font-medium text-foreground">{shipment.size}</p>
                 </div>
               </div>
@@ -227,16 +224,15 @@ const ShipmentTracking = () => {
                 <div className="flex items-center gap-2">
                   <Shield size={14} className="text-primary shrink-0" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Assurance</p>
-                    <p className="text-sm font-medium text-primary">Assuré</p>
+                    <p className="text-xs text-muted-foreground">{t("tracking.insurance")}</p>
+                    <p className="text-sm font-medium text-primary">{t("tracking.insured")}</p>
                   </div>
                 </div>
               )}
             </div>
-            {/* Voyageur rating */}
             {voyageurRating && voyageurRating.total_ratings > 0 && (
               <div className="pt-2 border-t border-border">
-                <p className="text-xs text-muted-foreground mb-1">Note du voyageur</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("tracking.voyageurRating")}</p>
                 <StarRating score={Number(voyageurRating.average_score)} total={Number(voyageurRating.total_ratings)} />
               </div>
             )}
@@ -259,9 +255,9 @@ const ShipmentTracking = () => {
               className="bg-card border border-green-500/20 rounded-2xl p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Image size={14} className="text-green-600" />
-                <h3 className="text-sm font-bold text-foreground">Preuve de livraison</h3>
+                <h3 className="text-sm font-bold text-foreground">{t("tracking.deliveryProof")}</h3>
               </div>
-              <img src={deliveryProof.photo_url} alt="Preuve de livraison" className="w-full rounded-xl object-cover max-h-48" />
+              <img src={deliveryProof.photo_url} alt={t("tracking.deliveryProof")} className="w-full rounded-xl object-cover max-h-48" />
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 {deliveryProof.created_at && (
                   <span>📅 {new Date(deliveryProof.created_at).toLocaleString("fr-FR")}</span>
@@ -273,28 +269,28 @@ const ShipmentTracking = () => {
             </motion.div>
           )}
 
-          {/* Rating CTA — shown after delivery if not yet rated */}
+          {/* Rating CTA */}
           {isDelivered && !hasRated && ratedUserId && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
               className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-foreground">Évaluer cette livraison</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Votre avis aide la communauté</p>
+                <p className="text-sm font-semibold text-foreground">{t("tracking.rateDelivery")}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("tracking.rateHelp")}</p>
               </div>
               <button
                 onClick={() => setShowRatingDialog(true)}
                 className="shrink-0 px-4 py-2 rounded-xl bg-accent text-accent-foreground text-xs font-bold hover:opacity-90 transition-opacity"
               >
-                ⭐ Noter
+                ⭐ {t("tracking.rate")}
               </button>
             </motion.div>
           )}
 
           {/* Timeline */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Historique de suivi</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("tracking.timeline")}</h3>
             {events.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">Aucun événement de suivi</p>
+              <p className="text-sm text-muted-foreground text-center py-6">{t("tracking.noEvents")}</p>
             ) : (
               <TrackingTimeline events={events} />
             )}
@@ -302,7 +298,6 @@ const ShipmentTracking = () => {
         </div>
       </PageTransition>
 
-      {/* Rating Dialog */}
       {showRatingDialog && ratedUserId && (
         <RatingDialog
           open={showRatingDialog}
