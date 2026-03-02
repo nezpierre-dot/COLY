@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Package, Clock, Pencil, X, Check, Loader2, AlertTriangle, Scale, Maximize2, DollarSign } from "lucide-react";
+import LiveLocationSharing from "@/components/LiveLocationSharing";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -203,6 +204,15 @@ const NeeditMissionDetail = () => {
               </div>
             )}
           </div>
+
+          {/* Live location sharing - visible when mission is accepted */}
+          {mission.voyageur_id && mission.status === "accepted" && (
+            <LiveLocationSharing
+              itemId={mission.id}
+              voyageurId={mission.voyageur_id}
+              isVoyageur={user?.id === mission.voyageur_id}
+            />
+          )}
 
           {/* Action buttons */}
           {canEdit && (
