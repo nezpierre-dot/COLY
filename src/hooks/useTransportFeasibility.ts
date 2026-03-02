@@ -128,19 +128,31 @@ export function useTransportFeasibility(
 
       const shouldDisable = diffContinent || dist > 800;
 
+      const result: DisabledTransports = {};
+
       if (shouldDisable) {
         const reason = diffContinent
           ? "traversée océanique"
           : "distance trop longue";
-        setDisabled({
-          train: `Impossible par Train entre ces villes (${reason})`,
-          bus: `Impossible par Bus entre ces villes (${reason})`,
-          voiture: `Impossible par Voiture entre ces villes (${reason})`,
-          bateau: `Impossible par Bateau entre ces villes (${reason})`,
-        });
-      } else {
-        setDisabled({});
+        result.train = `Impossible par Train entre ces villes (${reason})`;
+        result.bus = `Impossible par Bus entre ces villes (${reason})`;
+        result.voiture = `Impossible par Voiture entre ces villes (${reason})`;
+        result.velo = `Impossible par Vélo entre ces villes (${reason})`;
       }
+
+      // Bateau: disable if distance > 1500 km OR different continents (no maritime link)
+      const bateauDist = dist > 1500;
+      const noMaritimeLink = diffContinent;
+      if (bateauDist || noMaritimeLink) {
+        result.bateau = `Bateau impossible sur cet axe (${noMaritimeLink ? "pas de traversée maritime" : "distance trop longue"})`;
+      }
+
+      // Vélo: disable if distance > 200 km
+      if (dist > 200) {
+        result.velo = `Impossible par Vélo entre ces villes (distance trop longue : ${Math.round(dist)} km)`;
+      }
+
+      setDisabled(result);
     }, 300);
 
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
