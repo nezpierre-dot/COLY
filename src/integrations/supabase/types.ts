@@ -376,6 +376,48 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          body: string
+          created_at: string
+          delay_label: string
+          id: string
+          item_id: string
+          item_type: string
+          remind_at: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          delay_label: string
+          id?: string
+          item_id: string
+          item_type: string
+          remind_at: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          delay_label?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          remind_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       shipments: {
         Row: {
           arrival_city: string
