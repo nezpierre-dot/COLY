@@ -9,13 +9,17 @@ export const POPULAR_COUNTRIES = [
   "Belgium", "Germany", "United States", "Canada", "United Kingdom",
 ];
 
+/** A recent city with its associated country */
+export type RecentCity = { city: string; country: string };
+
 /**
  * Returns user's recently used countries and cities from voyages + shipments.
+ * Cities are returned with their country so consumers can filter by selected country.
  */
 export function useRecentLocations() {
   const { user } = useAuth();
   const [recentCountries, setRecentCountries] = useState<string[]>([]);
-  const [recentCities, setRecentCities] = useState<string[]>([]);
+  const [recentCitiesAll, setRecentCitiesAll] = useState<RecentCity[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -37,26 +41,39 @@ export function useRecentLocations() {
       ]);
 
       const countries = new Set<string>();
-      const cities = new Set<string>();
+      const cityMap = new Map<string, string>(); // city -> country
 
       voyages?.forEach((v) => {
         if (v.departure_country) countries.add(v.departure_country);
         if (v.arrival_country) countries.add(v.arrival_country);
-        if (v.departure_city) cities.add(v.departure_city);
-        if (v.arrival_city) cities.add(v.arrival_city);
+        if (v.departure_city && v.departure_country) cityMap.set(v.departure_city, v.departure_country);
+        if (v.arrival_city && v.arrival_country) cityMap.set(v.arrival_city, v.arrival_country);
       });
       shipments?.forEach((s) => {
         if (s.arrival_country) countries.add(s.arrival_country);
-        if (s.arrival_city) cities.add(s.arrival_city);
-        if (s.departure_city) cities.add(s.departure_city);
+        if (s.arrival_city && s.arrival_country) cityMap.set(s.arrival_city, s.arrival_country);
+        // departure_city doesn't have a country column in shipments, skip
       });
 
       setRecentCountries(Array.from(countries));
-      setRecentCities(Array.from(cities));
+      setRecentCitiesAll(
+        Array.from(cityMap.entries()).map(([city, country]) => ({ city, country }))
+      );
     };
 
     fetchRecent();
   }, [user]);
 
-  return { recentCountries, recentCities };
+  /** Get recent cities filtered for a specific country */
+  const getRecentCitiesForCountry = (country: string): string[] => {
+    if (!country) return [];
+    return recentCitiesAll
+      .filter((rc) => rc.country === country)
+      .map((rc) => rc.city);
+  };
+
+  // Backward compat: flat list of all recent cities
+  const recentCities = recentCitiesAll.map((rc) => rc.city);
+
+  return { recentCountries, recentCities, getRecentCitiesForCountry };
 }

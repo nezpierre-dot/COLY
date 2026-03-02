@@ -96,7 +96,7 @@ const NeeditMission = () => {
   const { t } = useTranslation();
   const { language } = useLanguagePreference();
   const countryDisplay = useCallback((v: string) => localizeCountry(v, language), [language]);
-  const { recentCountries, recentCities } = useRecentLocations();
+  const { recentCountries, getRecentCitiesForCountry } = useRecentLocations();
   const [submitting, setSubmitting] = useState(false);
   const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
   const [showReminderPrompt, setShowReminderPrompt] = useState(false);
@@ -151,7 +151,7 @@ const NeeditMission = () => {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { setPhotoFile(file); const reader = new FileReader(); reader.onloadend = () => setPhotoPreview(reader.result as string); reader.readAsDataURL(file); } };
 
   const validateStep1 = () => {
-    const e: Record<string, string> = {}; if (!pays.trim()) e.pays = t("needit.countryReq"); if (!timing) e.timing = t("needit.timingReq");
+    const e: Record<string, string> = {}; if (!pays.trim()) e.pays = t("needit.countryReq"); if (!ville.trim()) e.ville = t("needit.cityReq") || "La ville est obligatoire"; if (!timing) e.timing = t("needit.timingReq");
     setErrors(e); if (Object.keys(e).length > 0) { toast.error(t("sendcoly.fillRequired")); return false; } return true;
   };
   const validateStep2 = () => {
@@ -213,7 +213,7 @@ const NeeditMission = () => {
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.fromWhere")}</h3>
                 <div className="space-y-4 mb-8">
                   <SearchableDropdown label={t("sendcoly.country")} placeholder={t("trip.selectCountry")} items={countries} value={pays} onChange={handleCountryChange} loading={loadingCountries} error={errors.pays} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
-                  <SearchableDropdown label={`${t("sendcoly.city")} (facultatif)`} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => setVille(v)} loading={loadingCities} disabled={!pays} recentItems={recentCities} />
+                  <SearchableDropdown label={t("sendcoly.city")} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => { setVille(v); if (errors.ville) setErrors((p) => { const n = { ...p }; delete n.ville; return n; }); }} loading={loadingCities} disabled={!pays} error={errors.ville} recentItems={getRecentCitiesForCountry(pays)} />
                 </div>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.when")}</h3>
                 {errors.timing && <p className="text-xs text-destructive mb-2">{errors.timing}</p>}
