@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/hooks/useTranslation";
 import { localizeCountry } from "@/lib/geoLocalization";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
+import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 
 const SearchableSelect = ({ value, onChange, options, placeholder, disabled = false, displayFn }: any) => {
   const [open, setOpen] = useState(false);
@@ -106,6 +107,8 @@ const SendColy = () => {
   const [showCustomsDialog, setShowCustomsDialog] = useState(false);
   const [customsShown, setCustomsShown] = useState(false);
   const [aiLoaded, setAiLoaded] = useState(false);
+  const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
+  const [showReminderPrompt, setShowReminderPrompt] = useState(false);
 
   const STEP_TITLES = [t("coly.route"), t("coly.parcel"), t("coly.rate"), t("coly.recap")];
   const DEPART_LABELS: Record<string, string> = { main: t("coly.handDelivery"), address: t("coly.pickupAddress"), relay: t("coly.relayPoint") };
@@ -171,7 +174,14 @@ const SendColy = () => {
       if (error) throw error;
       supabase.functions.invoke("notify-match", { body: { type: "shipment", record_id: inserted.id } }).catch(() => {});
       successFeedback(t("sendcoly.createdSuccess"), { description: t("sendcoly.createdDesc") });
-      navigate("/dashboard");
+      setCreatedReminderInfo({
+        itemType: "shipment",
+        itemId: inserted.id,
+        departureCity: departCity || "—",
+        arrivalCity: arrCity,
+        departureDate: date,
+      });
+      setShowReminderPrompt(true);
     } catch (err: any) { toast.error(t("sendcoly.createError") + ": " + err.message); } finally { setSubmitting(false); }
   };
 
@@ -251,6 +261,17 @@ const SendColy = () => {
       </div>
       <CustomsInfoDialog open={showCustomsDialog} onOpenChange={setShowCustomsDialog} country={arrCountry} sizeLabel={sizeLabel} />
       <BottomNav />
+
+      {createdReminderInfo && (
+        <ReminderDialog
+          info={createdReminderInfo}
+          open={showReminderPrompt}
+          onOpenChange={(open) => {
+            setShowReminderPrompt(open);
+            if (!open) navigate("/dashboard");
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -14,6 +14,7 @@ import EanScanner from "@/components/EanScanner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { localizeCountry } from "@/lib/geoLocalization";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
+import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 
 type CategoryNode = { label: string; children?: CategoryNode[]; };
 
@@ -73,6 +74,8 @@ const NeeditMission = () => {
   const { language } = useLanguagePreference();
   const countryDisplay = useCallback((v: string) => localizeCountry(v, language), [language]);
   const [submitting, setSubmitting] = useState(false);
+  const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
+  const [showReminderPrompt, setShowReminderPrompt] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
   const [step, setStep] = useState(1);
@@ -150,12 +153,20 @@ const NeeditMission = () => {
         if (editId) {
           await supabase.from("needit_missions").update(missionData as any).eq("id", editId).eq("user_id", user.id);
           successFeedback(t("needit.missionUpdated"), { description: t("needit.missionUpdatedDesc") });
+          navigate("/mes-missions-needit");
         } else {
           const { data: inserted } = await supabase.from("needit_missions").insert({ user_id: user.id, ...missionData } as any).select("id").single();
           supabase.functions.invoke("notify-match", { body: { type: "mission", record_id: inserted.id } }).catch(() => {});
           successFeedback(t("needit.missionCreated"), { description: t("needit.missionCreatedDesc") });
+          setCreatedReminderInfo({
+            itemType: "needit_mission",
+            itemId: inserted.id,
+            departureCity: ville || pays,
+            arrivalCity: pays,
+            departureDate: new Date().toISOString().split("T")[0],
+          });
+          setShowReminderPrompt(true);
         }
-        navigate("/mes-missions-needit");
       } catch { toast.error(editId ? t("needit.updateError") : t("needit.createError")); } finally { setSubmitting(false); }
     }
   };
@@ -234,6 +245,17 @@ const NeeditMission = () => {
         )}
       </div>
       <BottomNav />
+
+      {createdReminderInfo && (
+        <ReminderDialog
+          info={createdReminderInfo}
+          open={showReminderPrompt}
+          onOpenChange={(open) => {
+            setShowReminderPrompt(open);
+            if (!open) navigate("/mes-missions-needit");
+          }}
+        />
+      )}
     </div>
   );
 };
