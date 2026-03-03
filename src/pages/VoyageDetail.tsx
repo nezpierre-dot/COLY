@@ -79,19 +79,36 @@ const VoyageDetail = () => {
 
   useEffect(() => { loadVoyage(); }, [loadVoyage]);
 
-  // Check if any shipment has been accepted by a voyageur for this specific voyage route
+  // Check if any shipment has been accepted by a voyageur for this specific voyage route & date
   useEffect(() => {
     if (!voyage || !user) return;
-    // A voyage is "accepted" if a shipment matching this route has been assigned to this voyageur
-    supabase
-      .from("shipments")
-      .select("id")
-      .eq("voyageur_id", user.id)
-      .in("status", ["accepted", "picked_up", "in_transit"])
-      .eq("arrival_city", voyage.arrival_city)
-      .eq("arrival_country", voyage.arrival_country)
-      .limit(1)
-      .then(({ data }) => setHasAcceptedShipments((data?.length || 0) > 0));
+    const checkAccepted = async () => {
+      // Check shipments matching this exact route AND overlapping departure date
+      const { data: shipData } = await supabase
+        .from("shipments")
+        .select("id")
+        .eq("voyageur_id", user.id)
+        .in("status", ["accepted", "picked_up", "in_transit"])
+        .eq("arrival_city", voyage.arrival_city)
+        .eq("arrival_country", voyage.arrival_country)
+        .eq("departure_date", voyage.departure_date)
+        .limit(1);
+
+      // Also check needit missions accepted by this voyageur for same destination
+      const { data: missionData } = await supabase
+        .from("needit_missions")
+        .select("id")
+        .eq("voyageur_id", user.id)
+        .eq("status", "accepted")
+        .eq("country", voyage.arrival_country)
+        .eq("city", voyage.arrival_city)
+        .limit(1);
+
+      setHasAcceptedShipments(
+        (shipData?.length || 0) > 0 || (missionData?.length || 0) > 0
+      );
+    };
+    checkAccepted();
   }, [voyage, user]);
 
   const canEdit = isEditable && !hasAcceptedShipments;
