@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, Star } from "lucide-react";
 import { localizeCountry } from "@/lib/geoLocalization";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import { useTransportFeasibility } from "@/hooks/useTransportFeasibility";
@@ -19,7 +19,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import SearchableSelect from "@/components/SearchableSelect";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
-
+import { useFavorites } from "@/hooks/useFavorites";
 
 
 
@@ -68,12 +68,13 @@ const NewTrip = () => {
   const { language } = useLanguagePreference();
   const countryDisplay = useCallback((v: string) => localizeCountry(v, language), [language]);
   const { recentCountries, recentCities } = useRecentLocations();
+  const { routes: favoriteRoutes, loadingRoutes: loadingFavorites } = useFavorites();
   const TRANSPORT_METHODS = getTransportMethods(t);
   const [step, setStep] = useState(1);
 
   // Step 1
   const [tripType, setTripType] = useState<"new" | "favorite" | null>(null);
-
+  const [selectedFavoriteId, setSelectedFavoriteId] = useState<string | null>(null);
   // Step 2 – Departure
   const [departureDate, setDepartureDate] = useState("");
   const [departureTime, setDepartureTime] = useState("");
@@ -168,7 +169,7 @@ const NewTrip = () => {
 
   const canContinue = () => {
     switch (step) {
-      case 1: return tripType !== null;
+      case 1: return tripType === "new" || (tripType === "favorite" && selectedFavoriteId !== null);
       case 2: return departureDate && departureCity;
       case 3: return arrivalCity;
       case 4: return selectedTransports.length > 0;
@@ -263,7 +264,7 @@ const NewTrip = () => {
           {step === 1 && (
             <div className="space-y-4">
               <button
-                onClick={() => setTripType("new")}
+                onClick={() => { setTripType("new"); setSelectedFavoriteId(null); }}
                 className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-colors ${
                   tripType === "new"
                     ? "border-primary bg-primary/5"
@@ -297,6 +298,45 @@ const NewTrip = () => {
                   {t("trip.favoriteTrip")}
                 </span>
               </button>
+
+              {/* Favorite routes list */}
+              {tripType === "favorite" && (
+                <div className="space-y-2 pt-2">
+                  {loadingFavorites ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="animate-spin text-muted-foreground" size={20} />
+                    </div>
+                  ) : favoriteRoutes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {t("trip.noFavoriteRoutes")}
+                    </p>
+                  ) : (
+                    favoriteRoutes.map((route) => (
+                      <button
+                        key={route.id}
+                        onClick={() => {
+                          setSelectedFavoriteId(route.id);
+                          setDepartureCity(route.from_city);
+                          setArrivalCity(route.to_city);
+                        }}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+                          selectedFavoriteId === route.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:bg-muted/50"
+                        }`}
+                      >
+                        <Star size={16} className={selectedFavoriteId === route.id ? "text-primary fill-primary" : "text-muted-foreground"} />
+                        <span className="text-sm font-medium text-foreground">
+                          {route.from_city} → {route.to_city}
+                        </span>
+                        {selectedFavoriteId === route.id && (
+                          <Check size={14} className="ml-auto text-primary" />
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           )}
 
