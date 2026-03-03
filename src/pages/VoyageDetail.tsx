@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock } from "lucide-react";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { motion } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
@@ -57,10 +58,26 @@ const VoyageDetail = () => {
   const [arrivalTime, setArrivalTime] = useState("");
   const [departureAddress, setDepartureAddress] = useState("");
   const [arrivalAddress, setArrivalAddress] = useState("");
+  const [canPickup, setCanPickup] = useState(false);
+  const [canMove, setCanMove] = useState(false);
+  const [deliverToAddress, setDeliverToAddress] = useState(false);
+  const [acceptNeedit, setAcceptNeedit] = useState(false);
+  const [needitBudget, setNeeditBudget] = useState("");
 
-  const isEditable = voyage && voyage.status === "active" && voyage.user_id === user?.id;
-  // Check if any shipment has been accepted for this voyage (voyageur matched)
+  const isOwner = voyage && voyage.user_id === user?.id;
+  const isActive = voyage && voyage.status === "active";
   const [hasAcceptedShipments, setHasAcceptedShipments] = useState(false);
+
+  // Check if within 24h of departure
+  const isWithin24h = useCallback(() => {
+    if (!voyage?.departure_date) return false;
+    const depDateStr = voyage.departure_date;
+    const depTimeStr = voyage.departure_time || "00:00";
+    const depDate = new Date(`${depDateStr}T${depTimeStr}`);
+    const now = new Date();
+    const diff = depDate.getTime() - now.getTime();
+    return diff <= 24 * 60 * 60 * 1000; // 24h or less (or already past)
+  }, [voyage]);
 
   const loadVoyage = useCallback(async () => {
     if (!id) return;
@@ -73,17 +90,21 @@ const VoyageDetail = () => {
       setArrivalTime(data.arrival_time || "");
       setDepartureAddress(data.departure_address || "");
       setArrivalAddress(data.arrival_address || "");
+      setCanPickup(data.can_pickup || false);
+      setCanMove(data.can_move || false);
+      setDeliverToAddress(data.deliver_to_address || false);
+      setAcceptNeedit(data.accept_needit || false);
+      setNeeditBudget(data.needit_budget || "");
     }
     setLoading(false);
   }, [id]);
 
   useEffect(() => { loadVoyage(); }, [loadVoyage]);
 
-  // Check if any shipment has been accepted by a voyageur for this specific voyage route & date
+  // Check if any shipment has been accepted for this specific voyage route & date
   useEffect(() => {
     if (!voyage || !user) return;
     const checkAccepted = async () => {
-      // Check shipments matching this exact route AND overlapping departure date
       const { data: shipData } = await supabase
         .from("shipments")
         .select("id")
@@ -94,7 +115,6 @@ const VoyageDetail = () => {
         .eq("departure_date", voyage.departure_date)
         .limit(1);
 
-      // Also check needit missions accepted by this voyageur for same destination
       const { data: missionData } = await supabase
         .from("needit_missions")
         .select("id")
@@ -111,7 +131,8 @@ const VoyageDetail = () => {
     checkAccepted();
   }, [voyage, user]);
 
-  const canEdit = isEditable && !hasAcceptedShipments;
+  const locked24h = isWithin24h();
+  const canEdit = isOwner && isActive && !hasAcceptedShipments && !locked24h;
 
   const handleSave = async () => {
     if (!id) return;
@@ -123,6 +144,11 @@ const VoyageDetail = () => {
       arrival_time: arrivalTime || null,
       departure_address: departureAddress || null,
       arrival_address: arrivalAddress || null,
+      can_pickup: canPickup,
+      can_move: canMove,
+      deliver_to_address: deliverToAddress,
+      accept_needit: acceptNeedit,
+      needit_budget: acceptNeedit ? (needitBudget || null) : null,
     }).eq("id", id);
     setSaving(false);
     if (error) {
@@ -206,11 +232,17 @@ const VoyageDetail = () => {
               </div>
             </div>
 
-            {/* Cannot edit warning */}
-            {isEditable && hasAcceptedShipments && (
+            {/* Cannot edit warnings */}
+            {isOwner && isActive && hasAcceptedShipments && (
               <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-xl p-3 text-xs">
                 <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                 <span>{t("dashboard.cannotEditAccepted")}</span>
+              </div>
+            )}
+            {isOwner && isActive && locked24h && !hasAcceptedShipments && (
+              <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-xl p-3 text-xs">
+                <Lock size={14} className="shrink-0 mt-0.5" />
+                <span>Les modifications sont verrouillées 24h avant le départ.</span>
               </div>
             )}
 
@@ -224,7 +256,12 @@ const VoyageDetail = () => {
                 {voyage.departure_address && <InfoRow icon={<MapPin size={14} />} label={t("trip.departAddress")} value={voyage.departure_address} />}
                 {voyage.arrival_address && <InfoRow icon={<MapPin size={14} />} label={t("trip.arrivalAddress")} value={voyage.arrival_address} />}
                 <InfoRow icon={<Users size={14} />} label={t("trip.canPickup")} value={voyage.can_pickup ? "✅" : "❌"} />
+                <InfoRow icon={<Package size={14} />} label={t("trip.canMove") || "Peut se déplacer"} value={voyage.can_move ? "✅" : "❌"} />
+                <InfoRow icon={<MapPin size={14} />} label={t("trip.deliverToAddress") || "Livrer à domicile"} value={voyage.deliver_to_address ? "✅" : "❌"} />
                 <InfoRow icon={<Package size={14} />} label="NeedIt" value={voyage.accept_needit ? "✅" : "❌"} />
+                {voyage.accept_needit && voyage.needit_budget && (
+                  <InfoRow icon={<Package size={14} />} label={t("trip.needitBudget") || "Budget NeedIt"} value={`${voyage.needit_budget} €`} />
+                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -251,6 +288,37 @@ const VoyageDetail = () => {
                 <div>
                   <Label className="text-xs text-muted-foreground">{t("trip.arrivalAddress")}</Label>
                   <Input value={arrivalAddress} onChange={(e) => setArrivalAddress(e.target.value)} placeholder="456 avenue…" />
+                </div>
+
+                {/* Toggle options */}
+                <div className="space-y-3 pt-2 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-foreground">{t("trip.canPickup")}</Label>
+                    <Switch checked={canPickup} onCheckedChange={setCanPickup} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-foreground">{t("trip.canMove") || "Peut se déplacer"}</Label>
+                    <Switch checked={canMove} onCheckedChange={setCanMove} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-foreground">{t("trip.deliverToAddress") || "Livrer à domicile"}</Label>
+                    <Switch checked={deliverToAddress} onCheckedChange={setDeliverToAddress} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-foreground">Accepter NeedIt</Label>
+                    <Switch checked={acceptNeedit} onCheckedChange={setAcceptNeedit} />
+                  </div>
+                  {acceptNeedit && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground">{t("trip.needitBudget") || "Budget NeedIt (€)"}</Label>
+                      <Input
+                        type="number"
+                        value={needitBudget}
+                        onChange={(e) => setNeeditBudget(e.target.value)}
+                        placeholder="50"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -293,7 +361,6 @@ const VoyageDetail = () => {
                 </button>
               )}
 
-              {/* Reminder button */}
               {!editing && (
                 <button
                   onClick={() => setShowReminder(true)}
@@ -304,7 +371,7 @@ const VoyageDetail = () => {
               )}
             </div>
           )}
-          {/* Reminder button (always visible when voyage exists and active) */}
+          {/* Reminder button (always visible when voyage exists and active but can't edit) */}
           {voyage.status === "active" && !canEdit && (
             <button
               onClick={() => setShowReminder(true)}
