@@ -148,6 +148,10 @@
       radial-gradient(ellipse at 80% 100%, hsl(0 100% 71% / 0.04) 0%, transparent 60%);
     background-attachment: fixed;
     min-height: 100vh;
+    /* PWA safe area for iPhone notch / Dynamic Island */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
 
   .dark body {
