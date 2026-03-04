@@ -50,8 +50,7 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
       const photoUrl = signed?.signedUrl ?? "";
       const { error: proofErr } = await supabase.from("delivery_proofs" as any).insert({ shipment_id: shipmentId, photo_url: photoUrl, latitude: coords?.lat ?? null, longitude: coords?.lng ?? null, uploaded_by: user.id });
       if (proofErr) throw proofErr;
-      const { error: statusErr } = await supabase.from("shipments").update({ status: "delivered" } as any).eq("id", shipmentId);
-      if (statusErr) throw statusErr;
+      // Don't auto-set delivered — confirmation code flow handles finalization
       onProofUploaded(photoUrl);
       onDeliveryConfirmed();
       toast.success(t("delivery.confirmed"));
