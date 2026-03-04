@@ -2,6 +2,7 @@ import { Home, LayoutGrid, MessageCircle, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { hapticLight } from "@/lib/haptics";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 const tabsDef = [
   { icon: Home, path: "/dashboard", key: "nav.home" },
@@ -14,6 +15,7 @@ const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const unreadMessages = useUnreadMessages();
   const tabs = tabsDef.map(tab => ({ ...tab, label: t(tab.key) }));
 
   return (
@@ -28,6 +30,7 @@ const BottomNav = () => {
         {tabs.map((tab, i) => {
           const Icon = tab.icon;
           const active = location.pathname === tab.path;
+          const showBadge = tab.path === "/conversations" && unreadMessages > 0;
 
           return (
             <button
@@ -38,7 +41,7 @@ const BottomNav = () => {
               className="flex flex-col items-center gap-0.5 px-5 py-1 transition-colors"
             >
               <div
-                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative ${
                   active ? "bg-[#0D84FF]/15" : ""
                 }`}
               >
@@ -48,6 +51,14 @@ const BottomNav = () => {
                   style={{ color: active ? "#0D84FF" : "#64748B" }}
                   aria-hidden="true"
                 />
+                {showBadge && (
+                  <span
+                    className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] font-bold border border-white dark:border-[#0F1115] animate-bounce"
+                    style={{ backgroundColor: "#FF453A", color: "#FFFFFF" }}
+                  >
+                    {unreadMessages > 99 ? "99+" : unreadMessages}
+                  </span>
+                )}
               </div>
               <span
                 className="text-[10px] font-medium transition-colors"
