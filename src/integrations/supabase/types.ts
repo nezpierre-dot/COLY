@@ -258,6 +258,7 @@ export type Database = {
           auto_accept: boolean
           category_path: string[]
           city: string | null
+          confirmation_code: string | null
           country: string
           created_at: string
           dimension: string | null
@@ -280,6 +281,7 @@ export type Database = {
           auto_accept?: boolean
           category_path?: string[]
           city?: string | null
+          confirmation_code?: string | null
           country: string
           created_at?: string
           dimension?: string | null
@@ -302,6 +304,7 @@ export type Database = {
           auto_accept?: boolean
           category_path?: string[]
           city?: string | null
+          confirmation_code?: string | null
           country?: string
           created_at?: string
           dimension?: string | null
@@ -349,6 +352,36 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      pickup_proofs: {
+        Row: {
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          photo_url: string
+          shipment_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          photo_url: string
+          shipment_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          photo_url?: string
+          shipment_id?: string
+          uploaded_by?: string
         }
         Relationships: []
       }
@@ -503,6 +536,7 @@ export type Database = {
         Row: {
           arrival_city: string
           arrival_country: string
+          confirmation_code: string | null
           contact_email: string | null
           contact_nom: string
           contact_prenom: string
@@ -526,6 +560,7 @@ export type Database = {
         Insert: {
           arrival_city: string
           arrival_country: string
+          confirmation_code?: string | null
           contact_email?: string | null
           contact_nom: string
           contact_prenom: string
@@ -549,6 +584,7 @@ export type Database = {
         Update: {
           arrival_city?: string
           arrival_country?: string
+          confirmation_code?: string | null
           contact_email?: string | null
           contact_nom?: string
           contact_prenom?: string
@@ -738,6 +774,10 @@ export type Database = {
         Args: { _city?: string; _country: string }
         Returns: number
       }
+      generate_confirmation_code: {
+        Args: { _item_id: string; _item_type: string }
+        Returns: string
+      }
       get_admin_stats: { Args: never; Returns: Json }
       get_pending_needit_missions: {
         Args: never
@@ -804,6 +844,10 @@ export type Database = {
         Returns: boolean
       }
       toggle_user_role: { Args: { _user_id: string }; Returns: string }
+      validate_confirmation_code: {
+        Args: { _code: string; _item_id: string; _item_type: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "demandeur" | "voyageur" | "admin"

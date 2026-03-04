@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, Package, Shield, Loader2, Send, Image, CheckCircle } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Package, Shield, Loader2, Send, Image, CheckCircle, PackageCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import PageTransition, { staggerItem } from "@/components/PageTransition";
 import TrackingTimeline from "@/components/TrackingTimeline";
 import BottomNav from "@/components/BottomNav";
 import RatingDialog from "@/components/RatingDialog";
 import DeliveryProofUpload from "@/components/DeliveryProofUpload";
+import PickupProofUpload from "@/components/PickupProofUpload";
+import ConfirmationCodeDisplay from "@/components/ConfirmationCodeDisplay";
+import ConfirmationCodeEntry from "@/components/ConfirmationCodeEntry";
 import StarRating from "@/components/StarRating";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,6 +38,7 @@ const ShipmentTracking = () => {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [deliveryProof, setDeliveryProof] = useState<any>(null);
+  const [pickupProof, setPickupProof] = useState<any>(null);
   const [hasRated, setHasRated] = useState(false);
   const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [voyageurRating, setVoyageurRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
@@ -43,10 +47,11 @@ const ShipmentTracking = () => {
     if (!id || !user) return;
 
     const loadData = async () => {
-      const [shipRes, eventsRes, proofRes] = await Promise.all([
+      const [shipRes, eventsRes, proofRes, pickupRes] = await Promise.all([
         supabase.from("shipments").select("*").eq("id", id).maybeSingle(),
         supabase.from("tracking_events").select("*").eq("shipment_id", id).order("created_at", { ascending: false }),
         supabase.from("delivery_proofs" as any).select("*").eq("shipment_id", id).maybeSingle(),
+        supabase.from("pickup_proofs" as any).select("*").eq("shipment_id", id).maybeSingle(),
       ]);
 
       if (shipRes.data) {
@@ -58,6 +63,7 @@ const ShipmentTracking = () => {
       }
       if (eventsRes.data) setEvents(eventsRes.data);
       if (proofRes.data) setDeliveryProof(proofRes.data);
+      if (pickupRes.data) setPickupProof(pickupRes.data);
       setLoading(false);
     };
     loadData();
@@ -86,7 +92,17 @@ const ShipmentTracking = () => {
     return () => { supabase.removeChannel(channel); };
   }, [id, user]);
 
+  const handlePickupConfirmed = () => {
+    setPickupProof({ confirmed: true });
+    setShipment((prev: any) => ({ ...prev, status: "picked_up" }));
+  };
+
   const handleDeliveryConfirmed = () => {
+    // Don't auto-set delivered — the confirmation code flow handles that
+    setShipment((prev: any) => ({ ...prev, status: "in_transit" }));
+  };
+
+  const handleCodeConfirmed = () => {
     setShipment((prev: any) => ({ ...prev, status: "delivered" }));
     setTimeout(() => setShowRatingDialog(true), 1500);
   };
@@ -238,6 +254,35 @@ const ShipmentTracking = () => {
             )}
           </motion.div>
 
+          {/* Pickup Proof — voyageur sees upload form when accepted and no pickup proof yet */}
+          {isAssignedVoyageur && shipment.status === "accepted" && !pickupProof && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <PickupProofUpload
+                itemId={shipment.id}
+                itemType="shipment"
+                onProofUploaded={handlePickupConfirmed}
+              />
+            </motion.div>
+          )}
+
+          {/* Pickup Proof — show when exists */}
+          {pickupProof?.photo_url && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-card border border-[#0D84FF]/20 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <PackageCheck size={14} className="text-[#0D84FF]" />
+                <h3 className="text-sm font-bold text-foreground">Preuve de récupération</h3>
+              </div>
+              <img src={pickupProof.photo_url} alt="Preuve récupération" className="w-full rounded-xl object-cover max-h-48" />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                {pickupProof.created_at && <span>📅 {new Date(pickupProof.created_at).toLocaleString("fr-FR")}</span>}
+                {pickupProof.latitude && pickupProof.longitude && (
+                  <span>📍 {Number(pickupProof.latitude).toFixed(4)}, {Number(pickupProof.longitude).toFixed(4)}</span>
+                )}
+              </div>
+            </motion.div>
+          )}
+
           {/* Delivery Proof — voyageur sees upload form when in_transit */}
           {isAssignedVoyageur && shipment.status === "in_transit" && !deliveryProof && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
@@ -245,6 +290,24 @@ const ShipmentTracking = () => {
                 shipmentId={shipment.id}
                 onProofUploaded={(url) => setDeliveryProof({ photo_url: url })}
                 onDeliveryConfirmed={handleDeliveryConfirmed}
+              />
+            </motion.div>
+          )}
+
+          {/* Confirmation Code — demandeur sees when in_transit (after delivery proof uploaded) */}
+          {isDemandeur && shipment.status === "in_transit" && deliveryProof && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <ConfirmationCodeDisplay itemId={shipment.id} itemType="shipment" />
+            </motion.div>
+          )}
+
+          {/* Confirmation Code Entry — voyageur enters code to finalize */}
+          {isAssignedVoyageur && shipment.status === "in_transit" && deliveryProof && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <ConfirmationCodeEntry
+                itemId={shipment.id}
+                itemType="shipment"
+                onConfirmed={handleCodeConfirmed}
               />
             </motion.div>
           )}
