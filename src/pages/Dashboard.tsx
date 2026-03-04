@@ -461,10 +461,6 @@ const Dashboard = () => {
           transition={{ duration: 0.5 }}
           className="relative"
         >
-          <div
-            className="h-[5px] w-full"
-            style={{ background: isVoyageur ? "#0D84FF" : "#30D158" }}
-          />
 
           <div className="bg-[#F8FAFC] dark:bg-[#0F1115] px-5 pt-5 pb-5">
             <div className="flex justify-between items-start mb-4">
