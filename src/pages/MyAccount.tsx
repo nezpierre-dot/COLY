@@ -192,7 +192,7 @@ const MyAccount = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px) + 16px)" }}>
       {/* Profile Hero Banner */}
       <div
         className="relative overflow-hidden px-6 pt-12 pb-8"
