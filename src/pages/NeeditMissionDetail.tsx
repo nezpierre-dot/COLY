@@ -1,10 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Package, Clock, Pencil, X, Check, Loader2, AlertTriangle, Scale, Maximize2, DollarSign, Bell, Info, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Package, Clock, Pencil, X, Check, Loader2, AlertTriangle, Scale, Maximize2, DollarSign, Bell, Info, ShieldCheck, PackageCheck, Image, CheckCircle, Send } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import LiveLocationSharing from "@/components/LiveLocationSharing";
+import PickupProofUpload from "@/components/PickupProofUpload";
+import DeliveryProofUpload from "@/components/DeliveryProofUpload";
+import ConfirmationCodeDisplay from "@/components/ConfirmationCodeDisplay";
+import ConfirmationCodeEntry from "@/components/ConfirmationCodeEntry";
+import RatingDialog from "@/components/RatingDialog";
+import StarRating from "@/components/StarRating";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +33,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+const missionSteps = ["pending", "accepted", "picked_up", "in_transit", "completed"];
+
 const NeeditMissionDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -38,6 +47,11 @@ const NeeditMissionDetail = () => {
   const [saving, setSaving] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
   const [showReminder, setShowReminder] = useState(false);
+  const [pickupProof, setPickupProof] = useState<any>(null);
+  const [deliveryProof, setDeliveryProof] = useState<any>(null);
+  const [hasRated, setHasRated] = useState(false);
+  const [showRatingDialog, setShowRatingDialog] = useState(false);
+  const [voyageurRating, setVoyageurRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
 
   // Editable fields
   const [country, setCountry] = useState("");
@@ -48,21 +62,62 @@ const NeeditMissionDetail = () => {
 
   const loadMission = useCallback(async () => {
     if (!id) return;
-    const { data } = await supabase.from("needit_missions").select("*").eq("id", id).maybeSingle();
-    if (data) {
+    const [missionRes, pickupRes, deliveryRes] = await Promise.all([
+      supabase.from("needit_missions").select("*").eq("id", id).maybeSingle(),
+      supabase.from("pickup_proofs" as any).select("*").eq("shipment_id", id).maybeSingle(),
+      supabase.from("delivery_proofs" as any).select("*").eq("shipment_id", id).maybeSingle(),
+    ]);
+
+    if (missionRes.data) {
+      const data = missionRes.data;
       setMission(data);
       setCountry(data.country || "");
       setCity(data.city || "");
       setTiming(data.timing || "asap");
       setPrixMax(data.prix_max || "");
       setAutoAccept((data as any).auto_accept ?? false);
+
+      if (data.voyageur_id) {
+        const { data: ratingData } = await supabase.rpc("get_user_rating" as any, { _user_id: data.voyageur_id });
+        if (ratingData?.[0]) setVoyageurRating(ratingData[0]);
+      }
     }
+    if (pickupRes.data) setPickupProof(pickupRes.data);
+    if (deliveryRes.data) setDeliveryProof(deliveryRes.data);
     setLoading(false);
   }, [id]);
 
   useEffect(() => { loadMission(); }, [loadMission]);
 
+  // Check rating
+  useEffect(() => {
+    if (!id || !user) return;
+    const checkRating = async () => {
+      const { data } = await supabase
+        .from("ratings" as any)
+        .select("id")
+        .eq("shipment_id", id)
+        .eq("rater_id", user.id)
+        .maybeSingle();
+      if (data) setHasRated(true);
+    };
+    checkRating();
+  }, [id, user]);
+
+  // Realtime
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`needit-${id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "needit_missions", filter: `id=eq.${id}` }, (payload) => {
+        setMission(payload.new);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id]);
+
   const isOwner = mission && mission.user_id === user?.id;
+  const isVoyageur = mission && mission.voyageur_id === user?.id;
   const isAccepted = mission && mission.voyageur_id != null;
   const canEdit = isOwner && !isAccepted && mission.status !== "cancelled" && mission.status !== "completed";
 
@@ -99,6 +154,27 @@ const NeeditMissionDetail = () => {
     }
   };
 
+  const handlePickupConfirmed = () => {
+    setPickupProof({ confirmed: true });
+    setMission((prev: any) => ({ ...prev, status: "picked_up" }));
+  };
+
+  const handleDeliveryConfirmed = () => {
+    setMission((prev: any) => ({ ...prev, status: "in_transit" }));
+  };
+
+  const handleCodeConfirmed = () => {
+    setMission((prev: any) => ({ ...prev, status: "completed" }));
+    setTimeout(() => setShowRatingDialog(true), 1500);
+  };
+
+  const handleTransit = async () => {
+    if (!id) return;
+    await supabase.from("needit_missions").update({ status: "in_transit" } as any).eq("id", id);
+    setMission((prev: any) => ({ ...prev, status: "in_transit" }));
+    toast.success("Statut mis à jour : en transit");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -119,10 +195,25 @@ const NeeditMissionDetail = () => {
   const statusMap: Record<string, { label: string; color: string }> = {
     pending: { label: t("missions.pending"), color: "bg-[#0D84FF]" },
     accepted: { label: t("missions.inProgress"), color: "bg-[#30D158]" },
-    completed: { label: t("missions.completed"), color: "bg-muted" },
+    picked_up: { label: "Récupéré", color: "bg-secondary" },
+    in_transit: { label: "En transit", color: "bg-accent" },
+    completed: { label: t("missions.completed"), color: "bg-green-600" },
     cancelled: { label: t("dashboard.cancelled"), color: "bg-destructive" },
   };
   const st = statusMap[mission.status] || statusMap.pending;
+
+  const statusLabels: Record<string, string> = {
+    pending: t("missions.pending"),
+    accepted: t("missions.inProgress"),
+    picked_up: "Récupéré",
+    in_transit: "En transit",
+    completed: "Livré",
+  };
+
+  const currentStepIndex = missionSteps.indexOf(mission.status);
+  const isCompleted = mission.status === "completed";
+  const ratedUserId = isOwner ? mission.voyageur_id : mission.user_id;
+  const raterRole = isOwner ? "demandeur" : "voyageur";
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -148,6 +239,57 @@ const NeeditMissionDetail = () => {
               REF: NEED-{mission.id.slice(0, 8).toUpperCase()}
             </span>
           </div>
+
+          {/* Tracking progress bar — visible once accepted */}
+          {isAccepted && mission.status !== "cancelled" && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl p-5 relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}
+            >
+              <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-primary-foreground/8" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-3">
+                  <Send size={18} className="text-primary-foreground" />
+                  <span className="text-sm font-semibold text-primary-foreground/90">
+                    {mission.product_name || "Mission NeedIt"} — {localizeCountry(mission.country, language)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between mb-2">
+                  {missionSteps.map((step, i) => {
+                    const isStepCompleted = i <= currentStepIndex && mission.status !== "cancelled";
+                    const isCurrent = i === currentStepIndex && mission.status !== "cancelled";
+                    return (
+                      <div key={step} className="flex flex-col items-center flex-1">
+                        <div className="flex items-center w-full">
+                          {i > 0 && (
+                            <div className={`h-0.5 flex-1 ${isStepCompleted ? "bg-primary-foreground" : "bg-primary-foreground/20"}`} />
+                          )}
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
+                            isStepCompleted ? "bg-primary-foreground border-primary-foreground" : "bg-transparent border-primary-foreground/30"
+                          } ${isCurrent ? "ring-2 ring-primary-foreground/40 ring-offset-1 ring-offset-transparent" : ""}`}>
+                            {isStepCompleted ? (
+                              <svg viewBox="0 0 12 12" className="w-3 h-3 text-primary"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            ) : (
+                              <span className="w-2 h-2 rounded-full bg-primary-foreground/25" />
+                            )}
+                          </div>
+                          {i < missionSteps.length - 1 && (
+                            <div className={`h-0.5 flex-1 ${i < currentStepIndex && mission.status !== "cancelled" ? "bg-primary-foreground" : "bg-primary-foreground/20"}`} />
+                          )}
+                        </div>
+                        <span className={`text-[9px] font-semibold mt-1.5 text-center leading-tight ${isStepCompleted ? "text-primary-foreground" : "text-primary-foreground/35"}`}>
+                          {statusLabels[step]}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Product card */}
           <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
@@ -201,6 +343,12 @@ const NeeditMissionDetail = () => {
                   </span>
                 </div>
                 {mission.ean_code && <InfoRow icon={<Package size={14} />} label="EAN" value={mission.ean_code} />}
+                {voyageurRating && voyageurRating.total_ratings > 0 && (
+                  <div className="pt-2 border-t border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Note du voyageur</p>
+                    <StarRating score={Number(voyageurRating.average_score)} total={Number(voyageurRating.total_ratings)} />
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -238,8 +386,113 @@ const NeeditMissionDetail = () => {
             )}
           </div>
 
-          {/* Live location sharing - visible when mission is accepted */}
-          {mission.voyageur_id && mission.status === "accepted" && (
+          {/* Pickup Proof — voyageur uploads when accepted */}
+          {isVoyageur && mission.status === "accepted" && !pickupProof && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <PickupProofUpload
+                itemId={mission.id}
+                itemType="needit_mission"
+                onProofUploaded={handlePickupConfirmed}
+              />
+            </motion.div>
+          )}
+
+          {/* Pickup Proof — show when exists */}
+          {pickupProof?.photo_url && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-card border border-[#0D84FF]/20 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <PackageCheck size={14} className="text-[#0D84FF]" />
+                <h3 className="text-sm font-bold text-foreground">Preuve de récupération</h3>
+              </div>
+              <img src={pickupProof.photo_url} alt="Preuve récupération" className="w-full rounded-xl object-cover max-h-48" />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                {pickupProof.created_at && <span>📅 {new Date(pickupProof.created_at).toLocaleString("fr-FR")}</span>}
+                {pickupProof.latitude && pickupProof.longitude && (
+                  <span>📍 {Number(pickupProof.latitude).toFixed(4)}, {Number(pickupProof.longitude).toFixed(4)}</span>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Voyageur: mark as in transit after pickup */}
+          {isVoyageur && mission.status === "picked_up" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <button
+                onClick={handleTransit}
+                className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <Send size={16} /> Passer en transit
+              </button>
+            </motion.div>
+          )}
+
+          {/* Delivery Proof — voyageur uploads when in_transit */}
+          {isVoyageur && mission.status === "in_transit" && !deliveryProof && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <DeliveryProofUpload
+                shipmentId={mission.id}
+                onProofUploaded={(url) => setDeliveryProof({ photo_url: url })}
+                onDeliveryConfirmed={handleDeliveryConfirmed}
+              />
+            </motion.div>
+          )}
+
+          {/* Confirmation Code — demandeur sees when in_transit and delivery proof exists */}
+          {isOwner && mission.status === "in_transit" && deliveryProof && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <ConfirmationCodeDisplay itemId={mission.id} itemType="needit_mission" />
+            </motion.div>
+          )}
+
+          {/* Confirmation Code Entry — voyageur enters code to finalize */}
+          {isVoyageur && mission.status === "in_transit" && deliveryProof && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <ConfirmationCodeEntry
+                itemId={mission.id}
+                itemType="needit_mission"
+                onConfirmed={handleCodeConfirmed}
+              />
+            </motion.div>
+          )}
+
+          {/* Delivery Proof — show photo when completed */}
+          {isCompleted && deliveryProof?.photo_url && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-card border border-green-500/20 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Image size={14} className="text-green-600" />
+                <h3 className="text-sm font-bold text-foreground">Preuve de livraison</h3>
+              </div>
+              <img src={deliveryProof.photo_url} alt="Preuve livraison" className="w-full rounded-xl object-cover max-h-48" />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                {deliveryProof.created_at && <span>📅 {new Date(deliveryProof.created_at).toLocaleString("fr-FR")}</span>}
+                {deliveryProof.latitude && deliveryProof.longitude && (
+                  <span>📍 {Number(deliveryProof.latitude).toFixed(4)}, {Number(deliveryProof.longitude).toFixed(4)}</span>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Rating CTA */}
+          {isCompleted && !hasRated && ratedUserId && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+              className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Notez cette mission</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Votre avis aide la communauté</p>
+              </div>
+              <button
+                onClick={() => setShowRatingDialog(true)}
+                className="shrink-0 px-4 py-2 rounded-xl bg-accent text-accent-foreground text-xs font-bold hover:opacity-90 transition-opacity"
+              >
+                ⭐ Noter
+              </button>
+            </motion.div>
+          )}
+
+          {/* Live location sharing */}
+          {mission.voyageur_id && (mission.status === "accepted" || mission.status === "picked_up" || mission.status === "in_transit") && (
             <LiveLocationSharing
               itemId={mission.id}
               voyageurId={mission.voyageur_id}
@@ -314,6 +567,17 @@ const NeeditMissionDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Rating dialog */}
+      {showRatingDialog && ratedUserId && (
+        <RatingDialog
+          open={showRatingDialog}
+          onClose={() => { setShowRatingDialog(false); setHasRated(true); }}
+          shipmentId={mission.id}
+          ratedUserId={ratedUserId}
+          raterRole={raterRole as "demandeur" | "voyageur"}
+        />
+      )}
 
       {/* Reminder dialog */}
       {mission && (
