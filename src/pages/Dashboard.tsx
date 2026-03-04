@@ -709,7 +709,9 @@ const Dashboard = () => {
                       </h3>
                     )}
                     {sortedUnmatchedShipments.map((s: any) => (
-                      <div key={s.id} className="bg-card rounded-xl px-3 py-2.5 border border-border">
+                      <button key={s.id}
+                        onClick={() => setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
+                        className="w-full text-left bg-card rounded-xl px-3 py-2.5 border border-border hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="min-w-0">
                              <p className="font-medium text-foreground text-sm truncate">
@@ -722,9 +724,10 @@ const Dashboard = () => {
                           <div className="flex items-center gap-1.5 shrink-0">
                             {s.insured && <Shield size={12} className="text-primary" />}
                             <span className="text-xs font-semibold text-foreground">{s.tarif === "custom" ? t("dashboard.onQuote") : s.tarif}</span>
+                            <ChevronRight size={14} className="text-muted-foreground" />
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -838,7 +841,9 @@ const Dashboard = () => {
                       {matchedNeedit.length > 0 ? `${t("dashboard.otherMissions")} (${unmatchedNeedit.length})` : `${t("dashboard.availableMissions")} (${unmatchedNeedit.length})`}
                     </h3>
                     {sortedUnmatchedNeedit.map((m: any) => (
-                      <div key={m.id} className="bg-card rounded-xl px-3 py-2.5 border border-border">
+                      <button key={m.id}
+                        onClick={() => setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission" })}
+                        className="w-full text-left bg-card rounded-xl px-3 py-2.5 border border-border hover:border-secondary/40 hover:bg-secondary/5 transition-colors cursor-pointer">
                         <div className="flex items-start justify-between">
                           <div className="min-w-0">
                             <p className="font-medium text-foreground text-sm truncate">
@@ -852,9 +857,12 @@ const Dashboard = () => {
                               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${m.auto_accept ? "text-[#0D84FF] bg-[#0D84FF]/10" : "text-muted-foreground bg-muted"}`}>{t("needit.autoAccept")}: {m.auto_accept ? t("needit.autoAcceptYes") : t("needit.autoAcceptNo")}</span>
                             </div>
                           </div>
-                          {m.prix_max && <p className="text-sm font-bold text-foreground shrink-0">{m.prix_max} {getCurrencyForCountry(m.country).symbol}</p>}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {m.prix_max && <p className="text-sm font-bold text-foreground">{m.prix_max} {getCurrencyForCountry(m.country).symbol}</p>}
+                            <ChevronRight size={14} className="text-muted-foreground" />
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
