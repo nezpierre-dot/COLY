@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
         user_id: reminder.user_id,
         title: reminder.title,
         message: reminder.body,
-        type: "reminder",
+        type: `reminder:${reminder.item_type}:${reminder.item_id}`,
       });
 
       // Send email via Resend

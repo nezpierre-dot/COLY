@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
           user_id: s.user_id,
           title: "🎯 Match trouvé !",
           message: `Un voyageur se rend à ${voyage.arrival_city}, ${voyage.arrival_country} et peut transporter votre colis.`,
-          type: "match",
+          type: `match:shipment:${s.id}`,
         });
       }
 
@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
           user_id: m.user_id,
           title: "🎯 Match NeedIt !",
           message: `Un voyageur se rend à ${voyage.arrival_city}, ${voyage.arrival_country} et peut réaliser votre mission.`,
-          type: "match",
+          type: `match:needit:${m.id}`,
         });
       }
 
@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
           user_id: voyage.user_id,
           title: "🎯 Nouveaux matchs !",
           message: `${total} demande(s) correspondent à votre trajet vers ${voyage.arrival_city}, ${voyage.arrival_country}.`,
-          type: "match",
+          type: `match:voyage:${record_id}`,
         });
       }
 
@@ -250,7 +250,7 @@ Deno.serve(async (req) => {
           user_id: demandeur_id,
           title: "🎯 Match trouvé !",
           message: `${matchedVoyages.length} voyageur(s) se rend(ent) vers ${destination_city || destination_country}. Votre demande a des correspondances !`,
-          type: "match",
+          type: `match:${type === "shipment" ? "shipment" : "needit"}:${record_id}`,
         });
 
         for (const v of matchedVoyages) {
@@ -258,7 +258,7 @@ Deno.serve(async (req) => {
             user_id: v.user_id,
             title: "🎯 Nouvelle demande match !",
             message: `Une nouvelle demande correspond à votre trajet vers ${v.arrival_city}, ${v.arrival_country}.`,
-            type: "match",
+            type: `match:voyage:${v.id}`,
           });
         }
       }
