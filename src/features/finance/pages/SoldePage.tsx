@@ -45,7 +45,7 @@ export default function SoldePage() {
 
         <h1 className="text-[28px] font-black text-foreground leading-tight">{t("balance.title")}</h1>
         <p className="text-sm text-muted-foreground mt-1">au 03/02/2025 à 15h02</p>
-        <p className={`text-4xl font-black mt-3 ${balance >= 0 ? "text-foreground" : "text-destructive"}`}>
+        <p className={`text-4xl font-black mt-3 ${balance >= 0 ? "text-[#30D158]" : "text-destructive"}`}>
           {balance >= 0 ? "+" : ""} {balance.toFixed(2)}{currencySymbol}
         </p>
 
