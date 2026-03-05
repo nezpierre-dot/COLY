@@ -13,9 +13,9 @@ import SplashScreen from "@/components/SplashScreen";
 
 // Lazy-loaded pages
 const Welcome = lazy(() => import("./pages/Welcome"));
-const Signup = lazy(() => import("./pages/Signup"));
-const Login = lazy(() => import("./pages/Login"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Signup = lazy(() => import("./features/auth/pages/Signup"));
+const Login = lazy(() => import("./features/auth/pages/Login"));
+const ResetPassword = lazy(() => import("./features/auth/pages/ResetPassword"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SendColy = lazy(() => import("./features/shipment/pages/SendColy"));
@@ -23,7 +23,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const MyAccount = lazy(() => import("./pages/MyAccount"));
 const NeeditMission = lazy(() => import("./features/needit/pages/NeeditMission"));
 const MesNeeditMissions = lazy(() => import("./features/needit/pages/MesNeeditMissions"));
-const KycFlow = lazy(() => import("./pages/KycFlow"));
+const KycFlow = lazy(() => import("./features/auth/pages/KycFlow"));
 const MyInfo = lazy(() => import("./pages/MyInfo"));
 const VoyageurSettings = lazy(() => import("./features/voyage/pages/VoyageurSettings"));
 const HistoryPage = lazy(() => import("./pages/HistoryPage"));
