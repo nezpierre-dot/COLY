@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight } from "lucide-react";
 import AcceptedItemCard from "@/components/AcceptedItemCard";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { motion } from "framer-motion";
+import { Progress } from "@/components/ui/progress";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -364,6 +365,60 @@ const VoyageDetail = () => {
                 {voyage.accept_needit && voyage.needit_budget && (
                   <InfoRow icon={<Package size={14} />} label={t("trip.needitBudget") || "Budget NeedIt"} value={`${voyage.needit_budget} €`} />
                 )}
+
+                {/* Capacity progress bars */}
+                {(voyage.max_weight_kg || voyage.max_items) && (() => {
+                  const SIZE_WEIGHT: Record<string, number> = { S: 1, M: 5, L: 10, XL: 20 };
+                  const usedWeight = (acceptedColis || []).reduce((s: number, c: any) => s + (SIZE_WEIGHT[c.size] || 5), 0)
+                    + (acceptedMissions || []).reduce((s: number, m: any) => s + (m.poids ? parseFloat(m.poids) || 1 : 1), 0);
+                  const usedItems = (acceptedColis || []).length + (acceptedMissions || []).length;
+                  const weightPct = voyage.max_weight_kg ? Math.min((usedWeight / voyage.max_weight_kg) * 100, 100) : 0;
+                  const itemsPct = voyage.max_items ? Math.min((usedItems / voyage.max_items) * 100, 100) : 0;
+
+                  return (
+                    <div className="space-y-3 pt-3 border-t border-border">
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                        <Weight size={12} /> {t("trip.capacityTitle")}
+                      </h4>
+                      {voyage.max_weight_kg && (
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">{t("trip.maxWeight")}</span>
+                            <span className={`font-bold ${weightPct >= 90 ? "text-destructive" : weightPct >= 70 ? "text-amber-500" : "text-primary"}`}>
+                              {usedWeight.toFixed(1)} / {voyage.max_weight_kg} kg
+                            </span>
+                          </div>
+                          <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${weightPct}%` }}
+                              transition={{ duration: 0.8, ease: "easeOut" }}
+                              className={`h-full rounded-full ${weightPct >= 90 ? "bg-destructive" : weightPct >= 70 ? "bg-amber-500" : "bg-primary"}`}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      {voyage.max_items && (
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">{t("trip.maxItems")}</span>
+                            <span className={`font-bold ${itemsPct >= 90 ? "text-destructive" : itemsPct >= 70 ? "text-amber-500" : "text-primary"}`}>
+                              {usedItems} / {voyage.max_items}
+                            </span>
+                          </div>
+                          <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${itemsPct}%` }}
+                              transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+                              className={`h-full rounded-full ${itemsPct >= 90 ? "bg-destructive" : itemsPct >= 70 ? "bg-amber-500" : "bg-primary"}`}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               <div className="space-y-3">
