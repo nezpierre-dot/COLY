@@ -248,7 +248,7 @@ const VoyageDetail = () => {
 
             {/* Info grid */}
             {!editing ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <InfoRow icon={<Calendar size={14} />} label={t("trip.departDate")} value={voyage.departure_date} />
                 {voyage.departure_time && <InfoRow icon={<Clock size={14} />} label={t("trip.departTime")} value={voyage.departure_time} />}
                 {voyage.arrival_date && <InfoRow icon={<Calendar size={14} />} label={t("trip.arrivalDate")} value={voyage.arrival_date} />}
@@ -388,7 +388,7 @@ const VoyageDetail = () => {
       <AlertDialog open={showCancel} onOpenChange={setShowCancel}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("dashboard.cancelVoyage")}</AlertDialogTitle>
+            <AlertDialogTitle>Confirmer annulation ?</AlertDialogTitle>
             <AlertDialogDescription>{t("dashboard.cancelVoyageDesc")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
