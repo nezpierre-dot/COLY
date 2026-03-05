@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import AuthLayout from "@/components/AuthLayout";
 import { useTranslation } from "@/hooks/useTranslation";
+import { validatePassword } from "@/lib/passwordValidation";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -27,7 +28,8 @@ const ResetPassword = () => {
 
   const handleReset = async () => {
     if (!password || !confirmPassword) { toast.error(t("login.fillAll")); return; }
-    if (password.length < 6) { toast.error(t("signup.passwordMin")); return; }
+    const pwdError = validatePassword(password);
+    if (pwdError) { toast.error(pwdError); return; }
     if (password !== confirmPassword) { toast.error(t("signup.passwordMismatch")); return; }
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });

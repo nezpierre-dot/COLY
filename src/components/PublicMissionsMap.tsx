@@ -7,7 +7,7 @@ import { Package, ShoppingBag, Search, Filter, X, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 
-const MAPBOX_TOKEN = "pk.eyJ1IjoicGllcnJlLTQzOTciLCJhIjoiY21sd2N6dTlmMGJkMTNlcXduMWtnZTJyMyJ9.vV_ZqV0mJ5WLbE6aX3QDJg";
+import { MAPBOX_TOKEN } from "@/lib/mapbox";
 
 // Mapbox uses [lng, lat]
 const CITY_COORDS: Record<string, [number, number]> = {
