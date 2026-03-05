@@ -12,12 +12,12 @@ import AdminRoute from "@/components/AdminRoute";
 import SplashScreen from "@/components/SplashScreen";
 
 // Lazy-loaded pages
-const Welcome = lazy(() => import("./pages/Welcome"));
+const Welcome = lazy(() => import("./features/core/pages/Welcome"));
 const Signup = lazy(() => import("./features/auth/pages/Signup"));
 const Login = lazy(() => import("./features/auth/pages/Login"));
 const ResetPassword = lazy(() => import("./features/auth/pages/ResetPassword"));
-const Terms = lazy(() => import("./pages/Terms"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Terms = lazy(() => import("./features/legal/pages/Terms"));
+const Dashboard = lazy(() => import("./features/core/pages/Dashboard"));
 const SendColy = lazy(() => import("./features/shipment/pages/SendColy"));
 const Settings = lazy(() => import("./features/account/pages/Settings"));
 const MyAccount = lazy(() => import("./features/account/pages/MyAccount"));
@@ -26,27 +26,27 @@ const MesNeeditMissions = lazy(() => import("./features/needit/pages/MesNeeditMi
 const KycFlow = lazy(() => import("./features/auth/pages/KycFlow"));
 const MyInfo = lazy(() => import("./features/account/pages/MyInfo"));
 const VoyageurSettings = lazy(() => import("./features/voyage/pages/VoyageurSettings"));
-const HistoryPage = lazy(() => import("./pages/HistoryPage"));
-const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
-const Comptabilite = lazy(() => import("./pages/Comptabilite"));
-const SoldePage = lazy(() => import("./pages/SoldePage"));
-const FacturationPage = lazy(() => import("./pages/FacturationPage"));
-const ConfidentialitePage = lazy(() => import("./pages/ConfidentialitePage"));
+const HistoryPage = lazy(() => import("./features/core/pages/HistoryPage"));
+const NotificationsPage = lazy(() => import("./features/core/pages/NotificationsPage"));
+const Comptabilite = lazy(() => import("./features/finance/pages/Comptabilite"));
+const SoldePage = lazy(() => import("./features/finance/pages/SoldePage"));
+const FacturationPage = lazy(() => import("./features/finance/pages/FacturationPage"));
+const ConfidentialitePage = lazy(() => import("./features/legal/pages/ConfidentialitePage"));
 const PaymentMethods = lazy(() => import("./features/account/pages/PaymentMethods"));
 const NewTrip = lazy(() => import("./features/voyage/pages/NewTrip"));
 const ShipmentTracking = lazy(() => import("./features/shipment/pages/ShipmentTracking"));
 const ConversationsPage = lazy(() => import("./features/chat/pages/ConversationsPage"));
 const ChatPage = lazy(() => import("./features/chat/pages/ChatPage"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminDashboard = lazy(() => import("./features/admin/pages/AdminDashboard"));
 const VoyageurSearch = lazy(() => import("./features/voyage/pages/VoyageurSearch"));
-const InstallPage = lazy(() => import("./pages/InstallPage"));
-const FaqPage = lazy(() => import("./pages/FaqPage"));
-const AidePage = lazy(() => import("./pages/AidePage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const InstallPage = lazy(() => import("./features/core/pages/InstallPage"));
+const FaqPage = lazy(() => import("./features/support/pages/FaqPage"));
+const AidePage = lazy(() => import("./features/support/pages/AidePage"));
+const NotFound = lazy(() => import("./features/core/pages/NotFound"));
 const VoyageDetail = lazy(() => import("./features/voyage/pages/VoyageDetail"));
 const ShipmentDetail = lazy(() => import("./features/shipment/pages/ShipmentDetail"));
 const NeeditMissionDetail = lazy(() => import("./features/needit/pages/NeeditMissionDetail"));
-const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
+const FavoritesPage = lazy(() => import("./features/core/pages/FavoritesPage"));
 
 const queryClient = new QueryClient();
 
