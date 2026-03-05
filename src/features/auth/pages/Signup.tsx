@@ -7,6 +7,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import AuthLayout from "@/components/AuthLayout";
 import { useTranslation } from "@/hooks/useTranslation";
+import { validatePassword } from "@/lib/passwordValidation";
 
 interface FormData {
   nom: string;
@@ -195,8 +196,9 @@ const Signup = () => {
       return;
     }
 
-    if (form.password.length < 6) {
-      toast.error(t("signup.passwordMin"));
+    const pwdError = validatePassword(form.password);
+    if (pwdError) {
+      toast.error(pwdError);
       return;
     }
     if (form.password !== form.confirmPassword) {

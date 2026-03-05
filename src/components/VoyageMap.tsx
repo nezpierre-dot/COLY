@@ -3,7 +3,7 @@ import Map, { Marker, Popup, Source, Layer, NavigationControl } from "react-map-
 import type { MapRef } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-const MAPBOX_TOKEN = "pk.eyJ1IjoicGllcnJlLTQzOTciLCJhIjoiY21sd2N6dTlmMGJkMTNlcXduMWtnZTJyMyJ9.vV_ZqV0mJ5WLbE6aX3QDJg";
+import { MAPBOX_TOKEN } from "@/lib/mapbox";
 
 export interface Voyage {
   id: string;
