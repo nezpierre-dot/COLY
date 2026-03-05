@@ -173,14 +173,19 @@ const ChatPage = () => {
       const photoUrl = signedData?.signedUrl ?? "";
       await supabase.from("messages").insert({ conversation_id: conversationId, sender_id: user.id, content: `__PROOF__:${photoUrl}` });
       
-      // Notify the demandeur that proof was sent
+      // Notify the demandeur that proof was sent (in-app + email)
       if (isVoyageur && otherUserId) {
+        const productName = itemDetail?.type === "mission" ? itemDetail.product_name : null;
         await supabase.from("notifications").insert({
           user_id: otherUserId,
           title: "Preuve d'achat reçue 🧾",
           message: "Le voyageur a envoyé une photo du produit acheté et du ticket de caisse. Consultez le chat pour vérifier.",
           type: "proof",
         });
+        // Send email notification (fire & forget)
+        supabase.functions.invoke("notify-proof", {
+          body: { demandeur_id: otherUserId, product_name: productName },
+        }).catch(() => {});
       }
       
       setProofPreview(null);
