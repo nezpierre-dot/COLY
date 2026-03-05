@@ -23,14 +23,29 @@ const defaultIcon = <Bell size={18} className="text-muted-foreground" />;
 
 const getNotifIcon = (type: string): ReactNode => {
   if (type.startsWith("proof:")) return <ShoppingBag size={18} className="text-amber-400" />;
+  if (type.startsWith("match:")) return <Star size={18} className="text-amber-400" />;
+  if (type.startsWith("pickup:")) return <Package size={18} className="text-emerald-400" />;
+  if (type.startsWith("mission_status:")) return <ShoppingBag size={18} className="text-primary" />;
+  if (type.startsWith("reminder:")) return <Bell size={18} className="text-blue-400" />;
   return typeIcon[type] || defaultIcon;
 };
 
 const getNotifLink = (type: string): string | null => {
-  if (type.startsWith("proof:")) {
-    const convoId = type.replace("proof:", "");
-    return convoId ? `/chat/${convoId}` : null;
-  }
+  // proof:conversationId
+  if (type.startsWith("proof:")) return `/chat/${type.replace("proof:", "")}`;
+  // match:shipment:id / match:needit:id / match:voyage:id
+  if (type.startsWith("match:shipment:")) return `/shipment/${type.replace("match:shipment:", "")}`;
+  if (type.startsWith("match:needit:")) return `/needit/${type.replace("match:needit:", "")}`;
+  if (type.startsWith("match:voyage:")) return `/voyage/${type.replace("match:voyage:", "")}`;
+  // pickup:shipmentId / pickup:needit:missionId
+  if (type.startsWith("pickup:needit:")) return `/needit/${type.replace("pickup:needit:", "")}`;
+  if (type.startsWith("pickup:")) return `/shipment/${type.replace("pickup:", "")}`;
+  // mission_status:missionId
+  if (type.startsWith("mission_status:")) return `/needit/${type.replace("mission_status:", "")}`;
+  // reminder:item_type:item_id
+  if (type.startsWith("reminder:shipment:")) return `/shipment/${type.split(":")[2]}`;
+  if (type.startsWith("reminder:needit_mission:")) return `/needit/${type.split(":")[2]}`;
+  if (type.startsWith("reminder:voyage:")) return `/voyage/${type.split(":")[2]}`;
   return null;
 };
 
