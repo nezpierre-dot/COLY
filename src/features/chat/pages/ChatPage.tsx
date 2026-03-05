@@ -172,6 +172,17 @@ const ChatPage = () => {
       const { data: signedData } = await supabase.storage.from("chat-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
       const photoUrl = signedData?.signedUrl ?? "";
       await supabase.from("messages").insert({ conversation_id: conversationId, sender_id: user.id, content: `__PROOF__:${photoUrl}` });
+      
+      // Notify the demandeur that proof was sent
+      if (isVoyageur && otherUserId) {
+        await supabase.from("notifications").insert({
+          user_id: otherUserId,
+          title: "Preuve d'achat reçue 🧾",
+          message: "Le voyageur a envoyé une photo du produit acheté et du ticket de caisse. Consultez le chat pour vérifier.",
+          type: "proof",
+        });
+      }
+      
       setProofPreview(null);
       setProofFile(null);
     } catch { toast.error("Erreur lors de l'envoi de la preuve"); } finally { setUploadingProof(false); }
