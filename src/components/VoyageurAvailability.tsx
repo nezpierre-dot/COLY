@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Users, CalendarPlus } from "lucide-react";
+import { Users, CalendarPlus, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -7,9 +7,10 @@ interface VoyageurAvailabilityProps {
   country: string;
   city?: string | null;
   variant?: "compact" | "full";
+  onShare?: () => void;
 }
 
-const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAvailabilityProps) => {
+const VoyageurAvailability = ({ country, city, variant = "compact", onShare }: VoyageurAvailabilityProps) => {
   const [count, setCount] = useState<number | null>(null);
   const { t } = useTranslation();
 
@@ -64,19 +65,30 @@ const VoyageurAvailability = ({ country, city, variant = "compact" }: VoyageurAv
   }
 
   return (
-    <div
-      className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-xs bg-muted/60 border border-border"
-    >
-      <Users size={14} className="text-muted-foreground" />
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-foreground/80">
-          {t("availability.none")}
-        </p>
-        <p className="mt-0.5 flex items-center gap-1 text-muted-foreground">
-          <CalendarPlus size={10} />
-          {t("availability.hint")}
-        </p>
+    <div className="space-y-2">
+      <div
+        className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5 text-xs bg-muted/60 border border-border"
+      >
+        <Users size={14} className="text-muted-foreground" />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-foreground/80">
+            {t("availability.none")}
+          </p>
+          <p className="mt-0.5 flex items-center gap-1 text-muted-foreground">
+            <CalendarPlus size={10} />
+            {t("availability.hint")}
+          </p>
+        </div>
       </div>
+      {onShare && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onShare(); }}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          style={{ background: "#F59E0B" }}
+        >
+          <Share2 size={14} /> Partager mission
+        </button>
+      )}
     </div>
   );
 };
