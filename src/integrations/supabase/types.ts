@@ -670,6 +670,8 @@ export type Database = {
           departure_date: string
           departure_time: string | null
           id: string
+          max_items: number | null
+          max_weight_kg: number | null
           needit_budget: string | null
           status: string
           transport_method: string
@@ -693,6 +695,8 @@ export type Database = {
           departure_date: string
           departure_time?: string | null
           id?: string
+          max_items?: number | null
+          max_weight_kg?: number | null
           needit_budget?: string | null
           status?: string
           transport_method: string
@@ -716,6 +720,8 @@ export type Database = {
           departure_date?: string
           departure_time?: string | null
           id?: string
+          max_items?: number | null
+          max_weight_kg?: number | null
           needit_budget?: string | null
           status?: string
           transport_method?: string

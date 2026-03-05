@@ -48,6 +48,8 @@ type Voyage = {
   departure_address: string | null;
   transport_method: string;
   status: string;
+  max_weight_kg: number | null;
+  max_items: number | null;
 };
 
 // --- Voyageur Quick Stats with mini chart ---
@@ -195,6 +197,62 @@ const Dashboard = () => {
   // "Create voyage first" dialog for unmatched items
   const [createVoyageDialog, setCreateVoyageDialog] = useState<{ type: "shipment" | "mission"; id: string; label: string; country: string; city?: string } | null>(null);
 
+  // Size-to-weight mapping for capacity checks (approximate kg)
+  const SIZE_WEIGHT_MAP: Record<string, number> = { S: 1, M: 5, L: 10, XL: 20 };
+
+  const checkCapacity = async (type: "shipment" | "mission", itemId: string): Promise<{ ok: boolean; message?: string }> => {
+    // Find the matching voyage for this item
+    let itemCountry = "";
+    let itemCity = "";
+    let itemWeight = 0;
+
+    if (type === "shipment") {
+      const ship = pendingShipments.find(s => s.id === itemId);
+      if (ship) {
+        itemCountry = ship.arrival_country;
+        itemCity = ship.arrival_city;
+        itemWeight = SIZE_WEIGHT_MAP[ship.size] || 5;
+      }
+    } else {
+      const mission = needitMissions.find(m => m.id === itemId);
+      if (mission) {
+        itemCountry = mission.country;
+        itemCity = mission.city;
+        itemWeight = mission.poids ? parseFloat(mission.poids) || 1 : 1;
+      }
+    }
+
+    const matchingVoyage = voyages.find(v => {
+      const countryMatch = v.arrival_country?.toLowerCase() === itemCountry?.toLowerCase();
+      const cityMatch = v.arrival_city?.toLowerCase() === itemCity?.toLowerCase();
+      return countryMatch && (cityMatch || !itemCity);
+    });
+
+    if (!matchingVoyage) return { ok: true }; // no voyage to check against
+    if (!matchingVoyage.max_weight_kg && !matchingVoyage.max_items) return { ok: true }; // no limits set
+
+    // Count already accepted items on this voyage route
+    const [shipRes, missRes] = await Promise.all([
+      supabase.from("shipments").select("size").eq("voyageur_id", user!.id).eq("status", "accepted"),
+      supabase.from("needit_missions").select("poids").eq("voyageur_id", user!.id).eq("status", "accepted"),
+    ]);
+
+    const acceptedShipments = shipRes.data || [];
+    const acceptedMissions = missRes.data || [];
+    const currentWeight = acceptedShipments.reduce((sum, s) => sum + (SIZE_WEIGHT_MAP[s.size] || 5), 0)
+      + acceptedMissions.reduce((sum, m) => sum + (m.poids ? parseFloat(m.poids) || 1 : 1), 0);
+    const currentItems = acceptedShipments.length + acceptedMissions.length;
+
+    if (matchingVoyage.max_weight_kg && (currentWeight + itemWeight) > matchingVoyage.max_weight_kg) {
+      return { ok: false, message: t("dashboard.capacityExceeded") + ` (${currentWeight + itemWeight}/${matchingVoyage.max_weight_kg} kg)` };
+    }
+    if (matchingVoyage.max_items && (currentItems + 1) > matchingVoyage.max_items) {
+      return { ok: false, message: t("dashboard.capacityExceeded") + ` (${currentItems + 1}/${matchingVoyage.max_items} éléments)` };
+    }
+
+    return { ok: true };
+  };
+
   const handleAcceptItem = async () => {
     if (!acceptDialog || accepting || actionInProgressRef.current) return;
     actionInProgressRef.current = true;
@@ -202,6 +260,15 @@ const Dashboard = () => {
     const { type, id } = acceptDialog;
 
     try {
+      // Check capacity before accepting
+      const capacityCheck = await checkCapacity(type, id);
+      if (!capacityCheck.ok) {
+        toast.error(capacityCheck.message || t("dashboard.capacityExceeded"));
+        setAccepting(false);
+        actionInProgressRef.current = false;
+        return;
+      }
+
       if (type === "shipment") {
         const { data, error } = await supabase.rpc("accept_shipment", { _shipment_id: id });
         if (error) throw error;
