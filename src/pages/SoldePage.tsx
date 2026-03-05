@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, ShoppingBag, ArrowDownCircle, Truck, ArrowUpCircle, ChevronDown, ChevronUp, Shield, CreditCard } from "lucide-react";
-import { CommissionBreakdown } from "@/pages/PaymentMethods";
+import { CommissionBreakdown } from "@/features/account/pages/PaymentMethods";
 import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
 
