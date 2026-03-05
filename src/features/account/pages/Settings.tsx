@@ -209,32 +209,20 @@ const Settings = () => {
           )}
         </Section>
 
-        {isVoyageur ? (
-          <Section title={t("settings.voyageurSettings")}>
-            <Row icon={Plane} label={t("settings.autoAccept")}>
-              <Switch checked={autoAccept} onCheckedChange={setAutoAccept} />
-            </Row>
-            <Row icon={Shield} label={t("settings.showItinerary")}>
-              <Switch checked={showItinerary} onCheckedChange={setShowItinerary} />
-            </Row>
-            <Row icon={CreditCard} label={t("settings.defaultRates")}>
-              <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
-            </Row>
-          </Section>
-        ) : (
-          <Section title={t("settings.demandeurSettings")}>
-            <Row icon={Package} label={t("settings.trackingAlerts")}>
-              <Switch checked={trackingAlerts} onCheckedChange={setTrackingAlerts} />
-            </Row>
-            <Row icon={Shield} label={t("settings.publicRequests")}>
-              <Switch checked={publicRequests} onCheckedChange={setPublicRequests} />
-            </Row>
-            <Row icon={CreditCard} label={t("settings.paymentMethods")}>
-              <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
-            </Row>
-          </Section>
-        )}
-
+        <Section title="Paramètres utilisateur">
+          <Row icon={Plane} label={t("settings.autoAccept")}>
+            <Switch checked={autoAccept} onCheckedChange={setAutoAccept} />
+          </Row>
+          <Row icon={Shield} label={t("settings.showItinerary")}>
+            <Switch checked={showItinerary} onCheckedChange={setShowItinerary} />
+          </Row>
+          <Row icon={Package} label={t("settings.trackingAlerts")}>
+            <Switch checked={trackingAlerts} onCheckedChange={setTrackingAlerts} />
+          </Row>
+          <Row icon={CreditCard} label={t("settings.paymentMethods")}>
+            <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
+          </Row>
+        </Section>
         <Section title={t("settings.security")}>
           <Row icon={Shield} label={t("settings.changePassword")}>
             <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
