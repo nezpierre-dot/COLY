@@ -18,6 +18,24 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate: only allow calls with the internal service role key or CRON_SECRET
+    const authHeader = req.headers.get("Authorization");
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    const token = authHeader?.replace("Bearer ", "");
+
+    // Allow if token matches service role key or cron secret
+    const isServiceRole = token && serviceRoleKey && token === serviceRoleKey;
+    const isCronAuth = token && cronSecret && token === cronSecret;
+
+    if (!isServiceRole && !isCronAuth) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
       throw new Error("RESEND_API_KEY is not configured");
@@ -55,7 +73,7 @@ Deno.serve(async (req) => {
     });
   } catch (err: any) {
     console.error("Send email error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

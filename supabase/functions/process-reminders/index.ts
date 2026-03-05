@@ -73,6 +73,26 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate: require CRON_SECRET
+    const authHeader = req.headers.get("Authorization");
+    const cronSecret = Deno.env.get("CRON_SECRET");
+
+    if (!cronSecret) {
+      console.error("CRON_SECRET not configured");
+      return new Response(JSON.stringify({ error: "Server misconfigured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const token = authHeader?.replace("Bearer ", "");
+    if (token !== cronSecret) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
@@ -115,7 +135,6 @@ Deno.serve(async (req) => {
       });
 
       // Send email via Resend
-      // Get user email from auth.users via service role
       const { data: userData } = await supabase.auth.admin.getUserById(reminder.user_id);
       if (userData?.user?.email) {
         await sendEmail(
@@ -139,7 +158,7 @@ Deno.serve(async (req) => {
     });
   } catch (err: any) {
     console.error("Process reminders error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
