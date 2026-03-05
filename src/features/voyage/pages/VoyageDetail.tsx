@@ -72,6 +72,7 @@ const VoyageDetail = () => {
   const [capturingMissionId, setCapturingMissionId] = useState<string | null>(null);
   const [capturingType, setCapturingType] = useState<"mission" | "shipment">("mission");
   const [uploadingProof, setUploadingProof] = useState(false);
+  const [missionsWithProof, setMissionsWithProof] = useState<Set<string>>(new Set());
   const cameraRef = useRef<HTMLInputElement>(null);
 
   // Check if within 24h of departure
@@ -182,6 +183,35 @@ const VoyageDetail = () => {
       setHasAcceptedShipments(
         (shipData?.length || 0) > 0 || (missionData?.length || 0) > 0
       );
+
+      // Check which NeedIt missions have proof of purchase in chat
+      if (missionData && missionData.length > 0) {
+        const proofSet = new Set<string>();
+        for (const mission of missionData) {
+          // Find conversation for this mission
+          const { data: convo } = await supabase
+            .from("conversations")
+            .select("id")
+            .eq("shipment_id", mission.id)
+            .eq("voyageur_id", user.id)
+            .maybeSingle();
+
+          if (convo) {
+            // Check if any message contains __PROOF__: prefix
+            const { data: proofMsgs } = await supabase
+              .from("messages")
+              .select("id")
+              .eq("conversation_id", convo.id)
+              .like("content", "__PROOF__:%")
+              .limit(1);
+
+            if (proofMsgs && proofMsgs.length > 0) {
+              proofSet.add(mission.id);
+            }
+          }
+        }
+        setMissionsWithProof(proofSet);
+      }
     };
     checkAccepted();
   }, [voyage, user]);
@@ -454,7 +484,13 @@ const VoyageDetail = () => {
                     </div>
 
                     {/* Camera capture button for accepted missions */}
-                    {mission.status === "accepted" && (
+                    {mission.status === "accepted" && !missionsWithProof.has(mission.id) && (
+                      <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-xl p-3 text-xs">
+                        <Lock size={14} className="shrink-0" />
+                        <span>En attente de la preuve d'achat dans le chat avant récupération</span>
+                      </div>
+                    )}
+                    {mission.status === "accepted" && missionsWithProof.has(mission.id) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
