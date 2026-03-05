@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,49 +8,56 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
 import SplashScreen from "@/components/SplashScreen";
-import Welcome from "./pages/Welcome";
-import Signup from "./pages/Signup";
-import Login from "./pages/Login";
-import Terms from "./pages/Terms";
-import Dashboard from "./pages/Dashboard";
-import SendColy from "./pages/SendColy";
-import Settings from "./pages/Settings";
-import MyAccount from "./pages/MyAccount";
-import NeeditMission from "./pages/NeeditMission";
-import MesNeeditMissions from "./pages/MesNeeditMissions";
-import KycFlow from "./pages/KycFlow";
-import MyInfo from "./pages/MyInfo";
-import VoyageurSettings from "./pages/VoyageurSettings";
-import HistoryPage from "./pages/HistoryPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import Comptabilite from "./pages/Comptabilite";
-import SoldePage from "./pages/SoldePage";
-import FacturationPage from "./pages/FacturationPage";
-import ConfidentialitePage from "./pages/ConfidentialitePage";
-import PaymentMethods from "./pages/PaymentMethods";
-import NewTrip from "./pages/NewTrip";
-import ShipmentTracking from "./pages/ShipmentTracking";
-import ConversationsPage from "./pages/ConversationsPage";
-import ChatPage from "./pages/ChatPage";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminRoute from "./components/AdminRoute";
-import VoyageurSearch from "./pages/VoyageurSearch";
-import InstallPage from "./pages/InstallPage";
-import FaqPage from "./pages/FaqPage";
-import AidePage from "./pages/AidePage";
-import ResetPassword from "./pages/ResetPassword";
-import NotFound from "./pages/NotFound";
-import VoyageDetail from "./pages/VoyageDetail";
-import ShipmentDetail from "./pages/ShipmentDetail";
-import NeeditMissionDetail from "./pages/NeeditMissionDetail";
-import FavoritesPage from "./pages/FavoritesPage";
+
+// Lazy-loaded pages
+const Welcome = lazy(() => import("./pages/Welcome"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Login = lazy(() => import("./pages/Login"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const SendColy = lazy(() => import("./pages/SendColy"));
+const Settings = lazy(() => import("./pages/Settings"));
+const MyAccount = lazy(() => import("./pages/MyAccount"));
+const NeeditMission = lazy(() => import("./pages/NeeditMission"));
+const MesNeeditMissions = lazy(() => import("./pages/MesNeeditMissions"));
+const KycFlow = lazy(() => import("./pages/KycFlow"));
+const MyInfo = lazy(() => import("./pages/MyInfo"));
+const VoyageurSettings = lazy(() => import("./pages/VoyageurSettings"));
+const HistoryPage = lazy(() => import("./pages/HistoryPage"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+const Comptabilite = lazy(() => import("./pages/Comptabilite"));
+const SoldePage = lazy(() => import("./pages/SoldePage"));
+const FacturationPage = lazy(() => import("./pages/FacturationPage"));
+const ConfidentialitePage = lazy(() => import("./pages/ConfidentialitePage"));
+const PaymentMethods = lazy(() => import("./pages/PaymentMethods"));
+const NewTrip = lazy(() => import("./pages/NewTrip"));
+const ShipmentTracking = lazy(() => import("./pages/ShipmentTracking"));
+const ConversationsPage = lazy(() => import("./pages/ConversationsPage"));
+const ChatPage = lazy(() => import("./pages/ChatPage"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const VoyageurSearch = lazy(() => import("./pages/VoyageurSearch"));
+const InstallPage = lazy(() => import("./pages/InstallPage"));
+const FaqPage = lazy(() => import("./pages/FaqPage"));
+const AidePage = lazy(() => import("./pages/AidePage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const VoyageDetail = lazy(() => import("./pages/VoyageDetail"));
+const ShipmentDetail = lazy(() => import("./pages/ShipmentDetail"));
+const NeeditMissionDetail = lazy(() => import("./pages/NeeditMissionDetail"));
+const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
 
 const queryClient = new QueryClient();
 
+const PageLoader = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+  </div>
+);
+
 const App = () => {
   const [splashDone, setSplashDone] = useState(() => {
-    // Only show splash once per session
     if (sessionStorage.getItem("splash-shown")) return true;
     sessionStorage.setItem("splash-shown", "1");
     return false;
@@ -66,44 +73,46 @@ const App = () => {
           <BrowserRouter>
             <AuthProvider>
               <FavoritesProvider>
-            <Routes>
-              <Route path="/" element={<Welcome />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/send-coly" element={<ProtectedRoute><SendColy /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
-              <Route path="/needit-mission" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
-              <Route path="/needit-mission/:id" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
-              <Route path="/mes-missions-needit" element={<ProtectedRoute><MesNeeditMissions /></ProtectedRoute>} />
-              <Route path="/kyc" element={<ProtectedRoute><KycFlow /></ProtectedRoute>} />
-              <Route path="/my-info" element={<ProtectedRoute><MyInfo /></ProtectedRoute>} />
-              <Route path="/voyageur-settings" element={<ProtectedRoute><VoyageurSettings /></ProtectedRoute>} />
-              <Route path="/history/:type" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
-              <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-              <Route path="/comptabilite" element={<ProtectedRoute><Comptabilite /></ProtectedRoute>} />
-              <Route path="/solde" element={<ProtectedRoute><SoldePage /></ProtectedRoute>} />
-              <Route path="/facturation" element={<ProtectedRoute><FacturationPage /></ProtectedRoute>} />
-              <Route path="/confidentialite" element={<ProtectedRoute><ConfidentialitePage /></ProtectedRoute>} />
-              <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
-              <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
-              <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
-              <Route path="/voyage/:id" element={<ProtectedRoute><VoyageDetail /></ProtectedRoute>} />
-              <Route path="/shipment/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
-              <Route path="/mission/:id" element={<ProtectedRoute><NeeditMissionDetail /></ProtectedRoute>} />
-              <Route path="/conversations" element={<ProtectedRoute><ConversationsPage /></ProtectedRoute>} />
-              <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-              <Route path="/voyageur-search" element={<ProtectedRoute><VoyageurSearch /></ProtectedRoute>} />
-              <Route path="/install" element={<ProtectedRoute><InstallPage /></ProtectedRoute>} />
-              <Route path="/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
-              <Route path="/aide" element={<ProtectedRoute><AidePage /></ProtectedRoute>} />
-              <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    <Route path="/" element={<Welcome />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                    <Route path="/send-coly" element={<ProtectedRoute><SendColy /></ProtectedRoute>} />
+                    <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                    <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
+                    <Route path="/needit-mission" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
+                    <Route path="/needit-mission/:id" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
+                    <Route path="/mes-missions-needit" element={<ProtectedRoute><MesNeeditMissions /></ProtectedRoute>} />
+                    <Route path="/kyc" element={<ProtectedRoute><KycFlow /></ProtectedRoute>} />
+                    <Route path="/my-info" element={<ProtectedRoute><MyInfo /></ProtectedRoute>} />
+                    <Route path="/voyageur-settings" element={<ProtectedRoute><VoyageurSettings /></ProtectedRoute>} />
+                    <Route path="/history/:type" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+                    <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+                    <Route path="/comptabilite" element={<ProtectedRoute><Comptabilite /></ProtectedRoute>} />
+                    <Route path="/solde" element={<ProtectedRoute><SoldePage /></ProtectedRoute>} />
+                    <Route path="/facturation" element={<ProtectedRoute><FacturationPage /></ProtectedRoute>} />
+                    <Route path="/confidentialite" element={<ProtectedRoute><ConfidentialitePage /></ProtectedRoute>} />
+                    <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
+                    <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
+                    <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
+                    <Route path="/voyage/:id" element={<ProtectedRoute><VoyageDetail /></ProtectedRoute>} />
+                    <Route path="/shipment/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
+                    <Route path="/mission/:id" element={<ProtectedRoute><NeeditMissionDetail /></ProtectedRoute>} />
+                    <Route path="/conversations" element={<ProtectedRoute><ConversationsPage /></ProtectedRoute>} />
+                    <Route path="/chat/:id" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+                    <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                    <Route path="/voyageur-search" element={<ProtectedRoute><VoyageurSearch /></ProtectedRoute>} />
+                    <Route path="/install" element={<ProtectedRoute><InstallPage /></ProtectedRoute>} />
+                    <Route path="/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
+                    <Route path="/aide" element={<ProtectedRoute><AidePage /></ProtectedRoute>} />
+                    <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
               </FavoritesProvider>
             </AuthProvider>
           </BrowserRouter>
