@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin, Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck, Clock, Truck, PackageCheck, HandshakeIcon, CircleDot, ShieldCheck, Navigation, Camera, Phone, ThumbsUp, CalendarDays, MapPinned } from "lucide-react";
+import { ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin, Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck, Clock, Truck, PackageCheck, HandshakeIcon, CircleDot, ShieldCheck, Navigation, Camera, Phone, ThumbsUp, CalendarDays, MapPinned, Receipt, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,8 +23,9 @@ const getCurrencySymbol = () => {
   return "€";
 };
 
-const isImageUrl = (content: string) => content.startsWith("__IMG__:");
-const getImageUrl = (content: string) => content.replace("__IMG__:", "");
+const isImageUrl = (content: string) => content.startsWith("__IMG__:") || content.startsWith("__PROOF__:");
+const isProofImage = (content: string) => content.startsWith("__PROOF__:");
+const getImageUrl = (content: string) => content.replace("__IMG__:", "").replace("__PROOF__:", "");
 const LINK_PATTERN = /→ __LINK__:needit-detail:([a-f0-9-]+)/;
 const hasInlineLink = (content: string) => LINK_PATTERN.test(content);
 const parseMessageWithLink = (content: string) => {
@@ -55,8 +56,10 @@ const ChatPage = () => {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const proofCameraRef = useRef<HTMLInputElement>(null);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
 
   useEffect(() => {
     if (!conversationId || !user) return;
@@ -144,6 +147,26 @@ const ChatPage = () => {
     return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "long" });
   };
 
+  // Check if proof photos have been sent (for NeedIt missions)
+  const isMissionChat = itemDetail?.type === "mission";
+  const proofSent = useMemo(() => messages.some(m => isProofImage(m.content)), [messages]);
+
+  const handleProofCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !conversationId) return;
+    e.target.value = "";
+    setUploadingProof(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `${user.id}/${conversationId}/proof-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("chat-photos").upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+      const { data: signedData } = await supabase.storage.from("chat-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
+      const photoUrl = signedData?.signedUrl ?? "";
+      await supabase.from("messages").insert({ conversation_id: conversationId, sender_id: user.id, content: `__PROOF__:${photoUrl}` });
+    } catch { toast.error("Erreur lors de l'envoi de la preuve"); } finally { setUploadingProof(false); }
+  };
+
   const groupedMessages: { date: string; msgs: Message[] }[] = [];
   messages.forEach((msg) => {
     const date = new Date(msg.created_at).toDateString();
@@ -209,6 +232,11 @@ const ChatPage = () => {
                   <div className={`max-w-[80%] rounded-2xl ${isImg ? "p-1" : "px-3.5 py-2.5"} ${isMine ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted text-foreground rounded-bl-md"}`}>
                     {isImg ? (
                       <div className="relative">
+                        {isProofImage(msg.content) && (
+                          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 bg-[#30D158] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
+                            <Receipt size={10} /> Preuve d'achat
+                          </div>
+                        )}
                         <img src={getImageUrl(msg.content)} alt="Photo" className="max-w-[220px] max-h-[280px] rounded-xl object-cover cursor-pointer" onClick={() => setPreviewPhoto(getImageUrl(msg.content))} />
                         <div className={`absolute bottom-1 right-2 flex items-center gap-0.5`}><span className="text-[9px] text-white/80 drop-shadow">{formatTime(msg.created_at)}</span>{isMine && <CheckCheck size={12} className={msg.is_read ? "text-blue-300 drop-shadow" : "text-white/60 drop-shadow"} />}</div>
                       </div>
@@ -240,6 +268,54 @@ const ChatPage = () => {
         ))}
         <AnimatePresence>{isOtherTyping && (<motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className="flex justify-start"><div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5 flex items-center gap-1.5"><span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:0ms]" /><span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:150ms]" /><span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:300ms]" /></div></motion.div>)}</AnimatePresence>
       </div>
+
+      {/* Proof upload banner for voyageur on NeedIt missions */}
+      {isMissionChat && isVoyageur && shipmentStatus === "accepted" && !proofSent && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mb-2 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-2xl p-3.5"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center shrink-0">
+              <Receipt size={18} className="text-[#F59E0B]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-foreground mb-0.5">Preuve d'achat requise</p>
+              <p className="text-[11px] text-muted-foreground">Envoie une photo du produit + ticket de caisse pour débloquer l'étape suivante.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => proofCameraRef.current?.click()}
+            disabled={uploadingProof}
+            className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
+          >
+            {uploadingProof ? (
+              <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</>
+            ) : (
+              <><Camera size={14} /> Envoyer preuve (photo)</>
+            )}
+          </button>
+        </motion.div>
+      )}
+
+      {/* Proof sent confirmation */}
+      {isMissionChat && isVoyageur && shipmentStatus === "accepted" && proofSent && (
+        <div className="mx-4 mb-2 bg-[#30D158]/10 border border-[#30D158]/30 rounded-2xl px-4 py-2.5 flex items-center gap-2">
+          <CheckCheck size={14} className="text-[#30D158]" />
+          <span className="text-xs font-semibold text-[#30D158]">Preuve envoyée ✓</span>
+        </div>
+      )}
+
+      {/* Hidden camera input for proof */}
+      <input
+        ref={proofCameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleProofCapture}
+      />
 
       <div className="px-4 pb-1 shrink-0">
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
