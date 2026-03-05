@@ -33,10 +33,7 @@ const VoyageurSettings = () => {
     <div className="min-h-screen bg-background pb-24">
       <div className="px-6 pt-12">
         <button onClick={() => navigate("/my-account")} className="text-muted-foreground mb-4"><ArrowLeft size={24} /></button>
-        <h1 className="text-3xl font-bold text-foreground mb-2">{t("voySettings.title")}</h1>
-        <div className="bg-secondary/30 rounded-2xl py-4 px-6 text-center mb-6">
-          <h2 className="text-lg font-bold text-foreground">{t("voySettings.section")}</h2>
-        </div>
+        <h1 className="text-3xl font-bold text-foreground mb-6">{t("voySettings.title")}</h1>
         <div className="space-y-6">
           <Section items={menuItems} />
           <Section items={menuItems2} />
