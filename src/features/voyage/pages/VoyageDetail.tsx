@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, CheckCircle } from "lucide-react";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { motion } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
@@ -67,6 +67,7 @@ const VoyageDetail = () => {
   const isOwner = voyage && voyage.user_id === user?.id;
   const isActive = voyage && voyage.status === "active";
   const [hasAcceptedShipments, setHasAcceptedShipments] = useState(false);
+  const [acceptedMissions, setAcceptedMissions] = useState<any[]>([]);
 
   // Check if within 24h of departure
   const isWithin24h = useCallback(() => {
@@ -117,13 +118,12 @@ const VoyageDetail = () => {
 
       const { data: missionData } = await supabase
         .from("needit_missions")
-        .select("id")
+        .select("id, product_name, status, country, city, prix_max")
         .eq("voyageur_id", user.id)
-        .eq("status", "accepted")
-        .eq("country", voyage.arrival_country)
-        .eq("city", voyage.arrival_city)
-        .limit(1);
+        .in("status", ["accepted", "picked_up", "in_transit", "completed"])
+        .eq("country", voyage.arrival_country);
 
+      setAcceptedMissions(missionData || []);
       setHasAcceptedShipments(
         (shipData?.length || 0) > 0 || (missionData?.length || 0) > 0
       );
@@ -323,6 +323,85 @@ const VoyageDetail = () => {
               </div>
             )}
           </div>
+
+          {/* NeedIt Missions Progress */}
+          {acceptedMissions.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <ShoppingBag size={16} className="text-primary" />
+                Missions NeedIt acceptées
+              </h2>
+              {acceptedMissions.map((mission) => {
+                const steps = [
+                  { key: "accepted", label: "Acceptée" },
+                  { key: "picked_up", label: "Récupéré" },
+                  { key: "in_transit", label: "En transit" },
+                  { key: "completed", label: "Livré" },
+                ];
+                const statusIndex = steps.findIndex(s => s.key === mission.status);
+                const currentIdx = statusIndex >= 0 ? statusIndex : 0;
+
+                return (
+                  <motion.div
+                    key={mission.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-card border border-border rounded-2xl p-4 space-y-3 cursor-pointer hover:border-primary/30 transition-colors"
+                    onClick={() => navigate(`/needit/${mission.id}`)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-foreground truncate">
+                        {mission.product_name || "Mission NeedIt"}
+                      </span>
+                      {mission.prix_max && (
+                        <span className="text-xs font-bold text-primary">{mission.prix_max} €</span>
+                      )}
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="flex items-center gap-0">
+                      {steps.map((step, i) => {
+                        const isDone = i <= currentIdx;
+                        const isCurrent = i === currentIdx;
+                        return (
+                          <div key={step.key} className="flex items-center flex-1">
+                            {i > 0 && (
+                              <div className={`h-0.5 flex-1 transition-colors ${isDone ? "bg-[#30D158]" : "bg-border"}`} />
+                            )}
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
+                              isDone
+                                ? "bg-[#30D158] border-[#30D158]"
+                                : "bg-card border-border"
+                            } ${isCurrent ? "ring-2 ring-[#30D158]/30 ring-offset-1 ring-offset-card" : ""}`}>
+                              {isDone ? (
+                                <CheckCircle size={14} className="text-white" />
+                              ) : (
+                                <span className="w-2 h-2 rounded-full bg-muted-foreground/25" />
+                              )}
+                            </div>
+                            {i < steps.length - 1 && (
+                              <div className={`h-0.5 flex-1 transition-colors ${i < currentIdx ? "bg-[#30D158]" : "bg-border"}`} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Labels */}
+                    <div className="flex justify-between">
+                      {steps.map((step, i) => (
+                        <span key={step.key} className={`text-[9px] font-semibold text-center flex-1 ${
+                          i <= currentIdx ? "text-[#30D158]" : "text-muted-foreground/50"
+                        }`}>
+                          {step.label}
+                        </span>
+                      ))}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Action buttons */}
           {canEdit && (
