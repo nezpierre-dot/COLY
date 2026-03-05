@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
-import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2, ScanBarcode, CheckCircle2, Pencil, Users } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2, ScanBarcode, CheckCircle2, Pencil, Users, Trash2, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import EanScanner from "@/components/EanScanner";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -13,6 +13,17 @@ import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PullToRefresh from "@/components/PullToRefresh";
 import NotificationBell from "@/components/NotificationBell";
 import { useTranslation } from "@/hooks/useTranslation";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface NeeditMission {
   id: string;
@@ -59,6 +70,33 @@ const MesNeeditMissions = () => {
   const [scanningMissionId, setScanningMissionId] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
   const [sort, setSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
+  const [swipedId, setSwipedId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("needit_missions").update({ status: "cancelled" }).eq("id", deleteId);
+    if (error) {
+      toast.error("Erreur lors de la suppression");
+    } else {
+      toast.success("Mission supprimée");
+      loadMissions();
+    }
+    setDeleteId(null);
+    setSwipedId(null);
+  };
+
+  const handleShare = useCallback(async (m: NeeditMission) => {
+    const text = `Mission NeedIt : ${m.product_name || "Produit"} — ${m.country}${m.city ? `, ${m.city}` : ""}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Mission NeedIt", text, url: window.location.origin });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success("Lien copié !");
+    }
+  }, []);
 
   const loadMissions = async () => {
     if (!user) return;
@@ -285,9 +323,47 @@ const MesNeeditMissions = () => {
                     <motion.div
                       key={m.id}
                       variants={staggerItem}
-                      onClick={() => navigate(`/mission/${m.id}`)}
-                      className="bg-white dark:bg-[#1A1F2E] border border-[#E2E8F0] dark:border-[#2A3245] rounded-2xl p-5 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
+                      className="relative overflow-hidden rounded-2xl"
                     >
+                      {/* Swipe reveal actions */}
+                      {m.user_id === user?.id && m.status === "pending" && (
+                        <div className="absolute right-0 top-0 bottom-0 flex items-stretch z-0">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); navigate(`/needit-mission/${m.id}`); }}
+                            className="w-[72px] flex flex-col items-center justify-center gap-1 text-white text-xs font-semibold"
+                            style={{ background: "#0D84FF" }}
+                          >
+                            <Pencil size={18} /> Éditer
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeleteId(m.id); }}
+                            className="w-[72px] flex flex-col items-center justify-center gap-1 text-white text-xs font-semibold"
+                            style={{ background: "#FF453A" }}
+                          >
+                            <Trash2 size={18} /> Supprimer
+                          </button>
+                        </div>
+                      )}
+
+                      <motion.div
+                        drag={m.user_id === user?.id && m.status === "pending" ? "x" : false}
+                        dragConstraints={{ left: -144, right: 0 }}
+                        dragElastic={0.1}
+                        onDragEnd={(_, info) => {
+                          if (info.offset.x < -60) {
+                            setSwipedId(m.id);
+                          } else {
+                            setSwipedId(null);
+                          }
+                        }}
+                        animate={{ x: swipedId === m.id ? -144 : 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        onClick={() => {
+                          if (swipedId === m.id) { setSwipedId(null); return; }
+                          navigate(`/mission/${m.id}`);
+                        }}
+                        className="bg-white dark:bg-[#1A1F2E] border border-[#E2E8F0] dark:border-[#2A3245] rounded-2xl p-5 shadow-sm cursor-pointer active:scale-[0.98] transition-transform relative z-10"
+                      >
                       <div className="flex items-start gap-3">
                         {/* Product image */}
                         {m.photo_url && (
@@ -349,7 +425,7 @@ const MesNeeditMissions = () => {
                       {/* Voyageur availability alert */}
                       {m.status === "pending" && (
                         <div className="mt-3">
-                          <VoyageurAvailability country={m.country} city={m.city} variant="full" />
+                          <VoyageurAvailability country={m.country} city={m.city} variant="full" onShare={() => handleShare(m)} />
                         </div>
                       )}
 
@@ -409,6 +485,7 @@ const MesNeeditMissions = () => {
                       <p className="text-[12px] mt-3" style={{ color: "#64748B" }}>
                         {new Date(m.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
                       </p>
+                      </motion.div>
                     </motion.div>
                   );
                 })}
@@ -418,6 +495,22 @@ const MesNeeditMissions = () => {
         </PullToRefresh>
       </PageTransition>
       <BottomNav />
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer cette mission ?</AlertDialogTitle>
+            <AlertDialogDescription>Cette action est irréversible. La mission sera annulée définitivement.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
