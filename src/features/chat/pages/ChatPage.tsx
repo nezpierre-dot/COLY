@@ -25,6 +25,14 @@ const getCurrencySymbol = () => {
 
 const isImageUrl = (content: string) => content.startsWith("__IMG__:");
 const getImageUrl = (content: string) => content.replace("__IMG__:", "");
+const LINK_PATTERN = /→ __LINK__:needit-detail:([a-f0-9-]+)/;
+const hasInlineLink = (content: string) => LINK_PATTERN.test(content);
+const parseMessageWithLink = (content: string) => {
+  const match = content.match(LINK_PATTERN);
+  if (!match) return { text: content, linkId: null };
+  const text = content.replace(LINK_PATTERN, "").trimEnd();
+  return { text, linkId: match[1] };
+};
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -204,9 +212,26 @@ const ChatPage = () => {
                         <img src={getImageUrl(msg.content)} alt="Photo" className="max-w-[220px] max-h-[280px] rounded-xl object-cover cursor-pointer" onClick={() => setPreviewPhoto(getImageUrl(msg.content))} />
                         <div className={`absolute bottom-1 right-2 flex items-center gap-0.5`}><span className="text-[9px] text-white/80 drop-shadow">{formatTime(msg.created_at)}</span>{isMine && <CheckCheck size={12} className={msg.is_read ? "text-blue-300 drop-shadow" : "text-white/60 drop-shadow"} />}</div>
                       </div>
-                    ) : (
-                      <><p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p><div className={`flex items-center justify-end gap-1 mt-1`}><p className={`text-[9px] ${isMine ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{formatTime(msg.created_at)}</p>{isMine && <CheckCheck size={12} className={msg.is_read ? "text-blue-300" : "text-primary-foreground/40"} />}</div></>
-                    )}
+                    ) : (() => {
+                      const { text, linkId } = parseMessageWithLink(msg.content);
+                      return (
+                        <>
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{text}</p>
+                          {linkId && (
+                            <button
+                              onClick={() => navigate(`/needit/${linkId}`)}
+                              className={`mt-2 w-full text-xs font-semibold py-2 rounded-xl transition-colors ${isMine ? "bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30" : "bg-primary/10 text-primary hover:bg-primary/20"}`}
+                            >
+                              → Voir les détails de la mission
+                            </button>
+                          )}
+                          <div className="flex items-center justify-end gap-1 mt-1">
+                            <p className={`text-[9px] ${isMine ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{formatTime(msg.created_at)}</p>
+                            {isMine && <CheckCheck size={12} className={msg.is_read ? "text-blue-300" : "text-primary-foreground/40"} />}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </motion.div>
               );
