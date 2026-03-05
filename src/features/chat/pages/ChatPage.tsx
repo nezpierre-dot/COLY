@@ -180,7 +180,7 @@ const ChatPage = () => {
           user_id: otherUserId,
           title: "Preuve d'achat reçue 🧾",
           message: "Le voyageur a envoyé une photo du produit acheté et du ticket de caisse. Consultez le chat pour vérifier.",
-          type: "proof",
+          type: `proof:${conversationId}`,
         });
         // Send email notification (fire & forget)
         supabase.functions.invoke("notify-proof", {

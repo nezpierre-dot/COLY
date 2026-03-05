@@ -15,9 +15,24 @@ const typeIcon: Record<string, ReactNode> = {
   kyc: <IdCard size={18} className="text-purple-400" />,
   coly: <Package size={18} className="text-primary" />,
   needit: <ShoppingCart size={18} className="text-accent" />,
+  pickup: <Package size={18} className="text-emerald-400" />,
+  mission_status: <ShoppingBag size={18} className="text-primary" />,
 };
 
 const defaultIcon = <Bell size={18} className="text-muted-foreground" />;
+
+const getNotifIcon = (type: string): ReactNode => {
+  if (type.startsWith("proof:")) return <ShoppingBag size={18} className="text-amber-400" />;
+  return typeIcon[type] || defaultIcon;
+};
+
+const getNotifLink = (type: string): string | null => {
+  if (type.startsWith("proof:")) {
+    const convoId = type.replace("proof:", "");
+    return convoId ? `/chat/${convoId}` : null;
+  }
+  return null;
+};
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
@@ -83,22 +98,33 @@ export default function NotificationsPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {notifications.map((n) => (
-              <div key={n.id} className={`flex items-start gap-3 rounded-xl px-4 py-3 border transition-colors ${!n.is_read ? "bg-primary/5 border-primary/20" : "bg-card border-border"}`}>
-                <span className="mt-0.5 shrink-0">{typeIcon[n.type] || defaultIcon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>{n.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}</p>
+            {notifications.map((n) => {
+              const link = getNotifLink(n.type);
+              const handleClick = () => {
+                if (!n.is_read) markAsRead(n.id);
+                if (link) navigate(link);
+              };
+              return (
+                <div
+                  key={n.id}
+                  onClick={handleClick}
+                  className={`flex items-start gap-3 rounded-xl px-4 py-3 border transition-colors ${link ? "cursor-pointer active:scale-[0.98]" : ""} ${!n.is_read ? "bg-primary/5 border-primary/20" : "bg-card border-border"}`}
+                >
+                  <span className="mt-0.5 shrink-0">{getNotifIcon(n.type)}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>{n.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0 mt-1">
+                    {!n.is_read && (
+                      <button onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }} className="p-1.5 rounded-lg hover:bg-muted text-primary transition-colors" title={t("notif.markRead")}><Check size={14} /></button>
+                    )}
+                    <button onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0 mt-1">
-                  {!n.is_read && (
-                    <button onClick={() => markAsRead(n.id)} className="p-1.5 rounded-lg hover:bg-muted text-primary transition-colors" title={t("notif.markRead")}><Check size={14} /></button>
-                  )}
-                  <button onClick={() => deleteNotification(n.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
