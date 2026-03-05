@@ -280,7 +280,19 @@ const CITY_NAMES: Record<string, Partial<Record<AppLocale, string>>> = {
 
 const STORAGE_KEY = "preferred-language";
 
-/** Get the user's preferred language (defaults to "fr") */
+/** Auto-detect language from browser locale */
+function detectLanguage(): AppLocale {
+  try {
+    const langs = navigator.languages || [navigator.language];
+    for (const lang of langs) {
+      const short = lang.split("-")[0].toLowerCase() as AppLocale;
+      if (AVAILABLE_LANGUAGES.some(l => l.code === short)) return short;
+    }
+  } catch {}
+  return "fr";
+}
+
+/** Get the user's preferred language (auto-detects on first visit) */
 export const getPreferredLanguage = (): AppLocale => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -288,7 +300,10 @@ export const getPreferredLanguage = (): AppLocale => {
       return stored as AppLocale;
     }
   } catch {}
-  return "fr";
+  // Auto-detect and persist
+  const detected = detectLanguage();
+  try { localStorage.setItem(STORAGE_KEY, detected); } catch {}
+  return detected;
 };
 
 /** Set the preferred language */

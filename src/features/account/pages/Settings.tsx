@@ -151,7 +151,8 @@ const Settings = () => {
                       : "border-border text-muted-foreground hover:border-primary/30"
                   }`}
                 >
-                  <span className="text-base font-bold">{c.symbol}</span>
+                  <span className="text-base">{c.flag}</span>
+                  <span className="text-sm font-bold">{c.symbol}</span>
                   <span className="text-xs font-medium">{c.code}</span>
                 </button>
               ))}
@@ -171,8 +172,9 @@ const Settings = () => {
                         : "border-border text-muted-foreground hover:border-primary/30"
                     }`}
                   >
-                    <span className="text-sm font-bold">{c.symbol}</span>
-                    <span className="text-[9px] font-medium">{c.code}</span>
+                     <span className="text-sm">{c.flag}</span>
+                     <span className="text-sm font-bold">{c.symbol}</span>
+                     <span className="text-[9px] font-medium">{c.code}</span>
                   </button>
                 ))}
               </div>
