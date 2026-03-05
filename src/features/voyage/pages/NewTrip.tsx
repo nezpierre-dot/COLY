@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, Star } from "lucide-react";
 import { localizeCountry } from "@/lib/geoLocalization";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
@@ -63,6 +63,7 @@ const TOTAL_STEPS = 5;
 
 const NewTrip = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const { t } = useTranslation();
   const { language } = useLanguagePreference();
@@ -134,6 +135,21 @@ const NewTrip = () => {
     setArrivalCity("");
     fetchCities(v, setArrivalCities);
   };
+
+  // Pre-fill arrival from URL params (when redirected from unmatched accept)
+  useEffect(() => {
+    const prefillCountry = searchParams.get("arrival_country");
+    const prefillCity = searchParams.get("arrival_city");
+    if (prefillCountry) {
+      setArrivalCountry(prefillCountry);
+      fetchCities(prefillCountry, setArrivalCities);
+      if (prefillCity) {
+        // Small delay to let cities load
+        setTimeout(() => setArrivalCity(prefillCity), 500);
+      }
+    }
+  }, []);
+
   // Step 4 – Transport & options (multi-select)
   const [selectedTransports, setSelectedTransports] = useState<string[]>([]);
   const disabledTransports = useTransportFeasibility(departureCountry, departureCity, arrivalCountry, arrivalCity);
