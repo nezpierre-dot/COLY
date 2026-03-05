@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
-import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2, ScanBarcode, CheckCircle2, Pencil, Users, Trash2, Share2 } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Clock, Package, Loader2, ScanBarcode, CheckCircle2, Pencil, Users, Trash2, Share2, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import EanScanner from "@/components/EanScanner";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -72,6 +72,7 @@ const MesNeeditMissions = () => {
   const [sort, setSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
   const [swipedId, setSwipedId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -142,9 +143,22 @@ const MesNeeditMissions = () => {
     completed: missions.filter(m => m.status === "completed").length,
   };
 
-  const filteredMissions = activeFilter === "all"
-    ? missions.filter(m => m.status !== "cancelled")
-    : missions.filter(m => m.status === activeFilter);
+  const filteredMissions = useMemo(() => {
+    let result = activeFilter === "all"
+      ? missions.filter(m => m.status !== "cancelled")
+      : missions.filter(m => m.status === activeFilter);
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(m =>
+        (m.product_name || "").toLowerCase().includes(q) ||
+        (m.country || "").toLowerCase().includes(q) ||
+        (m.city || "").toLowerCase().includes(q) ||
+        (m.category_path || []).join(" ").toLowerCase().includes(q) ||
+        new Date(m.created_at).toLocaleDateString("fr-FR").includes(q)
+      );
+    }
+    return result;
+  }, [missions, activeFilter, search]);
 
   const sortedMissions = useMemo(
     () => applySortOption(filteredMissions, sort, { dateCreated: "created_at", price: "prix_max", departureDate: "created_at", destination: "country" }),
@@ -208,6 +222,17 @@ const MesNeeditMissions = () => {
           </div>
 
           <div className="px-5">
+            {/* Search bar */}
+            <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mt-4 mb-2">
+              <Search size={18} className="text-muted-foreground shrink-0" />
+              <input
+                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                placeholder="Rechercher par produit ou date…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
             {/* Sort + New mission */}
             {missions.length > 0 && (
               <div className="mt-4 mb-3">
