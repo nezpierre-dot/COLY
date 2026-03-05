@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, CheckCircle, Camera } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera } from "lucide-react";
+import AcceptedItemCard from "@/components/AcceptedItemCard";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { motion } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
@@ -432,118 +433,34 @@ const VoyageDetail = () => {
                 <ShoppingBag size={16} className="text-primary" />
                 Missions NeedIt acceptées
               </h2>
-              {acceptedMissions.map((mission) => {
-                const steps = [
-                  { key: "accepted", label: "Acceptée" },
-                  { key: "picked_up", label: "Récupéré" },
-                  { key: "in_transit", label: "En transit" },
-                  { key: "completed", label: "Livré" },
-                ];
-                const statusIndex = steps.findIndex(s => s.key === mission.status);
-                const currentIdx = statusIndex >= 0 ? statusIndex : 0;
-
-                return (
-                  <motion.div
-                    key={mission.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-card border border-border rounded-2xl p-4 space-y-3 cursor-pointer hover:border-primary/30 transition-colors"
-                    onClick={() => navigate(`/needit/${mission.id}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-foreground truncate">
-                        {mission.product_name || "Mission NeedIt"}
-                      </span>
-                      {mission.prix_max && (
-                        <span className="text-xs font-bold text-primary">{mission.prix_max} €</span>
-                      )}
-                    </div>
-
-                    {/* Progress bar */}
-                    <div className="flex items-center gap-0">
-                      {steps.map((step, i) => {
-                        const isDone = i <= currentIdx;
-                        const isCurrent = i === currentIdx;
-                        return (
-                          <div key={step.key} className="flex items-center flex-1">
-                            {i > 0 && (
-                              <div className={`h-0.5 flex-1 transition-colors ${isDone ? "bg-[#30D158]" : "bg-border"}`} />
-                            )}
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
-                              isDone
-                                ? "bg-[#30D158] border-[#30D158]"
-                                : "bg-card border-border"
-                            } ${isCurrent ? "ring-2 ring-[#30D158]/30 ring-offset-1 ring-offset-card" : ""}`}>
-                              {isDone ? (
-                                <CheckCircle size={14} className="text-white" />
-                              ) : (
-                                <span className="w-2 h-2 rounded-full bg-muted-foreground/25" />
-                              )}
-                            </div>
-                            {i < steps.length - 1 && (
-                              <div className={`h-0.5 flex-1 transition-colors ${i < currentIdx ? "bg-[#30D158]" : "bg-border"}`} />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Labels */}
-                    <div className="flex justify-between">
-                      {steps.map((step, i) => (
-                        <span key={step.key} className={`text-[9px] font-semibold text-center flex-1 ${
-                          i <= currentIdx ? "text-[#30D158]" : "text-muted-foreground/50"
-                        }`}>
-                          {step.label}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Camera capture button for accepted missions */}
-                    {mission.status === "accepted" && !missionsWithProof.has(mission.id) && (
-                      <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-xl p-3 text-xs">
-                        <Lock size={14} className="shrink-0" />
-                        <span>En attente de la preuve d'achat dans le chat avant récupération</span>
-                      </div>
-                    )}
-                    {mission.status === "accepted" && missionsWithProof.has(mission.id) && (
-                      previewUrl && capturingMissionId === mission.id ? (
-                        <div className="space-y-2">
-                          <img src={previewUrl} alt="Aperçu" className="w-full max-h-[200px] object-cover rounded-xl border border-border" />
-                          <div className="flex gap-2">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleRetake(); }}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-border text-foreground text-xs font-bold"
-                            >
-                              <Camera size={14} /> Reprendre
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleConfirmCapture(); }}
-                              disabled={uploadingProof}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#30D158] text-white text-xs font-bold disabled:opacity-50"
-                            >
-                              {uploadingProof ? <><Loader2 size={14} className="animate-spin" /> Envoi...</> : <><Check size={14} /> Confirmer</>}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCapturingMissionId(mission.id);
-                            setCapturingType("mission");
-                            setTimeout(() => cameraRef.current?.click(), 50);
-                          }}
-                          disabled={uploadingProof}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
-                        >
-                          <Camera size={14} /> Prendre la photo de récupération
-                        </button>
-                      )
-                    )}
-                  </motion.div>
-                );
-              })}
+              {acceptedMissions.map((mission) => (
+                <AcceptedItemCard
+                  key={mission.id}
+                  id={mission.id}
+                  title={mission.product_name || "Mission NeedIt"}
+                  price={mission.prix_max}
+                  status={mission.status}
+                  steps={[
+                    { key: "accepted", label: "Acceptée" },
+                    { key: "picked_up", label: "Récupéré" },
+                    { key: "in_transit", label: "En transit" },
+                    { key: "completed", label: "Livré" },
+                  ]}
+                  onClick={() => navigate(`/needit/${mission.id}`)}
+                  blocked={!missionsWithProof.has(mission.id)}
+                  blockedMessage="En attente de la preuve d'achat dans le chat avant récupération"
+                  previewUrl={previewUrl}
+                  capturingId={capturingMissionId}
+                  uploadingProof={uploadingProof}
+                  onStartCapture={(id) => {
+                    setCapturingMissionId(id);
+                    setCapturingType("mission");
+                    setTimeout(() => cameraRef.current?.click(), 50);
+                  }}
+                  onRetake={handleRetake}
+                  onConfirm={handleConfirmCapture}
+                />
+              ))}
             </div>
           )}
 
@@ -554,105 +471,32 @@ const VoyageDetail = () => {
                 <Package size={16} className="text-primary" />
                 Colis acceptés
               </h2>
-              {acceptedColis.map((shipment) => {
-                const steps = [
-                  { key: "accepted", label: "Accepté" },
-                  { key: "picked_up", label: "Récupéré" },
-                  { key: "in_transit", label: "En transit" },
-                  { key: "delivered", label: "Livré" },
-                ];
-                const statusIndex = steps.findIndex(s => s.key === shipment.status);
-                const currentIdx = statusIndex >= 0 ? statusIndex : 0;
-
-                return (
-                  <motion.div
-                    key={shipment.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-card border border-border rounded-2xl p-4 space-y-3 cursor-pointer hover:border-primary/30 transition-colors"
-                    onClick={() => navigate(`/shipment/${shipment.id}`)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-foreground truncate">
-                        {shipment.departure_city || "—"} → {shipment.arrival_city}
-                      </span>
-                      <span className="text-xs font-bold text-primary">{shipment.tarif} €</span>
-                    </div>
-
-                    <div className="flex items-center gap-0">
-                      {steps.map((step, i) => {
-                        const isDone = i <= currentIdx;
-                        const isCurrent = i === currentIdx;
-                        return (
-                          <div key={step.key} className="flex items-center flex-1">
-                            {i > 0 && (
-                              <div className={`h-0.5 flex-1 transition-colors ${isDone ? "bg-[#30D158]" : "bg-border"}`} />
-                            )}
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
-                              isDone ? "bg-[#30D158] border-[#30D158]" : "bg-card border-border"
-                            } ${isCurrent ? "ring-2 ring-[#30D158]/30 ring-offset-1 ring-offset-card" : ""}`}>
-                              {isDone ? (
-                                <CheckCircle size={14} className="text-white" />
-                              ) : (
-                                <span className="w-2 h-2 rounded-full bg-muted-foreground/25" />
-                              )}
-                            </div>
-                            {i < steps.length - 1 && (
-                              <div className={`h-0.5 flex-1 transition-colors ${i < currentIdx ? "bg-[#30D158]" : "bg-border"}`} />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="flex justify-between">
-                      {steps.map((step, i) => (
-                        <span key={step.key} className={`text-[9px] font-semibold text-center flex-1 ${
-                          i <= currentIdx ? "text-[#30D158]" : "text-muted-foreground/50"
-                        }`}>
-                          {step.label}
-                        </span>
-                      ))}
-                    </div>
-
-                    {shipment.status === "accepted" && (
-                      previewUrl && capturingMissionId === shipment.id ? (
-                        <div className="space-y-2">
-                          <img src={previewUrl} alt="Aperçu" className="w-full max-h-[200px] object-cover rounded-xl border border-border" />
-                          <div className="flex gap-2">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleRetake(); }}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-border text-foreground text-xs font-bold"
-                            >
-                              <Camera size={14} /> Reprendre
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleConfirmCapture(); }}
-                              disabled={uploadingProof}
-                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#30D158] text-white text-xs font-bold disabled:opacity-50"
-                            >
-                              {uploadingProof ? <><Loader2 size={14} className="animate-spin" /> Envoi...</> : <><Check size={14} /> Confirmer</>}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCapturingMissionId(shipment.id);
-                            setCapturingType("shipment");
-                            setTimeout(() => cameraRef.current?.click(), 50);
-                          }}
-                          disabled={uploadingProof}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
-                        >
-                          <Camera size={14} /> Prendre la photo de récupération
-                        </button>
-                      )
-                    )}
-                  </motion.div>
-                );
-              })}
+              {acceptedColis.map((shipment) => (
+                <AcceptedItemCard
+                  key={shipment.id}
+                  id={shipment.id}
+                  title={`${shipment.departure_city || "—"} → ${shipment.arrival_city}`}
+                  price={shipment.tarif}
+                  status={shipment.status}
+                  steps={[
+                    { key: "accepted", label: "Accepté" },
+                    { key: "picked_up", label: "Récupéré" },
+                    { key: "in_transit", label: "En transit" },
+                    { key: "delivered", label: "Livré" },
+                  ]}
+                  onClick={() => navigate(`/shipment/${shipment.id}`)}
+                  previewUrl={previewUrl}
+                  capturingId={capturingMissionId}
+                  uploadingProof={uploadingProof}
+                  onStartCapture={(id) => {
+                    setCapturingMissionId(id);
+                    setCapturingType("shipment");
+                    setTimeout(() => cameraRef.current?.click(), 50);
+                  }}
+                  onRetake={handleRetake}
+                  onConfirm={handleConfirmCapture}
+                />
+              ))}
             </div>
           )}
 
