@@ -188,9 +188,12 @@ const Dashboard = () => {
   const [cancelDialog, setCancelDialog] = useState<{ type: "voyage" | "shipment" | "mission"; id: string; label: string } | null>(null);
 
   // Accept dialog state
-  const [acceptDialog, setAcceptDialog] = useState<{ type: "shipment" | "mission"; id: string; label: string } | null>(null);
+  const [acceptDialog, setAcceptDialog] = useState<{ type: "shipment" | "mission"; id: string; label: string; isMatched: boolean } | null>(null);
   const [accepting, setAccepting] = useState(false);
   const actionInProgressRef = useRef(false);
+
+  // "Create voyage first" dialog for unmatched items
+  const [createVoyageDialog, setCreateVoyageDialog] = useState<{ type: "shipment" | "mission"; id: string; label: string; country: string; city?: string } | null>(null);
 
   const handleAcceptItem = async () => {
     if (!acceptDialog || accepting || actionInProgressRef.current) return;
@@ -671,7 +674,7 @@ const Dashboard = () => {
                     </h3>
                     {sortedMatchedShipments.map((s: any) => (
                       <button key={s.id}
-                        onClick={() => setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
+                        onClick={() => setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}`, isMatched: true })}
                         className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 space-y-1.5 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 min-w-0">
@@ -706,7 +709,7 @@ const Dashboard = () => {
                     )}
                     {sortedUnmatchedShipments.map((s: any) => (
                       <button key={s.id}
-                        onClick={() => setAcceptDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
+                        onClick={() => setCreateVoyageDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}`, country: s.arrival_country, city: s.arrival_city })}
                         className="w-full text-left bg-card rounded-xl px-3 py-2.5 border border-border hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer">
                         <div className="flex items-center justify-between">
                           <div className="min-w-0">
@@ -803,7 +806,7 @@ const Dashboard = () => {
                     </h3>
                     {sortedMatchedNeedit.map((m: any) => (
                       <button key={m.id}
-                        onClick={() => setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission" })}
+                        onClick={() => setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission", isMatched: true })}
                         className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
                         <div className="flex items-start justify-between">
                           <div className="min-w-0">
@@ -838,7 +841,7 @@ const Dashboard = () => {
                     </h3>
                     {sortedUnmatchedNeedit.map((m: any) => (
                       <button key={m.id}
-                        onClick={() => setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission" })}
+                        onClick={() => setCreateVoyageDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission", country: m.country, city: m.city })}
                         className="w-full text-left bg-card rounded-xl px-3 py-2.5 border border-border hover:border-secondary/40 hover:bg-secondary/5 transition-colors cursor-pointer">
                         <div className="flex items-start justify-between">
                           <div className="min-w-0">
@@ -1252,6 +1255,39 @@ const Dashboard = () => {
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {accepting ? t("dashboard.accepting") : t("dashboard.acceptYes")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Create Voyage First Dialog (for unmatched items) */}
+      <AlertDialog open={!!createVoyageDialog} onOpenChange={(open) => { if (!open) setCreateVoyageDialog(null); }}>
+        <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              <Plane size={20} className="inline mr-2 text-primary" />
+              {t("dashboard.createVoyageFirstTitle") || "Créer un voyage d'abord"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("dashboard.createVoyageFirstDesc") || "Pour accepter"}{" "}
+              <span className="font-semibold text-foreground">{createVoyageDialog?.label}</span>
+              {", "}
+              {t("dashboard.createVoyageFirstDesc2") || "vous devez d'abord enregistrer un voyage vers cette destination. Cela permet de vérifier votre capacité d'emport et votre budget."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("dashboard.cancelNo")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                const params = new URLSearchParams();
+                if (createVoyageDialog?.country) params.set("arrival_country", createVoyageDialog.country);
+                if (createVoyageDialog?.city) params.set("arrival_city", createVoyageDialog.city);
+                navigate(`/new-trip?${params.toString()}`);
+              }}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <Plane size={16} className="mr-1.5" />
+              {t("dashboard.createVoyageBtn") || "Créer un voyage"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
