@@ -68,7 +68,9 @@ const VoyageDetail = () => {
   const isActive = voyage && voyage.status === "active";
   const [hasAcceptedShipments, setHasAcceptedShipments] = useState(false);
   const [acceptedMissions, setAcceptedMissions] = useState<any[]>([]);
+  const [acceptedColis, setAcceptedColis] = useState<any[]>([]);
   const [capturingMissionId, setCapturingMissionId] = useState<string | null>(null);
+  const [capturingType, setCapturingType] = useState<"mission" | "shipment">("mission");
   const [uploadingProof, setUploadingProof] = useState(false);
   const cameraRef = useRef<HTMLInputElement>(null);
 
@@ -112,7 +114,6 @@ const VoyageDetail = () => {
     setUploadingProof(true);
 
     try {
-      // Get GPS position
       let lat: number | null = null;
       let lng: number | null = null;
       try {
@@ -123,7 +124,6 @@ const VoyageDetail = () => {
         lng = pos.coords.longitude;
       } catch {}
 
-      // Upload photo
       const path = `pickup-proofs/${capturingMissionId}/${Date.now()}-${file.name}`;
       const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, file);
       if (uploadErr) throw uploadErr;
@@ -131,7 +131,6 @@ const VoyageDetail = () => {
       const { data: signed } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
       const photoUrl = signed?.signedUrl ?? "";
 
-      // Insert proof
       const { error: proofErr } = await supabase.from("pickup_proofs" as any).insert({
         shipment_id: capturingMissionId,
         photo_url: photoUrl,
@@ -141,12 +140,15 @@ const VoyageDetail = () => {
       });
       if (proofErr) throw proofErr;
 
-      // Update mission status
-      await supabase.from("needit_missions").update({ status: "picked_up" } as any).eq("id", capturingMissionId);
+      if (capturingType === "shipment") {
+        await supabase.from("shipments").update({ status: "picked_up" } as any).eq("id", capturingMissionId);
+        setAcceptedColis(prev => prev.map(s => s.id === capturingMissionId ? { ...s, status: "picked_up" } : s));
+      } else {
+        await supabase.from("needit_missions").update({ status: "picked_up" } as any).eq("id", capturingMissionId);
+        setAcceptedMissions(prev => prev.map(m => m.id === capturingMissionId ? { ...m, status: "picked_up" } : m));
+      }
 
       toast.success("Récupération confirmée ✅");
-      // Refresh missions
-      setAcceptedMissions(prev => prev.map(m => m.id === capturingMissionId ? { ...m, status: "picked_up" } : m));
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de la confirmation");
     } finally {
@@ -161,13 +163,12 @@ const VoyageDetail = () => {
     const checkAccepted = async () => {
       const { data: shipData } = await supabase
         .from("shipments")
-        .select("id")
+        .select("id, departure_city, arrival_city, arrival_country, size, tarif, status, departure_date")
         .eq("voyageur_id", user.id)
-        .in("status", ["accepted", "picked_up", "in_transit"])
+        .in("status", ["accepted", "picked_up", "in_transit", "delivered"])
         .eq("arrival_city", voyage.arrival_city)
         .eq("arrival_country", voyage.arrival_country)
-        .eq("departure_date", voyage.departure_date)
-        .limit(1);
+        .eq("departure_date", voyage.departure_date);
 
       const { data: missionData } = await supabase
         .from("needit_missions")
@@ -176,6 +177,7 @@ const VoyageDetail = () => {
         .in("status", ["accepted", "picked_up", "in_transit", "completed"])
         .eq("country", voyage.arrival_country);
 
+      setAcceptedColis(shipData || []);
       setAcceptedMissions(missionData || []);
       setHasAcceptedShipments(
         (shipData?.length || 0) > 0 || (missionData?.length || 0) > 0
@@ -457,12 +459,105 @@ const VoyageDetail = () => {
                         onClick={(e) => {
                           e.stopPropagation();
                           setCapturingMissionId(mission.id);
+                          setCapturingType("mission");
                           setTimeout(() => cameraRef.current?.click(), 50);
                         }}
                         disabled={uploadingProof && capturingMissionId === mission.id}
                         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
                       >
                         {uploadingProof && capturingMissionId === mission.id ? (
+                          <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</>
+                        ) : (
+                          <><Camera size={14} /> Prendre la photo de récupération</>
+                        )}
+                      </button>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Accepted Shipments Progress */}
+          {acceptedColis.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Package size={16} className="text-primary" />
+                Colis acceptés
+              </h2>
+              {acceptedColis.map((shipment) => {
+                const steps = [
+                  { key: "accepted", label: "Accepté" },
+                  { key: "picked_up", label: "Récupéré" },
+                  { key: "in_transit", label: "En transit" },
+                  { key: "delivered", label: "Livré" },
+                ];
+                const statusIndex = steps.findIndex(s => s.key === shipment.status);
+                const currentIdx = statusIndex >= 0 ? statusIndex : 0;
+
+                return (
+                  <motion.div
+                    key={shipment.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-card border border-border rounded-2xl p-4 space-y-3 cursor-pointer hover:border-primary/30 transition-colors"
+                    onClick={() => navigate(`/shipment/${shipment.id}`)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-foreground truncate">
+                        {shipment.departure_city || "—"} → {shipment.arrival_city}
+                      </span>
+                      <span className="text-xs font-bold text-primary">{shipment.tarif} €</span>
+                    </div>
+
+                    <div className="flex items-center gap-0">
+                      {steps.map((step, i) => {
+                        const isDone = i <= currentIdx;
+                        const isCurrent = i === currentIdx;
+                        return (
+                          <div key={step.key} className="flex items-center flex-1">
+                            {i > 0 && (
+                              <div className={`h-0.5 flex-1 transition-colors ${isDone ? "bg-[#30D158]" : "bg-border"}`} />
+                            )}
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
+                              isDone ? "bg-[#30D158] border-[#30D158]" : "bg-card border-border"
+                            } ${isCurrent ? "ring-2 ring-[#30D158]/30 ring-offset-1 ring-offset-card" : ""}`}>
+                              {isDone ? (
+                                <CheckCircle size={14} className="text-white" />
+                              ) : (
+                                <span className="w-2 h-2 rounded-full bg-muted-foreground/25" />
+                              )}
+                            </div>
+                            {i < steps.length - 1 && (
+                              <div className={`h-0.5 flex-1 transition-colors ${i < currentIdx ? "bg-[#30D158]" : "bg-border"}`} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex justify-between">
+                      {steps.map((step, i) => (
+                        <span key={step.key} className={`text-[9px] font-semibold text-center flex-1 ${
+                          i <= currentIdx ? "text-[#30D158]" : "text-muted-foreground/50"
+                        }`}>
+                          {step.label}
+                        </span>
+                      ))}
+                    </div>
+
+                    {shipment.status === "accepted" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCapturingMissionId(shipment.id);
+                          setCapturingType("shipment");
+                          setTimeout(() => cameraRef.current?.click(), 50);
+                        }}
+                        disabled={uploadingProof && capturingMissionId === shipment.id}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
+                      >
+                        {uploadingProof && capturingMissionId === shipment.id ? (
                           <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</>
                         ) : (
                           <><Camera size={14} /> Prendre la photo de récupération</>
