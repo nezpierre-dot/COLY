@@ -168,8 +168,7 @@ const MyAccount = () => {
       icon: Settings,
       label: t("account.settingsLabel"),
       items: [
-        { label: t("account.voyageurSetting"), onClick: () => navigate("/voyageur-settings") },
-        { label: t("account.senderSetting"), onClick: () => navigate("/settings") },
+        { label: "Paramètres utilisateur", onClick: () => navigate("/voyageur-settings") },
         { label: t("account.appSettings"), onClick: () => navigate("/settings") },
       ],
     },
