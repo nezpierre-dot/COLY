@@ -46,8 +46,22 @@ export default function NotificationsPage() {
             <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
               <Bell size={28} className="text-muted-foreground" />
             </div>
-            <p className="text-lg font-semibold text-foreground">{t("notif.empty")}</p>
+            <p className="text-lg font-semibold text-foreground">Aucune pour l'instant</p>
             <p className="text-sm text-muted-foreground mt-1 max-w-[260px]">{t("notif.emptyDesc")}</p>
+
+            <button
+              onClick={async () => {
+                if ('Notification' in window) {
+                  const permission = await Notification.requestPermission();
+                  if (permission === 'granted') {
+                    new Notification('Rappels activés', { body: 'Vous recevrez désormais des notifications push.' });
+                  }
+                }
+              }}
+              className="mt-6 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-[#0D84FF] text-white font-bold text-sm shadow-lg shadow-[#0D84FF]/30 active:scale-[0.97] transition-transform"
+            >
+              <Bell size={16} /> Activer rappels push
+            </button>
 
             <div className="mt-8 w-full max-w-sm space-y-2.5">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-left">{t("notif.examples")}</p>
