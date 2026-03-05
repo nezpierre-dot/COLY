@@ -73,6 +73,8 @@ const VoyageDetail = () => {
   const [capturingType, setCapturingType] = useState<"mission" | "shipment">("mission");
   const [uploadingProof, setUploadingProof] = useState(false);
   const [missionsWithProof, setMissionsWithProof] = useState<Set<string>>(new Set());
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
 
   // Check if within 24h of departure
@@ -108,10 +110,22 @@ const VoyageDetail = () => {
 
   useEffect(() => { loadVoyage(); }, [loadVoyage]);
 
-  const handleCameraCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user || !capturingMissionId) return;
+    if (!file) return;
     e.target.value = "";
+    setPreviewFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleRetake = () => {
+    setPreviewUrl(null);
+    setPreviewFile(null);
+    setTimeout(() => cameraRef.current?.click(), 50);
+  };
+
+  const handleConfirmCapture = async () => {
+    if (!previewFile || !user || !capturingMissionId) return;
     setUploadingProof(true);
 
     try {
@@ -125,8 +139,8 @@ const VoyageDetail = () => {
         lng = pos.coords.longitude;
       } catch {}
 
-      const path = `pickup-proofs/${capturingMissionId}/${Date.now()}-${file.name}`;
-      const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, file);
+      const path = `pickup-proofs/${capturingMissionId}/${Date.now()}-${previewFile.name}`;
+      const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, previewFile);
       if (uploadErr) throw uploadErr;
 
       const { data: signed } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
@@ -155,6 +169,8 @@ const VoyageDetail = () => {
     } finally {
       setUploadingProof(false);
       setCapturingMissionId(null);
+      setPreviewUrl(null);
+      setPreviewFile(null);
     }
   };
 
@@ -491,22 +507,39 @@ const VoyageDetail = () => {
                       </div>
                     )}
                     {mission.status === "accepted" && missionsWithProof.has(mission.id) && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCapturingMissionId(mission.id);
-                          setCapturingType("mission");
-                          setTimeout(() => cameraRef.current?.click(), 50);
-                        }}
-                        disabled={uploadingProof && capturingMissionId === mission.id}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
-                      >
-                        {uploadingProof && capturingMissionId === mission.id ? (
-                          <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</>
-                        ) : (
-                          <><Camera size={14} /> Prendre la photo de récupération</>
-                        )}
-                      </button>
+                      previewUrl && capturingMissionId === mission.id ? (
+                        <div className="space-y-2">
+                          <img src={previewUrl} alt="Aperçu" className="w-full max-h-[200px] object-cover rounded-xl border border-border" />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleRetake(); }}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-border text-foreground text-xs font-bold"
+                            >
+                              <Camera size={14} /> Reprendre
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleConfirmCapture(); }}
+                              disabled={uploadingProof}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#30D158] text-white text-xs font-bold disabled:opacity-50"
+                            >
+                              {uploadingProof ? <><Loader2 size={14} className="animate-spin" /> Envoi...</> : <><Check size={14} /> Confirmer</>}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCapturingMissionId(mission.id);
+                            setCapturingType("mission");
+                            setTimeout(() => cameraRef.current?.click(), 50);
+                          }}
+                          disabled={uploadingProof}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
+                        >
+                          <Camera size={14} /> Prendre la photo de récupération
+                        </button>
+                      )
                     )}
                   </motion.div>
                 );
@@ -583,22 +616,39 @@ const VoyageDetail = () => {
                     </div>
 
                     {shipment.status === "accepted" && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setCapturingMissionId(shipment.id);
-                          setCapturingType("shipment");
-                          setTimeout(() => cameraRef.current?.click(), 50);
-                        }}
-                        disabled={uploadingProof && capturingMissionId === shipment.id}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
-                      >
-                        {uploadingProof && capturingMissionId === shipment.id ? (
-                          <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</>
-                        ) : (
-                          <><Camera size={14} /> Prendre la photo de récupération</>
-                        )}
-                      </button>
+                      previewUrl && capturingMissionId === shipment.id ? (
+                        <div className="space-y-2">
+                          <img src={previewUrl} alt="Aperçu" className="w-full max-h-[200px] object-cover rounded-xl border border-border" />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleRetake(); }}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-border text-foreground text-xs font-bold"
+                            >
+                              <Camera size={14} /> Reprendre
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleConfirmCapture(); }}
+                              disabled={uploadingProof}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-[#30D158] text-white text-xs font-bold disabled:opacity-50"
+                            >
+                              {uploadingProof ? <><Loader2 size={14} className="animate-spin" /> Envoi...</> : <><Check size={14} /> Confirmer</>}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCapturingMissionId(shipment.id);
+                            setCapturingType("shipment");
+                            setTimeout(() => cameraRef.current?.click(), 50);
+                          }}
+                          disabled={uploadingProof}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
+                        >
+                          <Camera size={14} /> Prendre la photo de récupération
+                        </button>
+                      )
                     )}
                   </motion.div>
                 );
