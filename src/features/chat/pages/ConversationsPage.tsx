@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, Send as SendIcon } from "lucide-react";
+import { ArrowLeft, MessageCircle, Send as SendIcon, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
@@ -29,6 +29,7 @@ const ConversationsPage = () => {
   const { t, language } = useTranslation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -106,6 +107,17 @@ const ConversationsPage = () => {
             <h1 className="text-2xl font-bold text-foreground flex-1">{t("conversations.title")}</h1>
           </div>
 
+          {/* Search bar */}
+          <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mb-4">
+            <Search size={18} className="text-muted-foreground shrink-0" />
+            <input
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              placeholder="Rechercher par nom ou trajet…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
           {loading ? (
             <div className="flex justify-center py-12">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -118,7 +130,18 @@ const ConversationsPage = () => {
             />
           ) : (
             <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-2">
-              {conversations.map((c) => (
+              {conversations
+                .filter((c) => {
+                  if (!search) return true;
+                  const q = search.toLowerCase();
+                  return (
+                    (c.other_name || "").toLowerCase().includes(q) ||
+                    (c.shipment_route || "").toLowerCase().includes(q) ||
+                    (c.last_message || "").toLowerCase().includes(q) ||
+                    new Date(c.last_message_at).toLocaleDateString("fr-FR").includes(q)
+                  );
+                })
+                .map((c) => (
                 <motion.button
                   key={c.id}
                   variants={staggerItem}
