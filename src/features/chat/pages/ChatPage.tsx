@@ -60,6 +60,8 @@ const ChatPage = () => {
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [uploadingProof, setUploadingProof] = useState(false);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (!conversationId || !user) return;
@@ -151,20 +153,34 @@ const ChatPage = () => {
   const isMissionChat = itemDetail?.type === "mission";
   const proofSent = useMemo(() => messages.some(m => isProofImage(m.content)), [messages]);
 
-  const handleProofCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProofCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user || !conversationId) return;
+    if (!file) return;
     e.target.value = "";
+    setProofFile(file);
+    setProofPreview(URL.createObjectURL(file));
+  };
+
+  const handleProofConfirm = async () => {
+    if (!proofFile || !user || !conversationId) return;
     setUploadingProof(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
+      const ext = proofFile.name.split(".").pop() || "jpg";
       const path = `${user.id}/${conversationId}/proof-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("chat-photos").upload(path, file, { upsert: false });
+      const { error: upErr } = await supabase.storage.from("chat-photos").upload(path, proofFile, { upsert: false });
       if (upErr) throw upErr;
       const { data: signedData } = await supabase.storage.from("chat-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
       const photoUrl = signedData?.signedUrl ?? "";
       await supabase.from("messages").insert({ conversation_id: conversationId, sender_id: user.id, content: `__PROOF__:${photoUrl}` });
+      setProofPreview(null);
+      setProofFile(null);
     } catch { toast.error("Erreur lors de l'envoi de la preuve"); } finally { setUploadingProof(false); }
+  };
+
+  const handleProofRetake = () => {
+    setProofPreview(null);
+    setProofFile(null);
+    setTimeout(() => proofCameraRef.current?.click(), 100);
   };
 
   const groupedMessages: { date: string; msgs: Message[] }[] = [];
@@ -276,26 +292,58 @@ const ChatPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mx-4 mb-2 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-2xl p-3.5"
         >
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center shrink-0">
-              <Receipt size={18} className="text-[#F59E0B]" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-foreground mb-0.5">Preuve d'achat requise</p>
-              <p className="text-[11px] text-muted-foreground">Envoie une photo du produit + ticket de caisse pour débloquer l'étape suivante.</p>
-            </div>
-          </div>
-          <button
-            onClick={() => proofCameraRef.current?.click()}
-            disabled={uploadingProof}
-            className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
-          >
-            {uploadingProof ? (
-              <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</>
-            ) : (
-              <><Camera size={14} /> Envoyer preuve (photo)</>
-            )}
-          </button>
+          {proofPreview ? (
+            <>
+              <p className="text-xs font-bold text-foreground mb-2">Aperçu de la preuve</p>
+              <div className="relative rounded-xl overflow-hidden mb-3">
+                <img src={proofPreview} alt="Aperçu preuve" className="w-full max-h-[240px] object-cover rounded-xl" />
+                <button
+                  onClick={() => { setProofPreview(null); setProofFile(null); }}
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleProofRetake}
+                  disabled={uploadingProof}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-muted-foreground text-xs font-bold active:scale-[0.97] transition-all"
+                >
+                  <Camera size={14} /> Reprendre
+                </button>
+                <button
+                  onClick={handleProofConfirm}
+                  disabled={uploadingProof}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#30D158] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
+                >
+                  {uploadingProof ? (
+                    <><Loader2 size={14} className="animate-spin" /> Envoi...</>
+                  ) : (
+                    <><CheckCheck size={14} /> Confirmer</>
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#F59E0B]/20 flex items-center justify-center shrink-0">
+                  <Receipt size={18} className="text-[#F59E0B]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-foreground mb-0.5">Preuve d'achat requise</p>
+                  <p className="text-[11px] text-muted-foreground">Envoie une photo du produit + ticket de caisse pour débloquer l'étape suivante.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => proofCameraRef.current?.click()}
+                className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all"
+              >
+                <Camera size={14} /> Envoyer preuve (photo)
+              </button>
+            </>
+          )}
         </motion.div>
       )}
 
