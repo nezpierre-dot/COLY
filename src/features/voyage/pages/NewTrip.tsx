@@ -172,6 +172,8 @@ const NewTrip = () => {
   // Step 5 – NeedIt
   const [acceptNeedit, setAcceptNeedit] = useState(false);
   const [needitBudget, setNeeditBudget] = useState("");
+  const [maxWeightKg, setMaxWeightKg] = useState("");
+  const [maxItems, setMaxItems] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState(() => {
     const c = getCurrencyForCountry(arrivalCountry);
     return c.code;
@@ -219,6 +221,8 @@ const NewTrip = () => {
       deliver_to_address: deliverToAddress,
       accept_needit: acceptNeedit,
       needit_budget: needitBudget || null,
+      max_weight_kg: maxWeightKg ? parseFloat(maxWeightKg) : null,
+      max_items: maxItems ? parseInt(maxItems) : null,
     }).select("id").single();
     setSubmitting(false);
     if (error) {
@@ -498,6 +502,35 @@ const NewTrip = () => {
                     Je remets le/les colis à l'adresse d'arrivée uniquement
                   </span>
                   <Switch checked={deliverToAddress} onCheckedChange={setDeliverToAddress} />
+                </div>
+              </div>
+
+              {/* Capacity section */}
+              <div className="space-y-3 pt-2 border-t border-border">
+                <h3 className="text-sm font-semibold text-foreground">{t("trip.capacityTitle")}</h3>
+                <div>
+                  <Label className="text-muted-foreground text-sm">{t("trip.maxWeight")}</Label>
+                  <Input
+                    type="number"
+                    placeholder={t("trip.maxWeightPlaceholder")}
+                    value={maxWeightKg}
+                    onChange={(e) => setMaxWeightKg(e.target.value)}
+                    min="0"
+                    step="0.5"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">{t("trip.maxWeightHint")}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-sm">{t("trip.maxItems")}</Label>
+                  <Input
+                    type="number"
+                    placeholder={t("trip.maxItemsPlaceholder")}
+                    value={maxItems}
+                    onChange={(e) => setMaxItems(e.target.value)}
+                    min="1"
+                    step="1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">{t("trip.maxItemsHint")}</p>
                 </div>
               </div>
             </div>
