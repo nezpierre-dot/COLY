@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, CheckCircle } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, CheckCircle, Camera } from "lucide-react";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { motion } from "framer-motion";
 import PageTransition from "@/components/PageTransition";
@@ -68,6 +68,9 @@ const VoyageDetail = () => {
   const isActive = voyage && voyage.status === "active";
   const [hasAcceptedShipments, setHasAcceptedShipments] = useState(false);
   const [acceptedMissions, setAcceptedMissions] = useState<any[]>([]);
+  const [capturingMissionId, setCapturingMissionId] = useState<string | null>(null);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   // Check if within 24h of departure
   const isWithin24h = useCallback(() => {
@@ -101,6 +104,56 @@ const VoyageDetail = () => {
   }, [id]);
 
   useEffect(() => { loadVoyage(); }, [loadVoyage]);
+
+  const handleCameraCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !capturingMissionId) return;
+    e.target.value = "";
+    setUploadingProof(true);
+
+    try {
+      // Get GPS position
+      let lat: number | null = null;
+      let lng: number | null = null;
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 })
+        );
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+      } catch {}
+
+      // Upload photo
+      const path = `pickup-proofs/${capturingMissionId}/${Date.now()}-${file.name}`;
+      const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, file);
+      if (uploadErr) throw uploadErr;
+
+      const { data: signed } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
+      const photoUrl = signed?.signedUrl ?? "";
+
+      // Insert proof
+      const { error: proofErr } = await supabase.from("pickup_proofs" as any).insert({
+        shipment_id: capturingMissionId,
+        photo_url: photoUrl,
+        latitude: lat,
+        longitude: lng,
+        uploaded_by: user.id,
+      });
+      if (proofErr) throw proofErr;
+
+      // Update mission status
+      await supabase.from("needit_missions").update({ status: "picked_up" } as any).eq("id", capturingMissionId);
+
+      toast.success("Récupération confirmée ✅");
+      // Refresh missions
+      setAcceptedMissions(prev => prev.map(m => m.id === capturingMissionId ? { ...m, status: "picked_up" } : m));
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la confirmation");
+    } finally {
+      setUploadingProof(false);
+      setCapturingMissionId(null);
+    }
+  };
 
   // Check if any shipment has been accepted for this specific voyage route & date
   useEffect(() => {
@@ -397,11 +450,40 @@ const VoyageDetail = () => {
                         </span>
                       ))}
                     </div>
+
+                    {/* Camera capture button for accepted missions */}
+                    {mission.status === "accepted" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCapturingMissionId(mission.id);
+                          setTimeout(() => cameraRef.current?.click(), 50);
+                        }}
+                        disabled={uploadingProof && capturingMissionId === mission.id}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#0D84FF] text-white text-xs font-bold active:scale-[0.97] transition-all disabled:opacity-50"
+                      >
+                        {uploadingProof && capturingMissionId === mission.id ? (
+                          <><Loader2 size={14} className="animate-spin" /> Envoi en cours...</>
+                        ) : (
+                          <><Camera size={14} /> Prendre la photo de récupération</>
+                        )}
+                      </button>
+                    )}
                   </motion.div>
                 );
               })}
             </div>
           )}
+
+          {/* Hidden camera input */}
+          <input
+            ref={cameraRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleCameraCapture}
+          />
 
           {/* Action buttons */}
           {canEdit && (
