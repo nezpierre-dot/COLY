@@ -4,8 +4,26 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import BottomNav from "@/components/BottomNav";
-import { ReactNode } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
+
+type NotifFilter = "all" | "match" | "proof" | "status" | "reminder";
+
+const getNotifCategory = (type: string): NotifFilter => {
+  if (type.startsWith("match:")) return "match";
+  if (type.startsWith("proof:")) return "proof";
+  if (type.startsWith("pickup:") || type.startsWith("mission_status:")) return "status";
+  if (type.startsWith("reminder:")) return "reminder";
+  return "all";
+};
+
+const filterLabels: { key: NotifFilter; label: string; icon: ReactNode }[] = [
+  { key: "all", label: "Tout", icon: <Bell size={14} /> },
+  { key: "match", label: "Match", icon: <Star size={14} /> },
+  { key: "proof", label: "Preuve", icon: <ShoppingBag size={14} /> },
+  { key: "status", label: "Statut", icon: <Package size={14} /> },
+  { key: "reminder", label: "Rappel", icon: <Bell size={14} /> },
+];
 
 const typeIcon: Record<string, ReactNode> = {
   info: <Info size={18} className="text-blue-400" />,
@@ -54,10 +72,23 @@ export default function NotificationsPage() {
   const { t } = useTranslation();
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 
+  const [filter, setFilter] = useState<NotifFilter>("all");
+
+  const filtered = useMemo(() => {
+    if (filter === "all") return notifications;
+    return notifications.filter((n) => getNotifCategory(n.type) === filter);
+  }, [notifications, filter]);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<NotifFilter, number> = { all: notifications.length, match: 0, proof: 0, status: 0, reminder: 0 };
+    notifications.forEach((n) => { const cat = getNotifCategory(n.type); if (cat !== "all") counts[cat]++; });
+    return counts;
+  }, [notifications]);
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="px-6 pt-12">
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-4">
           <button onClick={() => navigate(-1)} className="text-foreground hover:text-primary transition-colors"><ArrowLeft size={24} /></button>
           <h1 className="text-2xl font-bold text-foreground flex-1">{t("notif.title")}</h1>
           {unreadCount > 0 && (
@@ -67,11 +98,35 @@ export default function NotificationsPage() {
           )}
         </div>
 
+        {notifications.length > 0 && (
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
+            {filterLabels.map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
+                  filter === f.key
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                }`}
+              >
+                {f.icon}
+                {f.label}
+                {categoryCounts[f.key] > 0 && (
+                  <span className={`ml-0.5 text-[10px] ${filter === f.key ? "text-primary-foreground/80" : "text-muted-foreground/60"}`}>
+                    {categoryCounts[f.key]}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (<div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />))}
           </div>
-        ) : notifications.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
               <Bell size={28} className="text-muted-foreground" />
@@ -113,7 +168,7 @@ export default function NotificationsPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {notifications.map((n) => {
+            {filtered.map((n) => {
               const link = getNotifLink(n.type);
               const handleClick = () => {
                 if (!n.is_read) markAsRead(n.id);
