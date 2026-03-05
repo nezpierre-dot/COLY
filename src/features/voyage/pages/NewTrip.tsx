@@ -227,6 +227,14 @@ const NewTrip = () => {
       successFeedback(t("trip.published"), { description: t("trip.publishedDesc") });
       // Trigger match notifications
       supabase.functions.invoke("notify-match", { body: { type: "voyage", record_id: data.id } }).catch(() => {});
+
+      // If redirected from unmatched accept flow, go straight back to dashboard
+      if (searchParams.get("arrival_country")) {
+        toast.success(t("dashboard.voyageCreatedNowAccept") || "Voyage créé ! Vous pouvez maintenant accepter l'élément matché.");
+        navigate("/dashboard");
+        return;
+      }
+
       // Show reminder prompt
       setCreatedReminderInfo({
         itemType: "voyage",
