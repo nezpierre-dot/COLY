@@ -395,6 +395,7 @@ export type Database = {
           id: string
           kyc_status: string
           phone: string | null
+          preferred_transports: string[] | null
           stripe_customer_id: string | null
           updated_at: string
           user_id: string
@@ -408,6 +409,7 @@ export type Database = {
           id?: string
           kyc_status?: string
           phone?: string | null
+          preferred_transports?: string[] | null
           stripe_customer_id?: string | null
           updated_at?: string
           user_id: string
@@ -421,6 +423,7 @@ export type Database = {
           id?: string
           kyc_status?: string
           phone?: string | null
+          preferred_transports?: string[] | null
           stripe_customer_id?: string | null
           updated_at?: string
           user_id?: string
@@ -662,6 +665,8 @@ export type Database = {
           arrival_time: string | null
           can_move: boolean
           can_pickup: boolean
+          capacity_dimensions: string | null
+          capacity_volume_liters: number | null
           created_at: string
           deliver_to_address: boolean
           departure_address: string | null
@@ -687,6 +692,8 @@ export type Database = {
           arrival_time?: string | null
           can_move?: boolean
           can_pickup?: boolean
+          capacity_dimensions?: string | null
+          capacity_volume_liters?: number | null
           created_at?: string
           deliver_to_address?: boolean
           departure_address?: string | null
@@ -712,6 +719,8 @@ export type Database = {
           arrival_time?: string | null
           can_move?: boolean
           can_pickup?: boolean
+          capacity_dimensions?: string | null
+          capacity_volume_liters?: number | null
           created_at?: string
           deliver_to_address?: boolean
           departure_address?: string | null
