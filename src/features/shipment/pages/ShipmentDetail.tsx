@@ -84,17 +84,29 @@ const ShipmentDetail = () => {
     }
   };
 
+  const isAccepted = shipment?.voyageur_id != null && shipment?.status !== "pending";
+
   const handleCancel = async () => {
     if (!id) return;
     setSaving(true);
     const { error } = await supabase.from("shipments").update({ status: "cancelled" }).eq("id", id);
-    setSaving(false);
     if (error) {
+      setSaving(false);
       toast.error(t("common.error"));
-    } else {
-      toast.success(t("dashboard.cancelledSuccess"));
-      navigate("/dashboard");
+      return;
     }
+    // Notify voyageur if shipment was accepted
+    if (shipment?.voyageur_id) {
+      await supabase.from("notifications").insert({
+        user_id: shipment.voyageur_id,
+        title: "Envoi annulé ❌",
+        message: `L'envoi COLY-${shipment.id.slice(0, 8).toUpperCase()} a été annulé par l'expéditeur. Le budget sera remboursé si déjà payé.`,
+        type: "shipment_cancelled:" + id,
+      });
+    }
+    setSaving(false);
+    toast.success(t("dashboard.cancelledSuccess"));
+    navigate("/dashboard");
   };
 
   if (loading) {
@@ -297,6 +309,16 @@ const ShipmentDetail = () => {
               )}
             </div>
           )}
+
+          {/* Cancel button for owner when shipment is accepted */}
+          {isOwner && isAccepted && shipment.status !== "cancelled" && shipment.status !== "delivered" && !canEdit && (
+            <button
+              onClick={() => setShowCancel(true)}
+              className="w-full py-3.5 rounded-2xl bg-destructive text-destructive-foreground font-bold text-sm flex items-center justify-center gap-2"
+            >
+              <X size={16} /> Annuler l'envoi
+            </button>
+          )}
         </div>
       </PageTransition>
       <BottomNav />
@@ -304,8 +326,12 @@ const ShipmentDetail = () => {
       <AlertDialog open={showCancel} onOpenChange={setShowCancel}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("dashboard.cancelShipment")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("dashboard.cancelShipmentDesc")}</AlertDialogDescription>
+            <AlertDialogTitle>{isAccepted ? "Annuler l'envoi" : t("dashboard.cancelShipment")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isAccepted
+                ? "Voulez-vous vraiment annuler ? Le voyageur sera notifié et le budget remboursé."
+                : t("dashboard.cancelShipmentDesc")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
