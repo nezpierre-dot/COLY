@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plane, Train, Car, Bus, Ship, Bike, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -8,6 +8,15 @@ import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface FieldDef { key: string; label: string; editable: boolean; value: string; }
+
+const TRANSPORT_OPTIONS = [
+  { value: "voiture", icon: Car },
+  { value: "train", icon: Train },
+  { value: "avion", icon: Plane },
+  { value: "bus", icon: Bus },
+  { value: "bateau", icon: Ship },
+  { value: "velo", icon: Bike },
+];
 
 const MyInfo = () => {
   const navigate = useNavigate();
@@ -30,6 +39,10 @@ const MyInfo = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
+  // Preferred transports
+  const [preferredTransports, setPreferredTransports] = useState<string[]>([]);
+  const [loadingTransports, setLoadingTransports] = useState(true);
+
   useEffect(() => {
     if (meta.full_name) {
       const parts = (meta.full_name as string).split(" ");
@@ -40,6 +53,29 @@ const MyInfo = () => {
       }));
     }
   }, []);
+
+  // Load preferred transports from profile
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("preferred_transports").eq("user_id", user.id).single()
+      .then(({ data }) => {
+        if (data?.preferred_transports) {
+          setPreferredTransports(data.preferred_transports);
+        }
+        setLoadingTransports(false);
+      });
+  }, [user]);
+
+  const toggleTransport = async (value: string) => {
+    const updated = preferredTransports.includes(value)
+      ? preferredTransports.filter((t) => t !== value)
+      : [...preferredTransports, value];
+    setPreferredTransports(updated);
+    if (!user) return;
+    const { error } = await supabase.from("profiles").update({ preferred_transports: updated } as any).eq("user_id", user.id);
+    if (error) toast.error(error.message);
+    else toast.success(t("myinfo.transportsSaved"));
+  };
 
   const startEdit = (key: string) => {
     const field = fields.find((f) => f.key === key);
@@ -82,6 +118,32 @@ const MyInfo = () => {
               )}
             </div>
           ))}
+        </div>
+
+        {/* Preferred transports */}
+        <div className="mt-8">
+          <h3 className="text-sm font-semibold text-foreground mb-1">{t("myinfo.preferredTransports")}</h3>
+          <p className="text-xs text-muted-foreground mb-3">{t("myinfo.preferredTransportsHint")}</p>
+          <div className="grid grid-cols-3 gap-2">
+            {TRANSPORT_OPTIONS.map((opt) => {
+              const selected = preferredTransports.includes(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => toggleTransport(opt.value)}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-colors ${
+                    selected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
+                  }`}
+                >
+                  <opt.icon size={20} className={selected ? "text-primary" : "text-muted-foreground"} />
+                  <span className={`text-xs font-medium ${selected ? "text-foreground" : "text-muted-foreground"}`}>
+                    {t(`transport.${opt.value}`)}
+                  </span>
+                  {selected && <Check size={12} className="text-primary" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
       <BottomNav />

@@ -365,6 +365,12 @@ const VoyageDetail = () => {
                 {voyage.accept_needit && voyage.needit_budget && (
                   <InfoRow icon={<Package size={14} />} label={t("trip.needitBudget") || "Budget NeedIt"} value={`${voyage.needit_budget} €`} />
                 )}
+                {voyage.capacity_volume_liters && (
+                  <InfoRow icon={<Weight size={14} />} label={t("trip.volumeLiters")} value={`${voyage.capacity_volume_liters} L`} />
+                )}
+                {voyage.capacity_dimensions && (
+                  <InfoRow icon={<Weight size={14} />} label={t("trip.volumeDimensions")} value={voyage.capacity_dimensions} />
+                )}
 
                 {/* Capacity progress bars */}
                 {(voyage.max_weight_kg || voyage.max_items) && (() => {
