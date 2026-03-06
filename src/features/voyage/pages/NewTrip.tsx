@@ -174,6 +174,9 @@ const NewTrip = () => {
   const [needitBudget, setNeeditBudget] = useState("");
   const [maxWeightKg, setMaxWeightKg] = useState("");
   const [maxItems, setMaxItems] = useState("");
+  const [volumeType, setVolumeType] = useState<"liters" | "dimensions">("liters");
+  const [volumeLiters, setVolumeLiters] = useState("");
+  const [capacityDimensions, setCapacityDimensions] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState(() => {
     const c = getCurrencyForCountry(arrivalCountry);
     return c.code;
@@ -223,6 +226,8 @@ const NewTrip = () => {
       needit_budget: needitBudget || null,
       max_weight_kg: maxWeightKg ? parseFloat(maxWeightKg) : null,
       max_items: maxItems ? parseInt(maxItems) : null,
+      capacity_volume_liters: volumeType === "liters" && volumeLiters ? parseFloat(volumeLiters) : null,
+      capacity_dimensions: volumeType === "dimensions" && capacityDimensions ? capacityDimensions.trim() : null,
     }).select("id").single();
     setSubmitting(false);
     if (error) {
@@ -532,6 +537,51 @@ const NewTrip = () => {
                   />
                   <p className="text-xs text-muted-foreground mt-1">{t("trip.maxItemsHint")}</p>
                 </div>
+
+                {/* Volume / Dimensions */}
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-sm">{t("trip.volumeType")}</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setVolumeType("liters")}
+                      className={`p-2.5 rounded-xl border text-sm font-medium transition-colors ${volumeType === "liters" ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-muted/50"}`}
+                    >
+                      {t("trip.volumeLiters")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVolumeType("dimensions")}
+                      className={`p-2.5 rounded-xl border text-sm font-medium transition-colors ${volumeType === "dimensions" ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-muted/50"}`}
+                    >
+                      {t("trip.volumeDimensions")}
+                    </button>
+                  </div>
+                </div>
+
+                {volumeType === "liters" ? (
+                  <div>
+                    <Label className="text-muted-foreground text-sm">{t("trip.volumeLiters")}</Label>
+                    <Input
+                      type="number"
+                      placeholder={t("trip.volumeLitersPlaceholder")}
+                      value={volumeLiters}
+                      onChange={(e) => setVolumeLiters(e.target.value)}
+                      min="0"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">{t("trip.volumeHint")}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <Label className="text-muted-foreground text-sm">{t("trip.volumeDimensions")}</Label>
+                    <Input
+                      placeholder={t("trip.volumeDimensionsPlaceholder")}
+                      value={capacityDimensions}
+                      onChange={(e) => setCapacityDimensions(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">{t("trip.dimensionsHint")}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
