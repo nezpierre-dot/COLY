@@ -127,6 +127,11 @@ serve(async (req) => {
 
     if (action === "set-default") {
       if (!payment_method_id) throw new Error("payment_method_id required");
+      // Verify ownership before setting default
+      const pmForDefault = await stripe.paymentMethods.retrieve(payment_method_id);
+      if (pmForDefault.customer !== customerId) {
+        throw new Error("Payment method does not belong to this customer");
+      }
       await stripe.customers.update(customerId, {
         invoice_settings: { default_payment_method: payment_method_id },
       });
@@ -138,6 +143,11 @@ serve(async (req) => {
 
     if (action === "detach") {
       if (!payment_method_id) throw new Error("payment_method_id required");
+      // Verify ownership before detaching
+      const pmForDetach = await stripe.paymentMethods.retrieve(payment_method_id);
+      if (pmForDetach.customer !== customerId) {
+        throw new Error("Payment method does not belong to this customer");
+      }
       await stripe.paymentMethods.detach(payment_method_id);
       return new Response(
         JSON.stringify({ success: true }),
