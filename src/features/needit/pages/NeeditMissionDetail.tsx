@@ -145,13 +145,23 @@ const NeeditMissionDetail = () => {
     if (!id) return;
     setSaving(true);
     const { error } = await supabase.from("needit_missions").update({ status: "cancelled" }).eq("id", id);
-    setSaving(false);
     if (error) {
+      setSaving(false);
       toast.error(t("common.error"));
-    } else {
-      toast.success(t("dashboard.cancelledSuccess"));
-      navigate(-1);
+      return;
     }
+    // Notify voyageur if mission was accepted
+    if (mission?.voyageur_id) {
+      await supabase.from("notifications").insert({
+        user_id: mission.voyageur_id,
+        title: "Mission annulée ❌",
+        message: `La mission "${mission.product_name || "NeedIt"}" a été annulée par le demandeur. Le budget sera remboursé si déjà payé.`,
+        type: "mission_cancelled:" + id,
+      });
+    }
+    setSaving(false);
+    toast.success(t("dashboard.cancelledSuccess"));
+    navigate(-1);
   };
 
   const handlePickupConfirmed = () => {
@@ -548,6 +558,18 @@ const NeeditMissionDetail = () => {
               )}
             </div>
           )}
+
+          {/* Cancel button for owner when mission is accepted (voyageur assigned) */}
+          {isOwner && isAccepted && mission.status !== "cancelled" && mission.status !== "completed" && !canEdit && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <button
+                onClick={() => setShowCancel(true)}
+                className="w-full py-3.5 rounded-2xl bg-destructive text-destructive-foreground font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <X size={16} /> Annuler la mission
+              </button>
+            </motion.div>
+          )}
         </div>
       </PageTransition>
       <BottomNav />
@@ -556,8 +578,12 @@ const NeeditMissionDetail = () => {
       <AlertDialog open={showCancel} onOpenChange={setShowCancel}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("dashboard.cancelMission")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("dashboard.cancelMissionDesc")}</AlertDialogDescription>
+            <AlertDialogTitle>{isAccepted ? "Annuler la mission" : t("dashboard.cancelMission")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isAccepted
+                ? "Voulez-vous vraiment annuler ? Le voyageur sera notifié et le budget remboursé."
+                : t("dashboard.cancelMissionDesc")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
