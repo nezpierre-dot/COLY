@@ -34,7 +34,7 @@ const Login = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoginLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(t("login.invalidCredentials"));
     } else {
       navigate("/dashboard");
     }
@@ -51,7 +51,7 @@ const Login = () => {
     });
     setResetLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error(t("login.resetError"));
     } else {
       toast.success(t("login.resetSent"));
       setResetMode(false);
@@ -107,7 +107,7 @@ const Login = () => {
             const { error } = await lovable.auth.signInWithOAuth("google", {
               redirect_uri: window.location.origin,
             });
-            if (error) toast.error(error.message);
+            if (error) toast.error(t("login.oauthError"));
           }}
           className="w-full flex items-center justify-center gap-3 py-3 rounded-full border border-muted-foreground/20 bg-background text-foreground font-medium hover:bg-muted transition-colors"
         >
@@ -120,7 +120,7 @@ const Login = () => {
             const { error } = await lovable.auth.signInWithOAuth("apple", {
               redirect_uri: window.location.origin,
             });
-            if (error) toast.error(error.message);
+            if (error) toast.error(t("login.oauthError"));
           }}
           className="w-full flex items-center justify-center gap-3 py-3 rounded-full border border-muted-foreground/20 bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
         >
