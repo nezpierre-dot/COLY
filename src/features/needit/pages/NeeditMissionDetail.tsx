@@ -134,6 +134,8 @@ const NeeditMissionDetail = () => {
       timing,
       prix_max: prixMax || null,
       auto_accept: autoAccept,
+      pickup_address: pickupAddress || null,
+      pickup_access_code: pickupAccessCode || null,
     } as any).eq("id", id);
     setSaving(false);
     if (error) {
