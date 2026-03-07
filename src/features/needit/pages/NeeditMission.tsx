@@ -121,6 +121,8 @@ const NeeditMission = () => {
   const [prixMax, setPrixMax] = useState("");
   const [eanCode, setEanCode] = useState("");
   const [autoAccept, setAutoAccept] = useState(false);
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupAccessCode, setPickupAccessCode] = useState("");
   useEffect(() => { fetchCountries().then((data) => { setCountries(data); setLoadingCountries(false); }); }, []);
 
   useEffect(() => {
@@ -133,6 +135,8 @@ const NeeditMission = () => {
       setUnlistedName(data.unlisted_description || data.product_name || ""); setSelectedLeaf(data.is_unlisted ? "" : (data.product_name || ""));
       setPhotoPreview(data.photo_url || null); setDimension(data.dimension || ""); setPoids(data.poids || ""); setPrixMax(data.prix_max || ""); setEanCode(data.ean_code || "");
       setAutoAccept((data as any).auto_accept ?? false);
+      setPickupAddress((data as any).pickup_address || "");
+      setPickupAccessCode((data as any).pickup_access_code || "");
       if (data.country) { setLoadingCities(true); fetchCities(data.country).then((c) => { setCities(c); setLoadingCities(false); }); }
       setLoadingEdit(false);
     };
@@ -163,9 +167,10 @@ const NeeditMission = () => {
     if (step === 1 && validateStep1()) setStep(2);
     else if (step === 2 && validateStep2()) setStep(3);
     else if (step === 3) setStep(4);
-    else if (step === 4) {
+    else if (step === 4) setStep(5);
+    else if (step === 5) {
       if (!prixMax.trim()) { setErrors({ prixMax: t("needit.budgetRequired") }); toast.error(t("needit.budgetRequired")); return; }
-      if (!user) { toast.error(t("needit.mustBeLoggedIn")); return; }
+      if (!pickupAddress.trim()) { setErrors({ pickupAddress: "L'adresse de récupération est obligatoire" }); toast.error("L'adresse de récupération est obligatoire"); return; }
       setSubmitting(true);
       try {
         let photo_url: string | null = null;
@@ -175,7 +180,7 @@ const NeeditMission = () => {
           if (!uploadErr) { const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90); photo_url = data?.signedUrl ?? null; }
         }
         const pathLabels = categoryPath.map((n) => n.label); if (selectedLeaf) pathLabels.push(selectedLeaf);
-        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: prixMax || null, ean_code: eanCode || null, auto_accept: autoAccept };
+        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: prixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
         if (editId) {
           await supabase.from("needit_missions").update(missionData as any).eq("id", editId).eq("user_id", user.id);
           successFeedback(t("needit.missionUpdated"), { description: t("needit.missionUpdatedDesc") });
