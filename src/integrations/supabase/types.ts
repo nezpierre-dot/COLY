@@ -267,6 +267,8 @@ export type Database = {
           id: string
           is_unlisted: boolean
           photo_url: string | null
+          pickup_access_code: string | null
+          pickup_address: string | null
           poids: string | null
           prix_max: string | null
           product_name: string | null
@@ -290,6 +292,8 @@ export type Database = {
           id?: string
           is_unlisted?: boolean
           photo_url?: string | null
+          pickup_access_code?: string | null
+          pickup_address?: string | null
           poids?: string | null
           prix_max?: string | null
           product_name?: string | null
@@ -313,6 +317,8 @@ export type Database = {
           id?: string
           is_unlisted?: boolean
           photo_url?: string | null
+          pickup_access_code?: string | null
+          pickup_address?: string | null
           poids?: string | null
           prix_max?: string | null
           product_name?: string | null

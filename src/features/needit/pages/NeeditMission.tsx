@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart } from "lucide-react";
+import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -121,6 +121,8 @@ const NeeditMission = () => {
   const [prixMax, setPrixMax] = useState("");
   const [eanCode, setEanCode] = useState("");
   const [autoAccept, setAutoAccept] = useState(false);
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupAccessCode, setPickupAccessCode] = useState("");
   useEffect(() => { fetchCountries().then((data) => { setCountries(data); setLoadingCountries(false); }); }, []);
 
   useEffect(() => {
@@ -133,6 +135,8 @@ const NeeditMission = () => {
       setUnlistedName(data.unlisted_description || data.product_name || ""); setSelectedLeaf(data.is_unlisted ? "" : (data.product_name || ""));
       setPhotoPreview(data.photo_url || null); setDimension(data.dimension || ""); setPoids(data.poids || ""); setPrixMax(data.prix_max || ""); setEanCode(data.ean_code || "");
       setAutoAccept((data as any).auto_accept ?? false);
+      setPickupAddress((data as any).pickup_address || "");
+      setPickupAccessCode((data as any).pickup_access_code || "");
       if (data.country) { setLoadingCities(true); fetchCities(data.country).then((c) => { setCities(c); setLoadingCities(false); }); }
       setLoadingEdit(false);
     };
@@ -165,6 +169,7 @@ const NeeditMission = () => {
     else if (step === 3) setStep(4);
     else if (step === 4) {
       if (!prixMax.trim()) { setErrors({ prixMax: t("needit.budgetRequired") }); toast.error(t("needit.budgetRequired")); return; }
+      if (!pickupAddress.trim()) { setErrors({ pickupAddress: "L'adresse de récupération est obligatoire" }); toast.error("L'adresse de récupération est obligatoire"); return; }
       if (!user) { toast.error(t("needit.mustBeLoggedIn")); return; }
       setSubmitting(true);
       try {
@@ -175,7 +180,7 @@ const NeeditMission = () => {
           if (!uploadErr) { const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90); photo_url = data?.signedUrl ?? null; }
         }
         const pathLabels = categoryPath.map((n) => n.label); if (selectedLeaf) pathLabels.push(selectedLeaf);
-        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: prixMax || null, ean_code: eanCode || null, auto_accept: autoAccept };
+        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: prixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
         if (editId) {
           await supabase.from("needit_missions").update(missionData as any).eq("id", editId).eq("user_id", user.id);
           successFeedback(t("needit.missionUpdated"), { description: t("needit.missionUpdatedDesc") });
@@ -282,7 +287,33 @@ const NeeditMission = () => {
                         <Switch checked={autoAccept} onCheckedChange={setAutoAccept} className="data-[state=checked]:bg-[#0D84FF]" />
                       </div>
 
-                      {/* Recap budget */}
+                      {/* Pickup address fields */}
+                      <div className="space-y-3 mb-4">
+                        <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                          <MapPin size={14} className="text-primary" /> Adresse de récupération
+                        </h4>
+                        <div>
+                          <div className="flex items-center gap-1 mb-1">
+                            <p className="text-xs text-muted-foreground">Adresse complète <span className="text-destructive">*</span></p>
+                          </div>
+                          <Input
+                            placeholder="Ex : 12 rue de la Paix, 75002 Paris"
+                            value={pickupAddress}
+                            onChange={(e) => { setPickupAddress(e.target.value); if (errors.pickupAddress) setErrors(p => { const n = {...p}; delete n.pickupAddress; return n; }); }}
+                            className={`border-0 border-b rounded-none px-0 focus-visible:ring-0 ${errors.pickupAddress ? "border-destructive" : "border-primary/30 focus-visible:border-primary"}`}
+                          />
+                          {errors.pickupAddress && <p className="text-xs mt-1 text-destructive">{errors.pickupAddress}</p>}
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Code d'accès / étage / interphone (optionnel)</p>
+                          <Input
+                            placeholder="Ex : Bât. B, 3ème étage, code 1234"
+                            value={pickupAccessCode}
+                            onChange={(e) => setPickupAccessCode(e.target.value)}
+                            className="border-0 border-b border-primary/30 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary"
+                          />
+                        </div>
+                      </div>
                       {prixMax && (
                         <div className="text-center mb-2">
                           <span className="text-lg font-bold" style={{ color: "#30D158" }}>{t("needit.budgetMax")} : {prixMax} {currency.symbol}</span>
