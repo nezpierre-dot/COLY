@@ -59,6 +59,8 @@ const NeeditMissionDetail = () => {
   const [timing, setTiming] = useState("");
   const [prixMax, setPrixMax] = useState("");
   const [autoAccept, setAutoAccept] = useState(false);
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupAccessCode, setPickupAccessCode] = useState("");
 
   const loadMission = useCallback(async () => {
     if (!id) return;
