@@ -315,14 +315,13 @@ const NeeditMissionDetail = () => {
 
           {/* Product card */}
           <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-            <div className="flex-1 min-w-0">
-                <p className="font-bold text-foreground text-lg truncate">
-                  {mission.product_name || mission.category_path?.[mission.category_path.length - 1] || t("missions.unlistedProduct")}
-                </p>
-                {mission.category_path?.length > 0 && (
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{mission.category_path.join(" → ")}</p>
-                )}
-              </div>
+            <div className="min-w-0">
+              <p className="font-bold text-foreground text-lg truncate">
+                {mission.product_name || mission.category_path?.[mission.category_path.length - 1] || t("missions.unlistedProduct")}
+              </p>
+              {mission.category_path?.length > 0 && (
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{mission.category_path.join(" → ")}</p>
+              )}
             </div>
 
             {/* Warning if accepted */}
