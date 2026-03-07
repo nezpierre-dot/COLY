@@ -78,6 +78,8 @@ const NeeditMissionDetail = () => {
       setTiming(data.timing || "asap");
       setPrixMax(data.prix_max || "");
       setAutoAccept((data as any).auto_accept ?? false);
+      setPickupAddress((data as any).pickup_address || "");
+      setPickupAccessCode((data as any).pickup_access_code || "");
 
       if (data.voyageur_id) {
         const { data: ratingData } = await supabase.rpc("get_user_rating" as any, { _user_id: data.voyageur_id });
