@@ -366,6 +366,13 @@ const NeeditMissionDetail = () => {
                   </span>
                 </div>
                 {mission.ean_code && <InfoRow icon={<Package size={14} />} label="EAN" value={mission.ean_code} />}
+                {/* Pickup address info */}
+                {(mission as any).pickup_address && (
+                  <InfoRow icon={<MapPin size={14} />} label="Adresse récup." value={(mission as any).pickup_address} />
+                )}
+                {(mission as any).pickup_access_code && (
+                  <InfoRow icon={<Info size={14} />} label="Accès / étage" value={(mission as any).pickup_access_code} />
+                )}
                 {voyageurRating && voyageurRating.total_ratings > 0 && (
                   <div className="pt-2 border-t border-border">
                     <p className="text-xs text-muted-foreground mb-1">Note du voyageur</p>
@@ -404,6 +411,14 @@ const NeeditMissionDetail = () => {
                     <p className="text-[10px] text-muted-foreground mt-0.5">{t("needit.autoAcceptHint")}</p>
                   </div>
                   <Switch checked={autoAccept} onCheckedChange={setAutoAccept} className="data-[state=checked]:bg-[#0D84FF]" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Adresse de récupération <span className="text-destructive">*</span></Label>
+                  <Input value={pickupAddress} onChange={(e) => setPickupAddress(e.target.value)} placeholder="12 rue de la Paix, 75002 Paris" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Code d'accès / étage / interphone</Label>
+                  <Input value={pickupAccessCode} onChange={(e) => setPickupAccessCode(e.target.value)} placeholder="Bât. B, 3ème étage, code 1234" />
                 </div>
               </div>
             )}
