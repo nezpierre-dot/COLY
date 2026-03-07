@@ -236,11 +236,16 @@ const ShipmentDetail = () => {
           </div>
 
           {/* Photo */}
-          {shipment.photo_url && (
-            <div className="bg-card border border-border rounded-2xl p-4">
-              <img src={shipment.photo_url} alt="Colis" className="w-full h-48 object-cover rounded-xl" />
-            </div>
-          )}
+          <div className="bg-card border border-border rounded-2xl p-4">
+            {shipment.photo_url ? (
+              <img src={shipment.photo_url} alt="Colis" className="w-full h-auto object-cover" style={{ borderRadius: 12 }} />
+            ) : (
+              <div className="w-full py-12 bg-muted flex flex-col items-center justify-center gap-2" style={{ borderRadius: 12 }}>
+                <Package size={32} className="text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Aucune photo fournie</span>
+              </div>
+            )}
+          </div>
 
           {/* Live location sharing - visible when mission is accepted */}
           {shipment.voyageur_id && shipment.status !== "pending" && shipment.status !== "cancelled" && shipment.status !== "delivered" && (

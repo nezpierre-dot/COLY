@@ -301,20 +301,27 @@ const NeeditMissionDetail = () => {
             </motion.div>
           )}
 
+          {/* Product photo — full width */}
+          <div className="bg-card border border-border rounded-2xl p-4">
+            {mission.photo_url ? (
+              <img src={mission.photo_url} alt="Produit" className="w-full h-auto rounded-xl object-cover" style={{ borderRadius: 12 }} />
+            ) : (
+              <div className="w-full py-12 rounded-xl bg-muted flex flex-col items-center justify-center gap-2" style={{ borderRadius: 12 }}>
+                <Image size={32} className="text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Aucune photo fournie</span>
+              </div>
+            )}
+          </div>
+
           {/* Product card */}
           <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-            <div className="flex items-start gap-3">
-              {mission.photo_url && (
-                <img src={mission.photo_url} alt="Produit" className="w-16 h-16 rounded-xl object-cover shrink-0" />
+            <div className="min-w-0">
+              <p className="font-bold text-foreground text-lg truncate">
+                {mission.product_name || mission.category_path?.[mission.category_path.length - 1] || t("missions.unlistedProduct")}
+              </p>
+              {mission.category_path?.length > 0 && (
+                <p className="text-xs text-muted-foreground truncate mt-0.5">{mission.category_path.join(" → ")}</p>
               )}
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-foreground text-lg truncate">
-                  {mission.product_name || mission.category_path?.[mission.category_path.length - 1] || t("missions.unlistedProduct")}
-                </p>
-                {mission.category_path?.length > 0 && (
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">{mission.category_path.join(" → ")}</p>
-                )}
-              </div>
             </div>
 
             {/* Warning if accepted */}
