@@ -167,10 +167,10 @@ const NeeditMission = () => {
     if (step === 1 && validateStep1()) setStep(2);
     else if (step === 2 && validateStep2()) setStep(3);
     else if (step === 3) setStep(4);
-    else if (step === 4) setStep(5);
-    else if (step === 5) {
+    else if (step === 4) {
       if (!prixMax.trim()) { setErrors({ prixMax: t("needit.budgetRequired") }); toast.error(t("needit.budgetRequired")); return; }
       if (!pickupAddress.trim()) { setErrors({ pickupAddress: "L'adresse de récupération est obligatoire" }); toast.error("L'adresse de récupération est obligatoire"); return; }
+      if (!user) { toast.error(t("needit.mustBeLoggedIn")); return; }
       setSubmitting(true);
       try {
         let photo_url: string | null = null;
