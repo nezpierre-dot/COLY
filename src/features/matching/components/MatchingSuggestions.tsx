@@ -3,7 +3,7 @@ import { Star, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Loader2, Us
 import { useMatchingVoyageurs } from "../hooks/useMatchingVoyageurs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
-import WhatsAppShareButton from "@/components/WhatsAppShareButton";
+import WhatsAppShareButton from "@/components/ShareWhatsAppButton";
 
 interface MatchingSuggestionsProps {
   destinationCountry: string;

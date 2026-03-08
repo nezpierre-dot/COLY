@@ -20,6 +20,7 @@ import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import SearchableSelect from "@/components/SearchableSelect";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
+import ShareWhatsAppButton from "@/components/ShareWhatsAppButton";
 
 const SIZES_BASE = [{ id: "S", label: "S — Max 1kg", dim: "217×150×50", Icon: Package }, { id: "M", label: "M — Max 3kg", dim: "230×130×100", Icon: Package }, { id: "L", label: "L — Max 5kg", dim: "315×210×157", Icon: Package }, { id: "XL", label: "XL — Max 7kg", dim: "383×250×195", Icon: Package }, { id: "XXL", label: "XXL — Max 10kg", dim: "400×425×200", Icon: Package }, { id: "other", label: "Autres dimensions", dim: "", Icon: Ruler }];
 const getSizes = (country: string) => SIZES_BASE.map((s) => ({ ...s, label: formatSizeLabel(s.label, country), dim: s.dim ? formatSizeLabel(s.dim, country) : "" }));
@@ -422,14 +423,39 @@ const SendColy = () => {
       <BottomNav />
 
       {createdReminderInfo && (
-        <ReminderDialog
-          info={createdReminderInfo}
-          open={showReminderPrompt}
-          onOpenChange={(open) => {
-            setShowReminderPrompt(open);
-            if (!open) navigate("/dashboard");
-          }}
-        />
+        <>
+          <ReminderDialog
+            info={createdReminderInfo}
+            open={showReminderPrompt}
+            onOpenChange={(open) => {
+              setShowReminderPrompt(open);
+              if (!open) navigate("/dashboard");
+            }}
+          />
+          {!showReminderPrompt && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+              <div className="bg-card border border-border rounded-2xl p-6 mx-6 max-w-sm w-full space-y-4 text-center">
+                <CheckCircle2 size={48} className="text-primary mx-auto" />
+                <h3 className="text-lg font-bold text-foreground">{t("sendcoly.createdSuccess")}</h3>
+                <ShareWhatsAppButton
+                  type="shipment"
+                  id={createdReminderInfo.itemId}
+                  title={`Colis ${size}`}
+                  from={createdReminderInfo.departureCity}
+                  destination={createdReminderInfo.arrivalCity}
+                  price={tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : undefined}
+                  variant="full"
+                />
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="w-full py-3 rounded-xl bg-muted text-foreground font-semibold text-sm"
+                >
+                  Retour au dashboard
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <Dialog open={showCustomsWarning} onOpenChange={() => {}}>

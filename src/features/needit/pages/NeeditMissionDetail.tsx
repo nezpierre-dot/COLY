@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { localizeCountry } from "@/lib/geoLocalization";
+import ShareWhatsAppButton from "@/components/ShareWhatsAppButton";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import {
@@ -251,9 +252,19 @@ const NeeditMissionDetail = () => {
             <span className={`text-xs font-bold px-3 py-1 rounded-full text-white ${st.color}`}>
               {st.label}
             </span>
-            <span className="text-xs text-muted-foreground">
-              REF: NEED-{mission.id.slice(0, 8).toUpperCase()}
-            </span>
+            <div className="flex items-center gap-2">
+              <ShareWhatsAppButton
+                type="needit"
+                id={mission.id}
+                title={mission.product_name || "Mission NeedIt"}
+                destination={`${localizeCountry(mission.country, language)}${mission.city ? `, ${mission.city}` : ""}`}
+                price={mission.prix_max || undefined}
+                compact
+              />
+              <span className="text-xs text-muted-foreground">
+                REF: NEED-{mission.id.slice(0, 8).toUpperCase()}
+              </span>
+            </div>
           </div>
 
           {/* Tracking progress bar — visible once accepted */}
