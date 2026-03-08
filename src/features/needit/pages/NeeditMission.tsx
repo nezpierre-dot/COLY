@@ -169,6 +169,7 @@ const NeeditMission = () => {
   };
 
   const handleNext = async () => {
+    setDirection(1);
     if (step === 1 && validateStep1()) setStep(2);
     else if (step === 2 && validateStep2()) {
       if (!customsAccepted) {
@@ -213,8 +214,14 @@ const NeeditMission = () => {
     }
   };
 
-  const handleBack = () => { if (step === 1) navigate(editId ? "/mes-missions-needit" : "/dashboard"); else if (step === 2 && categoryPath.length > 0) handleCategoryBack(); else setStep((s) => s - 1); };
+  const handleBack = () => { setDirection(-1); if (step === 1) navigate(editId ? "/mes-missions-needit" : "/dashboard"); else if (step === 2 && categoryPath.length > 0) handleCategoryBack(); else setStep((s) => s - 1); };
   const stepTitle = () => step === 1 ? t("needit.infoTitle") : step === 2 ? (categoryPath.length === 0 ? t("needit.products") : t("needit.productInfo")) : t("needit.infoTitle");
+
+  const stepVariants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-primary relative overflow-hidden">
