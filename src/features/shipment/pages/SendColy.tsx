@@ -176,7 +176,14 @@ const SendColy = () => {
     } catch (err: any) { toast.error(t("sendcoly.createError") + ": " + err.message); } finally { setSubmitting(false); }
   };
 
-  const handleNext = () => { if (!validateStep()) return; if (step < totalSteps) setStep(step + 1); else submitShipment(); };
+  const handleNext = () => {
+    if (!validateStep()) return;
+    if (step === 1 && !customsWarningAccepted) {
+      setShowCustomsWarning(true);
+      return;
+    }
+    if (step < totalSteps) setStep(step + 1); else submitShipment();
+  };
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
