@@ -635,8 +635,7 @@ const Dashboard = () => {
               t={t}
             />
 
-            {/* AiRecommendation hidden – backend logic preserved */}
-            {/* <AiRecommendation isVoyageur={true} t={t} /> */}
+            <WalletCard compact />
 
             <FavoriteRoutes t={t} />
 
