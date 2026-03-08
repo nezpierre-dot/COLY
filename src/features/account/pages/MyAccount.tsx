@@ -46,6 +46,7 @@ const MyAccount = () => {
   const [kycStatus, setKycStatus] = useState("pending");
   const [totalEarned, setTotalEarned] = useState(0);
   const [activityDates, setActivityDates] = useState<string[]>([]);
+  const [trustBadges, setTrustBadges] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) return;
