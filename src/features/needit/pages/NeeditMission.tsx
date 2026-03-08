@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -106,6 +107,7 @@ const NeeditMission = () => {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
   const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1);
   const [pays, setPays] = useState("");
   const [ville, setVille] = useState("");
   const [timing, setTiming] = useState("");
@@ -167,6 +169,7 @@ const NeeditMission = () => {
   };
 
   const handleNext = async () => {
+    setDirection(1);
     if (step === 1 && validateStep1()) setStep(2);
     else if (step === 2 && validateStep2()) {
       if (!customsAccepted) {
@@ -211,8 +214,14 @@ const NeeditMission = () => {
     }
   };
 
-  const handleBack = () => { if (step === 1) navigate(editId ? "/mes-missions-needit" : "/dashboard"); else if (step === 2 && categoryPath.length > 0) handleCategoryBack(); else setStep((s) => s - 1); };
+  const handleBack = () => { setDirection(-1); if (step === 1) navigate(editId ? "/mes-missions-needit" : "/dashboard"); else if (step === 2 && categoryPath.length > 0) handleCategoryBack(); else setStep((s) => s - 1); };
   const stepTitle = () => step === 1 ? t("needit.infoTitle") : step === 2 ? (categoryPath.length === 0 ? t("needit.products") : t("needit.productInfo")) : t("needit.infoTitle");
+
+  const stepVariants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-primary relative overflow-hidden">
@@ -222,6 +231,16 @@ const NeeditMission = () => {
         {loadingEdit ? <div className="flex justify-center py-12"><Loader2 size={32} className="animate-spin text-primary" /></div> : (
           <>
             <h2 className="text-2xl font-bold text-foreground text-center mb-6">{stepTitle()}</h2>
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={step}
+                custom={direction}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+              >
             {step === 1 && (
               <>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.fromWhere")}</h3>
@@ -375,6 +394,8 @@ const NeeditMission = () => {
                 })()}
               </>
             )}
+              </motion.div>
+            </AnimatePresence>
             <div className="flex items-center justify-between pt-4">
               <button onClick={handleBack} className="text-lg text-muted-foreground hover:text-foreground transition-colors">{t("common.back")}</button>
               <button onClick={handleNext} disabled={submitting} className="flex items-center gap-2 px-8 py-3 rounded-full text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50" style={{ backgroundColor: "#30D158" }}>{submitting ? <Loader2 size={20} className="animate-spin" /> : <>{step === 4 ? (editId ? t("needit.save") : t("needit.validate")) : t("common.next")} <ArrowRight size={20} /></>}</button>
