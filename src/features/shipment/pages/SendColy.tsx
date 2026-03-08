@@ -303,9 +303,21 @@ const SendColy = () => {
         <div className="relative z-10"><h1 className="text-2xl font-bold text-primary-foreground">{step === 4 ? t("sendcoly.summary") : t("sendcoly.title")}</h1><p className="text-primary-foreground/70 text-sm mt-1">{t("sendcoly.step")} {step}/{totalSteps} — {STEP_TITLES[step - 1]}</p><div className="flex items-center gap-2 mt-4">{STEP_TITLES.map((title, i) => (<div key={i} className="flex-1 flex flex-col items-center gap-1"><div className={`w-full h-1.5 rounded-full transition-all ${i + 1 <= step ? "bg-primary-foreground" : "bg-primary-foreground/20"}`} /><span className={`text-xs transition-colors ${i + 1 === step ? "text-primary-foreground font-semibold" : "text-primary-foreground/50"}`}>{title}</span></div>))}</div></div>
       </div>
       <div className="flex-1 px-5 pt-6 pb-28 overflow-y-auto">
-        {renderStep()}
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={stepVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+          >
+            {renderStep()}
+          </motion.div>
+        </AnimatePresence>
         <div className="flex items-center justify-between pt-6 mt-4">
-          <button onClick={() => (step > 1 ? setStep(step - 1) : navigate("/dashboard"))} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft size={16} /> {t("common.back")}</button>
+          <button onClick={() => { setDirection(-1); step > 1 ? setStep(step - 1) : navigate("/dashboard"); }} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft size={16} /> {t("common.back")}</button>
           <button onClick={handleNext} disabled={submitting} className="flex items-center gap-2 px-6 py-3 rounded-full bg-accent text-accent-foreground font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50">{submitting ? <><Loader2 size={18} className="animate-spin" /> {t("sendcoly.sending")}</> : <>{step === 4 ? t("sendcoly.confirmShipment") : t("common.next")} <ArrowRight size={18} /></>}</button>
         </div>
       </div>
