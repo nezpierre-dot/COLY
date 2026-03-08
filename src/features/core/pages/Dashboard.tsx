@@ -24,6 +24,7 @@ import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
 import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
+import WalletCard from "@/components/WalletCard";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -612,6 +613,8 @@ const Dashboard = () => {
 
             <FavoriteRoutes t={t} />
 
+            <WalletCard compact />
+
             {/* Quick action: Je transporte */}
             <button
               onClick={() => navigate("/transporter")}
@@ -1016,6 +1019,8 @@ const Dashboard = () => {
             {/* <AiRecommendation isVoyageur={false} t={t} /> */}
 
             <FavoriteRoutes t={t} />
+
+            <WalletCard compact />
 
             <Tabs defaultValue="envois" className="space-y-3">
               <TabsList className="w-full glass rounded-xl p-1 h-auto">

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins, Globe, Rocket, ShoppingCart, Trophy, Wallet, BarChart3 } from "lucide-react";
+import WalletCard from "@/components/WalletCard";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import ReferralSection from "@/components/ReferralSection";
 import StatisticsTab from "@/features/profile/StatisticsTab";
@@ -435,6 +436,11 @@ const MyAccount = () => {
         {/* Referral Section */}
         <div className="mb-6">
           <ReferralSection />
+        </div>
+
+        {/* Wallet */}
+        <div className="mb-6">
+          <WalletCard />
         </div>
 
         {/* Historique & Stats */}

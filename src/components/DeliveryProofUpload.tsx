@@ -20,6 +20,7 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
   const [uploading, setUploading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [fraudResult, setFraudResult] = useState<{ result: string; details: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +55,18 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
       onProofUploaded(photoUrl);
       onDeliveryConfirmed();
       toast.success(t("delivery.confirmed"));
+
+      // Run fraud check (fire and forget)
+      supabase.functions.invoke("fraud-check", {
+        body: { photo_url: photoUrl, shipment_id: shipmentId, user_id: user.id },
+      }).then(({ data }) => {
+        if (data?.result === "fraudulent") {
+          setFraudResult({ result: data.result, details: data.details });
+          toast.error("⚠️ FRAUDE DÉTECTÉE — Cette photo semble suspecte");
+        } else if (data) {
+          setFraudResult({ result: "safe", details: data.details || "Photo validée" });
+        }
+      }).catch(() => {});
     } catch (err: any) {
       toast.error(err.message || t("delivery.confirmError"));
     } finally {
@@ -90,6 +103,16 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
       <Button className="w-full rounded-xl" disabled={!photo || uploading} onClick={handleConfirmDelivery}>
         {uploading ? (<><Loader2 size={14} className="animate-spin mr-2" /> {t("delivery.confirming")}</>) : (<><Upload size={14} className="mr-2" /> {t("delivery.confirmDelivery")}</>)}
       </Button>
+
+      {fraudResult && (
+        <div className={`mt-2 p-3 rounded-xl text-sm font-semibold ${
+          fraudResult.result === "fraudulent"
+            ? "bg-destructive/10 text-destructive border border-destructive/20"
+            : "bg-primary/10 text-primary border border-primary/20"
+        }`}>
+          {fraudResult.result === "fraudulent" ? "⚠️ FRAUDE DÉTECTÉE" : "✅ Photo validée"} — {fraudResult.details}
+        </div>
+      )}
     </div>
   );
 };

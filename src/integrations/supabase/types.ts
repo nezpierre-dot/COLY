@@ -227,6 +227,39 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_checks: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          details: string | null
+          id: string
+          photo_url: string
+          result: string
+          shipment_id: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          photo_url: string
+          result?: string
+          shipment_id: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          photo_url?: string
+          result?: string
+          shipment_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       live_locations: {
         Row: {
           created_at: string
@@ -861,6 +894,77 @@ export type Database = {
           created_at?: string
           id?: string
           note?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          type: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

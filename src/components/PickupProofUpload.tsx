@@ -20,6 +20,7 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
   const [uploading, setUploading] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [fraudResult, setFraudResult] = useState<{ result: string; details: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,6 +70,18 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
       // Notify owner by email (fire and forget)
       supabase.functions.invoke("notify-status-change", {
         body: { item_id: itemId, item_type: itemType, new_status: "picked_up" },
+      }).catch(() => {});
+
+      // Run fraud check (fire and forget, show result)
+      supabase.functions.invoke("fraud-check", {
+        body: { photo_url: photoUrl, shipment_id: itemId, user_id: user.id },
+      }).then(({ data }) => {
+        if (data?.result === "fraudulent") {
+          setFraudResult({ result: data.result, details: data.details });
+          toast.error("⚠️ FRAUDE DÉTECTÉE — Cette photo semble suspecte");
+        } else if (data) {
+          setFraudResult({ result: "safe", details: data.details || "Photo validée" });
+        }
       }).catch(() => {});
 
       onProofUploaded();
@@ -136,6 +149,16 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
           <><PackageCheck size={14} className="mr-2" /> Confirmer la récupération</>
         )}
       </Button>
+
+      {fraudResult && (
+        <div className={`mt-2 p-3 rounded-xl text-sm font-semibold ${
+          fraudResult.result === "fraudulent"
+            ? "bg-destructive/10 text-destructive border border-destructive/20"
+            : "bg-primary/10 text-primary border border-primary/20"
+        }`}>
+          {fraudResult.result === "fraudulent" ? "⚠️ FRAUDE DÉTECTÉE" : "✅ Photo validée"} — {fraudResult.details}
+        </div>
+      )}
     </div>
   );
 };
