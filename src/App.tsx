@@ -35,6 +35,7 @@ const ConfidentialitePage = lazy(() => import("./features/legal/pages/Confidenti
 const PaymentMethods = lazy(() => import("./features/account/pages/PaymentMethods"));
 const NewTrip = lazy(() => import("./features/voyage/pages/NewTrip"));
 const ShipmentTracking = lazy(() => import("./features/shipment/pages/ShipmentTracking"));
+const ColisLiveTracker = lazy(() => import("./features/tracking/pages/ColisLiveTracker"));
 const ConversationsPage = lazy(() => import("./features/chat/pages/ConversationsPage"));
 const ChatPage = lazy(() => import("./features/chat/pages/ChatPage"));
 const AdminDashboard = lazy(() => import("./features/admin/pages/AdminDashboard"));
