@@ -71,6 +71,48 @@ export type Database = {
         }
         Relationships: []
       }
+      disputes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          photo_url: string | null
+          reason: string
+          resolution: string | null
+          resolved_by: string | null
+          shipment_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          photo_url?: string | null
+          reason: string
+          resolution?: string | null
+          resolved_by?: string | null
+          shipment_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          photo_url?: string | null
+          reason?: string
+          resolution?: string | null
+          resolved_by?: string | null
+          shipment_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ean_products: {
         Row: {
           brand: string | null
@@ -554,6 +596,8 @@ export type Database = {
           departure_city: string | null
           departure_date: string
           departure_method: string
+          escrow_expires_at: string | null
+          escrow_status: string
           id: string
           insured: boolean
           is_international: boolean
@@ -580,6 +624,8 @@ export type Database = {
           departure_city?: string | null
           departure_date: string
           departure_method: string
+          escrow_expires_at?: string | null
+          escrow_status?: string
           id?: string
           insured?: boolean
           is_international?: boolean
@@ -606,6 +652,8 @@ export type Database = {
           departure_city?: string | null
           departure_date?: string
           departure_method?: string
+          escrow_expires_at?: string | null
+          escrow_status?: string
           id?: string
           insured?: boolean
           is_international?: boolean
@@ -758,6 +806,22 @@ export type Database = {
     Functions: {
       accept_needit_mission: { Args: { _mission_id: string }; Returns: string }
       accept_shipment: { Args: { _shipment_id: string }; Returns: string }
+      admin_get_disputes: {
+        Args: { _limit?: number }
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          photo_url: string
+          reason: string
+          reporter_name: string
+          resolution: string
+          shipment_id: string
+          shipment_ref: string
+          status: string
+          user_id: string
+        }[]
+      }
       admin_get_recent_shipments: {
         Args: { _limit?: number }
         Returns: {
