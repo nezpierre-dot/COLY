@@ -124,6 +124,13 @@ const MatchingSuggestions = ({
                 )}
               </div>
 
+              {/* Trust badges */}
+              {(v as any).trust_badges && (v as any).trust_badges.length > 0 && (
+                <div className="mt-1.5">
+                  <TrustBadgesDisplay badges={(v as any).trust_badges} compact />
+                </div>
+              )}
+
               {/* Route */}
               <div className="flex items-center gap-1.5 mt-1">
                 <MapPin size={10} className="text-muted-foreground shrink-0" />

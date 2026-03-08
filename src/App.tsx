@@ -115,6 +115,7 @@ const App = () => {
                     <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
                     <Route path="/live-tracking/:colisId" element={<ProtectedRoute><ColisLiveTracker /></ProtectedRoute>} />
                     <Route path="/litiges" element={<ProtectedRoute><DisputesPage /></ProtectedRoute>} />
+                    <Route path="/transporter" element={<ProtectedRoute><TransporterPage /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
