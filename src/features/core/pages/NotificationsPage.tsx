@@ -12,7 +12,7 @@ type NotifFilter = "all" | "match" | "proof" | "status" | "reminder";
 const getNotifCategory = (type: string): NotifFilter => {
   if (type.startsWith("match:")) return "match";
   if (type.startsWith("proof:")) return "proof";
-  if (type.startsWith("pickup:") || type.startsWith("mission_status:")) return "status";
+  if (type.startsWith("pickup:") || type.startsWith("mission_status:") || type.startsWith("mission_cancelled:") || type.startsWith("shipment_cancelled:") || type.startsWith("accepted:") || type.startsWith("delivery:")) return "status";
   if (type.startsWith("reminder:")) return "reminder";
   return "all";
 };
