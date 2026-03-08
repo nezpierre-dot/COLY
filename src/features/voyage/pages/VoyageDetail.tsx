@@ -66,6 +66,13 @@ const VoyageDetail = () => {
   const [acceptNeedit, setAcceptNeedit] = useState(false);
   const [needitBudget, setNeeditBudget] = useState("");
 
+  // Inline capacity editing
+  const [editingWeight, setEditingWeight] = useState(false);
+  const [editingVolume, setEditingVolume] = useState(false);
+  const [editMaxWeight, setEditMaxWeight] = useState("");
+  const [editVolume, setEditVolume] = useState("");
+  const [savingCapacity, setSavingCapacity] = useState(false);
+
   const isOwner = voyage && voyage.user_id === user?.id;
   const isActive = voyage && voyage.status === "active";
   const [hasAcceptedShipments, setHasAcceptedShipments] = useState(false);
