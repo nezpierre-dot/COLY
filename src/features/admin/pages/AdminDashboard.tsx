@@ -43,6 +43,8 @@ const AdminDashboard = () => {
   const [usersOverTime, setUsersOverTime] = useState<TimeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [disputes, setDisputes] = useState<DisputeRow[]>([]);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   const StatusBadge = ({ status }: { status: string }) => {
     const config: Record<string, { bg: string; text: string; label: string }> = {
