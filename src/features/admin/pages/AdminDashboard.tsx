@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw } from "lucide-react";
+import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, Gavel, Ban, RotateCcw } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ interface AdminStats { total_users: number; total_shipments: number; pending_shi
 interface RecentShipment { id: string; ref_number: string; departure_city: string; arrival_city: string; arrival_country: string; size: string; tarif: string; status: string; insured: boolean; created_at: string; }
 interface UserRow { user_ref: string; full_name: string; kyc_status: string; role: string; created_at: string; }
 interface TimeData { day: string; count: number; }
+interface DisputeRow { id: string; shipment_id: string; user_id: string; reason: string; description: string; photo_url: string | null; status: string; resolution: string | null; created_at: string; reporter_name: string; shipment_ref: string; }
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted-foreground))"];
 
@@ -42,6 +43,8 @@ const AdminDashboard = () => {
   const [usersOverTime, setUsersOverTime] = useState<TimeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [disputes, setDisputes] = useState<DisputeRow[]>([]);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   const StatusBadge = ({ status }: { status: string }) => {
     const config: Record<string, { bg: string; text: string; label: string }> = {
@@ -57,18 +60,20 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, disputesRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
         supabase.rpc("admin_get_shipments_over_time"),
         supabase.rpc("admin_get_users_over_time"),
+        supabase.rpc("admin_get_disputes", { _limit: 50 }),
       ]);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
       if (shipmentsRes.data) setRecentShipments(shipmentsRes.data as unknown as RecentShipment[]);
       if (usersRes.data) setUsers(usersRes.data as unknown as UserRow[]);
       if (sotRes.data) setShipmentsOverTime(sotRes.data as unknown as TimeData[]);
       if (uotRes.data) setUsersOverTime(uotRes.data as unknown as TimeData[]);
+      if (disputesRes.data) setDisputes(disputesRes.data as unknown as DisputeRow[]);
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
@@ -119,6 +124,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="analytics" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><BarChart3 size={13} className="mr-1" /> {t("admin.analytics")}</TabsTrigger>
             <TabsTrigger value="shipments" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Package size={13} className="mr-1" /> {t("admin.parcels")}</TabsTrigger>
             <TabsTrigger value="users" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Users size={13} className="mr-1" /> {t("admin.users")}</TabsTrigger>
+            <TabsTrigger value="disputes" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-warning data-[state=active]:text-warning-foreground"><Gavel size={13} className="mr-1" /> Litiges {disputes.filter(d => d.status === 'open').length > 0 && <span className="ml-1 w-5 h-5 rounded-full bg-accent text-accent-foreground text-xs flex items-center justify-center">{disputes.filter(d => d.status === 'open').length}</span>}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-6 mt-0">
@@ -186,6 +192,87 @@ const AdminDashboard = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="disputes" className="space-y-3 mt-0">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Gavel size={14} className="text-warning" /> Litiges en cours</h3>
+                <span className="text-xs text-muted-foreground">{disputes.length} total</span>
+              </div>
+              {disputes.length === 0 ? (
+                <div className="px-4 py-12 text-center text-sm text-muted-foreground">Aucun litige pour le moment 🎉</div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {disputes.map((d) => (
+                    <div key={d.id} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{d.shipment_ref}</p>
+                          <p className="text-xs text-muted-foreground">Par {d.reporter_name} · {formatDateTime(d.created_at)}</p>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          d.status === "open" ? "bg-warning/10 text-warning" :
+                          d.status === "investigating" ? "bg-primary/10 text-primary" :
+                          d.status === "resolved" ? "bg-success/10 text-success" :
+                          d.status === "refunded" ? "bg-accent/10 text-accent" :
+                          "bg-muted text-muted-foreground"
+                        }`}>
+                          {d.status === "open" ? "En attente" : d.status === "investigating" ? "En cours" : d.status === "resolved" ? "Résolu" : d.status === "refunded" ? "Remboursé" : d.status}
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-foreground capitalize">{d.reason.replace("_", " ")}</p>
+                      <p className="text-sm text-muted-foreground">{d.description}</p>
+                      {d.photo_url && (
+                        <img src={d.photo_url} alt="Preuve" className="w-32 h-24 object-cover rounded-xl border border-border" />
+                      )}
+                      {d.resolution && (
+                        <div className="bg-muted/50 rounded-xl p-3">
+                          <p className="text-xs font-semibold text-foreground">Résolution :</p>
+                          <p className="text-xs text-muted-foreground">{d.resolution}</p>
+                        </div>
+                      )}
+                      {(d.status === "open" || d.status === "investigating") && (
+                        <div className="flex gap-2">
+                          <button
+                            disabled={resolvingId === d.id}
+                            onClick={async () => {
+                              setResolvingId(d.id);
+                              const { error } = await supabase.from("disputes").update({ status: "resolved", resolution: "Litige résolu par l'administration." }).eq("id", d.id);
+                              if (!error) {
+                                await supabase.from("shipments").update({ escrow_status: "released" }).eq("id", d.shipment_id);
+                                toast.success("Litige résolu, escrow libéré");
+                                loadAll();
+                              } else { toast.error(error.message); }
+                              setResolvingId(null);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-success/10 text-success text-xs font-semibold hover:bg-success/20 transition-colors"
+                          >
+                            <CheckCircle size={14} /> Résoudre
+                          </button>
+                          <button
+                            disabled={resolvingId === d.id}
+                            onClick={async () => {
+                              setResolvingId(d.id);
+                              const { error } = await supabase.from("disputes").update({ status: "refunded", resolution: "Remboursement effectué par l'administration." }).eq("id", d.id);
+                              if (!error) {
+                                await supabase.from("shipments").update({ escrow_status: "refunded" }).eq("id", d.shipment_id);
+                                toast.success("Remboursement enregistré");
+                                loadAll();
+                              } else { toast.error(error.message); }
+                              setResolvingId(null);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors"
+                          >
+                            <RotateCcw size={14} /> Rembourser
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>

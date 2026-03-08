@@ -48,6 +48,7 @@ const ShipmentDetail = lazy(() => import("./features/shipment/pages/ShipmentDeta
 const NeeditMissionDetail = lazy(() => import("./features/needit/pages/NeeditMissionDetail"));
 const FavoritesPage = lazy(() => import("./features/core/pages/FavoritesPage"));
 const ColisLiveTracker = lazy(() => import("./features/tracking/pages/ColisLiveTracker"));
+const DisputesPage = lazy(() => import("./features/disputes/pages/DisputesPage"));
 
 const queryClient = new QueryClient();
 
@@ -112,6 +113,7 @@ const App = () => {
                     <Route path="/aide" element={<ProtectedRoute><AidePage /></ProtectedRoute>} />
                     <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
                     <Route path="/live-tracking/:colisId" element={<ProtectedRoute><ColisLiveTracker /></ProtectedRoute>} />
+                    <Route path="/litiges" element={<ProtectedRoute><DisputesPage /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
