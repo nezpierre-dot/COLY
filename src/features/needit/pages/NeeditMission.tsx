@@ -178,7 +178,7 @@ const NeeditMission = () => {
     else if (step === 3) setStep(4);
     else if (step === 4) {
       if (!prixMax.trim()) { setErrors({ prixMax: t("needit.budgetRequired") }); toast.error(t("needit.budgetRequired")); return; }
-      if (!pickupAddress.trim()) { setErrors({ pickupAddress: "L'adresse de récupération est obligatoire" }); toast.error("L'adresse de récupération est obligatoire"); return; }
+      const finalPrixMax = prixMax === "__devis__" ? "Sur devis" : prixMax;
       if (!user) { toast.error(t("needit.mustBeLoggedIn")); return; }
       setSubmitting(true);
       try {
