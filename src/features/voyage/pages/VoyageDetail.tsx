@@ -66,6 +66,13 @@ const VoyageDetail = () => {
   const [acceptNeedit, setAcceptNeedit] = useState(false);
   const [needitBudget, setNeeditBudget] = useState("");
 
+  // Inline capacity editing
+  const [editingWeight, setEditingWeight] = useState(false);
+  const [editingVolume, setEditingVolume] = useState(false);
+  const [editMaxWeight, setEditMaxWeight] = useState("");
+  const [editVolume, setEditVolume] = useState("");
+  const [savingCapacity, setSavingCapacity] = useState(false);
+
   const isOwner = voyage && voyage.user_id === user?.id;
   const isActive = voyage && voyage.status === "active";
   const [hasAcceptedShipments, setHasAcceptedShipments] = useState(false);
@@ -236,6 +243,23 @@ const VoyageDetail = () => {
 
   const locked24h = isWithin24h();
   const canEdit = isOwner && isActive && !hasAcceptedShipments && !locked24h;
+  const canEditCapacity = isOwner && isActive;
+
+  const handleSaveCapacity = async (field: "max_weight_kg" | "capacity_volume_liters") => {
+    if (!id) return;
+    setSavingCapacity(true);
+    const value = field === "max_weight_kg" ? parseFloat(editMaxWeight) : parseFloat(editVolume);
+    const { error } = await supabase.from("voyages").update({ [field]: isNaN(value) ? null : value }).eq("id", id);
+    setSavingCapacity(false);
+    if (error) {
+      toast.error(t("common.error"));
+    } else {
+      toast.success(t("common.saved"));
+      if (field === "max_weight_kg") setEditingWeight(false);
+      else setEditingVolume(false);
+      loadVoyage();
+    }
+  };
 
   const handleSave = async () => {
     if (!id) return;
@@ -365,15 +389,12 @@ const VoyageDetail = () => {
                 {voyage.accept_needit && voyage.needit_budget && (
                   <InfoRow icon={<Package size={14} />} label={t("trip.needitBudget") || "Budget NeedIt"} value={`${voyage.needit_budget} €`} />
                 )}
-                {voyage.capacity_volume_liters && (
-                  <InfoRow icon={<Weight size={14} />} label={t("trip.volumeLiters")} value={`${voyage.capacity_volume_liters} L`} />
-                )}
                 {voyage.capacity_dimensions && (
                   <InfoRow icon={<Weight size={14} />} label={t("trip.volumeDimensions")} value={voyage.capacity_dimensions} />
                 )}
 
                 {/* Capacity progress bars */}
-                {(voyage.max_weight_kg || voyage.max_items) && (() => {
+                {(voyage.max_weight_kg || voyage.max_items || voyage.capacity_volume_liters) && (() => {
                   const SIZE_WEIGHT: Record<string, number> = { S: 1, M: 5, L: 10, XL: 20 };
                   const usedWeight = (acceptedColis || []).reduce((s: number, c: any) => s + (SIZE_WEIGHT[c.size] || 5), 0)
                     + (acceptedMissions || []).reduce((s: number, m: any) => s + (m.poids ? parseFloat(m.poids) || 1 : 1), 0);
@@ -386,10 +407,22 @@ const VoyageDetail = () => {
                       <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                         <Weight size={12} /> {t("trip.capacityTitle")}
                       </h4>
-                      {voyage.max_weight_kg && (
+
+                      {/* Max Weight - inline editable */}
+                      {voyage.max_weight_kg && !editingWeight && (
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">{t("trip.maxWeight")}</span>
+                            <span className="text-muted-foreground flex items-center gap-1">
+                              {t("trip.maxWeight")}
+                              {canEditCapacity && (
+                                <button
+                                  onClick={() => { setEditMaxWeight(String(voyage.max_weight_kg)); setEditingWeight(true); }}
+                                  className="text-primary hover:text-primary/80 transition-colors"
+                                >
+                                  <Pencil size={11} />
+                                </button>
+                              )}
+                            </span>
                             <span className={`font-bold ${weightPct >= 90 ? "text-destructive" : weightPct >= 70 ? "text-amber-500" : "text-primary"}`}>
                               {usedWeight.toFixed(1)} / {voyage.max_weight_kg} kg
                             </span>
@@ -404,6 +437,71 @@ const VoyageDetail = () => {
                           </div>
                         </div>
                       )}
+                      {editingWeight && (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={editMaxWeight}
+                            onChange={(e) => setEditMaxWeight(e.target.value)}
+                            className="h-8 text-sm"
+                            placeholder="kg"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => handleSaveCapacity("max_weight_kg")}
+                            disabled={savingCapacity}
+                            className="text-primary hover:text-primary/80 shrink-0"
+                          >
+                            {savingCapacity ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                          </button>
+                          <button onClick={() => setEditingWeight(false)} className="text-muted-foreground hover:text-foreground shrink-0">
+                            <X size={16} />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Volume - inline editable */}
+                      {voyage.capacity_volume_liters && !editingVolume && (
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground flex items-center gap-1">
+                              {t("trip.volumeLiters")}
+                              {canEditCapacity && (
+                                <button
+                                  onClick={() => { setEditVolume(String(voyage.capacity_volume_liters)); setEditingVolume(true); }}
+                                  className="text-primary hover:text-primary/80 transition-colors"
+                                >
+                                  <Pencil size={11} />
+                                </button>
+                              )}
+                            </span>
+                            <span className="font-bold text-primary">{voyage.capacity_volume_liters} L</span>
+                          </div>
+                        </div>
+                      )}
+                      {editingVolume && (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            value={editVolume}
+                            onChange={(e) => setEditVolume(e.target.value)}
+                            className="h-8 text-sm"
+                            placeholder="litres"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => handleSaveCapacity("capacity_volume_liters")}
+                            disabled={savingCapacity}
+                            className="text-primary hover:text-primary/80 shrink-0"
+                          >
+                            {savingCapacity ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                          </button>
+                          <button onClick={() => setEditingVolume(false)} className="text-muted-foreground hover:text-foreground shrink-0">
+                            <X size={16} />
+                          </button>
+                        </div>
+                      )}
+
                       {voyage.max_items && (
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
