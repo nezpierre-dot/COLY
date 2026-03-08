@@ -60,18 +60,20 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, disputesRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
         supabase.rpc("admin_get_shipments_over_time"),
         supabase.rpc("admin_get_users_over_time"),
+        supabase.rpc("admin_get_disputes", { _limit: 50 }),
       ]);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
       if (shipmentsRes.data) setRecentShipments(shipmentsRes.data as unknown as RecentShipment[]);
       if (usersRes.data) setUsers(usersRes.data as unknown as UserRow[]);
       if (sotRes.data) setShipmentsOverTime(sotRes.data as unknown as TimeData[]);
       if (uotRes.data) setUsersOverTime(uotRes.data as unknown as TimeData[]);
+      if (disputesRes.data) setDisputes(disputesRes.data as unknown as DisputeRow[]);
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
