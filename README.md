@@ -25,22 +25,35 @@
 - **Cartes** : Mapbox GL
 - **Paiement** : Stripe
 
-## 🚀 Démarrage rapide
+## 📥 Installation
 
 ```bash
-# Cloner le projet
+# 1. Cloner le projet
 git clone <repo-url>
 cd nidit
 
-# Installer les dépendances
-npm install
+# 2. Installer les dépendances
+bun install        # ou npm install
 
-# Copier les variables d'environnement
+# 3. Configurer les variables d'environnement
 cp .env.example .env
-# Remplir les valeurs dans .env
+```
 
-# Lancer en développement
-npm run dev
+Ouvrez `.env` et remplissez chaque variable avec vos propres clés :
+
+| Variable | Description | Où la trouver |
+|---|---|---|
+| `VITE_SUPABASE_PROJECT_ID` | ID du projet Supabase | Dashboard Lovable Cloud |
+| `VITE_SUPABASE_URL` | URL de l'API Supabase | Dashboard Lovable Cloud |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Clé publique (anon) | Dashboard Lovable Cloud |
+| `VITE_MAPBOX_TOKEN` | Token public Mapbox | [mapbox.com/account](https://account.mapbox.com/) |
+| `VITE_STRIPE_PUBLISHABLE_KEY` | Clé publique Stripe | [dashboard.stripe.com/apikeys](https://dashboard.stripe.com/apikeys) |
+
+> ⚠️ Ne commitez jamais le fichier `.env`. Seul `.env.example` (avec des placeholders) doit être versionné.
+
+```bash
+# 4. Lancer en développement
+bun dev            # ou npm run dev
 ```
 
 ## 📁 Structure
@@ -48,8 +61,8 @@ npm run dev
 ```
 src/
 ├── components/    # Composants réutilisables (UI, tracking, preuves…)
+├── features/      # Modules métier (auth, voyage, shipment, needit, chat…)
 ├── hooks/         # Hooks custom (auth, theme, traduction, notifications…)
-├── pages/         # Pages de l'application
 ├── lib/           # Utilitaires (i18n, haptics, géolocalisation…)
 └── integrations/  # Client auto-généré
 supabase/
