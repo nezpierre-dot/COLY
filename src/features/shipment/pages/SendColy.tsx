@@ -66,6 +66,7 @@ const SendColy = () => {
   const countryDisplay = useCallback((v: string) => localizeCountry(v, language), [language]);
   const { recentCountries, recentCities } = useRecentLocations();
   const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1);
   const fileRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
