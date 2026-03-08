@@ -43,6 +43,8 @@ const ShipmentDetail = () => {
   const [contactPrenom, setContactPrenom] = useState("");
   const [contactTel, setContactTel] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupAccessCode, setPickupAccessCode] = useState("");
 
   const loadShipment = useCallback(async () => {
     if (!id) return;
