@@ -22,6 +22,7 @@ import PublicMissionsMap from "@/components/PublicMissionsMap";
 import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
+import MatchingSuggestions from "@/features/matching/components/MatchingSuggestions";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
