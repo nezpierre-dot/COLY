@@ -187,7 +187,7 @@ const SendColy = () => {
   };
 
   const SIZES = getSizes(arrCountry);
-  const TARIF_OPTIONS = getTarifOptions(arrCountry);
+  const tarifDisplay = tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : tarif === "devis" ? "Sur devis" : "—";
   const localeUnits = getUnitsForCountry(arrCountry);
   const sizeLabel = SIZES.find(s => s.id === size)?.label || size;
 
