@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.idnow-webhook]
 verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.create-wallet-topup]
+verify_jwt = false
