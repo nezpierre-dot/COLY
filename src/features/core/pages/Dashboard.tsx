@@ -1129,6 +1129,15 @@ const Dashboard = () => {
                             }
                             compact
                           />
+                          <WhatsAppShareButton
+                            type="shipment"
+                            id={s.id}
+                            title={`Colis ${s.size}`}
+                            from={s.departure_city}
+                            destination={`${s.arrival_city}, ${s.arrival_country}`}
+                            price={s.tarif}
+                            variant="full"
+                          />
                         </div>
                       )}
                     </div>
