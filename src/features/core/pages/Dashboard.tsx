@@ -1070,6 +1070,15 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
+                          <WhatsAppShareButton
+                            type="shipment"
+                            id={s.id}
+                            title={`Colis ${s.size}`}
+                            from={s.departure_city || undefined}
+                            destination={s.arrival_city}
+                            price={s.tarif}
+                            compact
+                          />
                           {s.status === "pending" && (
                             <button
                               onClick={() => setCancelDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
