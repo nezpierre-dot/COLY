@@ -610,6 +610,21 @@ const Dashboard = () => {
 
             <FavoriteRoutes t={t} />
 
+            {/* Quick action: Je transporte */}
+            <button
+              onClick={() => navigate("/transporter")}
+              className="w-full flex items-center gap-3 bg-card border border-border rounded-2xl p-3.5 hover:border-primary/30 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Calendar size={18} className="text-primary" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-bold text-foreground">Je transporte</p>
+                <p className="text-xs text-muted-foreground">Gérer mes disponibilités</p>
+              </div>
+              <ArrowRight size={16} className="text-muted-foreground" />
+            </button>
+
             <Tabs defaultValue="voyages" className="space-y-3">
               <TabsList className="w-full glass rounded-xl p-1 h-auto">
                 <TabsTrigger value="voyages" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">

@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { Star, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Loader2, Users, Sparkles, ChevronRight } from "lucide-react";
 import { useMatchingVoyageurs } from "../hooks/useMatchingVoyageurs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 
 interface MatchingSuggestionsProps {
   destinationCountry: string;
@@ -121,6 +123,13 @@ const MatchingSuggestions = ({
                   </div>
                 )}
               </div>
+
+              {/* Trust badges */}
+              {(v as any).trust_badges && (v as any).trust_badges.length > 0 && (
+                <div className="mt-1.5">
+                  <TrustBadgesDisplay badges={(v as any).trust_badges} compact />
+                </div>
+              )}
 
               {/* Route */}
               <div className="flex items-center gap-1.5 mt-1">

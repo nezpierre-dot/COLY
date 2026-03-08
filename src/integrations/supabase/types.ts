@@ -444,7 +444,10 @@ export type Database = {
           kyc_status: string
           phone: string | null
           preferred_transports: string[] | null
+          referral_code: string | null
+          referred_by: string | null
           stripe_customer_id: string | null
+          trust_badges: string[]
           updated_at: string
           user_id: string
         }
@@ -458,7 +461,10 @@ export type Database = {
           kyc_status?: string
           phone?: string | null
           preferred_transports?: string[] | null
+          referral_code?: string | null
+          referred_by?: string | null
           stripe_customer_id?: string | null
+          trust_badges?: string[]
           updated_at?: string
           user_id: string
         }
@@ -472,7 +478,10 @@ export type Database = {
           kyc_status?: string
           phone?: string | null
           preferred_transports?: string[] | null
+          referral_code?: string | null
+          referred_by?: string | null
           stripe_customer_id?: string | null
+          trust_badges?: string[]
           updated_at?: string
           user_id?: string
         }
@@ -538,6 +547,33 @@ export type Database = {
           rater_role?: string
           score?: number
           shipment_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          bonus_amount: number
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -799,6 +835,36 @@ export type Database = {
         }
         Relationships: []
       }
+      voyageur_availability: {
+        Row: {
+          available_date: string
+          city: string | null
+          country: string | null
+          created_at: string
+          id: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          available_date: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          available_date?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -861,6 +927,7 @@ export type Database = {
           user_ref: string
         }[]
       }
+      compute_trust_badges: { Args: { _user_id: string }; Returns: string[] }
       count_voyageurs_for_destination: {
         Args: { _city?: string; _country: string }
         Returns: number
