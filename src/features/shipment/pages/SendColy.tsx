@@ -260,6 +260,51 @@ const SendColy = () => {
       );
       case 3: return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+          {/* AI Price Suggestion */}
+          {priceSuggestion && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 rounded-2xl p-5 space-y-4"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-accent" />
+                <h3 className="text-sm font-bold text-foreground">Prix suggéré par l'IA</h3>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-black text-primary">
+                  {tarif === "fixe" && tarifFixe ? tarifFixe : priceSuggestion.price.toFixed(0)} {currencySymbol}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {priceSuggestion.urgencyLabel} · ~{priceSuggestion.distanceKm} km · {sizeLabel}
+                </p>
+              </div>
+              {/* Slider */}
+              <div className="space-y-2">
+                <input
+                  type="range"
+                  min={priceSuggestion.min}
+                  max={priceSuggestion.max}
+                  step={1}
+                  value={tarif === "fixe" && tarifFixe ? parseFloat(tarifFixe) || priceSuggestion.price : priceSuggestion.price}
+                  onChange={(e) => applySuggestedPrice(parseFloat(e.target.value))}
+                  className="w-full h-2 rounded-full appearance-none cursor-pointer bg-muted accent-primary"
+                />
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>{priceSuggestion.min.toFixed(0)} {currencySymbol}</span>
+                  <span className="text-primary font-semibold">Recommandé : {priceSuggestion.price.toFixed(0)} {currencySymbol}</span>
+                  <span>{priceSuggestion.max.toFixed(0)} {currencySymbol}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => applySuggestedPrice(priceSuggestion.price)}
+                className="w-full py-2.5 rounded-xl bg-primary/15 text-primary text-sm font-semibold hover:bg-primary/25 transition-colors"
+              >
+                Appliquer le prix suggéré
+              </button>
+            </motion.div>
+          )}
+
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><CreditCard size={16} className="text-primary" /> {t("sendcoly.chooseTariff")}</h3>
             {errors.tarif && <ErrorHint message={errors.tarif} />}
