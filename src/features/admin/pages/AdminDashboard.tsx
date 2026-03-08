@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera } from "lucide-react";
+import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { localizeCity } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -14,6 +15,7 @@ interface RecentShipment { id: string; ref_number: string; departure_city: strin
 interface UserRow { user_ref: string; full_name: string; kyc_status: string; role: string; created_at: string; }
 interface TimeData { day: string; count: number; }
 interface FraudCheck { id: string; shipment_id: string; user_id: string; photo_url: string; result: string; confidence: number | null; details: string | null; created_at: string; reporter_name: string; shipment_ref: string; }
+interface DisputeRow { id: string; shipment_id: string; user_id: string; reason: string; description: string; photo_url: string | null; status: string; resolution: string | null; created_at: string; reporter_name: string; shipment_ref: string; }
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted-foreground))"];
 
 const StatCard = ({ icon: Icon, label, value, trend, color = "primary" }: { icon: any; label: string; value: number | string; trend?: number; color?: string; }) => (
@@ -41,6 +43,8 @@ const AdminDashboard = () => {
   const [shipmentsOverTime, setShipmentsOverTime] = useState<TimeData[]>([]);
   const [usersOverTime, setUsersOverTime] = useState<TimeData[]>([]);
   const [fraudChecks, setFraudChecks] = useState<FraudCheck[]>([]);
+  const [disputes, setDisputes] = useState<DisputeRow[]>([]);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -58,13 +62,14 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
         supabase.rpc("admin_get_shipments_over_time"),
         supabase.rpc("admin_get_users_over_time"),
         supabase.rpc("admin_get_fraud_checks" as any, { _limit: 50 }),
+        supabase.rpc("admin_get_disputes" as any, { _limit: 50 }),
       ]);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
       if (shipmentsRes.data) setRecentShipments(shipmentsRes.data as unknown as RecentShipment[]);
@@ -72,6 +77,7 @@ const AdminDashboard = () => {
       if (sotRes.data) setShipmentsOverTime(sotRes.data as unknown as TimeData[]);
       if (uotRes.data) setUsersOverTime(uotRes.data as unknown as TimeData[]);
       if (fraudRes.data) setFraudChecks(fraudRes.data as unknown as FraudCheck[]);
+      if (disputesRes.data) setDisputes(disputesRes.data as unknown as DisputeRow[]);
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
@@ -82,6 +88,22 @@ const AdminDashboard = () => {
     await loadAll();
     setRefreshing(false);
     toast.success(t("admin.dataRefreshed"));
+  };
+
+  const handleDisputeAction = async (disputeId: string, action: "resolve" | "refund") => {
+    setResolvingId(disputeId);
+    try {
+      const { data, error } = await supabase.functions.invoke("resolve-dispute", {
+        body: { dispute_id: disputeId, action },
+      });
+      if (error) throw error;
+      toast.success(action === "refund" ? "Remboursement effectué" : "Litige résolu");
+      await loadAll();
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors du traitement");
+    } finally {
+      setResolvingId(null);
+    }
   };
 
   const roleDistribution = useMemo(() => stats ? [{ name: t("admin.demandeurs"), value: stats.total_demandeurs }, { name: t("admin.voyageurs"), value: stats.total_voyageurs }] : [], [stats, t]);
@@ -127,6 +149,14 @@ const AdminDashboard = () => {
               {fraudChecks.filter(f => f.result === "fraudulent" || f.result === "suspicious").length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
                   {fraudChecks.filter(f => f.result === "fraudulent" || f.result === "suspicious").length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="disputes" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-warning data-[state=active]:text-warning-foreground relative">
+              <Gavel size={13} className="mr-1" /> Litiges
+              {disputes.filter(d => d.status === "open" || d.status === "investigating").length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-warning text-warning-foreground text-[10px] font-bold flex items-center justify-center">
+                  {disputes.filter(d => d.status === "open" || d.status === "investigating").length}
                 </span>
               )}
             </TabsTrigger>
@@ -248,6 +278,82 @@ const AdminDashboard = () => {
                             )}
                             {fc.details && <p className="text-xs text-muted-foreground line-clamp-2">{fc.details}</p>}
                             <p className="text-[10px] text-muted-foreground">{formatDateTime(fc.created_at)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="disputes" className="space-y-3 mt-0">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Gavel size={14} className="text-warning" /> Litiges en cours</h3>
+                <span className="text-xs text-muted-foreground">{disputes.filter(d => d.status === "open" || d.status === "investigating").length} actif(s)</span>
+              </div>
+              {disputes.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">Aucun litige signalé</div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {disputes.map((d) => {
+                    const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
+                      open: { bg: "bg-warning/10", text: "text-warning", label: "⏳ Ouvert" },
+                      investigating: { bg: "bg-primary/10", text: "text-primary", label: "🔍 En cours" },
+                      resolved: { bg: "bg-green-500/10", text: "text-green-600", label: "✅ Résolu" },
+                      refunded: { bg: "bg-accent/10", text: "text-accent", label: "💰 Remboursé" },
+                    };
+                    const sc = statusConfig[d.status] || statusConfig.open;
+                    const isActive = d.status === "open" || d.status === "investigating";
+                    return (
+                      <div key={d.id} className="p-4 hover:bg-muted/30 transition-colors">
+                        <div className="flex items-start gap-3">
+                          {d.photo_url ? (
+                            <div className="w-14 h-14 rounded-xl bg-muted overflow-hidden shrink-0 border border-border">
+                              <img src={d.photo_url} alt="Preuve" className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center shrink-0"><AlertTriangle size={18} className="text-warning" /></div>
+                          )}
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-mono font-medium text-foreground">{d.shipment_ref}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${sc.bg} ${sc.text}`}>{sc.label}</span>
+                            </div>
+                            <p className="text-xs font-semibold text-foreground">{d.reason}</p>
+                            <p className="text-xs text-muted-foreground">Par : {d.reporter_name}</p>
+                            {d.description && <p className="text-xs text-muted-foreground line-clamp-2">{d.description}</p>}
+                            {d.resolution && (
+                              <div className="bg-muted/50 rounded-lg p-2">
+                                <p className="text-[10px] font-semibold text-foreground">Résolution :</p>
+                                <p className="text-[10px] text-muted-foreground">{d.resolution}</p>
+                              </div>
+                            )}
+                            <p className="text-[10px] text-muted-foreground">{formatDateTime(d.created_at)}</p>
+                            {isActive && (
+                              <div className="flex items-center gap-2 pt-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs rounded-lg gap-1"
+                                  disabled={resolvingId === d.id}
+                                  onClick={() => handleDisputeAction(d.id, "resolve")}
+                                >
+                                  <CheckCircle size={12} /> Résoudre
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-7 text-xs rounded-lg gap-1"
+                                  disabled={resolvingId === d.id}
+                                  onClick={() => handleDisputeAction(d.id, "refund")}
+                                >
+                                  <DollarSign size={12} /> Rembourser
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -23,3 +23,9 @@ verify_jwt = false
 
 [functions.create-wallet-topup]
 verify_jwt = false
+
+[functions.release-escrow]
+verify_jwt = false
+
+[functions.resolve-dispute]
+verify_jwt = false
