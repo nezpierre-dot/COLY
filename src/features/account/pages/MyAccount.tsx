@@ -437,6 +437,15 @@ const MyAccount = () => {
           <ReferralSection />
         </div>
 
+        {/* Historique & Stats */}
+        <div className="mb-6">
+          <div className="flex items-center gap-1.5 mb-3">
+            <BarChart3 size={14} className="text-primary" />
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Historique & Stats</h3>
+          </div>
+          <StatisticsTab compact />
+        </div>
+
         {/* Accordion sections */}
         <div className="space-y-3 mb-8">
           {accordionSections.map((section) => {
