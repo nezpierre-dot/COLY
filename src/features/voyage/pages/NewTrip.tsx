@@ -73,6 +73,7 @@ const NewTrip = () => {
   const { routes: favoriteRoutes, loadingRoutes: loadingFavorites } = useFavorites();
   const TRANSPORT_METHODS = getTransportMethods(t);
   const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
 
   // Step 1
   const [tripType, setTripType] = useState<"new" | "favorite" | null>(null);
