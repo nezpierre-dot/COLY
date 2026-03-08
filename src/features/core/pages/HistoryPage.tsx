@@ -467,14 +467,26 @@ const HistoryPage = () => {
               ))}
             </div>
 
-            {/* Total for current filter */}
+            {/* Total for current filter + export */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground">
                 {loading ? t("common.loading") : `${filtered.length} transaction${filtered.length > 1 ? "s" : ""}`}
               </p>
-              <p className={`text-lg font-bold ${total >= 0 ? "text-primary" : "text-destructive"}`}>
-                {total >= 0 ? "+" : ""}{total.toFixed(2)}{getCurrencySymbol()}
-              </p>
+              <div className="flex items-center gap-2">
+                {filtered.length > 0 && (
+                  <>
+                    <button onClick={exportCSV} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-xs font-medium text-muted-foreground transition-colors" title="Exporter CSV">
+                      <Download size={13} /> CSV
+                    </button>
+                    <button onClick={exportPDF} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-xs font-medium text-muted-foreground transition-colors" title="Exporter PDF">
+                      <FileText size={13} /> PDF
+                    </button>
+                  </>
+                )}
+                <p className={`text-lg font-bold ${total >= 0 ? "text-primary" : "text-destructive"}`}>
+                  {total >= 0 ? "+" : ""}{total.toFixed(2)}{getCurrencySymbol()}
+                </p>
+              </div>
             </div>
 
             {/* Transaction list */}
