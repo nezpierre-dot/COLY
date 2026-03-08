@@ -337,7 +337,7 @@ const NeeditMission = () => {
                       </div>
                       {prixMax && (
                         <div className="text-center mb-2">
-                          <span className="text-lg font-bold" style={{ color: "#30D158" }}>{t("needit.budgetMax")} : {prixMax} {currency.symbol}</span>
+                          <span className="text-lg font-bold" style={{ color: "#30D158" }}>{prixMax === "__devis__" ? "Sur devis" : `${t("needit.budgetMax")} : ${prixMax} ${currency.symbol}`}</span>
                         </div>
                       )}
 
