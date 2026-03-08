@@ -287,6 +287,82 @@ const AdminDashboard = () => {
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="disputes" className="space-y-3 mt-0">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Gavel size={14} className="text-warning" /> Litiges en cours</h3>
+                <span className="text-xs text-muted-foreground">{disputes.filter(d => d.status === "open" || d.status === "investigating").length} actif(s)</span>
+              </div>
+              {disputes.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">Aucun litige signalé</div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {disputes.map((d) => {
+                    const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
+                      open: { bg: "bg-warning/10", text: "text-warning", label: "⏳ Ouvert" },
+                      investigating: { bg: "bg-primary/10", text: "text-primary", label: "🔍 En cours" },
+                      resolved: { bg: "bg-green-500/10", text: "text-green-600", label: "✅ Résolu" },
+                      refunded: { bg: "bg-accent/10", text: "text-accent", label: "💰 Remboursé" },
+                    };
+                    const sc = statusConfig[d.status] || statusConfig.open;
+                    const isActive = d.status === "open" || d.status === "investigating";
+                    return (
+                      <div key={d.id} className="p-4 hover:bg-muted/30 transition-colors">
+                        <div className="flex items-start gap-3">
+                          {d.photo_url ? (
+                            <div className="w-14 h-14 rounded-xl bg-muted overflow-hidden shrink-0 border border-border">
+                              <img src={d.photo_url} alt="Preuve" className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center shrink-0"><AlertTriangle size={18} className="text-warning" /></div>
+                          )}
+                          <div className="flex-1 min-w-0 space-y-1.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-mono font-medium text-foreground">{d.shipment_ref}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${sc.bg} ${sc.text}`}>{sc.label}</span>
+                            </div>
+                            <p className="text-xs font-semibold text-foreground">{d.reason}</p>
+                            <p className="text-xs text-muted-foreground">Par : {d.reporter_name}</p>
+                            {d.description && <p className="text-xs text-muted-foreground line-clamp-2">{d.description}</p>}
+                            {d.resolution && (
+                              <div className="bg-muted/50 rounded-lg p-2">
+                                <p className="text-[10px] font-semibold text-foreground">Résolution :</p>
+                                <p className="text-[10px] text-muted-foreground">{d.resolution}</p>
+                              </div>
+                            )}
+                            <p className="text-[10px] text-muted-foreground">{formatDateTime(d.created_at)}</p>
+                            {isActive && (
+                              <div className="flex items-center gap-2 pt-1">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs rounded-lg gap-1"
+                                  disabled={resolvingId === d.id}
+                                  onClick={() => handleDisputeAction(d.id, "resolve")}
+                                >
+                                  <CheckCircle size={12} /> Résoudre
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-7 text-xs rounded-lg gap-1"
+                                  disabled={resolvingId === d.id}
+                                  onClick={() => handleDisputeAction(d.id, "refund")}
+                                >
+                                  <DollarSign size={12} /> Rembourser
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
     </div>
