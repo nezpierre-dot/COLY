@@ -26,6 +26,7 @@ import MatchingSuggestions from "@/features/matching/components/MatchingSuggesti
 import WhatsAppShareButton from "@/components/ShareWhatsAppButton";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import { useTranslation } from "@/hooks/useTranslation";
+import StatisticsTab from "@/features/profile/StatisticsTab";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -662,6 +663,9 @@ const Dashboard = () => {
                     </span>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="stats" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+                  <BarChart3 size={13} className="mr-1" /> Stats
+                </TabsTrigger>
               </TabsList>
 
               {/* Quick actions */}
@@ -1002,6 +1006,17 @@ const Dashboard = () => {
                   />
                 )}
               </TabsContent>
+
+              {/* ---- Stats tab ---- */}
+              <TabsContent value="stats" className="space-y-3 mt-0">
+                <StatisticsTab compact />
+                <button
+                  onClick={() => navigate("/history/voyageur")}
+                  className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-sm font-semibold hover:bg-muted transition-colors flex items-center justify-center gap-2"
+                >
+                  <BarChart3 size={14} /> Voir l'historique complet
+                </button>
+              </TabsContent>
             </Tabs>
           </div>
         ) : (
@@ -1067,6 +1082,9 @@ const Dashboard = () => {
                 </TabsTrigger>
                 <TabsTrigger value="actions" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
                   <Zap size={13} className="mr-1" /> {t("dashboard.tabActions")}
+                </TabsTrigger>
+                <TabsTrigger value="stats" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
+                  <BarChart3 size={13} className="mr-1" /> Stats
                 </TabsTrigger>
               </TabsList>
 
@@ -1383,6 +1401,17 @@ const Dashboard = () => {
                     ))}
                   </div>
                 )}
+              </TabsContent>
+
+              {/* ---- Stats tab ---- */}
+              <TabsContent value="stats" className="space-y-3 mt-0">
+                <StatisticsTab compact />
+                <button
+                  onClick={() => navigate("/history/coly")}
+                  className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-sm font-semibold hover:bg-muted transition-colors flex items-center justify-center gap-2"
+                >
+                  <BarChart3 size={14} /> Voir l'historique complet
+                </button>
               </TabsContent>
             </Tabs>
           </div>

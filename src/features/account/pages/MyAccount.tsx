@@ -170,6 +170,15 @@ const MyAccount = () => {
       ],
     },
     {
+      id: "history-stats",
+      icon: BarChart3,
+      label: "Historique & Stats",
+      items: [
+        { label: "Historique complet", onClick: () => navigate("/history/all") },
+        { label: "Statistiques personnelles", onClick: () => navigate("/history/voyageur") },
+      ],
+    },
+    {
       id: "settings",
       icon: Settings,
       label: t("account.settingsLabel"),
