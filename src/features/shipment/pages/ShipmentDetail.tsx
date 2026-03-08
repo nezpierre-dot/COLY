@@ -310,6 +310,16 @@ const ShipmentDetail = () => {
             </button>
           )}
 
+          {/* Dispute link for delivered shipments */}
+          {shipment.status === "delivered" && isOwner && (
+            <button
+              onClick={() => navigate(`/litiges?shipment=${shipment.id}`)}
+              className="w-full py-3 rounded-2xl border border-destructive/30 text-destructive font-semibold text-sm flex items-center justify-center gap-2"
+            >
+              <AlertTriangle size={14} /> Signaler un litige
+            </button>
+          )}
+
           {/* Action buttons */}
           {canEdit && (
             <div className="space-y-3">
