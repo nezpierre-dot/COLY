@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Package, Image } from "lucide-react";
+import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Package, Image, Download, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
