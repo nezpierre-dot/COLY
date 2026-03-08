@@ -104,14 +104,7 @@ const SendColy = () => {
   const STEP_TITLES = [t("coly.route"), t("coly.parcel"), t("coly.rate"), t("coly.recap")];
   const DEPART_LABELS: Record<string, string> = { main: t("coly.handDelivery"), address: t("coly.pickupAddress"), relay: t("coly.relayPoint") };
 
-  const getTarifOptions = (country: string) => {
-    const { symbol } = getCurrencyForCountry(country);
-    return [
-      { id: "standard", label: t("sendcoly.standard"), price: `18.99${symbol}`, desc: t("sendcoly.standardDesc"), icon: Truck, popular: true },
-      { id: "express", label: t("sendcoly.express"), price: `24.99${symbol}`, desc: t("sendcoly.expressDesc"), icon: Zap, popular: false },
-      { id: "custom", label: t("sendcoly.custom"), price: t("sendcoly.onQuote"), desc: t("sendcoly.customDesc"), icon: CreditCard, popular: false },
-    ];
-  };
+  const { symbol: currencySymbol } = getCurrencyForCountry(arrCountry);
 
   useEffect(() => { fetch("https://countriesnow.space/api/v0.1/countries").then((r) => r.json()).then((res) => { if (res?.data) setCountries(res.data.map((c: any) => c.country).sort()); }).catch(() => {}); }, []);
   const fetchCitiesFor = (country: string, setter: (c: string[]) => void) => { setter([]); if (!country) return; fetch("https://countriesnow.space/api/v0.1/countries/cities", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ country }) }).then((r) => r.json()).then((res) => { if (res?.data) setter(res.data.sort()); }).catch(() => {}); };
