@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package, Image, Ruler, CreditCard, Shield, Sparkles, Truck, AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown } from "lucide-react";
 import MatchingSuggestions from "@/features/matching/components/MatchingSuggestions";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import { calculateSuggestedPrice, type PriceSuggestion } from "@/lib/priceSuggestion";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
