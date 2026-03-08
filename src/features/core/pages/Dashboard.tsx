@@ -1020,6 +1020,8 @@ const Dashboard = () => {
 
             <FavoriteRoutes t={t} />
 
+            <WalletCard compact />
+
             <Tabs defaultValue="envois" className="space-y-3">
               <TabsList className="w-full glass rounded-xl p-1 h-auto">
                 <TabsTrigger value="envois" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
