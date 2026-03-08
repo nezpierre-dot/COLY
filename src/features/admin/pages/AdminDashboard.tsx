@@ -13,7 +13,7 @@ interface AdminStats { total_users: number; total_shipments: number; pending_shi
 interface RecentShipment { id: string; ref_number: string; departure_city: string; arrival_city: string; arrival_country: string; size: string; tarif: string; status: string; insured: boolean; created_at: string; }
 interface UserRow { user_ref: string; full_name: string; kyc_status: string; role: string; created_at: string; }
 interface TimeData { day: string; count: number; }
-
+interface FraudCheck { id: string; shipment_id: string; user_id: string; photo_url: string; result: string; confidence: number | null; details: string | null; created_at: string; reporter_name: string; shipment_ref: string; }
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted-foreground))"];
 
 const StatCard = ({ icon: Icon, label, value, trend, color = "primary" }: { icon: any; label: string; value: number | string; trend?: number; color?: string; }) => (
