@@ -97,6 +97,8 @@ const SendColy = () => {
   const [aiLoaded, setAiLoaded] = useState(false);
   const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
   const [showReminderPrompt, setShowReminderPrompt] = useState(false);
+  const [showCustomsWarning, setShowCustomsWarning] = useState(false);
+  const [customsWarningAccepted, setCustomsWarningAccepted] = useState(false);
 
   const STEP_TITLES = [t("coly.route"), t("coly.parcel"), t("coly.rate"), t("coly.recap")];
   const DEPART_LABELS: Record<string, string> = { main: t("coly.handDelivery"), address: t("coly.pickupAddress"), relay: t("coly.relayPoint") };
