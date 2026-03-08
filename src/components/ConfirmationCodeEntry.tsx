@@ -36,11 +36,6 @@ const ConfirmationCodeEntry = ({ itemId, itemType, onConfirmed }: ConfirmationCo
         setSuccess(true);
         successFeedback("Mission finalisée !");
         toast.success("Mission finalisée ! Paiement débloqué 🎉");
-        // Notify owner by email
-        const deliveredStatus = itemType === "needit_mission" ? "completed" : "delivered";
-        supabase.functions.invoke("notify-status-change", {
-          body: { item_id: itemId, item_type: itemType, new_status: deliveredStatus },
-        }).catch(() => {});
         setTimeout(() => onConfirmed(), 1500);
       } else {
         toast.error("Code incorrect. Vérifiez auprès du destinataire.");

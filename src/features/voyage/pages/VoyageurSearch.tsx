@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Rocket, SlidersHorizontal, X, ShoppingCart, Package, Home, Star } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Rocket, SlidersHorizontal, X, ShoppingCart, Package, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +12,6 @@ import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight, hapticMedium } from "@/lib/haptics";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Slider } from "@/components/ui/slider";
 
 interface Voyage {
   id: string;
@@ -72,9 +71,6 @@ const VoyageurSearch = () => {
   const [filterDeliver, setFilterDeliver] = useState(false);
   const [filterMethod, setFilterMethod] = useState<string>("");
 
-  // Advanced filters
-  const [minRating, setMinRating] = useState(0);
-
   const loadData = useCallback(async () => {
     setLoading(true);
     const { data } = await supabase
@@ -128,14 +124,9 @@ const VoyageurSearch = () => {
         const methods = v.transport_method?.toLowerCase().split(",").map((m: string) => m.trim()) || [];
         if (!methods.includes(filterMethod)) return false;
       }
-      // Rating filter
-      if (minRating > 0) {
-        const rating = Number(v.avg_rating ?? 0);
-        if (rating < minRating) return false;
-      }
       return true;
     });
-  }, [voyages, destQuery, originQuery, filterNeedit, filterPickup, filterDeliver, filterMethod, minRating]);
+  }, [voyages, destQuery, originQuery, filterNeedit, filterPickup, filterDeliver, filterMethod]);
 
   const formatDate = (dateStr: string) => {
     try {
@@ -143,16 +134,7 @@ const VoyageurSearch = () => {
     } catch { return dateStr; }
   };
 
-  const activeFiltersCount = [filterNeedit, filterPickup, filterDeliver, !!filterMethod, minRating > 0].filter(Boolean).length;
-
-  const ratingLabels: Record<number, string> = {
-    0: "Tous",
-    3: "≥ 3.0",
-    3.5: "≥ 3.5",
-    4: "≥ 4.0",
-    4.5: "≥ 4.5",
-    4.8: "≥ 4.8",
-  };
+  const activeFiltersCount = [filterNeedit, filterPickup, filterDeliver, !!filterMethod].filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -256,35 +238,6 @@ const VoyageurSearch = () => {
                     </div>
                   </div>
 
-                  {/* Rating filter */}
-                  <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      <Star size={10} className="inline mr-1" />
-                      Note minimum
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {[0, 3, 3.5, 4, 4.5, 4.8].map((r) => (
-                        <button
-                          key={r}
-                          onClick={() => { hapticLight(); setMinRating(r); }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            minRating === r
-                              ? "bg-accent text-accent-foreground"
-                              : "bg-muted text-muted-foreground hover:bg-muted/80"
-                          }`}
-                        >
-                          {r === 0 ? (
-                            "Tous"
-                          ) : (
-                            <span className="flex items-center gap-1">
-                              <Star size={10} className="fill-current" /> {ratingLabels[r]}
-                            </span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Options */}
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("search.options")}</p>
@@ -309,13 +262,7 @@ const VoyageurSearch = () => {
 
                   {activeFiltersCount > 0 && (
                     <button
-                      onClick={() => {
-                        setFilterNeedit(false);
-                        setFilterPickup(false);
-                        setFilterDeliver(false);
-                        setFilterMethod("");
-                        setMinRating(0);
-                      }}
+                      onClick={() => { setFilterNeedit(false); setFilterPickup(false); setFilterDeliver(false); setFilterMethod(""); }}
                       className="text-xs text-destructive hover:underline"
                     >
                       {t("common.resetFilters")}

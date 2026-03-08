@@ -66,11 +66,6 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
         await supabase.from("needit_missions").update({ status: "picked_up" } as any).eq("id", itemId);
       }
 
-      // Notify owner by email (fire and forget)
-      supabase.functions.invoke("notify-status-change", {
-        body: { item_id: itemId, item_type: itemType, new_status: "picked_up" },
-      }).catch(() => {});
-
       onProofUploaded();
       toast.success("Récupération confirmée ✅");
     } catch (err: any) {

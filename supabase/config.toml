@@ -12,8 +12,8 @@ verify_jwt = false
 [functions.process-reminders]
 verify_jwt = false
 
-[functions.notify-acceptance]
+[functions.idnow-kyc]
 verify_jwt = false
 
-[functions.notify-status-change]
+[functions.idnow-webhook]
 verify_jwt = false

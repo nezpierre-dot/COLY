@@ -1,9 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Package, Shield, Clock, Pencil, X, Check, Loader2, AlertTriangle, User, Phone, Mail, Bell } from "lucide-react";
-import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
-import LiveLocationSharing from "@/components/LiveLocationSharing";
+import PostMatchActions from "@/components/PostMatchActions";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +31,7 @@ const ShipmentDetail = () => {
   const { t } = useTranslation();
   const { language } = useLanguagePreference();
   const [shipment, setShipment] = useState<any>(null);
+  const [currentStatus, setCurrentStatus] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -52,6 +52,7 @@ const ShipmentDetail = () => {
     const { data } = await supabase.from("shipments").select("*").eq("id", id).maybeSingle();
     if (data) {
       setShipment(data);
+      setCurrentStatus(data.status || "pending");
       setDepartureDate(data.departure_date || "");
       setContactNom(data.contact_nom || "");
       setContactPrenom(data.contact_prenom || "");
@@ -166,25 +167,14 @@ const ShipmentDetail = () => {
         </div>
 
         <div className="px-6 pt-6 space-y-4">
-          {/* Status + ref + share */}
+          {/* Status + ref */}
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold px-3 py-1 rounded-full text-white ${statusColors[shipment.status] || "bg-muted"}`}>
               {statusLabels[shipment.status] || shipment.status}
             </span>
-            <div className="flex items-center gap-2">
-              <WhatsAppShareButton
-                type="shipment"
-                id={shipment.id}
-                title={`Colis ${shipment.size}`}
-                from={shipment.departure_city || undefined}
-                destination={shipment.arrival_city}
-                price={shipment.tarif}
-                compact
-              />
-              <span className="text-xs text-muted-foreground">
-                REF: COLY-{shipment.id.slice(0, 8).toUpperCase()}
-              </span>
-            </div>
+            <span className="text-xs text-muted-foreground">
+              REF: COLY-{shipment.id.slice(0, 8).toUpperCase()}
+            </span>
           </div>
 
           {/* Cannot edit warning */}
@@ -283,12 +273,14 @@ const ShipmentDetail = () => {
             )}
           </div>
 
-          {/* Live location sharing - visible when mission is accepted */}
-          {shipment.voyageur_id && shipment.status !== "pending" && shipment.status !== "cancelled" && shipment.status !== "delivered" && (
-            <LiveLocationSharing
-              itemId={shipment.id}
+          {/* Post-match actions (OTP, location, status transitions) */}
+          {shipment.voyageur_id && shipment.status !== "pending" && shipment.status !== "cancelled" && (
+            <PostMatchActions
+              shipmentId={shipment.id}
+              shipmentStatus={currentStatus}
+              senderId={shipment.user_id}
               voyageurId={shipment.voyageur_id}
-              isVoyageur={user?.id === shipment.voyageur_id}
+              onStatusChange={(s) => { setCurrentStatus(s); loadShipment(); }}
             />
           )}
 
@@ -302,16 +294,6 @@ const ShipmentDetail = () => {
             </button>
           )}
 
-          {/* Live tracking link */}
-          {shipment.voyageur_id && shipment.status !== "pending" && shipment.status !== "cancelled" && shipment.status !== "delivered" && (
-            <button
-              onClick={() => navigate(`/live-tracking/${shipment.id}`)}
-              className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2"
-            >
-              <MapPin size={16} /> Suivre en direct
-            </button>
-          )}
-
           {/* Tracking link */}
           {shipment.status !== "pending" && shipment.status !== "cancelled" && (
             <button
@@ -319,16 +301,6 @@ const ShipmentDetail = () => {
               className="w-full py-3.5 rounded-2xl bg-secondary text-secondary-foreground font-bold text-sm"
             >
               {t("tracking.viewTracking")}
-            </button>
-          )}
-
-          {/* Dispute link for delivered shipments */}
-          {shipment.status === "delivered" && isOwner && (
-            <button
-              onClick={() => navigate(`/litiges?shipment=${shipment.id}`)}
-              className="w-full py-3 rounded-2xl border border-destructive/30 text-destructive font-semibold text-sm flex items-center justify-center gap-2"
-            >
-              <AlertTriangle size={14} /> Signaler un litige
             </button>
           )}
 

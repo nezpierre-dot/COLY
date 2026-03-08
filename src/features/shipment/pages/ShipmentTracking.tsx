@@ -100,12 +100,6 @@ const ShipmentTracking = () => {
   const handleDeliveryConfirmed = () => {
     // Don't auto-set delivered — the confirmation code flow handles that
     setShipment((prev: any) => ({ ...prev, status: "in_transit" }));
-    // Notify owner by email
-    if (id) {
-      supabase.functions.invoke("notify-status-change", {
-        body: { item_id: id, item_type: "shipment", new_status: "in_transit" },
-      }).catch(() => {});
-    }
   };
 
   const handleCodeConfirmed = () => {
@@ -351,18 +345,6 @@ const ShipmentTracking = () => {
                 className="shrink-0 px-4 py-2 rounded-xl bg-accent text-accent-foreground text-xs font-bold hover:opacity-90 transition-opacity"
               >
                 ⭐ {t("tracking.rate")}
-              </button>
-            </motion.div>
-          )}
-
-          {/* Live tracking button */}
-          {shipment.voyageur_id && shipment.status !== "delivered" && shipment.status !== "cancelled" && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <button
-                onClick={() => navigate(`/live-tracking/${shipment.id}`)}
-                className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2"
-              >
-                <MapPin size={16} /> Suivre en direct sur la carte
               </button>
             </motion.div>
           )}

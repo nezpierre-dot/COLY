@@ -1,76 +1,62 @@
-import { useState, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Camera, ArrowRight, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { ArrowRight, CheckCircle, Shield, Loader2, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useEffect } from "react";
 
-type KycStep = "intro" | "scan" | "review" | "selfie" | "done";
-const STEPS_ORDER: KycStep[] = ["intro", "scan", "review", "selfie", "done"];
+type KycStep = "intro" | "loading" | "idnow" | "success" | "failure";
 
 const KycFlow = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const returnTo = (location.state as any)?.returnTo || "/dashboard";
-  const { user, roles } = useAuth();
+  const { user, session, roles } = useAuth();
   const { t } = useTranslation();
   const isVoyageur = roles.includes("voyageur");
+
   const [step, setStep] = useState<KycStep>("intro");
-  const [idFront, setIdFront] = useState<File | null>(null);
-  const [idBack, setIdBack] = useState<File | null>(null);
-  const [selfie, setSelfie] = useState<File | null>(null);
-  const [frontPreview, setFrontPreview] = useState<string | null>(null);
-  const [backPreview, setBackPreview] = useState<string | null>(null);
-  const [selfiePreview, setSelfiePreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [onboardingUrl, setOnboardingUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const frontRef = useRef<HTMLInputElement>(null);
-  const backRef = useRef<HTMLInputElement>(null);
-  const selfieRef = useRef<HTMLInputElement>(null);
-
-  const currentStepIndex = STEPS_ORDER.indexOf(step);
-  const progress = Math.round(((currentStepIndex + 1) / STEPS_ORDER.length) * 100);
-
-  const handleFile = (file: File | undefined, setter: (f: File | null) => void, previewSetter: (s: string | null) => void) => {
-    if (!file) return;
-    setter(file);
-    const reader = new FileReader();
-    reader.onload = (e) => previewSetter(e.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const uploadToStorage = async (file: File, path: string) => {
-    const { error } = await supabase.storage.from("kyc-documents").upload(path, file, { upsert: true });
-    if (error) throw error;
-  };
-
-  const handleFinalize = async () => {
-    if (!user || !idFront) return;
-    setUploading(true);
-    try {
-      await uploadToStorage(idFront, `${user.id}/id-front`);
-      if (idBack) await uploadToStorage(idBack, `${user.id}/id-back`);
-      setStep("selfie");
-    } catch (e: any) {
-      toast.error(t("kyc.uploadError") + " : " + e.message);
-    } finally {
-      setUploading(false);
+  // Handle redirect back from IDnow
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (status === "success") {
+      setStep("success");
+    } else if (status === "failure" || status === "abort") {
+      setStep("failure");
     }
-  };
+  }, [searchParams]);
 
-  const handleSelfieSubmit = async () => {
-    if (!user || !selfie) return;
-    setUploading(true);
+  const startIdnowSession = async () => {
+    if (!user || !session) return;
+    setLoading(true);
+    setStep("loading");
+
     try {
-      await uploadToStorage(selfie, `${user.id}/selfie`);
-      await supabase.from("profiles").update({ kyc_status: "submitted" } as any).eq("user_id", user.id);
-      setStep("done");
+      const origin = window.location.origin;
+      const { data, error } = await supabase.functions.invoke("idnow-kyc", {
+        body: {
+          redirectUrl: `${origin}/kyc`,
+        },
+      });
+
+      if (error) throw new Error(error.message || "Failed to start KYC session");
+      if (!data?.onboardingUrl) throw new Error("No onboarding URL returned");
+
+      setOnboardingUrl(data.onboardingUrl);
+      setStep("idnow");
     } catch (e: any) {
-      toast.error(t("common.error") + " : " + e.message);
+      console.error("KYC start error:", e);
+      toast.error(t("kyc.uploadError") + ": " + e.message);
+      setStep("intro");
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
@@ -79,151 +65,184 @@ const KycFlow = () => {
     navigate("/dashboard");
   };
 
+  const progress =
+    step === "intro" ? 25 :
+    step === "loading" ? 50 :
+    step === "idnow" ? 75 :
+    100;
+
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Blue header */}
-      <div className="relative px-6 pt-12 pb-16 text-primary-foreground overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--coly-blue-dark)))" }}>
+      {/* Header */}
+      <div
+        className="relative px-6 pt-12 pb-16 text-primary-foreground overflow-hidden"
+        style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--coly-blue-dark)))" }}
+      >
         <div className="absolute top-8 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full bg-primary-foreground/10" />
         <div className="absolute top-16 right-6 grid grid-cols-4 gap-1.5 opacity-30">
-          {Array.from({ length: 16 }).map((_, i) => (<div key={i} className="w-2 h-2 rounded-full bg-primary-foreground" />))}
+          {Array.from({ length: 16 }).map((_, i) => (
+            <div key={i} className="w-2 h-2 rounded-full bg-primary-foreground" />
+          ))}
         </div>
         <div className="absolute bottom-10 left-0 w-20 h-20 rounded-full bg-coly-blue-dark/50" />
 
         <h1 className="text-3xl font-bold relative z-10">
-          {step === "intro" && t("kyc.almostDone")}
-          {step === "scan" && t("kyc.almostDone")}
-          {step === "review" && t("kyc.almostDone")}
-          {step === "selfie" && "KYC"}
-          {step === "done" && t("kyc.congrats")}
+          {step === "success" ? t("kyc.congrats") : "ID NOW"}
         </h1>
         <p className="text-sm mt-2 opacity-90 relative z-10">
-          {step === "intro" && ""}
-          {step === "scan" && t("kyc.scanDoc")}
-          {step === "review" && t("kyc.createAccount")}
-          {step === "selfie" && t("kyc.useServices")}
-          {step === "done" && t("kyc.termsConditions")}
+          {step === "intro" && t("kyc.confirmIdentity")}
+          {step === "loading" && t("kyc.sending")}
+          {step === "idnow" && t("kyc.useServices")}
+          {step === "success" && t("kyc.verifiedDesc")}
+          {step === "failure" && t("common.error")}
         </p>
 
-        {step !== "done" && (
+        {step !== "success" && step !== "failure" && (
           <div className="mt-4 relative z-10">
             <div className="w-full h-1.5 rounded-full bg-primary-foreground/20">
-              <div className="h-1.5 rounded-full bg-primary-foreground transition-all duration-500" style={{ width: `${progress}%` }} />
+              <div
+                className="h-1.5 rounded-full bg-primary-foreground transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
             </div>
-            <p className="text-xs opacity-70 mt-1">{t("kyc.step")} {currentStepIndex + 1} / {STEPS_ORDER.length - 1}</p>
           </div>
         )}
       </div>
 
-      {/* Content card */}
+      {/* Content */}
       <div className="px-6 -mt-8">
         <div className="bg-card rounded-t-3xl p-6 min-h-[50vh] flex flex-col">
+          {/* INTRO */}
           {step === "intro" && (
             <div className="flex-1 flex flex-col justify-between">
-              <div className="text-center mt-12">
+              <div className="text-center mt-8">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                  <Shield size={40} className="text-primary" />
+                </div>
                 <h2 className="text-xl font-bold text-foreground">{t("kyc.firstSend")}</h2>
-                <p className="text-foreground mt-6 text-sm leading-relaxed">{t("kyc.confirmIdentity")}</p>
+                <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
+                  {t("kyc.confirmIdentity")}
+                </p>
+                <div className="mt-6 space-y-3 text-left bg-muted/50 rounded-2xl p-4">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle size={18} className="text-primary mt-0.5 shrink-0" />
+                    <p className="text-sm text-foreground">{t("kyc.idCard")}</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle size={18} className="text-primary mt-0.5 shrink-0" />
+                    <p className="text-sm text-foreground">{t("kyc.selfieTitle")}</p>
+                  </div>
+                </div>
                 <p className="text-muted-foreground mt-4 text-xs">{t("kyc.verificationTime")}</p>
               </div>
-              <div className="flex items-center justify-between mt-12">
-                <button onClick={() => navigate(-1)} className="text-muted-foreground font-medium text-lg">{t("common.back")}</button>
+              <div className="flex items-center justify-between mt-8">
+                <button onClick={() => navigate(-1)} className="text-muted-foreground font-medium text-lg">
+                  {t("common.back")}
+                </button>
                 <div className="flex items-center gap-3">
                   {isVoyageur && (
-                    <button onClick={handleSkipKyc} className="text-sm text-muted-foreground hover:text-foreground transition-colors underline">{t("common.later")}</button>
+                    <button
+                      onClick={handleSkipKyc}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors underline"
+                    >
+                      {t("common.later")}
+                    </button>
                   )}
-                  <button onClick={() => setStep("scan")} className="px-10 py-3.5 rounded-2xl bg-accent text-accent-foreground font-bold text-lg shadow-lg">{t("common.next")}</button>
+                  <button
+                    onClick={startIdnowSession}
+                    className="px-10 py-3.5 rounded-2xl bg-accent text-accent-foreground font-bold text-lg shadow-lg flex items-center gap-2"
+                  >
+                    {t("common.next")} <ArrowRight size={20} />
+                  </button>
                 </div>
               </div>
             </div>
           )}
 
-          {step === "scan" && (
-            <div className="flex-1 flex flex-col items-center justify-between">
-              <div className="w-full aspect-[4/3] bg-muted rounded-2xl flex flex-col items-center justify-center mt-4 cursor-pointer overflow-hidden relative" onClick={() => frontRef.current?.click()}>
-                {frontPreview ? (
-                  <img src={frontPreview} alt="ID front" className="w-full h-full object-cover" />
-                ) : (
-                  <>
-                    <Camera size={48} className="text-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">{t("kyc.touchToScan")}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{t("kyc.idCard")}</p>
-                  </>
-                )}
-                <input ref={frontRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFile(e.target.files?.[0], setIdFront, setFrontPreview)} />
-              </div>
-              <div className="flex items-center justify-between w-full mt-6">
-                <button onClick={() => setStep("intro")} className="text-muted-foreground font-medium">{t("common.back")}</button>
-                <button
-                  onClick={() => { if (idFront) setStep("review"); else toast.error(t("kyc.scanDocument")); }}
-                  className="px-8 py-3.5 rounded-2xl bg-coly-purple text-primary-foreground font-bold text-lg flex items-center gap-2"
-                >
-                  {t("kyc.upload")} <ArrowRight size={20} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {step === "review" && (
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="space-y-4 mt-2">
-                {frontPreview && (
-                  <div className="rounded-2xl overflow-hidden border border-border">
-                    <img src={frontPreview} alt="ID Recto" className="w-full object-contain" />
-                  </div>
-                )}
-                <div className="rounded-2xl overflow-hidden border border-border bg-muted flex items-center justify-center min-h-[140px] cursor-pointer" onClick={() => backRef.current?.click()}>
-                  {backPreview ? (
-                    <img src={backPreview} alt="ID Verso" className="w-full object-contain" />
-                  ) : (
-                    <div className="text-center py-6">
-                      <Camera size={32} className="mx-auto text-muted-foreground mb-1" />
-                      <p className="text-xs text-muted-foreground">{t("kyc.backOptional")}</p>
-                    </div>
-                  )}
-                  <input ref={backRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFile(e.target.files?.[0], setIdBack, setBackPreview)} />
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-8">
-                <button onClick={() => setStep("scan")} className="text-muted-foreground font-medium text-lg">{t("common.back")}</button>
-                <button onClick={handleFinalize} disabled={uploading} className="px-10 py-3.5 rounded-2xl bg-coly-purple text-primary-foreground font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50">
-                  {uploading ? t("kyc.sending") : t("kyc.finalize")} <ArrowRight size={20} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {step === "selfie" && (
+          {/* LOADING */}
+          {step === "loading" && (
             <div className="flex-1 flex flex-col items-center justify-center">
-              <h2 className="text-xl font-bold text-foreground mb-2">{t("kyc.selfieTitle")}</h2>
-              <p className="text-sm text-muted-foreground mb-8">{t("kyc.selfieDesc")}</p>
-              <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center cursor-pointer overflow-hidden mb-6" onClick={() => selfieRef.current?.click()}>
-                {selfiePreview ? (
-                  <img src={selfiePreview} alt="Selfie" className="w-full h-full object-cover" />
-                ) : (
-                  <Camera size={48} className="text-foreground" />
-                )}
-                <input ref={selfieRef} type="file" accept="image/*" capture="user" className="hidden" onChange={(e) => handleFile(e.target.files?.[0], setSelfie, setSelfiePreview)} />
-              </div>
-              <button onClick={() => { if (selfie) handleSelfieSubmit(); else selfieRef.current?.click(); }} disabled={uploading} className="px-12 py-3.5 rounded-2xl bg-accent text-accent-foreground font-bold text-lg shadow-lg disabled:opacity-50">
-                {uploading ? t("kyc.sending") : "ID NOW"}
-              </button>
+              <Loader2 size={48} className="text-primary animate-spin mb-4" />
+              <p className="text-foreground font-medium">{t("kyc.sending")}...</p>
             </div>
           )}
 
-          {step === "done" && (
+          {/* IDNOW IFRAME / REDIRECT */}
+          {step === "idnow" && onboardingUrl && (
+            <div className="flex-1 flex flex-col">
+              <p className="text-sm text-muted-foreground mb-3 text-center">
+                {t("kyc.scanDoc")}
+              </p>
+              <div className="flex-1 rounded-2xl overflow-hidden border border-border min-h-[60vh]">
+                <iframe
+                  src={onboardingUrl}
+                  className="w-full h-full min-h-[60vh]"
+                  allow="camera; microphone"
+                  title="IDnow Verification"
+                />
+              </div>
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => window.open(onboardingUrl, "_blank")}
+                  className="text-sm text-primary underline"
+                >
+                  {t("kyc.openInNewTab") || "Open in new tab"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* SUCCESS */}
+          {step === "success" && (
             <div className="flex-1 flex flex-col justify-between">
               <div className="mt-8 text-center">
-                <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle size={40} className="text-green-600" />
+                <div className="w-20 h-20 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle size={40} className="text-accent-foreground" />
                 </div>
                 <h2 className="text-2xl font-bold text-foreground">{t("kyc.identityVerified")}</h2>
                 <p className="text-foreground mt-4 text-sm leading-relaxed">{t("kyc.verifiedDesc")}</p>
               </div>
               <div className="space-y-3">
-                <button onClick={() => navigate("/dashboard")} className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg">
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
+                >
                   {t("kyc.goToDashboard")} <ArrowRight size={20} />
                 </button>
-                <button onClick={() => navigate("/send-coly")} className="w-full py-4 rounded-2xl bg-accent text-accent-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg">
+                <button
+                  onClick={() => navigate("/send-coly")}
+                  className="w-full py-4 rounded-2xl bg-accent text-accent-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
+                >
                   {t("kyc.sendParcel")} <ArrowRight size={20} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* FAILURE */}
+          {step === "failure" && (
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="mt-8 text-center">
+                <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+                  <XCircle size={40} className="text-destructive" />
+                </div>
+                <h2 className="text-2xl font-bold text-foreground">{t("common.error")}</h2>
+                <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
+                  {t("kyc.uploadError")}
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => { setStep("intro"); setOnboardingUrl(null); }}
+                  className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-2 shadow-lg"
+                >
+                  {t("common.retry") || "Réessayer"} <ArrowRight size={20} />
+                </button>
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="w-full py-4 rounded-2xl bg-muted text-muted-foreground font-bold text-lg flex items-center justify-center gap-2"
+                >
+                  {t("kyc.goToDashboard")}
                 </button>
               </div>
             </div>

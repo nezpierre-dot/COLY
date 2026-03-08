@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin, Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck, Clock, Truck, PackageCheck, HandshakeIcon, CircleDot, ShieldCheck, Navigation, Camera, Phone, ThumbsUp, CalendarDays, MapPinned, Receipt, Loader2 } from "lucide-react";
+import { ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin, Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck, Clock, Truck, PackageCheck, HandshakeIcon, CircleDot, ShieldCheck, Navigation, Camera, Phone, ThumbsUp, CalendarDays, MapPinned, Receipt, Loader2, Pencil, Check, XCircle } from "lucide-react";
+import PostMatchActions from "@/components/PostMatchActions";
 import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +54,9 @@ const ChatPage = () => {
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
-
+  const [editingMission, setEditingMission] = useState(false);
+  const [editFields, setEditFields] = useState({ country: "", city: "", timing: "", prix_max: "" });
+  const [savingMission, setSavingMission] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const proofCameraRef = useRef<HTMLInputElement>(null);
@@ -206,6 +209,36 @@ const ChatPage = () => {
     if (last && last.date === date) last.msgs.push(msg); else groupedMessages.push({ date, msgs: [msg] });
   });
 
+  const canEditMission = itemDetail?.type === "mission" && !isVoyageur && (shipmentStatus === "pending");
+
+  const startEditMission = () => {
+    if (itemDetail?.type !== "mission") return;
+    setEditFields({
+      country: itemDetail.country || "",
+      city: itemDetail.city || "",
+      timing: itemDetail.timing || "asap",
+      prix_max: itemDetail.prix_max || "",
+    });
+    setEditingMission(true);
+  };
+
+  const saveMissionEdit = async () => {
+    if (!shipmentId) return;
+    setSavingMission(true);
+    const { error } = await supabase.from("needit_missions").update({
+      country: editFields.country,
+      city: editFields.city || null,
+      timing: editFields.timing,
+      prix_max: editFields.prix_max || null,
+    } as any).eq("id", shipmentId);
+    setSavingMission(false);
+    if (error) { toast.error(t("common.error")); return; }
+    toast.success(t("common.saved"));
+    setEditingMission(false);
+    // Update local state
+    setItemDetail(prev => prev?.type === "mission" ? { ...prev, country: editFields.country, city: editFields.city || null, prix_max: editFields.prix_max || null, timing: editFields.timing } : prev);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="bg-card/95 backdrop-blur-lg border-b border-border/60 px-4 pt-12 pb-3 shrink-0 z-10">
@@ -231,6 +264,21 @@ const ChatPage = () => {
               <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${itemDetail.type === "shipment" ? "bg-primary/10 text-primary" : "bg-accent/20 text-accent"}`}>{itemDetail.type === "shipment" ? <Package size={14} /> : <ShoppingBag size={14} />}</div>
               <span className="text-xs font-bold text-foreground">{itemDetail.type === "shipment" ? t("chat.recapColis") : t("chat.recapMission")}</span>
             </div>
+            {canEditMission && !editingMission && (
+              <button onClick={startEditMission} className="flex items-center gap-1 text-[10px] font-semibold text-primary hover:text-primary/80 transition-colors px-2 py-1 rounded-lg bg-primary/10">
+                <Pencil size={10} /> {t("chat.editMission")}
+              </button>
+            )}
+            {editingMission && (
+              <div className="flex items-center gap-1.5">
+                <button onClick={() => setEditingMission(false)} disabled={savingMission} className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground hover:text-destructive transition-colors px-2 py-1 rounded-lg bg-muted">
+                  <XCircle size={10} /> {t("common.cancel")}
+                </button>
+                <button onClick={saveMissionEdit} disabled={savingMission} className="flex items-center gap-1 text-[10px] font-semibold text-primary-foreground bg-primary hover:bg-primary/90 transition-colors px-2 py-1 rounded-lg disabled:opacity-50">
+                  {savingMission ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />} {t("common.save")}
+                </button>
+              </div>
+            )}
           </div>
           {itemDetail.type === "shipment" ? (
             <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
@@ -239,6 +287,30 @@ const ChatPage = () => {
               <div className="flex items-center gap-1.5 text-muted-foreground"><Ruler size={11} /><span>{t("chat.size")} : {itemDetail.size === "S" ? t("chat.small") : itemDetail.size === "M" ? t("chat.medium") : itemDetail.size === "L" ? t("chat.large") : itemDetail.size === "XL" ? t("chat.extraLarge") : itemDetail.size}</span></div>
               <div className="flex items-center gap-1.5 text-muted-foreground"><DollarSign size={11} /><span>{isNaN(Number(itemDetail.tarif)) ? "Standard" : `${itemDetail.tarif} ${getCurrencySymbol()}`}</span></div>
               <div className="col-span-2 flex items-center gap-1.5 text-muted-foreground"><Package size={11} /><span>{itemDetail.departure_method === "main" ? t("chat.handDelivery") : itemDetail.departure_method === "relay" ? t("chat.relayPoint") : itemDetail.departure_method === "address" ? t("chat.atHome") : itemDetail.departure_method}{itemDetail.insured ? ` • ${t("chat.insured")}` : ""}{itemDetail.insured && <ShieldCheck size={10} className="inline ml-0.5 text-emerald-400" />}</span></div>
+            </div>
+          ) : editingMission ? (
+            <div className="space-y-2.5">
+              <div>
+                <label className="text-[10px] font-semibold text-muted-foreground mb-0.5 block">{t("sendColy.country")}</label>
+                <input className="w-full border border-border rounded-lg px-3 py-2 text-xs bg-background text-foreground focus:outline-none focus:border-primary" value={editFields.country} onChange={e => setEditFields(f => ({ ...f, country: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold text-muted-foreground mb-0.5 block">{t("needit.city")}</label>
+                <input className="w-full border border-border rounded-lg px-3 py-2 text-xs bg-background text-foreground focus:outline-none focus:border-primary" value={editFields.city} onChange={e => setEditFields(f => ({ ...f, city: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-semibold text-muted-foreground mb-0.5 block">{t("missions.timing")}</label>
+                  <select className="w-full border border-border rounded-lg px-3 py-2 text-xs bg-background text-foreground focus:outline-none focus:border-primary" value={editFields.timing} onChange={e => setEditFields(f => ({ ...f, timing: e.target.value }))}>
+                    <option value="asap">{t("missions.asap")}</option>
+                    <option value="scheduled">{t("missions.scheduled")}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold text-muted-foreground mb-0.5 block">{t("needit.budgetMax")}</label>
+                  <input type="number" inputMode="decimal" className="w-full border border-border rounded-lg px-3 py-2 text-xs bg-background text-foreground focus:outline-none focus:border-primary" value={editFields.prix_max} onChange={e => setEditFields(f => ({ ...f, prix_max: e.target.value }))} placeholder="—" />
+                </div>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
@@ -249,6 +321,20 @@ const ChatPage = () => {
             </div>
           )}
         </motion.div>
+      )}
+
+      {/* Post-match actions in chat */}
+      {shipmentId && shipmentStatus !== "pending" && (
+        <div className="mx-4 mt-2">
+          <PostMatchActions
+            shipmentId={shipmentId}
+            shipmentStatus={shipmentStatus}
+            senderId={isVoyageur ? otherUserId : (user?.id || "")}
+            voyageurId={isVoyageur ? (user?.id || null) : otherUserId}
+            onStatusChange={(s) => setShipmentStatus(s)}
+            compact
+          />
+        </div>
       )}
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">

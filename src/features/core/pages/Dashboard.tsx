@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import StatisticsTab from "@/features/profile/StatisticsTab";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield, Trash2 } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
@@ -22,7 +21,6 @@ import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PublicMissionsMap from "@/components/PublicMissionsMap";
 import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
-import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -278,8 +276,6 @@ const Dashboard = () => {
         toast.success(t("dashboard.acceptedShipment"));
         setPendingShipments(prev => prev.filter(s => s.id !== id));
         setAcceptDialog(null);
-        // Send email notification to owner (fire & forget)
-        supabase.functions.invoke("notify-acceptance", { body: { type: "shipment", item_id: id } }).catch(() => {});
         navigate(`/chat/${data}`);
       } else {
         const { data, error } = await supabase.rpc("accept_needit_mission", { _mission_id: id });
@@ -288,8 +284,6 @@ const Dashboard = () => {
         toast.success(t("dashboard.acceptedMission"));
         setNeeditMissions(prev => prev.filter(m => m.id !== id));
         setAcceptDialog(null);
-        // Send email notification to owner (fire & forget)
-        supabase.functions.invoke("notify-acceptance", { body: { type: "needit", item_id: id } }).catch(() => {});
         navigate(`/chat/${data}`);
       }
     } catch (err: any) {
@@ -324,6 +318,36 @@ const Dashboard = () => {
     setCancelDialog(null);
   };
 
+  // Delete dialog state
+  const [deleteDialog, setDeleteDialog] = useState<{ type: "voyage" | "shipment" | "mission"; id: string; label: string } | null>(null);
+
+  const handleDeleteItem = async () => {
+    if (!deleteDialog) return;
+    const { type, id } = deleteDialog;
+    let error: any = null;
+
+    if (type === "voyage") {
+      const res = await supabase.from("voyages").delete().eq("id", id);
+      error = res.error;
+    } else if (type === "shipment") {
+      const res = await supabase.from("shipments").delete().eq("id", id);
+      error = res.error;
+    } else if (type === "mission") {
+      const res = await supabase.from("needit_missions").delete().eq("id", id);
+      error = res.error;
+    }
+
+    if (error) {
+      toast.error(t("dashboard.deleteError"));
+    } else {
+      toast.success(t("dashboard.deletedSuccess"));
+      if (type === "shipment") setDemandeurShipments(prev => prev.filter(s => s.id !== id));
+      if (type === "mission") setDemandeurMissions(prev => prev.filter(m => m.id !== id));
+      if (type === "voyage") setVoyages(prev => prev.filter(v => v.id !== id));
+    }
+    setDeleteDialog(null);
+  };
+
   // Demandeur stats
   const [demandeurShipments, setDemandeurShipments] = useState<any[]>([]);
   const [demandeurMissions, setDemandeurMissions] = useState<any[]>([]);
@@ -332,8 +356,8 @@ const Dashboard = () => {
     if (isVoyageur || !user) return;
     const loadDemandeurData = async () => {
       const [shipRes, missRes] = await Promise.all([
-        supabase.from("shipments").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
-        supabase.from("needit_missions").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
+        supabase.from("shipments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("needit_missions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
       if (shipRes.data) setDemandeurShipments(shipRes.data);
       if (missRes.data) setDemandeurMissions(missRes.data);
@@ -352,7 +376,6 @@ const Dashboard = () => {
         .from("voyages")
         .select("*")
         .eq("user_id", user.id)
-        .neq("status", "cancelled")
         .order("departure_date", { ascending: true });
       if (data) {
         setVoyages(data);
@@ -508,7 +531,7 @@ const Dashboard = () => {
     if (!user) return;
     if (isVoyageur) {
       const [vRes, sRes, nRes] = await Promise.all([
-        supabase.from("voyages").select("*").eq("user_id", user.id).neq("status", "cancelled").order("departure_date", { ascending: true }),
+        supabase.from("voyages").select("*").eq("user_id", user.id).order("departure_date", { ascending: true }),
         supabase.rpc("get_pending_shipments"),
         supabase.rpc("get_pending_needit_missions"),
       ]);
@@ -517,8 +540,8 @@ const Dashboard = () => {
       if (nRes.data) setNeeditMissions(nRes.data);
     } else {
       const [shipRes, missRes] = await Promise.all([
-        supabase.from("shipments").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
-        supabase.from("needit_missions").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
+        supabase.from("shipments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("needit_missions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
       if (shipRes.data) setDemandeurShipments(shipRes.data);
       if (missRes.data) setDemandeurMissions(missRes.data);
@@ -612,21 +635,6 @@ const Dashboard = () => {
 
             <FavoriteRoutes t={t} />
 
-            {/* Quick action: Je transporte */}
-            <button
-              onClick={() => navigate("/transporter")}
-              className="w-full flex items-center gap-3 bg-card border border-border rounded-2xl p-3.5 hover:border-primary/30 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Calendar size={18} className="text-primary" />
-              </div>
-              <div className="flex-1 text-left">
-                <p className="text-sm font-bold text-foreground">Je transporte</p>
-                <p className="text-xs text-muted-foreground">Gérer mes disponibilités</p>
-              </div>
-              <ArrowRight size={16} className="text-muted-foreground" />
-            </button>
-
             <Tabs defaultValue="voyages" className="space-y-3">
               <TabsList className="w-full glass rounded-xl p-1 h-auto">
                 <TabsTrigger value="voyages" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all">
@@ -650,9 +658,6 @@ const Dashboard = () => {
                       {needitMissions.length}
                     </span>
                   )}
-                </TabsTrigger>
-                <TabsTrigger value="stats" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground transition-all">
-                  <BarChart3 size={13} className="mr-1" /> Stats
                 </TabsTrigger>
               </TabsList>
 
@@ -705,12 +710,21 @@ const Dashboard = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); setCancelDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
-                              className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
-                            >
-                              <X size={12} />
-                            </button>
+                            {v.status === "cancelled" ? (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setDeleteDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
+                                className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            ) : (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setCancelDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
+                                className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                              >
+                                <X size={12} />
+                              </button>
+                            )}
                             <button
                               onClick={(e) => { e.stopPropagation(); handleToggleFavorite(v.departure_city, v.arrival_city); }}
                               className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
@@ -965,11 +979,6 @@ const Dashboard = () => {
                   />
                 )}
               </TabsContent>
-
-              {/* ---- Stats tab ---- */}
-              <TabsContent value="stats" className="mt-0">
-                <StatisticsTab compact />
-              </TabsContent>
             </Tabs>
           </div>
         ) : (
@@ -1079,21 +1088,20 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <WhatsAppShareButton
-                            type="shipment"
-                            id={s.id}
-                            title={`Colis ${s.size}`}
-                            from={s.departure_city || undefined}
-                            destination={s.arrival_city}
-                            price={s.tarif}
-                            compact
-                          />
                           {s.status === "pending" && (
                             <button
                               onClick={() => setCancelDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
                               className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
                             >
                               <X size={12} />
+                            </button>
+                          )}
+                          {(s.status === "cancelled" || s.status === "delivered" || s.status === "completed") && (
+                            <button
+                              onClick={() => setDeleteDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
+                              className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                            >
+                              <Trash2 size={12} />
                             </button>
                           )}
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -1156,12 +1164,22 @@ const Dashboard = () => {
                               <Pencil size={11} />
                             </button>
                           )}
-                          <button
-                            onClick={() => setCancelDialog({ type: "mission", id: m.id, label: m.product_name || "—" })}
-                            className="w-6 h-6 rounded-full bg-muted hover:bg-destructive/20 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
-                          >
-                            <X size={11} />
-                          </button>
+                          {(m.status === "pending" || m.status === "accepted") && (
+                            <button
+                              onClick={() => setCancelDialog({ type: "mission", id: m.id, label: m.product_name || "—" })}
+                              className="w-6 h-6 rounded-full bg-muted hover:bg-destructive/20 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
+                            >
+                              <X size={11} />
+                            </button>
+                          )}
+                          {(m.status === "cancelled" || m.status === "completed") && (
+                            <button
+                              onClick={() => setDeleteDialog({ type: "mission", id: m.id, label: m.product_name || "—" })}
+                              className="w-6 h-6 rounded-full bg-muted hover:bg-destructive/20 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                          )}
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                             m.status === "pending" ? "bg-accent/15 text-accent" : "bg-muted text-muted-foreground"
                           }`}>
@@ -1339,7 +1357,29 @@ const Dashboard = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Accept Confirmation Dialog */}
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteDialog} onOpenChange={(open) => { if (!open) setDeleteDialog(null); }}>
+        <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("dashboard.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("dashboard.deleteDesc")}{" "}
+              <span className="font-semibold text-foreground">{deleteDialog?.label}</span>.
+              {" "}{t("dashboard.deleteIrreversible")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("dashboard.cancelNo")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteItem}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("dashboard.deleteYes")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={!!acceptDialog} onOpenChange={(open) => { if (!open && !accepting) setAcceptDialog(null); }}>
         <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
           <AlertDialogHeader>

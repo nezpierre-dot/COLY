@@ -2,10 +2,6 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package, Image, Ruler, CreditCard, Shield, Sparkles, Truck, AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown } from "lucide-react";
-import MatchingSuggestions from "@/features/matching/components/MatchingSuggestions";
-import WhatsAppShareButton from "@/components/WhatsAppShareButton";
-import { calculateSuggestedPrice, type PriceSuggestion } from "@/lib/priceSuggestion";
-import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -29,30 +25,6 @@ const getSizes = (country: string) => SIZES_BASE.map((s) => ({ ...s, label: form
 const TAX_ESTIMATES: Record<string, { tva: string; douane: string; total: string; note: string }> = { default: { tva: "20%", douane: "0-4.5%", total: "~3.80€ – 8.50€", note: "Estimation basée sur le tarif RITA UE" } };
 
 const ErrorHint = ({ message }: { message: string }) => <p className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1 duration-200">{message}</p>;
-
-const CityAutocomplete = ({ value, onChange, cities, placeholder, disabled, error }: { value: string; onChange: (v: string) => void; cities: string[]; placeholder: string; disabled?: boolean; error?: string }) => {
-  const matches = value.length >= 1
-    ? cities.filter(c => c.toLowerCase().includes(value.toLowerCase()) && c.toLowerCase() !== value.toLowerCase()).slice(0, 20)
-    : [];
-  return (
-    <div className="relative">
-      <Input
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className={error ? "border-destructive" : ""}
-      />
-      {matches.length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-1 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
-          {matches.map(c => (
-            <button key={c} onClick={() => onChange(c)} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors">{c}</button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 const TrustBadge = ({ variant = "inline" }: { variant?: "inline" | "card" }) => {
   const { t } = useTranslation();
@@ -224,7 +196,11 @@ const SendColy = () => {
   };
 
   const SIZES = getSizes(arrCountry);
+  const tarifBaseNum = tarif === "fixe" && tarifFixe ? parseFloat(tarifFixe) : 0;
+  const insuranceFee = insured && tarifBaseNum > 0 ? Math.round(tarifBaseNum * 0.02 * 100) / 100 : 0;
+  const tarifTotal = tarifBaseNum > 0 ? tarifBaseNum + insuranceFee : 0;
   const tarifDisplay = tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : tarif === "devis" ? "Sur devis" : "—";
+  const tarifTotalDisplay = tarif === "fixe" && tarifFixe ? `${tarifTotal.toFixed(2)} ${currencySymbol}` : tarifDisplay;
   const localeUnits = getUnitsForCountry(arrCountry);
   const sizeLabel = SIZES.find(s => s.id === size)?.label || size;
 
@@ -233,8 +209,8 @@ const SendColy = () => {
       case 1: return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
           <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Calendar size={16} className="text-primary" /> {t("sendcoly.shippingDate")}</h3><input className={inputClass("date")} type="date" value={date} onChange={(e) => { setDate(e.target.value); clearError("date"); }} />{errors.date && <ErrorHint message={errors.date} />}</div>
-          <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-primary" /> {t("sendcoly.departurePoint")}</h3><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.departureCountry")}</label><SearchableSelect value={departCountry} onChange={handleDepartCountryChange} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />{errors.departCountry && <ErrorHint message={errors.departCountry} />}</div><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.departureCity")}</label><CityAutocomplete value={departCity} onChange={(v: string) => { setDepartCity(v); clearError("departCity"); }} cities={departCities} placeholder={departCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departCountry} error={errors.departCity} />{errors.departCity && <ErrorHint message={errors.departCity} />}</div>{errors.departMethod && <ErrorHint message={errors.departMethod} />}<div className="grid grid-cols-1 gap-2">{(["main", "address", "relay"] as const).map((m) => (<button key={m} onClick={() => { setDepartMethod(m); clearError("departMethod"); }} className={`text-left px-4 py-3 rounded-xl border transition-all text-sm ${departMethod === m ? "border-primary bg-primary/5 text-foreground" : "border-border bg-background text-muted-foreground hover:border-primary/40"}`}>{DEPART_LABELS[m]}</button>))}</div>{departMethod === "address" && (<div><input className={inputClass("departAddress")} placeholder={t("trip.departAddress")} value={departCity} onChange={(e) => { setDepartCity(e.target.value); clearError("departCity"); }} /></div>)}{departMethod === "relay" && (<div className="space-y-2"><Select value={relayPoint} onValueChange={(v) => { setRelayPoint(v); clearError("relayPoint"); }}><SelectTrigger className={`rounded-xl ${errors.relayPoint ? "border-destructive" : ""}`}><SelectValue placeholder={t("coly.relayPoint")} /></SelectTrigger><SelectContent><SelectItem value="relay1">Point Relais Centre — 2.3km</SelectItem><SelectItem value="relay2">Point Relais Gare — 3.1km</SelectItem></SelectContent></Select>{errors.relayPoint && <ErrorHint message={errors.relayPoint} />}</div>)}</div>
-          <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-accent" /> {t("sendcoly.destinationContact")}</h3><div className="space-y-2"><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.country")}</label><SearchableSelect value={arrCountry} onChange={handleArrCountryChange} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />{errors.arrCountry && <ErrorHint message={errors.arrCountry} />}</div><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.city")}</label><CityAutocomplete value={arrCity} onChange={(v: string) => { setArrCity(v); clearError("arrCity"); }} cities={arrCities} placeholder={t("trip.selectCity")} disabled={!arrCountry} error={errors.arrCity} />{errors.arrCity && <ErrorHint message={errors.arrCity} />}</div></div>{isInternational && (<div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3 animate-in fade-in duration-300"><Globe size={14} className="text-primary shrink-0 mt-0.5" /><div className="flex-1"><p className="text-xs text-foreground font-medium">{t("sendcoly.internationalDetected")}</p><p className="text-xs text-muted-foreground mt-0.5">{t("sendcoly.customsMayApply")}</p></div><TrustBadge /></div>)}<div className="grid grid-cols-2 gap-2"><div><input className={inputClass("contactNom")} placeholder={t("common.name")} value={contactNom} onChange={(e) => { setContactNom(e.target.value); clearError("contactNom"); }} />{errors.contactNom && <ErrorHint message={errors.contactNom} />}</div><div><input className={inputClass("contactPrenom")} placeholder={t("common.firstName")} value={contactPrenom} onChange={(e) => { setContactPrenom(e.target.value); clearError("contactPrenom"); }} />{errors.contactPrenom && <ErrorHint message={errors.contactPrenom} />}</div></div><div><input className={inputClass("contactTel")} placeholder={t("common.phone")} value={contactTel} onChange={(e) => { setContactTel(e.target.value); clearError("contactTel"); }} />{errors.contactTel && <ErrorHint message={errors.contactTel} />}</div><div><input className={inputClass("contactMail")} placeholder={t("sendcoly.emailOptional")} value={contactMail} onChange={(e) => { setContactMail(e.target.value); clearError("contactMail"); }} />{errors.contactMail && <ErrorHint message={errors.contactMail} />}</div></div>
+          <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-primary" /> {t("sendcoly.departurePoint")}</h3><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.departureCountry")}</label><SearchableSelect value={departCountry} onChange={handleDepartCountryChange} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />{errors.departCountry && <ErrorHint message={errors.departCountry} />}</div><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.departureCity")}</label><SearchableSelect value={departCity} onChange={(v: string) => { setDepartCity(v); clearError("departCity"); }} options={departCities} placeholder={departCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departCountry} recentItems={recentCities} />{errors.departCity && <ErrorHint message={errors.departCity} />}</div>{errors.departMethod && <ErrorHint message={errors.departMethod} />}<div className="grid grid-cols-1 gap-2">{(["main", "address"] as const).map((m) => (<button key={m} onClick={() => { setDepartMethod(m); clearError("departMethod"); }} className={`text-left px-4 py-3 rounded-xl border transition-all text-sm ${departMethod === m ? "border-primary bg-primary/5 text-foreground" : "border-border bg-background text-muted-foreground hover:border-primary/40"}`}>{DEPART_LABELS[m]}</button>))}</div>{departMethod === "address" && (<div><input className={inputClass("departAddress")} placeholder={t("trip.departAddress")} value={departCity} onChange={(e) => { setDepartCity(e.target.value); clearError("departCity"); }} /></div>)}</div>
+          <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-accent" /> {t("sendcoly.destinationContact")}</h3><div className="space-y-2"><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.country")}</label><SearchableSelect value={arrCountry} onChange={handleArrCountryChange} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />{errors.arrCountry && <ErrorHint message={errors.arrCountry} />}</div><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.city")}</label><SearchableSelect value={arrCity} onChange={(v: string) => { setArrCity(v); clearError("arrCity"); }} options={arrCities} placeholder={t("trip.selectCity")} disabled={!arrCountry} recentItems={recentCities} />{errors.arrCity && <ErrorHint message={errors.arrCity} />}</div></div>{isInternational && (<div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3 animate-in fade-in duration-300"><Globe size={14} className="text-primary shrink-0 mt-0.5" /><div className="flex-1"><p className="text-xs text-foreground font-medium">{t("sendcoly.internationalDetected")}</p><p className="text-xs text-muted-foreground mt-0.5">{t("sendcoly.customsMayApply")}</p></div><TrustBadge /></div>)}<div className="grid grid-cols-2 gap-2"><div><input className={inputClass("contactNom")} placeholder={t("common.name")} value={contactNom} onChange={(e) => { setContactNom(e.target.value); clearError("contactNom"); }} />{errors.contactNom && <ErrorHint message={errors.contactNom} />}</div><div><input className={inputClass("contactPrenom")} placeholder={t("common.firstName")} value={contactPrenom} onChange={(e) => { setContactPrenom(e.target.value); clearError("contactPrenom"); }} />{errors.contactPrenom && <ErrorHint message={errors.contactPrenom} />}</div></div><div><input className={inputClass("contactTel")} placeholder={t("common.phone")} value={contactTel} onChange={(e) => { setContactTel(e.target.value); clearError("contactTel"); }} />{errors.contactTel && <ErrorHint message={errors.contactTel} />}</div><div><input className={inputClass("contactMail")} placeholder={t("sendcoly.emailOptional")} value={contactMail} onChange={(e) => { setContactMail(e.target.value); clearError("contactMail"); }} />{errors.contactMail && <ErrorHint message={errors.contactMail} />}</div></div>
           {/* Pickup address fields */}
           <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-primary" /> Récupération du colis</h3>
@@ -264,78 +240,6 @@ const SendColy = () => {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><CreditCard size={16} className="text-primary" /> {t("sendcoly.chooseTariff")}</h3>
             {errors.tarif && <ErrorHint message={errors.tarif} />}
-
-            {/* Suggested price card */}
-            {(() => {
-              const suggestion = calculateSuggestedPrice({
-                departCountry,
-                departCity,
-                arrCountry,
-                arrCity,
-                size,
-                departureDate: date,
-                isInternational,
-              });
-              return (
-                <div className="bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/15 rounded-2xl p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={14} className="text-accent" />
-                    <span className="text-xs font-semibold text-accent">Prix suggéré par Nidit AI</span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-foreground">
-                      {tarif === "fixe" && tarifFixe ? tarifFixe : suggestion.price}
-                    </span>
-                    <span className="text-lg font-medium text-muted-foreground">{currencySymbol}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>📍 ~{suggestion.distanceKm.toLocaleString()} km</span>
-                    <span>⚖️ {size}</span>
-                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      suggestion.urgencyLabel === "Très urgent" ? "bg-destructive/15 text-destructive" :
-                      suggestion.urgencyLabel === "Urgent" ? "bg-amber-500/15 text-amber-600" :
-                      "bg-muted text-muted-foreground"
-                    }`}>
-                      {suggestion.urgencyLabel}
-                    </span>
-                  </div>
-
-                  {/* Slider */}
-                  <div className="pt-2">
-                    <Slider
-                      min={suggestion.min}
-                      max={suggestion.max}
-                      step={0.5}
-                      value={[tarif === "fixe" && tarifFixe ? Number(tarifFixe) : suggestion.price]}
-                      onValueChange={([val]) => {
-                        setTarif("fixe");
-                        setTarifFixe(String(val));
-                        clearError("tarif");
-                        clearError("tarifFixe");
-                      }}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-                      <span>{suggestion.min} {currencySymbol}</span>
-                      <span>{suggestion.max} {currencySymbol}</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setTarif("fixe");
-                      setTarifFixe(String(suggestion.price));
-                      clearError("tarif");
-                      clearError("tarifFixe");
-                    }}
-                    className="text-xs text-primary font-semibold hover:underline"
-                  >
-                    Appliquer le prix suggéré ({suggestion.price} {currencySymbol})
-                  </button>
-                </div>
-              );
-            })()}
-
             <div className="space-y-2">
               <button onClick={() => { setTarif("fixe"); clearError("tarif"); }} className={`w-full text-left px-4 py-4 rounded-xl border transition-all ${tarif === "fixe" ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"}`}>
                 <div className="flex items-center gap-3">
@@ -374,7 +278,7 @@ const SendColy = () => {
             </div>
           </div>
           {isInternational && (<button onClick={() => setShowCustomsDialog(true)} className="w-full flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl px-4 py-3 text-left transition-colors hover:bg-primary/10"><Globe size={16} className="text-primary shrink-0" /><div className="flex-1"><p className="text-xs font-semibold text-foreground">{t("sendcoly.taxesEstimated")} : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p><p className="text-xs text-muted-foreground">{t("coly.aiEstimate")} — {t("common.seeAll")}</p></div></button>)}
-          <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Shield size={16} className="text-primary" /> {t("sendcoly.insuranceAxa")} <TrustBadge /></h3><p className="text-xs text-muted-foreground">{t("sendcoly.protectParcel")}</p><div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3"><Info size={14} className="text-primary shrink-0 mt-0.5" /><div className="text-xs text-foreground"><p className="font-medium">{t("sendcoly.optionalFee")}</p></div></div>{errors.insured && <ErrorHint message={errors.insured} />}<div className="grid grid-cols-2 gap-3"><button onClick={() => { setInsured(true); clearError("insured"); }} className={`py-3 rounded-xl border font-medium transition-all text-sm ${insured === true ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}><ShieldCheck size={14} className="inline mr-1" /> {t("sendcoly.yesInsure")}</button><button onClick={() => { setInsured(false); clearError("insured"); }} className={`py-3 rounded-xl border font-medium transition-all text-sm ${insured === false ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}>{t("sendcoly.noThanks")}</button></div>{insured === true && <p className="text-xs text-primary font-medium animate-in fade-in duration-200">{t("sendcoly.coveredByAxa")}</p>}</div>
+          <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Shield size={16} className="text-primary" /> {t("sendcoly.insuranceAxa")} <TrustBadge /></h3><p className="text-xs text-muted-foreground">{t("sendcoly.protectParcel")}</p><div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3"><Info size={14} className="text-primary shrink-0 mt-0.5" /><div className="text-xs text-foreground"><p className="font-medium">{t("sendcoly.optionalFee")}</p></div></div>{errors.insured && <ErrorHint message={errors.insured} />}<div className="grid grid-cols-2 gap-3"><button onClick={() => { setInsured(true); clearError("insured"); }} className={`py-3 rounded-xl border font-medium transition-all text-sm ${insured === true ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}><ShieldCheck size={14} className="inline mr-1" /> {t("sendcoly.yesInsure")}</button><button onClick={() => { setInsured(false); clearError("insured"); }} className={`py-3 rounded-xl border font-medium transition-all text-sm ${insured === false ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}>{t("sendcoly.noThanks")}</button></div>{insured === true && <p className="text-xs text-primary font-medium animate-in fade-in duration-200">{t("sendcoly.coveredByAxa")}{insuranceFee > 0 && ` — ${t("sendcoly.insuranceFeePreview")} : +${insuranceFee.toFixed(2)} ${currencySymbol}`}</p>}</div>
         </div>
       );
       case 4: {
@@ -387,20 +291,21 @@ const SendColy = () => {
             <SummaryRow icon={MapPin} label={t("dashboard.arrival")} value={`${arrCity}, ${arrCountry}`} detail={`${contactPrenom} ${contactNom} — ${contactTel}`} onEdit={() => setStep(1)} badge={isInternational ? "international" : undefined} />
             <SummaryRow icon={Package} label={t("coly.parcel")} value={sizeObj?.label || size} detail={photo ? t("sendcoly.photoAdded") : t("sendcoly.noPhoto")} onEdit={() => setStep(2)} />
             <SummaryRow icon={CreditCard} label={t("coly.rate")} value={tarifDisplay} onEdit={() => setStep(3)} />
+            {insured && insuranceFee > 0 && (
+              <div className="ml-8 -mt-2 mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><Shield size={10} className="text-primary" /> {t("sendcoly.insuranceAxa")} (2%)</span>
+                <span className="text-destructive font-medium">+{insuranceFee.toFixed(2)} {currencySymbol}</span>
+              </div>
+            )}
+            {insured && tarifTotal > 0 && (
+              <div className="ml-8 -mt-1 mb-1 flex items-center justify-between text-xs font-semibold text-foreground border-t border-border/50 pt-1">
+                <span>{t("sendcoly.totalWithInsurance")}</span>
+                <span>{tarifTotalDisplay}</span>
+              </div>
+            )}
             <SummaryRow icon={Shield} label={t("tracking.insurance")} value={insured ? `Oui — AXA` : "Non"} onEdit={() => setStep(3)} badge={insured ? "axa" : undefined} />
             {isInternational && (<button onClick={() => setShowCustomsDialog(true)} className="w-full flex items-center gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-left"><Globe size={14} className="text-amber-600 dark:text-amber-400 shrink-0" /><div className="flex-1"><p className="text-xs font-semibold text-amber-700 dark:text-amber-300">{t("sendcoly.taxesEstimated")} : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p></div></button>)}
             <TrustBadge variant="card" />
-
-            {/* Matching voyageurs */}
-            <div className="border-t border-border pt-4 mt-2">
-              <MatchingSuggestions
-                destinationCountry={arrCountry}
-                destinationCity={arrCity}
-                departureDate={date}
-                estimatedWeightKg={{ S: 1, M: 3, L: 5, XL: 7, XXL: 10 }[size] || 3}
-                compact
-              />
-            </div>
           </div>
         );
       }
@@ -436,39 +341,14 @@ const SendColy = () => {
       <BottomNav />
 
       {createdReminderInfo && (
-        <>
-          <ReminderDialog
-            info={createdReminderInfo}
-            open={showReminderPrompt}
-            onOpenChange={(open) => {
-              setShowReminderPrompt(open);
-              if (!open) navigate("/dashboard");
-            }}
-          />
-          {!showReminderPrompt && (
-            <div className="fixed inset-0 z-50 bg-background/80 flex items-center justify-center p-6">
-              <div className="bg-card border border-border rounded-2xl p-6 max-w-sm w-full space-y-4 text-center">
-                <p className="text-lg font-bold text-foreground">🎉 Mission créée !</p>
-                <p className="text-sm text-muted-foreground">Partagez votre mission sur WhatsApp pour trouver un voyageur plus rapidement.</p>
-                <WhatsAppShareButton
-                  type="shipment"
-                  id={createdReminderInfo.itemId}
-                  title={`Colis ${size}`}
-                  from={createdReminderInfo.departureCity}
-                  destination={createdReminderInfo.arrivalCity}
-                  price={tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : "Sur devis"}
-                  variant="full"
-                />
-                <button
-                  onClick={() => navigate("/dashboard")}
-                  className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Passer →
-                </button>
-              </div>
-            </div>
-          )}
-        </>
+        <ReminderDialog
+          info={createdReminderInfo}
+          open={showReminderPrompt}
+          onOpenChange={(open) => {
+            setShowReminderPrompt(open);
+            if (!open) navigate("/dashboard");
+          }}
+        />
       )}
 
       <Dialog open={showCustomsWarning} onOpenChange={() => {}}>
