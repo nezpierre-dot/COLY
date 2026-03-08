@@ -45,6 +45,7 @@ const FaqPage = lazy(() => import("./features/support/pages/FaqPage"));
 const AidePage = lazy(() => import("./features/support/pages/AidePage"));
 const NotFound = lazy(() => import("./features/core/pages/NotFound"));
 const VoyageDetail = lazy(() => import("./features/voyage/pages/VoyageDetail"));
+const TransporterPage = lazy(() => import("./features/voyage/pages/TransporterPage"));
 const ShipmentDetail = lazy(() => import("./features/shipment/pages/ShipmentDetail"));
 const NeeditMissionDetail = lazy(() => import("./features/needit/pages/NeeditMissionDetail"));
 const FavoritesPage = lazy(() => import("./features/core/pages/FavoritesPage"));
