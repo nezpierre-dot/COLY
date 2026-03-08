@@ -355,6 +355,18 @@ const ShipmentTracking = () => {
             </motion.div>
           )}
 
+          {/* Live tracking button */}
+          {shipment.voyageur_id && shipment.status !== "delivered" && shipment.status !== "cancelled" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <button
+                onClick={() => navigate(`/live-tracking/${shipment.id}`)}
+                className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <MapPin size={16} /> Suivre en direct sur la carte
+              </button>
+            </motion.div>
+          )}
+
           {/* Timeline */}
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("tracking.timeline")}</h3>

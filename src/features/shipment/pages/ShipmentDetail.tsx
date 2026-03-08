@@ -290,6 +290,16 @@ const ShipmentDetail = () => {
             </button>
           )}
 
+          {/* Live tracking link */}
+          {shipment.voyageur_id && shipment.status !== "pending" && shipment.status !== "cancelled" && shipment.status !== "delivered" && (
+            <button
+              onClick={() => navigate(`/live-tracking/${shipment.id}`)}
+              className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2"
+            >
+              <MapPin size={16} /> Suivre en direct
+            </button>
+          )}
+
           {/* Tracking link */}
           {shipment.status !== "pending" && shipment.status !== "cancelled" && (
             <button
