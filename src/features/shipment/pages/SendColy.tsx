@@ -87,6 +87,8 @@ const SendColy = () => {
   const [arrCities, setArrCities] = useState<string[]>([]);
   const [photo, setPhoto] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupAccessCode, setPickupAccessCode] = useState("");
   const [size, setSize] = useState("S");
   const [tarif, setTarif] = useState<string>("");
   const [insured, setInsured] = useState<boolean | null>(null);
