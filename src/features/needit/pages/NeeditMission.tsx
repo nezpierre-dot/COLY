@@ -168,7 +168,13 @@ const NeeditMission = () => {
 
   const handleNext = async () => {
     if (step === 1 && validateStep1()) setStep(2);
-    else if (step === 2 && validateStep2()) setStep(3);
+    else if (step === 2 && validateStep2()) {
+      if (!customsAccepted) {
+        setShowCustomsWarning(true);
+        return;
+      }
+      setStep(3);
+    }
     else if (step === 3) setStep(4);
     else if (step === 4) {
       if (!prixMax.trim()) { setErrors({ prixMax: t("needit.budgetRequired") }); toast.error(t("needit.budgetRequired")); return; }
