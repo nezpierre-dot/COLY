@@ -105,19 +105,27 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
     if (!user) return { totalMissions: 0, totalGains: 0, totalExpenses: 0, totalDistance: 0, deliveredCount: 0 };
 
     const myShipAsVoyageur = shipments.filter(s => s.voyageur_id === user.id && s.status === "delivered");
-    const myMissAsVoyageur = missions.filter(m => m.voyageur_id === user.id && (m.status === "completed" || m.status === "delivered"));
+    const myMissAsVoyageur = missions.filter(m => m.voyageur_id === user.id && (m.status === "completed"));
 
-    const gains = [...myShipAsVoyageur, ...myMissAsVoyageur].reduce((sum, item) => {
-      const raw = parseFloat((item.tarif || item.prix_max || "0").replace(/[^0-9.,]/g, "").replace(",", "."));
+    const voyGains = myShipAsVoyageur.reduce((sum, s) => {
+      const raw = parseFloat((s.tarif || "0").replace(/[^0-9.,]/g, "").replace(",", "."));
       return sum + (isNaN(raw) ? 0 : raw * (1 - PLATFORM_RATE));
     }, 0);
+    const missGains = myMissAsVoyageur.reduce((sum, m) => {
+      const raw = parseFloat((m.prix_max || "0").replace(/[^0-9.,]/g, "").replace(",", "."));
+      return sum + (isNaN(raw) ? 0 : raw * (1 - PLATFORM_RATE));
+    }, 0);
+    const gains = voyGains + missGains;
 
-    const myShipAsDemandeur = shipments.filter(s => s.user_id === user.id);
-    const myMissAsDemandeur = missions.filter(m => m.user_id === user.id);
-    const expenses = [...myShipAsDemandeur, ...myMissAsDemandeur].reduce((sum, item) => {
-      const raw = parseFloat((item.tarif || item.prix_max || "0").replace(/[^0-9.,]/g, "").replace(",", "."));
+    const demShipExpenses = shipments.filter(s => s.user_id === user.id).reduce((sum, s) => {
+      const raw = parseFloat((s.tarif || "0").replace(/[^0-9.,]/g, "").replace(",", "."));
       return sum + (isNaN(raw) ? 0 : raw);
     }, 0);
+    const demMissExpenses = missions.filter(m => m.user_id === user.id).reduce((sum, m) => {
+      const raw = parseFloat((m.prix_max || "0").replace(/[^0-9.,]/g, "").replace(",", "."));
+      return sum + (isNaN(raw) ? 0 : raw);
+    }, 0);
+    const expenses = demShipExpenses + demMissExpenses;
 
     // Distance estimation from voyages
     const totalDistance = voyages.reduce((sum, v) => {
