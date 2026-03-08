@@ -1116,8 +1116,17 @@ const Dashboard = () => {
                         </div>
                       </div>
                       {s.status === "pending" && (
-                        <div className="relative z-10 mt-2">
+                        <div className="relative z-10 mt-2 space-y-2">
                           <VoyageurAvailability country={s.arrival_country} city={s.arrival_city} variant="full" />
+                          <MatchingSuggestions
+                            destinationCountry={s.arrival_country}
+                            destinationCity={s.arrival_city}
+                            departureDate={s.departure_date}
+                            estimatedWeightKg={
+                              s.size === "S" ? 1 : s.size === "M" ? 3 : s.size === "L" ? 5 : s.size === "XL" ? 7 : s.size === "XXL" ? 10 : undefined
+                            }
+                            compact
+                          />
                         </div>
                       )}
                     </div>
