@@ -177,6 +177,12 @@ const NeeditMissionDetail = () => {
 
   const handleDeliveryConfirmed = () => {
     setMission((prev: any) => ({ ...prev, status: "in_transit" }));
+    // Notify owner by email
+    if (id) {
+      supabase.functions.invoke("notify-status-change", {
+        body: { item_id: id, item_type: "needit_mission", new_status: "in_transit" },
+      }).catch(() => {});
+    }
   };
 
   const handleCodeConfirmed = () => {
