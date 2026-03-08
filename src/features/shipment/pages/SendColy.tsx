@@ -137,6 +137,7 @@ const SendColy = () => {
         if (!contactNom.trim()) e.contactNom = t("coly.nameReq"); if (!contactPrenom.trim()) e.contactPrenom = t("coly.firstNameReq");
         if (!contactTel.trim()) e.contactTel = t("coly.phoneReq"); else if (!/^[\d\s+()-]{6,20}$/.test(contactTel.trim())) e.contactTel = t("sendcoly.invalidNumber");
         if (contactMail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactMail.trim())) e.contactMail = t("sendcoly.invalidEmail");
+        if (!pickupAddress.trim()) e.pickupAddress = "Adresse de récupération obligatoire";
         break;
       case 2: if (!photo) e.photo = t("sendcoly.takePhoto"); break;
       case 3: if (!tarif) e.tarif = t("sendcoly.chooseTariffReq"); if (insured === null) e.insured = t("sendcoly.chooseInsurance"); break;
