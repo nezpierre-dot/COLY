@@ -231,6 +231,16 @@ const NeeditMission = () => {
         {loadingEdit ? <div className="flex justify-center py-12"><Loader2 size={32} className="animate-spin text-primary" /></div> : (
           <>
             <h2 className="text-2xl font-bold text-foreground text-center mb-6">{stepTitle()}</h2>
+            <AnimatePresence mode="wait" custom={direction}>
+              <motion.div
+                key={step}
+                custom={direction}
+                variants={stepVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+              >
             {step === 1 && (
               <>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.fromWhere")}</h3>
