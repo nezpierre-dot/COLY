@@ -124,6 +124,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="analytics" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><BarChart3 size={13} className="mr-1" /> {t("admin.analytics")}</TabsTrigger>
             <TabsTrigger value="shipments" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Package size={13} className="mr-1" /> {t("admin.parcels")}</TabsTrigger>
             <TabsTrigger value="users" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Users size={13} className="mr-1" /> {t("admin.users")}</TabsTrigger>
+            <TabsTrigger value="disputes" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-warning data-[state=active]:text-warning-foreground"><Gavel size={13} className="mr-1" /> Litiges {disputes.filter(d => d.status === 'open').length > 0 && <span className="ml-1 w-5 h-5 rounded-full bg-accent text-accent-foreground text-xs flex items-center justify-center">{disputes.filter(d => d.status === 'open').length}</span>}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-6 mt-0">
