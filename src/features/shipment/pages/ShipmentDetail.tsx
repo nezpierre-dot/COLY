@@ -207,8 +207,15 @@ const ShipmentDetail = () => {
                   <p className="text-xs font-semibold text-muted-foreground mb-2">{t("sendcoly.destinationContact")}</p>
                   <InfoRow icon={<User size={14} />} label={t("common.name")} value={`${shipment.contact_prenom} ${shipment.contact_nom}`} />
                   <InfoRow icon={<Phone size={14} />} label={t("common.phone")} value={shipment.contact_tel} />
-                  {shipment.contact_email && <InfoRow icon={<Mail size={14} />} label="Email" value={shipment.contact_email} />}
+                {shipment.contact_email && <InfoRow icon={<Mail size={14} />} label="Email" value={shipment.contact_email} />}
                 </div>
+                {(shipment.pickup_address || shipment.pickup_access_code) && (
+                  <div className="border-t border-border pt-3 mt-3">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">📍 Récupération</p>
+                    {shipment.pickup_address && <InfoRow icon={<MapPin size={14} />} label="Adresse" value={shipment.pickup_address} />}
+                    {shipment.pickup_access_code && <InfoRow icon={<span className="text-xs">🔑</span>} label="Code d'accès" value={shipment.pickup_access_code} />}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
