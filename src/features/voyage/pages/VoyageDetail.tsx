@@ -243,6 +243,23 @@ const VoyageDetail = () => {
 
   const locked24h = isWithin24h();
   const canEdit = isOwner && isActive && !hasAcceptedShipments && !locked24h;
+  const canEditCapacity = isOwner && isActive;
+
+  const handleSaveCapacity = async (field: "max_weight_kg" | "capacity_volume_liters") => {
+    if (!id) return;
+    setSavingCapacity(true);
+    const value = field === "max_weight_kg" ? parseFloat(editMaxWeight) : parseFloat(editVolume);
+    const { error } = await supabase.from("voyages").update({ [field]: isNaN(value) ? null : value }).eq("id", id);
+    setSavingCapacity(false);
+    if (error) {
+      toast.error(t("common.error"));
+    } else {
+      toast.success(t("common.saved"));
+      if (field === "max_weight_kg") setEditingWeight(false);
+      else setEditingVolume(false);
+      loadVoyage();
+    }
+  };
 
   const handleSave = async () => {
     if (!id) return;
