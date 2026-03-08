@@ -290,7 +290,20 @@ const NeeditMission = () => {
               </>
             )}
             {step === 2 && isUnlisted && (
-              <div className="space-y-4 mb-6"><p className="text-muted-foreground">{t("needit.describeSearch")}</p><Input placeholder={t("needit.productName")} value={unlistedName} onChange={(e) => setUnlistedName(e.target.value)} /></div>
+              <div className="space-y-4 mb-6">
+                <p className="text-muted-foreground">{t("needit.describeSearch")}</p>
+                <div>
+                  <Textarea
+                    placeholder="Ex : 2 cartouches cigarettes Marlboro, poids 2kg, emballage renforcé"
+                    value={unlistedName}
+                    onChange={(e) => setUnlistedName(e.target.value)}
+                    rows={4}
+                    className="resize-none"
+                  />
+                  {!unlistedName.trim() && <p className="text-xs text-destructive mt-1">Ce champ est obligatoire</p>}
+                </div>
+              </div>
+            )}
             )}
             {step === 3 && (
               <div className="flex flex-col items-center gap-6 mb-8">
