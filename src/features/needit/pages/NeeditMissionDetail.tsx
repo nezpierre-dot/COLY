@@ -188,6 +188,10 @@ const NeeditMissionDetail = () => {
     if (!id) return;
     await supabase.from("needit_missions").update({ status: "in_transit" } as any).eq("id", id);
     setMission((prev: any) => ({ ...prev, status: "in_transit" }));
+    // Notify owner by email
+    supabase.functions.invoke("notify-status-change", {
+      body: { item_id: id, item_type: "needit_mission", new_status: "in_transit" },
+    }).catch(() => {});
     toast.success("Statut mis à jour : en transit");
   };
 
