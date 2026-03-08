@@ -97,6 +97,8 @@ const SendColy = () => {
   const [aiLoaded, setAiLoaded] = useState(false);
   const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
   const [showReminderPrompt, setShowReminderPrompt] = useState(false);
+  const [showCustomsWarning, setShowCustomsWarning] = useState(false);
+  const [customsWarningAccepted, setCustomsWarningAccepted] = useState(false);
 
   const STEP_TITLES = [t("coly.route"), t("coly.parcel"), t("coly.rate"), t("coly.recap")];
   const DEPART_LABELS: Record<string, string> = { main: t("coly.handDelivery"), address: t("coly.pickupAddress"), relay: t("coly.relayPoint") };
@@ -174,7 +176,14 @@ const SendColy = () => {
     } catch (err: any) { toast.error(t("sendcoly.createError") + ": " + err.message); } finally { setSubmitting(false); }
   };
 
-  const handleNext = () => { if (!validateStep()) return; if (step < totalSteps) setStep(step + 1); else submitShipment(); };
+  const handleNext = () => {
+    if (!validateStep()) return;
+    if (step === 1 && !customsWarningAccepted) {
+      setShowCustomsWarning(true);
+      return;
+    }
+    if (step < totalSteps) setStep(step + 1); else submitShipment();
+  };
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -274,6 +283,25 @@ const SendColy = () => {
           }}
         />
       )}
+
+      <Dialog open={showCustomsWarning} onOpenChange={() => {}}>
+        <DialogContent className="max-w-sm mx-auto rounded-2xl [&>button]:hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-foreground">
+              <AlertTriangle size={20} className="text-amber-500" /> ⚠️ Informations douanières
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground pt-2 leading-relaxed">
+              Selon la destination, certains produits sont limités ou interdits (cigarettes max 200 unités hors UE, alcool, parfums, etc.). Vérifiez les quotas douaniers avant d'envoyer.
+            </DialogDescription>
+          </DialogHeader>
+          <button
+            onClick={() => { setCustomsWarningAccepted(true); setShowCustomsWarning(false); setStep(2); }}
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm mt-2"
+          >
+            J'ai compris et je continue
+          </button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
