@@ -315,6 +315,17 @@ const SendColy = () => {
             <SummaryRow icon={Shield} label={t("tracking.insurance")} value={insured ? `Oui — AXA` : "Non"} onEdit={() => setStep(3)} badge={insured ? "axa" : undefined} />
             {isInternational && (<button onClick={() => setShowCustomsDialog(true)} className="w-full flex items-center gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-left"><Globe size={14} className="text-amber-600 dark:text-amber-400 shrink-0" /><div className="flex-1"><p className="text-xs font-semibold text-amber-700 dark:text-amber-300">{t("sendcoly.taxesEstimated")} : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p></div></button>)}
             <TrustBadge variant="card" />
+
+            {/* Matching voyageurs */}
+            <div className="border-t border-border pt-4 mt-2">
+              <MatchingSuggestions
+                destinationCountry={arrCountry}
+                destinationCity={arrCity}
+                departureDate={date}
+                estimatedWeightKg={{ S: 1, M: 3, L: 5, XL: 7, XXL: 10 }[size] || 3}
+                compact
+              />
+            </div>
           </div>
         );
       }
