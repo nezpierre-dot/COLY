@@ -587,6 +587,18 @@ const NeeditMissionDetail = () => {
             </div>
           )}
 
+          {/* Live tracking button for accepted missions */}
+          {isAccepted && mission.status !== "cancelled" && mission.status !== "completed" && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <button
+                onClick={() => navigate(`/live-tracking/${mission.id}`)}
+                className="w-full py-3.5 rounded-2xl bg-green-600 text-white font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <MapPin size={16} /> Suivi en direct
+              </button>
+            </motion.div>
+          )}
+
           {/* Cancel button for owner when mission is accepted (voyageur assigned) */}
           {isOwner && isAccepted && mission.status !== "cancelled" && mission.status !== "completed" && !canEdit && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
