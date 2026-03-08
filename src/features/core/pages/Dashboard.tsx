@@ -23,6 +23,8 @@ import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
 import MatchingSuggestions from "@/features/matching/components/MatchingSuggestions";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
+import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
@@ -745,6 +747,10 @@ const Dashboard = () => {
                   className="w-full py-3.5 rounded-2xl border-2 border-dashed border-primary/30 bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-md">
                   <Plus size={22} /> {t("dashboard.addTrip")}
                 </button>
+                <button onClick={() => navigate("/transporter")}
+                  className="w-full py-3 rounded-2xl border border-accent/30 bg-accent/10 text-accent font-bold text-sm flex items-center justify-center gap-2 hover:bg-accent/20 transition-colors">
+                  <Calendar size={18} /> Mes disponibilités
+                </button>
               </TabsContent>
 
               {/* ---- Colis tab ---- */}
@@ -1127,6 +1133,15 @@ const Dashboard = () => {
                             }
                             compact
                           />
+                          <WhatsAppShareButton
+                            type="shipment"
+                            id={s.id}
+                            title={`Colis ${s.size}`}
+                            from={s.departure_city}
+                            destination={`${s.arrival_city}, ${s.arrival_country}`}
+                            price={s.tarif}
+                            variant="full"
+                          />
                         </div>
                       )}
                     </div>
@@ -1204,8 +1219,16 @@ const Dashboard = () => {
                         {m.prix_max && <span className="font-medium text-foreground">{m.prix_max}</span>}
                       </div>
                       {m.status === "pending" && (
-                        <div className="mt-1.5">
+                        <div className="mt-1.5 space-y-2">
                           <VoyageurAvailability country={m.country} city={m.city} variant="compact" />
+                          <WhatsAppShareButton
+                            type="needit"
+                            id={m.id}
+                            title={m.product_name || "Mission NeedIt"}
+                            destination={`${m.country}${m.city ? `, ${m.city}` : ""}`}
+                            price={m.prix_max}
+                            compact
+                          />
                         </div>
                       )}
                     </div>

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins, Globe, Rocket, ShoppingCart, Trophy, Wallet, BarChart3 } from "lucide-react";
+import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins, Globe, Rocket, ShoppingCart, Trophy, Wallet, BarChart3, Gift } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
+import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
+import ReferralSection from "@/components/ReferralSection";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,11 +46,15 @@ const MyAccount = () => {
   const [kycStatus, setKycStatus] = useState("pending");
   const [totalEarned, setTotalEarned] = useState(0);
   const [activityDates, setActivityDates] = useState<string[]>([]);
+  const [trustBadges, setTrustBadges] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) return;
     supabase.rpc("get_user_rating", { _user_id: user.id }).then(({ data }) => {
       if (data && data.length > 0 && data[0].total_ratings > 0) setRating(data[0]);
+    });
+    supabase.rpc("compute_trust_badges", { _user_id: user.id }).then(({ data }) => {
+      if (data) setTrustBadges(data);
     });
     supabase.from("profiles").select("bio, avatar_url, kyc_status").eq("user_id", user.id).single().then(({ data }) => {
       if (data) {
@@ -456,6 +462,22 @@ const MyAccount = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Trust Badges (from Supabase compute) */}
+        {trustBadges.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Shield size={14} className="text-primary" />
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Badges de confiance</h3>
+            </div>
+            <TrustBadgesDisplay badges={trustBadges} />
+          </div>
+        )}
+
+        {/* Referral Section */}
+        <div className="mb-6">
+          <ReferralSection />
         </div>
 
         {/* FAQ / Help */}
