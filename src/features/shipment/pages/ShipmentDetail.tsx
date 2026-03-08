@@ -244,6 +244,17 @@ const ShipmentDetail = () => {
                     <Input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
                   </div>
                 </div>
+                <div className="border-t border-border pt-3 mt-3">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">📍 Récupération</p>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Adresse complète de récupération</Label>
+                    <Input value={pickupAddress} onChange={(e) => setPickupAddress(e.target.value)} placeholder="Ex : 12 rue de la Paix, 75002 Paris" />
+                  </div>
+                  <div className="mt-2">
+                    <Label className="text-xs text-muted-foreground">Code d'accès / étage / interphone</Label>
+                    <Input value={pickupAccessCode} onChange={(e) => setPickupAccessCode(e.target.value)} placeholder="Optionnel" />
+                  </div>
+                </div>
               </div>
             )}
           </div>
