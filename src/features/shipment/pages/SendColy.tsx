@@ -136,7 +136,7 @@ const SendColy = () => {
         if (!pickupAddress.trim()) e.pickupAddress = "Adresse de récupération obligatoire";
         break;
       case 2: if (!photo) e.photo = t("sendcoly.takePhoto"); break;
-      case 3: if (!tarif) e.tarif = t("sendcoly.chooseTariffReq"); if (insured === null) e.insured = t("sendcoly.chooseInsurance"); break;
+      case 3: if (!tarif) e.tarif = t("sendcoly.chooseTariffReq"); if (tarif === "fixe" && !tarifFixe.trim()) e.tarifFixe = "Montant obligatoire"; if (insured === null) e.insured = t("sendcoly.chooseInsurance"); break;
     }
     setErrors(e); if (Object.keys(e).length > 0) { toast.error(t("sendcoly.fillRequired")); return false; } return true;
   };
