@@ -178,7 +178,14 @@ const SendColy = () => {
       setShowCustomsWarning(true);
       return;
     }
+    setDirection(1);
     if (step < totalSteps) setStep(step + 1); else submitShipment();
+  };
+
+  const stepVariants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
   };
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
