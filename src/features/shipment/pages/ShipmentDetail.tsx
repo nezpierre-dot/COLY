@@ -56,6 +56,8 @@ const ShipmentDetail = () => {
       setContactPrenom(data.contact_prenom || "");
       setContactTel(data.contact_tel || "");
       setContactEmail(data.contact_email || "");
+      setPickupAddress(data.pickup_address || "");
+      setPickupAccessCode(data.pickup_access_code || "");
     }
     setLoading(false);
   }, [id]);
