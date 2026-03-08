@@ -166,14 +166,25 @@ const ShipmentDetail = () => {
         </div>
 
         <div className="px-6 pt-6 space-y-4">
-          {/* Status + ref */}
+          {/* Status + ref + share */}
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold px-3 py-1 rounded-full text-white ${statusColors[shipment.status] || "bg-muted"}`}>
               {statusLabels[shipment.status] || shipment.status}
             </span>
-            <span className="text-xs text-muted-foreground">
-              REF: COLY-{shipment.id.slice(0, 8).toUpperCase()}
-            </span>
+            <div className="flex items-center gap-2">
+              <WhatsAppShareButton
+                type="shipment"
+                id={shipment.id}
+                title={`Colis ${shipment.size}`}
+                from={shipment.departure_city || undefined}
+                destination={shipment.arrival_city}
+                price={shipment.tarif}
+                compact
+              />
+              <span className="text-xs text-muted-foreground">
+                REF: COLY-{shipment.id.slice(0, 8).toUpperCase()}
+              </span>
+            </div>
           </div>
 
           {/* Cannot edit warning */}
