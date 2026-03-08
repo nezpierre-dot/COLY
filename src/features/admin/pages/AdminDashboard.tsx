@@ -199,6 +199,64 @@ const AdminDashboard = () => {
               </div>
             </div>
           </TabsContent>
+
+          <TabsContent value="fraud" className="space-y-3 mt-0">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><ShieldAlert size={14} className="text-destructive" /> Détection de fraude IA</h3>
+                <span className="text-xs text-muted-foreground">{fraudChecks.length} analyse(s)</span>
+              </div>
+              {fraudChecks.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">Aucune analyse de fraude</div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {fraudChecks.map((fc) => {
+                    const resultConfig: Record<string, { bg: string; text: string; label: string }> = {
+                      fraudulent: { bg: "bg-destructive/10", text: "text-destructive", label: "🚨 FRAUDE" },
+                      suspicious: { bg: "bg-yellow-500/10", text: "text-yellow-600", label: "⚠️ Suspect" },
+                      clean: { bg: "bg-green-500/10", text: "text-green-600", label: "✅ Validé" },
+                      pending: { bg: "bg-muted", text: "text-muted-foreground", label: "⏳ En cours" },
+                    };
+                    const rc = resultConfig[fc.result] || resultConfig.pending;
+                    return (
+                      <div key={fc.id} className="p-4 hover:bg-muted/30 transition-colors">
+                        <div className="flex items-start gap-3">
+                          {fc.photo_url ? (
+                            <div className="w-14 h-14 rounded-xl bg-muted overflow-hidden shrink-0 border border-border">
+                              <img src={fc.photo_url} alt="Preuve" className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center shrink-0"><Camera size={18} className="text-muted-foreground" /></div>
+                          )}
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-mono font-medium text-foreground">{fc.shipment_ref}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${rc.bg} ${rc.text}`}>{rc.label}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Par : {fc.reporter_name}</p>
+                            {fc.confidence !== null && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">Confiance :</span>
+                                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden max-w-[120px]">
+                                  <div
+                                    className={`h-full rounded-full ${fc.result === "fraudulent" ? "bg-destructive" : fc.result === "suspicious" ? "bg-yellow-500" : "bg-green-500"}`}
+                                    style={{ width: `${Math.min(fc.confidence * 100, 100)}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground">{(fc.confidence * 100).toFixed(0)}%</span>
+                              </div>
+                            )}
+                            {fc.details && <p className="text-xs text-muted-foreground line-clamp-2">{fc.details}</p>}
+                            <p className="text-[10px] text-muted-foreground">{formatDateTime(fc.created_at)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
     </div>
