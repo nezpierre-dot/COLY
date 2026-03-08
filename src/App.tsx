@@ -104,6 +104,7 @@ const App = () => {
                     <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
                     <Route path="/live-tracking/:colisId" element={<ProtectedRoute><ColisLiveTracker /></ProtectedRoute>} />
                     <Route path="/voyage/:id" element={<ProtectedRoute><VoyageDetail /></ProtectedRoute>} />
+                    <Route path="/transporter" element={<ProtectedRoute><TransporterPage /></ProtectedRoute>} />
                     <Route path="/shipment/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
                     <Route path="/mission/:id" element={<ProtectedRoute><NeeditMissionDetail /></ProtectedRoute>} />
                     <Route path="/conversations" element={<ProtectedRoute><ConversationsPage /></ProtectedRoute>} />
