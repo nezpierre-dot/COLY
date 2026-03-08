@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
 import { MAPBOX_TOKEN } from "@/lib/mapbox";
-import { ArrowLeft, Navigation, MapPin, Clock, Package, Loader2, Radio } from "lucide-react";
+import { ArrowLeft, Navigation, MapPin, Clock, Package, Loader2, Radio, Timer } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -16,6 +16,65 @@ interface LocationData {
   lng: number;
   updatedAt: string;
 }
+
+interface ETAData {
+  distanceKm: number;
+  durationMin: number;
+  routeGeoJson: GeoJSON.Feature | null;
+}
+
+/** Geocode a city name via Mapbox Geocoding API */
+const geocodeCity = async (city: string, country?: string): Promise<{ lng: number; lat: number } | null> => {
+  const query = country ? `${city}, ${country}` : city;
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&limit=1`
+    );
+    const data = await res.json();
+    if (data.features?.length > 0) {
+      const [lng, lat] = data.features[0].center;
+      return { lng, lat };
+    }
+  } catch (e) {
+    console.error("Geocode error:", e);
+  }
+  return null;
+};
+
+/** Fetch route + ETA from Mapbox Directions API */
+const fetchDirections = async (
+  origin: { lng: number; lat: number },
+  destination: { lng: number; lat: number }
+): Promise<ETAData | null> => {
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?geometries=geojson&overview=full&access_token=${MAPBOX_TOKEN}`
+    );
+    const data = await res.json();
+    if (data.routes?.length > 0) {
+      const route = data.routes[0];
+      return {
+        distanceKm: Math.round(route.distance / 100) / 10,
+        durationMin: Math.round(route.duration / 60),
+        routeGeoJson: {
+          type: "Feature" as const,
+          properties: {},
+          geometry: route.geometry,
+        },
+      };
+    }
+  } catch (e) {
+    console.error("Directions error:", e);
+  }
+  return null;
+};
+
+const formatETA = (minutes: number): string => {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${m}min` : `${h}h`;
+};
 
 const ColisLiveTracker = () => {
   const navigate = useNavigate();
@@ -30,8 +89,11 @@ const ColisLiveTracker = () => {
   const [loading, setLoading] = useState(true);
   const [isVoyageur, setIsVoyageur] = useState(false);
   const [watching, setWatching] = useState(false);
+  const [eta, setEta] = useState<ETAData | null>(null);
+  const [destination, setDestination] = useState<{ lng: number; lat: number } | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const mapRef = useRef<any>(null);
+  const etaThrottleRef = useRef<number>(0);
 
   // Load item data (shipment or needit mission)
   useEffect(() => {
@@ -77,6 +139,39 @@ const ColisLiveTracker = () => {
     };
     load();
   }, [colisId, user]);
+
+  // Geocode destination city once item is loaded
+  useEffect(() => {
+    const item = shipment || mission;
+    if (!item) return;
+
+    const destCity = shipment?.arrival_city || mission?.city;
+    const destCountry = shipment?.arrival_country || mission?.country;
+    if (!destCity && !destCountry) return;
+
+    geocodeCity(destCity || destCountry, destCountry).then((coords) => {
+      if (coords) setDestination(coords);
+    });
+  }, [shipment, mission]);
+
+  // Compute ETA when location or destination changes (throttled to every 30s)
+  useEffect(() => {
+    if (!location || !destination || !isSharing) {
+      setEta(null);
+      return;
+    }
+
+    const now = Date.now();
+    if (now - etaThrottleRef.current < 30000 && eta) return;
+    etaThrottleRef.current = now;
+
+    fetchDirections(
+      { lng: location.lng, lat: location.lat },
+      destination
+    ).then((result) => {
+      if (result) setEta(result);
+    });
+  }, [location, destination, isSharing]);
 
   // Realtime subscription
   useEffect(() => {
@@ -233,6 +328,39 @@ const ColisLiveTracker = () => {
           mapStyle="mapbox://styles/mapbox/dark-v11"
           attributionControl={false}
         >
+          {/* Route line */}
+          {eta?.routeGeoJson && (
+            <Source id="route" type="geojson" data={eta.routeGeoJson}>
+              <Layer
+                id="route-line"
+                type="line"
+                paint={{
+                  "line-color": "hsl(221, 83%, 53%)",
+                  "line-width": 4,
+                  "line-opacity": 0.7,
+                }}
+                layout={{
+                  "line-cap": "round",
+                  "line-join": "round",
+                }}
+              />
+            </Source>
+          )}
+
+          {/* Destination marker */}
+          {destination && isSharing && (
+            <Marker longitude={destination.lng} latitude={destination.lat} anchor="bottom">
+              <div className="flex flex-col items-center">
+                <div className="w-8 h-8 rounded-full bg-destructive flex items-center justify-center shadow-lg border-2 border-background">
+                  <MapPin size={16} className="text-destructive-foreground" />
+                </div>
+                <div className="mt-1 px-2 py-0.5 rounded-full bg-card/90 backdrop-blur-sm border border-border">
+                  <span className="text-[9px] font-bold text-foreground">Destination</span>
+                </div>
+              </div>
+            </Marker>
+          )}
+
           {/* Voyageur marker */}
           {location && isSharing && (
             <Marker longitude={location.lng} latitude={location.lat} anchor="center">
@@ -270,6 +398,32 @@ const ColisLiveTracker = () => {
         </div>
       </div>
 
+      {/* ETA floating badge */}
+      {eta && isSharing && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: -20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="absolute top-28 left-1/2 -translate-x-1/2 z-10"
+        >
+          <div className="bg-card/95 backdrop-blur-md border border-border rounded-2xl px-5 py-3 shadow-2xl flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center">
+                <Timer size={16} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">ETA</p>
+                <p className="text-lg font-bold text-foreground leading-tight">{formatETA(eta.durationMin)}</p>
+              </div>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Distance</p>
+              <p className="text-lg font-bold text-foreground leading-tight">{eta.distanceKm} km</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Bottom panel */}
       <AnimatePresence>
         <motion.div
@@ -304,6 +458,17 @@ const ColisLiveTracker = () => {
                   : `${mission?.city || mission?.country || "—"}`}
               </span>
             </div>
+
+            {/* ETA inline for bottom panel */}
+            {eta && isSharing && (
+              <div className="flex items-center gap-3 py-2 px-3 rounded-xl bg-primary/5 border border-primary/10">
+                <Timer size={14} className="text-primary shrink-0" />
+                <span className="text-sm text-foreground font-medium">
+                  Arrivée estimée dans <span className="font-bold text-primary">{formatETA(eta.durationMin)}</span>
+                  <span className="text-muted-foreground"> — {eta.distanceKm} km restants</span>
+                </span>
+              </div>
+            )}
 
             {/* Coordinates */}
             {location && isSharing && (
