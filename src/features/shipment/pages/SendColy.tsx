@@ -206,6 +206,27 @@ const SendColy = () => {
   const localeUnits = getUnitsForCountry(arrCountry);
   const sizeLabel = SIZES.find(s => s.id === size)?.label || size;
 
+  // Price suggestion
+  const priceSuggestion = useMemo<PriceSuggestion | null>(() => {
+    if (!arrCountry) return null;
+    return calculateSuggestedPrice({
+      departCountry: departCountry || "France",
+      departCity: departCity || "",
+      arrCountry,
+      arrCity,
+      size,
+      departureDate: date,
+      isInternational,
+    });
+  }, [departCountry, departCity, arrCountry, arrCity, size, date, isInternational]);
+
+  const applySuggestedPrice = (price: number) => {
+    setTarif("fixe");
+    setTarifFixe(price.toFixed(0));
+    clearError("tarif");
+    clearError("tarifFixe");
+  };
+
   const renderStep = () => {
     switch (step) {
       case 1: return (
