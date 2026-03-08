@@ -43,7 +43,10 @@ const getNotifIcon = (type: string): ReactNode => {
   if (type.startsWith("proof:")) return <ShoppingBag size={18} className="text-amber-400" />;
   if (type.startsWith("match:")) return <Star size={18} className="text-amber-400" />;
   if (type.startsWith("pickup:")) return <Package size={18} className="text-emerald-400" />;
-  if (type.startsWith("mission_status:")) return <ShoppingBag size={18} className="text-primary" />;
+  if (type.startsWith("mission_status:") || type.startsWith("accepted:needit:")) return <ShoppingBag size={18} className="text-primary" />;
+  if (type.startsWith("mission_cancelled:") || type.startsWith("shipment_cancelled:")) return <XCircle size={18} className="text-destructive" />;
+  if (type.startsWith("accepted:shipment:")) return <Package size={18} className="text-primary" />;
+  if (type.startsWith("delivery:")) return <CheckCircle2 size={18} className="text-emerald-400" />;
   if (type.startsWith("reminder:")) return <Bell size={18} className="text-blue-400" />;
   return typeIcon[type] || defaultIcon;
 };
