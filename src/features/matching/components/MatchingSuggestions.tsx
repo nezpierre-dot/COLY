@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { Star, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Loader2, Users, Sparkles, ChevronRight } from "lucide-react";
 import { useMatchingVoyageurs } from "../hooks/useMatchingVoyageurs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 
 interface MatchingSuggestionsProps {
   destinationCountry: string;
