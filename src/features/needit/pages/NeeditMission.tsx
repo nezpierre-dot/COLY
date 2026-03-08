@@ -394,6 +394,8 @@ const NeeditMission = () => {
                 })()}
               </>
             )}
+              </motion.div>
+            </AnimatePresence>
             <div className="flex items-center justify-between pt-4">
               <button onClick={handleBack} className="text-lg text-muted-foreground hover:text-foreground transition-colors">{t("common.back")}</button>
               <button onClick={handleNext} disabled={submitting} className="flex items-center gap-2 px-8 py-3 rounded-full text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50" style={{ backgroundColor: "#30D158" }}>{submitting ? <Loader2 size={20} className="animate-spin" /> : <>{step === 4 ? (editId ? t("needit.save") : t("needit.validate")) : t("common.next")} <ArrowRight size={20} /></>}</button>
