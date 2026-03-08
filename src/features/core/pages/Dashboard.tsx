@@ -24,6 +24,7 @@ import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
 import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
+import WalletCard from "@/components/WalletCard";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
