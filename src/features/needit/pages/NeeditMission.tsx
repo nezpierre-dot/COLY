@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin } from "lucide-react";
+import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -99,6 +100,8 @@ const NeeditMission = () => {
   const { recentCountries, getRecentCitiesForCountry } = useRecentLocations();
   const [submitting, setSubmitting] = useState(false);
   const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
+  const [showCustomsWarning, setShowCustomsWarning] = useState(false);
+  const [customsAccepted, setCustomsAccepted] = useState(false);
   const [showReminderPrompt, setShowReminderPrompt] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
@@ -165,7 +168,13 @@ const NeeditMission = () => {
 
   const handleNext = async () => {
     if (step === 1 && validateStep1()) setStep(2);
-    else if (step === 2 && validateStep2()) setStep(3);
+    else if (step === 2 && validateStep2()) {
+      if (!customsAccepted) {
+        setShowCustomsWarning(true);
+        return;
+      }
+      setStep(3);
+    }
     else if (step === 3) setStep(4);
     else if (step === 4) {
       if (!prixMax.trim()) { setErrors({ prixMax: t("needit.budgetRequired") }); toast.error(t("needit.budgetRequired")); return; }
@@ -373,6 +382,25 @@ const NeeditMission = () => {
           }}
         />
       )}
+
+      <Dialog open={showCustomsWarning} onOpenChange={() => {}}>
+        <DialogContent className="max-w-sm mx-auto rounded-2xl [&>button]:hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-foreground">
+              <AlertTriangle size={20} className="text-amber-500" /> ⚠️ Informations douanières
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground pt-2 leading-relaxed">
+              Selon la destination, certains produits sont limités ou interdits (cigarettes max 200 unités hors UE, alcool, parfums, etc.). Vérifiez les quotas douaniers avant d'envoyer.
+            </DialogDescription>
+          </DialogHeader>
+          <button
+            onClick={() => { setCustomsAccepted(true); setShowCustomsWarning(false); setStep(3); }}
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm mt-2"
+          >
+            J'ai compris et je continue
+          </button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
