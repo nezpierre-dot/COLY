@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, Star } from "lucide-react";
 import { localizeCountry } from "@/lib/geoLocalization";
@@ -72,6 +73,7 @@ const NewTrip = () => {
   const { routes: favoriteRoutes, loadingRoutes: loadingFavorites } = useFavorites();
   const TRANSPORT_METHODS = getTransportMethods(t);
   const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
 
   // Step 1
   const [tripType, setTripType] = useState<"new" | "favorite" | null>(null);
@@ -258,13 +260,30 @@ const NewTrip = () => {
   };
 
   const handleNext = () => {
+    setDirection(1);
     if (step < TOTAL_STEPS) setStep(step + 1);
     else handleSubmit();
   };
 
   const handleBack = () => {
+    setDirection(-1);
     if (step > 1) setStep(step - 1);
     else navigate("/dashboard");
+  };
+
+  const stepVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 60 : -60,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -60 : 60,
+      opacity: 0,
+    }),
   };
 
   return (
@@ -292,7 +311,17 @@ const NewTrip = () => {
 
       {/* Content */}
       <div className="flex-1 px-6 pt-6">
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-sm min-h-[320px]">
+        <div className="bg-card rounded-2xl border border-border p-5 shadow-sm min-h-[320px] overflow-hidden">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={step}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
           {/* Step 1 – Trip type */}
           {step === 1 && (
             <div className="space-y-4">
@@ -642,6 +671,8 @@ const NewTrip = () => {
               )}
             </div>
           )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
