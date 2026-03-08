@@ -671,6 +671,8 @@ const NewTrip = () => {
               )}
             </div>
           )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
