@@ -77,7 +77,9 @@ const ShipmentDetail = () => {
       contact_prenom: contactPrenom,
       contact_tel: contactTel,
       contact_email: contactEmail || null,
-    }).eq("id", id);
+      pickup_address: pickupAddress || null,
+      pickup_access_code: pickupAccessCode || null,
+    } as any).eq("id", id);
     setSaving(false);
     if (error) {
       toast.error(t("common.error"));
