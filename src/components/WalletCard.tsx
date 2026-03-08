@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { Wallet, ArrowUpRight, ArrowDownLeft, ChevronRight, Clock } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, ChevronRight, Clock, Plus, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface WalletTransaction {
   id: string;
@@ -17,11 +19,15 @@ interface WalletCardProps {
   compact?: boolean;
 }
 
+const TOPUP_AMOUNTS = [5, 10, 20, 50, 100];
+
 const WalletCard = ({ compact = false }: WalletCardProps) => {
   const { user } = useAuth();
   const [balance, setBalance] = useState<number | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [showTopup, setShowTopup] = useState(false);
+  const [topupLoading, setTopupLoading] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const currency = getCurrencySymbol();
 
@@ -29,7 +35,6 @@ const WalletCard = ({ compact = false }: WalletCardProps) => {
     if (!user) return;
 
     const loadWallet = async () => {
-      // Get or create wallet
       let { data: wallet } = await supabase
         .from("wallets" as any)
         .select("*")
@@ -48,7 +53,6 @@ const WalletCard = ({ compact = false }: WalletCardProps) => {
       if (wallet) {
         setBalance((wallet as any).balance ?? 0);
 
-        // Load recent transactions
         const { data: txns } = await supabase
           .from("wallet_transactions" as any)
           .select("*")
@@ -62,7 +66,39 @@ const WalletCard = ({ compact = false }: WalletCardProps) => {
     };
 
     loadWallet();
+
+    // Check for topup success in URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("topup") === "success") {
+      const amount = params.get("amount");
+      toast.success(`Wallet rechargé de ${amount}€ !`);
+      // Clean URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("topup");
+      url.searchParams.delete("amount");
+      window.history.replaceState({}, "", url.pathname);
+    }
   }, [user]);
+
+  const handleTopup = async (amount: number) => {
+    setTopupLoading(amount);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-wallet-topup", {
+        body: { amount },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("Pas d'URL de paiement reçue");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de la recharge");
+    } finally {
+      setTopupLoading(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -94,14 +130,59 @@ const WalletCard = ({ compact = false }: WalletCardProps) => {
     <div className="bg-card rounded-2xl border border-border overflow-hidden">
       {/* Balance header */}
       <div className="bg-gradient-to-br from-primary to-primary/80 p-5 text-primary-foreground">
-        <div className="flex items-center gap-2 mb-1">
-          <Wallet size={18} />
-          <span className="text-sm font-semibold opacity-90">Wallet Nidit</span>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <Wallet size={18} />
+            <span className="text-sm font-semibold opacity-90">Wallet Nidit</span>
+          </div>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-8 gap-1 text-xs font-bold rounded-xl"
+            onClick={() => setShowTopup(!showTopup)}
+          >
+            <Plus size={14} />
+            Recharger
+          </Button>
         </div>
         <p className="text-3xl font-black">
           {(balance ?? 0).toFixed(2)}<span className="text-lg ml-1 opacity-80">{currency}</span>
         </p>
       </div>
+
+      {/* Top-up amounts */}
+      <AnimatePresence>
+        {showTopup && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 border-b border-border bg-muted/30">
+              <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Choisir un montant</p>
+              <div className="grid grid-cols-5 gap-2">
+                {TOPUP_AMOUNTS.map((amt) => (
+                  <Button
+                    key={amt}
+                    variant="outline"
+                    size="sm"
+                    disabled={topupLoading !== null}
+                    onClick={() => handleTopup(amt)}
+                    className="h-10 font-bold text-sm rounded-xl border-primary/20 hover:bg-primary hover:text-primary-foreground transition-colors"
+                  >
+                    {topupLoading === amt ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      `${amt}€`
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Transaction history toggle */}
       <div className="p-4">
