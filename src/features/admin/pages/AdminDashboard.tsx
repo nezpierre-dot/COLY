@@ -42,6 +42,8 @@ const AdminDashboard = () => {
   const [shipmentsOverTime, setShipmentsOverTime] = useState<TimeData[]>([]);
   const [usersOverTime, setUsersOverTime] = useState<TimeData[]>([]);
   const [fraudChecks, setFraudChecks] = useState<FraudCheck[]>([]);
+  const [disputes, setDisputes] = useState<DisputeRow[]>([]);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
