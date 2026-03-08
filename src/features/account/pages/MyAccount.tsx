@@ -192,6 +192,7 @@ const MyAccount = () => {
       icon: CreditCard,
       label: t("account.finance"),
       items: [
+        { label: "Wallet Nidit", onClick: () => navigate("/solde") },
         { label: t("account.accounting"), onClick: () => navigate("/comptabilite") },
       ],
     },

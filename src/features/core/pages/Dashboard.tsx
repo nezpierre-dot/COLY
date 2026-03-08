@@ -1059,8 +1059,7 @@ const Dashboard = () => {
               {/* Activity chart moved to profile page */}
             </div>
 
-            {/* AiRecommendation hidden – backend logic preserved */}
-            {/* <AiRecommendation isVoyageur={false} t={t} /> */}
+            <WalletCard compact />
 
             <FavoriteRoutes t={t} />
 

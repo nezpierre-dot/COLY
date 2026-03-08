@@ -66,6 +66,18 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
         await supabase.from("needit_missions").update({ status: "picked_up" } as any).eq("id", itemId);
       }
 
+      // Fraud detection via AI
+      try {
+        const { data: fraudResult } = await supabase.functions.invoke("fraud-check", {
+          body: { photo_url: photoUrl, shipment_id: itemId, user_id: user.id },
+        });
+        if (fraudResult?.result === "fraudulent") {
+          toast.error("⚠️ FRAUDE DÉTECTÉE — Cette photo semble suspecte. Confiance : " + Math.round((fraudResult.confidence || 0) * 100) + "%", { duration: 8000 });
+        }
+      } catch {
+        // Non-blocking: fraud check failure shouldn't block the flow
+      }
+
       onProofUploaded();
       toast.success("Récupération confirmée ✅");
     } catch (err: any) {

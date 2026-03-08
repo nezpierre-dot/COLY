@@ -50,6 +50,18 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
       const photoUrl = signed?.signedUrl ?? "";
       const { error: proofErr } = await supabase.from("delivery_proofs" as any).insert({ shipment_id: shipmentId, photo_url: photoUrl, latitude: coords?.lat ?? null, longitude: coords?.lng ?? null, uploaded_by: user.id });
       if (proofErr) throw proofErr;
+      // Fraud detection via AI
+      try {
+        const { data: fraudResult } = await supabase.functions.invoke("fraud-check", {
+          body: { photo_url: photoUrl, shipment_id: shipmentId, user_id: user.id },
+        });
+        if (fraudResult?.result === "fraudulent") {
+          toast.error("⚠️ FRAUDE DÉTECTÉE — Cette photo semble suspecte. Confiance : " + Math.round((fraudResult.confidence || 0) * 100) + "%", { duration: 8000 });
+        }
+      } catch {
+        // Non-blocking
+      }
+
       // Don't auto-set delivered — confirmation code flow handles finalization
       onProofUploaded(photoUrl);
       onDeliveryConfirmed();
