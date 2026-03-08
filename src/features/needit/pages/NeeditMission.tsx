@@ -397,8 +397,6 @@ const NeeditMission = () => {
                         <div className="text-center mb-2">
                           <span className="text-lg font-bold" style={{ color: "#30D158" }}>{prixMax === "__devis__" ? "Sur devis" : `${t("needit.budgetMax")} : ${prixMax} ${currency.symbol}`}</span>
                         </div>
-                      )}
-
                       <p className="text-sm text-muted-foreground leading-relaxed mb-4">{t("needit.priceNote")}<br />{t("needit.debitNote")}</p>
 
                       {/* Save as favorite product */}
