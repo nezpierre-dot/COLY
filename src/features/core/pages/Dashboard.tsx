@@ -23,6 +23,8 @@ import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
 import MatchingSuggestions from "@/features/matching/components/MatchingSuggestions";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
+import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import { useTranslation } from "@/hooks/useTranslation";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
