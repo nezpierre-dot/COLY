@@ -283,6 +283,25 @@ const SendColy = () => {
           }}
         />
       )}
+
+      <Dialog open={showCustomsWarning} onOpenChange={() => {}}>
+        <DialogContent className="max-w-sm mx-auto rounded-2xl [&>button]:hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-foreground">
+              <AlertTriangle size={20} className="text-amber-500" /> ⚠️ Informations douanières
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground pt-2 leading-relaxed">
+              Selon la destination, certains produits sont limités ou interdits (cigarettes max 200 unités hors UE, alcool, parfums, etc.). Vérifiez les quotas douaniers avant d'envoyer.
+            </DialogDescription>
+          </DialogHeader>
+          <button
+            onClick={() => { setCustomsWarningAccepted(true); setShowCustomsWarning(false); setStep(2); }}
+            className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm mt-2"
+          >
+            J'ai compris et je continue
+          </button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
