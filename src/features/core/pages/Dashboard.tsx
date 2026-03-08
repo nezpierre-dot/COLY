@@ -1005,6 +1005,17 @@ const Dashboard = () => {
                   />
                 )}
               </TabsContent>
+
+              {/* ---- Stats tab ---- */}
+              <TabsContent value="stats" className="space-y-3 mt-0">
+                <StatisticsTab compact />
+                <button
+                  onClick={() => navigate("/history/voyageur")}
+                  className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-sm font-semibold hover:bg-muted transition-colors flex items-center justify-center gap-2"
+                >
+                  <BarChart3 size={14} /> Voir l'historique complet
+                </button>
+              </TabsContent>
             </Tabs>
           </div>
         ) : (
