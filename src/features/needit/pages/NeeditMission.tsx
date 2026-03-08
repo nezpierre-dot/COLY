@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { successFeedback } from "@/lib/successFeedback";
 import BottomNav from "@/components/BottomNav";
@@ -246,7 +247,34 @@ const NeeditMission = () => {
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.fromWhere")}</h3>
                 <div className="space-y-4 mb-8">
                   <SearchableDropdown label={t("sendcoly.country")} placeholder={t("trip.selectCountry")} items={countries} value={pays} onChange={handleCountryChange} loading={loadingCountries} error={errors.pays} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
-                  <SearchableDropdown label={t("sendcoly.city")} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => { setVille(v); if (errors.ville) setErrors((p) => { const n = { ...p }; delete n.ville; return n; }); }} loading={loadingCities} disabled={!pays} error={errors.ville} recentItems={getRecentCitiesForCountry(pays)} />
+                  {/* City autocomplete */}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">{t("sendcoly.city")}</p>
+                    <div className="relative">
+                      <Input
+                        placeholder={t("trip.selectCity")}
+                        value={ville}
+                        onChange={(e) => {
+                          setVille(e.target.value);
+                          if (errors.ville) setErrors((p) => { const n = { ...p }; delete n.ville; return n; });
+                        }}
+                        disabled={!pays || loadingCities}
+                        className={`pr-8 ${errors.ville ? "border-destructive" : ""}`}
+                      />
+                      {loadingCities && <Loader2 size={14} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground" />}
+                      {!loadingCities && pays && ville.length >= 1 && (() => {
+                        const matches = cities.filter(c => c.toLowerCase().includes(ville.toLowerCase()) && c.toLowerCase() !== ville.toLowerCase());
+                        return matches.length > 0 ? (
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
+                            {matches.slice(0, 20).map(c => (
+                              <button key={c} onClick={() => setVille(c)} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors">{c}</button>
+                            ))}
+                          </div>
+                        ) : null;
+                      })()}
+                    </div>
+                    {errors.ville && <p className="text-xs text-destructive mt-1">{errors.ville}</p>}
+                  </div>
                 </div>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.when")}</h3>
                 {errors.timing && <p className="text-xs text-destructive mb-2">{errors.timing}</p>}
@@ -264,7 +292,19 @@ const NeeditMission = () => {
               </>
             )}
             {step === 2 && isUnlisted && (
-              <div className="space-y-4 mb-6"><p className="text-muted-foreground">{t("needit.describeSearch")}</p><Input placeholder={t("needit.productName")} value={unlistedName} onChange={(e) => setUnlistedName(e.target.value)} /></div>
+              <div className="space-y-4 mb-6">
+                <p className="text-muted-foreground">{t("needit.describeSearch")}</p>
+                <div>
+                  <Textarea
+                    placeholder="Ex : 2 cartouches cigarettes Marlboro, poids 2kg, emballage renforcé"
+                    value={unlistedName}
+                    onChange={(e) => setUnlistedName(e.target.value)}
+                    rows={4}
+                    className="resize-none"
+                  />
+                  {!unlistedName.trim() && <p className="text-xs text-destructive mt-1">Ce champ est obligatoire</p>}
+                </div>
+              </div>
             )}
             {step === 3 && (
               <div className="flex flex-col items-center gap-6 mb-8">
@@ -359,7 +399,6 @@ const NeeditMission = () => {
                           <span className="text-lg font-bold" style={{ color: "#30D158" }}>{prixMax === "__devis__" ? "Sur devis" : `${t("needit.budgetMax")} : ${prixMax} ${currency.symbol}`}</span>
                         </div>
                       )}
-
                       <p className="text-sm text-muted-foreground leading-relaxed mb-4">{t("needit.priceNote")}<br />{t("needit.debitNote")}</p>
 
                       {/* Save as favorite product */}
