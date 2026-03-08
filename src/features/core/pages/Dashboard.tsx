@@ -664,6 +664,22 @@ const Dashboard = () => {
                 </TabsTrigger>
               </TabsList>
 
+              {/* Quick actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => navigate("/new-trip")}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-opacity"
+                >
+                  <Plus size={14} /> {t("dashboard.addTrip")}
+                </button>
+                <button
+                  onClick={() => navigate("/transporter")}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-card text-foreground text-xs font-bold hover:bg-muted transition-colors"
+                >
+                  <Calendar size={14} /> Mes disponibilités
+                </button>
+              </div>
+
               {/* ---- Voyages tab ---- */}
               <TabsContent value="voyages" className="space-y-3 mt-0">
               {voyages.length === 0 ? (
