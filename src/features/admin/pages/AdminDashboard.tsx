@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw } from "lucide-react";
+import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,7 +13,7 @@ interface AdminStats { total_users: number; total_shipments: number; pending_shi
 interface RecentShipment { id: string; ref_number: string; departure_city: string; arrival_city: string; arrival_country: string; size: string; tarif: string; status: string; insured: boolean; created_at: string; }
 interface UserRow { user_ref: string; full_name: string; kyc_status: string; role: string; created_at: string; }
 interface TimeData { day: string; count: number; }
-
+interface FraudCheck { id: string; shipment_id: string; user_id: string; photo_url: string; result: string; confidence: number | null; details: string | null; created_at: string; reporter_name: string; shipment_ref: string; }
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted-foreground))"];
 
 const StatCard = ({ icon: Icon, label, value, trend, color = "primary" }: { icon: any; label: string; value: number | string; trend?: number; color?: string; }) => (
@@ -40,6 +40,7 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [shipmentsOverTime, setShipmentsOverTime] = useState<TimeData[]>([]);
   const [usersOverTime, setUsersOverTime] = useState<TimeData[]>([]);
+  const [fraudChecks, setFraudChecks] = useState<FraudCheck[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -57,18 +58,20 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
         supabase.rpc("admin_get_shipments_over_time"),
         supabase.rpc("admin_get_users_over_time"),
+        supabase.rpc("admin_get_fraud_checks" as any, { _limit: 50 }),
       ]);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
       if (shipmentsRes.data) setRecentShipments(shipmentsRes.data as unknown as RecentShipment[]);
       if (usersRes.data) setUsers(usersRes.data as unknown as UserRow[]);
       if (sotRes.data) setShipmentsOverTime(sotRes.data as unknown as TimeData[]);
       if (uotRes.data) setUsersOverTime(uotRes.data as unknown as TimeData[]);
+      if (fraudRes.data) setFraudChecks(fraudRes.data as unknown as FraudCheck[]);
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
@@ -119,6 +122,14 @@ const AdminDashboard = () => {
             <TabsTrigger value="analytics" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><BarChart3 size={13} className="mr-1" /> {t("admin.analytics")}</TabsTrigger>
             <TabsTrigger value="shipments" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Package size={13} className="mr-1" /> {t("admin.parcels")}</TabsTrigger>
             <TabsTrigger value="users" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Users size={13} className="mr-1" /> {t("admin.users")}</TabsTrigger>
+            <TabsTrigger value="fraud" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground relative">
+              <ShieldAlert size={13} className="mr-1" /> Fraude
+              {fraudChecks.filter(f => f.result === "fraudulent" || f.result === "suspicious").length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                  {fraudChecks.filter(f => f.result === "fraudulent" || f.result === "suspicious").length}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-6 mt-0">
@@ -186,6 +197,64 @@ const AdminDashboard = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="fraud" className="space-y-3 mt-0">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><ShieldAlert size={14} className="text-destructive" /> Détection de fraude IA</h3>
+                <span className="text-xs text-muted-foreground">{fraudChecks.length} analyse(s)</span>
+              </div>
+              {fraudChecks.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">Aucune analyse de fraude</div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {fraudChecks.map((fc) => {
+                    const resultConfig: Record<string, { bg: string; text: string; label: string }> = {
+                      fraudulent: { bg: "bg-destructive/10", text: "text-destructive", label: "🚨 FRAUDE" },
+                      suspicious: { bg: "bg-yellow-500/10", text: "text-yellow-600", label: "⚠️ Suspect" },
+                      clean: { bg: "bg-green-500/10", text: "text-green-600", label: "✅ Validé" },
+                      pending: { bg: "bg-muted", text: "text-muted-foreground", label: "⏳ En cours" },
+                    };
+                    const rc = resultConfig[fc.result] || resultConfig.pending;
+                    return (
+                      <div key={fc.id} className="p-4 hover:bg-muted/30 transition-colors">
+                        <div className="flex items-start gap-3">
+                          {fc.photo_url ? (
+                            <div className="w-14 h-14 rounded-xl bg-muted overflow-hidden shrink-0 border border-border">
+                              <img src={fc.photo_url} alt="Preuve" className="w-full h-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center shrink-0"><Camera size={18} className="text-muted-foreground" /></div>
+                          )}
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-mono font-medium text-foreground">{fc.shipment_ref}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${rc.bg} ${rc.text}`}>{rc.label}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Par : {fc.reporter_name}</p>
+                            {fc.confidence !== null && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">Confiance :</span>
+                                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden max-w-[120px]">
+                                  <div
+                                    className={`h-full rounded-full ${fc.result === "fraudulent" ? "bg-destructive" : fc.result === "suspicious" ? "bg-yellow-500" : "bg-green-500"}`}
+                                    style={{ width: `${Math.min(fc.confidence * 100, 100)}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground">{(fc.confidence * 100).toFixed(0)}%</span>
+                              </div>
+                            )}
+                            {fc.details && <p className="text-xs text-muted-foreground line-clamp-2">{fc.details}</p>}
+                            <p className="text-[10px] text-muted-foreground">{formatDateTime(fc.created_at)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>

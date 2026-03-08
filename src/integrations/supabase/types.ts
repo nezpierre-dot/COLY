@@ -992,6 +992,21 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_get_fraud_checks: {
+        Args: { _limit?: number }
+        Returns: {
+          confidence: number
+          created_at: string
+          details: string
+          id: string
+          photo_url: string
+          reporter_name: string
+          result: string
+          shipment_id: string
+          shipment_ref: string
+          user_id: string
+        }[]
+      }
       admin_get_recent_shipments: {
         Args: { _limit?: number }
         Returns: {
