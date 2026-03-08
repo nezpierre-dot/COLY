@@ -40,6 +40,7 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [shipmentsOverTime, setShipmentsOverTime] = useState<TimeData[]>([]);
   const [usersOverTime, setUsersOverTime] = useState<TimeData[]>([]);
+  const [fraudChecks, setFraudChecks] = useState<FraudCheck[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
