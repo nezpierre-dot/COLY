@@ -763,14 +763,6 @@ const Dashboard = () => {
                   })
                 )}
 
-                <button onClick={() => navigate("/new-trip")}
-                  className="w-full py-3.5 rounded-2xl border-2 border-dashed border-primary/30 bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-md">
-                  <Plus size={22} /> {t("dashboard.addTrip")}
-                </button>
-                <button onClick={() => navigate("/transporter")}
-                  className="w-full py-3 rounded-2xl border border-accent/30 bg-accent/10 text-accent font-bold text-sm flex items-center justify-center gap-2 hover:bg-accent/20 transition-colors">
-                  <Calendar size={18} /> Mes disponibilités
-                </button>
               </TabsContent>
 
               {/* ---- Colis tab ---- */}
