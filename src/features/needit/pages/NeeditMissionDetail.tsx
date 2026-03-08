@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { localizeCountry } from "@/lib/geoLocalization";
+import ShareWhatsAppButton from "@/components/ShareWhatsAppButton";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import {
