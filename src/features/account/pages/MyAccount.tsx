@@ -53,11 +53,19 @@ const MyAccount = () => {
     supabase.rpc("get_user_rating", { _user_id: user.id }).then(({ data }) => {
       if (data && data.length > 0 && data[0].total_ratings > 0) setRating(data[0]);
     });
-    supabase.from("profiles").select("bio, avatar_url, kyc_status").eq("user_id", user.id).single().then(({ data }) => {
+    supabase.from("profiles").select("bio, avatar_url, kyc_status, trust_badges").eq("user_id", user.id).single().then(({ data }) => {
       if (data) {
         setBio((data as any).bio || "");
         if ((data as any).avatar_url) setAvatar((data as any).avatar_url);
         setKycStatus(data.kyc_status || "pending");
+        setTrustBadges((data as any).trust_badges || []);
+      }
+    });
+    // Compute and update trust badges
+    supabase.rpc("compute_trust_badges", { _user_id: user.id }).then(({ data }) => {
+      if (data) {
+        setTrustBadges(data as string[]);
+        supabase.from("profiles").update({ trust_badges: data } as any).eq("user_id", user.id);
       }
     });
     Promise.all([
