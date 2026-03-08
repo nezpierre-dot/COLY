@@ -21,6 +21,7 @@ import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PublicMissionsMap from "@/components/PublicMissionsMap";
 import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -1069,6 +1070,15 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
+                          <WhatsAppShareButton
+                            type="shipment"
+                            id={s.id}
+                            title={`Colis ${s.size}`}
+                            from={s.departure_city || undefined}
+                            destination={s.arrival_city}
+                            price={s.tarif}
+                            compact
+                          />
                           {s.status === "pending" && (
                             <button
                               onClick={() => setCancelDialog({ type: "shipment", id: s.id, label: `${s.departure_city || "—"} → ${s.arrival_city}` })}
