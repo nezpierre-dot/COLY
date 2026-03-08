@@ -172,6 +172,11 @@ const VoyageDetail = () => {
         setAcceptedMissions(prev => prev.map(m => m.id === capturingMissionId ? { ...m, status: "picked_up" } : m));
       }
 
+      // Notify owner by email
+      supabase.functions.invoke("notify-status-change", {
+        body: { item_id: capturingMissionId, item_type: capturingType, new_status: "picked_up" },
+      }).catch(() => {});
+
       toast.success("Récupération confirmée ✅");
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de la confirmation");
