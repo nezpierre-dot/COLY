@@ -72,6 +72,18 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
         body: { item_id: itemId, item_type: itemType, new_status: "picked_up" },
       }).catch(() => {});
 
+      // Run fraud check (fire and forget, show result)
+      supabase.functions.invoke("fraud-check", {
+        body: { photo_url: photoUrl, shipment_id: itemId, user_id: user.id },
+      }).then(({ data }) => {
+        if (data?.result === "fraudulent") {
+          setFraudResult({ result: data.result, details: data.details });
+          toast.error("⚠️ FRAUDE DÉTECTÉE — Cette photo semble suspecte");
+        } else if (data) {
+          setFraudResult({ result: "safe", details: data.details || "Photo validée" });
+        }
+      }).catch(() => {});
+
       onProofUploaded();
       toast.success("Récupération confirmée ✅");
     } catch (err: any) {
