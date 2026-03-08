@@ -263,6 +263,78 @@ const SendColy = () => {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><CreditCard size={16} className="text-primary" /> {t("sendcoly.chooseTariff")}</h3>
             {errors.tarif && <ErrorHint message={errors.tarif} />}
+
+            {/* Suggested price card */}
+            {(() => {
+              const suggestion = calculateSuggestedPrice({
+                departCountry,
+                departCity,
+                arrCountry,
+                arrCity,
+                size,
+                departureDate: date,
+                isInternational,
+              });
+              return (
+                <div className="bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/15 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={14} className="text-accent" />
+                    <span className="text-xs font-semibold text-accent">Prix suggéré par Nidit AI</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-foreground">
+                      {tarif === "fixe" && tarifFixe ? tarifFixe : suggestion.price}
+                    </span>
+                    <span className="text-lg font-medium text-muted-foreground">{currencySymbol}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>📍 ~{suggestion.distanceKm.toLocaleString()} km</span>
+                    <span>⚖️ {size}</span>
+                    <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      suggestion.urgencyLabel === "Très urgent" ? "bg-destructive/15 text-destructive" :
+                      suggestion.urgencyLabel === "Urgent" ? "bg-amber-500/15 text-amber-600" :
+                      "bg-muted text-muted-foreground"
+                    }`}>
+                      {suggestion.urgencyLabel}
+                    </span>
+                  </div>
+
+                  {/* Slider */}
+                  <div className="pt-2">
+                    <Slider
+                      min={suggestion.min}
+                      max={suggestion.max}
+                      step={0.5}
+                      value={[tarif === "fixe" && tarifFixe ? Number(tarifFixe) : suggestion.price]}
+                      onValueChange={([val]) => {
+                        setTarif("fixe");
+                        setTarifFixe(String(val));
+                        clearError("tarif");
+                        clearError("tarifFixe");
+                      }}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                      <span>{suggestion.min} {currencySymbol}</span>
+                      <span>{suggestion.max} {currencySymbol}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setTarif("fixe");
+                      setTarifFixe(String(suggestion.price));
+                      clearError("tarif");
+                      clearError("tarifFixe");
+                    }}
+                    className="text-xs text-primary font-semibold hover:underline"
+                  >
+                    Appliquer le prix suggéré ({suggestion.price} {currencySymbol})
+                  </button>
+                </div>
+              );
+            })()}
+
             <div className="space-y-2">
               <button onClick={() => { setTarif("fixe"); clearError("tarif"); }} className={`w-full text-left px-4 py-4 rounded-xl border transition-all ${tarif === "fixe" ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"}`}>
                 <div className="flex items-center gap-3">
