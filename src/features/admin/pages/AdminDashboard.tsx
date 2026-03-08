@@ -61,7 +61,7 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
@@ -76,12 +76,7 @@ const AdminDashboard = () => {
       if (sotRes.data) setShipmentsOverTime(sotRes.data as unknown as TimeData[]);
       if (uotRes.data) setUsersOverTime(uotRes.data as unknown as TimeData[]);
       if (fraudRes.data) setFraudChecks(fraudRes.data as unknown as FraudCheck[]);
-      const disputesRes = arguments[0];
-      // The 7th promise result
-      const allResults = await Promise.all([
-        statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes,
-      ]);
-      // Actually, let me fix this properly
+      if (disputesRes.data) setDisputes(disputesRes.data as unknown as DisputeRow[]);
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
