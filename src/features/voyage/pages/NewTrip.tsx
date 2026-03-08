@@ -311,7 +311,17 @@ const NewTrip = () => {
 
       {/* Content */}
       <div className="flex-1 px-6 pt-6">
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-sm min-h-[320px]">
+        <div className="bg-card rounded-2xl border border-border p-5 shadow-sm min-h-[320px] overflow-hidden">
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={step}
+              custom={direction}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
           {/* Step 1 – Trip type */}
           {step === 1 && (
             <div className="space-y-4">
