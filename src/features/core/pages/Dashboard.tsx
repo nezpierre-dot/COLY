@@ -651,6 +651,9 @@ const Dashboard = () => {
                     </span>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="stats" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground transition-all">
+                  <BarChart3 size={13} className="mr-1" /> Stats
+                </TabsTrigger>
               </TabsList>
 
               {/* ---- Voyages tab ---- */}
