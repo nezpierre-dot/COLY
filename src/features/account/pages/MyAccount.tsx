@@ -420,6 +420,22 @@ const MyAccount = () => {
           )}
         </AnimatePresence>
 
+        {/* Trust Badges */}
+        {trustBadges.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-1.5 mb-2">
+              <ShieldCheck size={14} className="text-primary" />
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Badges de confiance</h3>
+            </div>
+            <TrustBadgesDisplay badges={trustBadges} />
+          </div>
+        )}
+
+        {/* Referral Section */}
+        <div className="mb-6">
+          <ReferralSection />
+        </div>
+
         {/* Accordion sections */}
         <div className="space-y-3 mb-8">
           {accordionSections.map((section) => {
