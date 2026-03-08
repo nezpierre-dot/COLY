@@ -21,6 +21,7 @@ import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PublicMissionsMap from "@/components/PublicMissionsMap";
 import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
 
