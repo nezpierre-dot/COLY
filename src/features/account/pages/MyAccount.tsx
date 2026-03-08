@@ -438,6 +438,11 @@ const MyAccount = () => {
           <ReferralSection />
         </div>
 
+        {/* Wallet */}
+        <div className="mb-6">
+          <WalletCard />
+        </div>
+
         {/* Historique & Stats */}
         <div className="mb-6">
           <div className="flex items-center gap-1.5 mb-3">

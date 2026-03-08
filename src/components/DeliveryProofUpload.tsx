@@ -103,6 +103,16 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
       <Button className="w-full rounded-xl" disabled={!photo || uploading} onClick={handleConfirmDelivery}>
         {uploading ? (<><Loader2 size={14} className="animate-spin mr-2" /> {t("delivery.confirming")}</>) : (<><Upload size={14} className="mr-2" /> {t("delivery.confirmDelivery")}</>)}
       </Button>
+
+      {fraudResult && (
+        <div className={`mt-2 p-3 rounded-xl text-sm font-semibold ${
+          fraudResult.result === "fraudulent"
+            ? "bg-destructive/10 text-destructive border border-destructive/20"
+            : "bg-primary/10 text-primary border border-primary/20"
+        }`}>
+          {fraudResult.result === "fraudulent" ? "⚠️ FRAUDE DÉTECTÉE" : "✅ Photo validée"} — {fraudResult.details}
+        </div>
+      )}
     </div>
   );
 };

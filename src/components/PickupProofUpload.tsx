@@ -149,6 +149,16 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
           <><PackageCheck size={14} className="mr-2" /> Confirmer la récupération</>
         )}
       </Button>
+
+      {fraudResult && (
+        <div className={`mt-2 p-3 rounded-xl text-sm font-semibold ${
+          fraudResult.result === "fraudulent"
+            ? "bg-destructive/10 text-destructive border border-destructive/20"
+            : "bg-primary/10 text-primary border border-primary/20"
+        }`}>
+          {fraudResult.result === "fraudulent" ? "⚠️ FRAUDE DÉTECTÉE" : "✅ Photo validée"} — {fraudResult.details}
+        </div>
+      )}
     </div>
   );
 };
