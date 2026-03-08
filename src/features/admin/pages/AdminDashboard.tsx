@@ -239,12 +239,17 @@ const AdminDashboard = () => {
                             disabled={resolvingId === d.id}
                             onClick={async () => {
                               setResolvingId(d.id);
-                              const { error } = await supabase.from("disputes").update({ status: "resolved", resolution: "Litige résolu par l'administration." }).eq("id", d.id);
-                              if (!error) {
-                                await supabase.from("shipments").update({ escrow_status: "released" }).eq("id", d.shipment_id);
-                                toast.success("Litige résolu, escrow libéré");
+                              const { data, error } = await supabase.functions.invoke("resolve-dispute", {
+                                body: { dispute_id: d.id, action: "resolve" },
+                              });
+                              if (error) {
+                                toast.error(error.message || "Erreur lors de la résolution");
+                              } else if (data?.error) {
+                                toast.error(data.error);
+                              } else {
+                                toast.success("Litige résolu, escrow libéré au voyageur");
                                 loadAll();
-                              } else { toast.error(error.message); }
+                              }
                               setResolvingId(null);
                             }}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-success/10 text-success text-xs font-semibold hover:bg-success/20 transition-colors"
@@ -255,12 +260,20 @@ const AdminDashboard = () => {
                             disabled={resolvingId === d.id}
                             onClick={async () => {
                               setResolvingId(d.id);
-                              const { error } = await supabase.from("disputes").update({ status: "refunded", resolution: "Remboursement effectué par l'administration." }).eq("id", d.id);
-                              if (!error) {
-                                await supabase.from("shipments").update({ escrow_status: "refunded" }).eq("id", d.shipment_id);
-                                toast.success("Remboursement enregistré");
+                              const { data, error } = await supabase.functions.invoke("resolve-dispute", {
+                                body: { dispute_id: d.id, action: "refund" },
+                              });
+                              if (error) {
+                                toast.error(error.message || "Erreur lors du remboursement");
+                              } else if (data?.error) {
+                                toast.error(data.error);
+                              } else {
+                                toast.success(data?.stripe_refund_id 
+                                  ? `Remboursement Stripe effectué (${data.stripe_refund_id})`
+                                  : "Remboursement enregistré"
+                                );
                                 loadAll();
-                              } else { toast.error(error.message); }
+                              }
                               setResolvingId(null);
                             }}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors"
