@@ -965,6 +965,11 @@ const Dashboard = () => {
                   />
                 )}
               </TabsContent>
+
+              {/* ---- Stats tab ---- */}
+              <TabsContent value="stats" className="mt-0">
+                <StatisticsTab compact />
+              </TabsContent>
             </Tabs>
           </div>
         ) : (
