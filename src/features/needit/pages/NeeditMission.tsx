@@ -247,7 +247,32 @@ const NeeditMission = () => {
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.fromWhere")}</h3>
                 <div className="space-y-4 mb-8">
                   <SearchableDropdown label={t("sendcoly.country")} placeholder={t("trip.selectCountry")} items={countries} value={pays} onChange={handleCountryChange} loading={loadingCountries} error={errors.pays} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
-                  <SearchableDropdown label={t("sendcoly.city")} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => { setVille(v); if (errors.ville) setErrors((p) => { const n = { ...p }; delete n.ville; return n; }); }} loading={loadingCities} disabled={!pays} error={errors.ville} recentItems={getRecentCitiesForCountry(pays)} />
+                  {/* City autocomplete */}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">{t("sendcoly.city")}</p>
+                    <div className="relative">
+                      <Input
+                        placeholder={t("trip.selectCity")}
+                        value={ville}
+                        onChange={(e) => {
+                          setVille(e.target.value);
+                          if (errors.ville) setErrors((p) => { const n = { ...p }; delete n.ville; return n; });
+                        }}
+                        disabled={!pays || loadingCities}
+                        className={`pr-8 ${errors.ville ? "border-destructive" : ""}`}
+                      />
+                      {loadingCities && <Loader2 size={14} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground" />}
+                      {!loadingCities && pays && ville && cities.filter(c => c.toLowerCase().includes(ville.toLowerCase()) && c.toLowerCase() !== ville.toLowerCase()).length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-1 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
+                          {cities.filter(c => c.toLowerCase().includes(ville.toLowerCase()) && c.toLowerCase() !== ville.toLowerCase()).slice(0, 20).map(c => (
+                            <button key={c} onClick={() => setVille(c)} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors">{c}</button>
+                          ))}
+                        </div>
+                      )}
+                      {!loadingCities && pays && ville && !cities.some(c => c.toLowerCase() === ville.toLowerCase()) && ville.length >= 2 && cities.filter(c => c.toLowerCase().includes(ville.toLowerCase())).length > 0 && cities.filter(c => c.toLowerCase().includes(ville.toLowerCase()) && c.toLowerCase() !== ville.toLowerCase()).length === 0 && null}
+                    </div>
+                    {errors.ville && <p className="text-xs text-destructive mt-1">{errors.ville}</p>}
+                  </div>
                 </div>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.when")}</h3>
                 {errors.timing && <p className="text-xs text-destructive mb-2">{errors.timing}</p>}
