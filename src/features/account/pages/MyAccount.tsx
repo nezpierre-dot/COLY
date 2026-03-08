@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins, Globe, Rocket, ShoppingCart, Trophy, Wallet, BarChart3 } from "lucide-react";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import ReferralSection from "@/components/ReferralSection";
+import StatisticsTab from "@/features/profile/StatisticsTab";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -434,6 +435,15 @@ const MyAccount = () => {
         {/* Referral Section */}
         <div className="mb-6">
           <ReferralSection />
+        </div>
+
+        {/* Historique & Stats */}
+        <div className="mb-6">
+          <div className="flex items-center gap-1.5 mb-3">
+            <BarChart3 size={14} className="text-primary" />
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Historique & Stats</h3>
+          </div>
+          <StatisticsTab compact />
         </div>
 
         {/* Accordion sections */}

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import StatisticsTab from "@/features/profile/StatisticsTab";
 import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion, AnimatePresence } from "framer-motion";
@@ -650,6 +651,9 @@ const Dashboard = () => {
                     </span>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="stats" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground transition-all">
+                  <BarChart3 size={13} className="mr-1" /> Stats
+                </TabsTrigger>
               </TabsList>
 
               {/* ---- Voyages tab ---- */}
@@ -960,6 +964,11 @@ const Dashboard = () => {
                     description={t("dashboard.noMissionAvailableDesc")}
                   />
                 )}
+              </TabsContent>
+
+              {/* ---- Stats tab ---- */}
+              <TabsContent value="stats" className="mt-0">
+                <StatisticsTab compact />
               </TabsContent>
             </Tabs>
           </div>
