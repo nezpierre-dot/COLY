@@ -224,10 +224,47 @@ const SendColy = () => {
       );
       case 3: return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-          {aiSuggestion && aiLoaded && (<div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-2xl p-4 animate-in fade-in duration-500"><div className="flex items-center gap-2 mb-2"><Sparkles size={16} className="text-accent" /><span className="text-xs font-semibold text-accent">{t("sendcoly.aiSuggestion")}</span></div><div className="flex items-center justify-between"><div className="flex items-center gap-3"><div className="flex items-center gap-1 text-sm text-foreground"><Users size={14} className="text-primary" /><span className="font-semibold">{aiSuggestion.voyageurs} {t("sendcoly.travelers")}</span><span className="text-muted-foreground">{t("sendcoly.available")}</span></div></div><div className="text-right"><p className="text-lg font-bold text-foreground">{aiSuggestion.prix}{getCurrencyForCountry(arrCountry).symbol}</p><p className="text-xs text-muted-foreground">{t("sendcoly.estimatedPrice")}</p></div></div></div>)}
-          {aiSuggestion && !aiLoaded && (<div className="bg-muted/50 rounded-2xl p-4 flex items-center gap-3 animate-pulse"><Sparkles size={16} className="text-muted-foreground" /><span className="text-sm text-muted-foreground">{t("sendcoly.analyzingTravelers")}</span></div>)}
-          <div className="space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><CreditCard size={16} className="text-primary" /> {t("sendcoly.chooseTariff")}</h3>{errors.tarif && <ErrorHint message={errors.tarif} />}<div className="space-y-2">{TARIF_OPTIONS.map((option) => (<button key={option.id} onClick={() => { setTarif(option.id); clearError("tarif"); }} className={`w-full text-left px-4 py-4 rounded-xl border transition-all relative ${tarif === option.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"}`}>{option.popular && <span className="absolute -top-2 right-3 bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">{t("sendcoly.popular")}</span>}<div className="flex items-center justify-between"><div className="flex items-center gap-3"><option.icon size={20} className="text-primary" /><div><p className="font-medium text-foreground">{option.label}</p><p className="text-xs text-muted-foreground">{option.desc}</p></div></div><span className="font-bold text-foreground">{option.price}</span></div></button>))}</div><p className="text-xs text-muted-foreground text-center">{t("sendcoly.paymentNote")}</p></div>
-          {isInternational && (<button onClick={() => setShowCustomsDialog(true)} className="w-full flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl px-4 py-3 text-left transition-colors hover:bg-primary/10"><Globe size={16} className="text-primary shrink-0" /><div className="flex-1"><p className="text-xs font-semibold text-foreground">{t("sendcoly.taxesEstimated")} : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p><p className="text-xs text-muted-foreground">{t("coly.aiEstimate")} — {t("common.seeAll")}</p></div><Sparkles size={12} className="text-accent shrink-0" /></button>)}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><CreditCard size={16} className="text-primary" /> {t("sendcoly.chooseTariff")}</h3>
+            {errors.tarif && <ErrorHint message={errors.tarif} />}
+            <div className="space-y-2">
+              <button onClick={() => { setTarif("fixe"); clearError("tarif"); }} className={`w-full text-left px-4 py-4 rounded-xl border transition-all ${tarif === "fixe" ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"}`}>
+                <div className="flex items-center gap-3">
+                  <CreditCard size={20} className="text-primary" />
+                  <div>
+                    <p className="font-medium text-foreground">Tarif fixe</p>
+                    <p className="text-xs text-muted-foreground">Vous définissez le prix de l'envoi</p>
+                  </div>
+                </div>
+              </button>
+              {tarif === "fixe" && (
+                <div className="pl-4">
+                  <div className="relative">
+                    <input
+                      className={`w-full border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none bg-background transition-all pr-12 ${errors.tarifFixe ? "border-destructive ring-1 ring-destructive/30" : "border-border focus:border-primary focus:ring-1 focus:ring-primary/30"}`}
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="Montant"
+                      value={tarifFixe}
+                      onChange={(e) => { setTarifFixe(e.target.value); if (errors.tarifFixe) { setErrors(prev => { const n = {...prev}; delete n.tarifFixe; return n; }); } }}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">{currencySymbol}</span>
+                  </div>
+                  {errors.tarifFixe && <ErrorHint message={errors.tarifFixe} />}
+                </div>
+              )}
+              <button onClick={() => { setTarif("devis"); clearError("tarif"); }} className={`w-full text-left px-4 py-4 rounded-xl border transition-all ${tarif === "devis" ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"}`}>
+                <div className="flex items-center gap-3">
+                  <Truck size={20} className="text-primary" />
+                  <div>
+                    <p className="font-medium text-foreground">Sur devis</p>
+                    <p className="text-xs text-muted-foreground">Le voyageur proposera un prix</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+          {isInternational && (<button onClick={() => setShowCustomsDialog(true)} className="w-full flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl px-4 py-3 text-left transition-colors hover:bg-primary/10"><Globe size={16} className="text-primary shrink-0" /><div className="flex-1"><p className="text-xs font-semibold text-foreground">{t("sendcoly.taxesEstimated")} : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p><p className="text-xs text-muted-foreground">{t("coly.aiEstimate")} — {t("common.seeAll")}</p></div></button>)}
           <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Shield size={16} className="text-primary" /> {t("sendcoly.insuranceAxa")} <TrustBadge /></h3><p className="text-xs text-muted-foreground">{t("sendcoly.protectParcel")}</p><div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3"><Info size={14} className="text-primary shrink-0 mt-0.5" /><div className="text-xs text-foreground"><p className="font-medium">{t("sendcoly.optionalFee")}</p></div></div>{errors.insured && <ErrorHint message={errors.insured} />}<div className="grid grid-cols-2 gap-3"><button onClick={() => { setInsured(true); clearError("insured"); }} className={`py-3 rounded-xl border font-medium transition-all text-sm ${insured === true ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}><ShieldCheck size={14} className="inline mr-1" /> {t("sendcoly.yesInsure")}</button><button onClick={() => { setInsured(false); clearError("insured"); }} className={`py-3 rounded-xl border font-medium transition-all text-sm ${insured === false ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}>{t("sendcoly.noThanks")}</button></div>{insured === true && <p className="text-xs text-primary font-medium animate-in fade-in duration-200">{t("sendcoly.coveredByAxa")}</p>}</div>
         </div>
       );
