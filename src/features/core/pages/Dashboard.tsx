@@ -26,6 +26,7 @@ import MatchingSuggestions from "@/features/matching/components/MatchingSuggesti
 import WhatsAppShareButton from "@/components/ShareWhatsAppButton";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import { useTranslation } from "@/hooks/useTranslation";
+import StatisticsTab from "@/features/profile/StatisticsTab";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
