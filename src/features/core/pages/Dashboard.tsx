@@ -27,6 +27,7 @@ import WhatsAppShareButton from "@/components/ShareWhatsAppButton";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import { useTranslation } from "@/hooks/useTranslation";
 import StatisticsTab from "@/features/profile/StatisticsTab";
+import WalletCard from "@/components/WalletCard";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -634,8 +635,7 @@ const Dashboard = () => {
               t={t}
             />
 
-            {/* AiRecommendation hidden – backend logic preserved */}
-            {/* <AiRecommendation isVoyageur={true} t={t} /> */}
+            <WalletCard compact />
 
             <FavoriteRoutes t={t} />
 
@@ -1059,8 +1059,7 @@ const Dashboard = () => {
               {/* Activity chart moved to profile page */}
             </div>
 
-            {/* AiRecommendation hidden – backend logic preserved */}
-            {/* <AiRecommendation isVoyageur={false} t={t} /> */}
+            <WalletCard compact />
 
             <FavoriteRoutes t={t} />
 
