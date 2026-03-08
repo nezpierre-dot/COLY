@@ -100,6 +100,8 @@ const NeeditMission = () => {
   const { recentCountries, getRecentCitiesForCountry } = useRecentLocations();
   const [submitting, setSubmitting] = useState(false);
   const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
+  const [showCustomsWarning, setShowCustomsWarning] = useState(false);
+  const [customsAccepted, setCustomsAccepted] = useState(false);
   const [showReminderPrompt, setShowReminderPrompt] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
