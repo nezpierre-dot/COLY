@@ -55,6 +55,18 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
       onProofUploaded(photoUrl);
       onDeliveryConfirmed();
       toast.success(t("delivery.confirmed"));
+
+      // Run fraud check (fire and forget)
+      supabase.functions.invoke("fraud-check", {
+        body: { photo_url: photoUrl, shipment_id: shipmentId, user_id: user.id },
+      }).then(({ data }) => {
+        if (data?.result === "fraudulent") {
+          setFraudResult({ result: data.result, details: data.details });
+          toast.error("⚠️ FRAUDE DÉTECTÉE — Cette photo semble suspecte");
+        } else if (data) {
+          setFraudResult({ result: "safe", details: data.details || "Photo validée" });
+        }
+      }).catch(() => {});
     } catch (err: any) {
       toast.error(err.message || t("delivery.confirmError"));
     } finally {
