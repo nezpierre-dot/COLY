@@ -279,9 +279,21 @@ const NeeditMission = () => {
                               </Tooltip>
                             </TooltipProvider>
                           </div>
-                          <div className="relative">
-                            <Input placeholder={`${t("missions.priceMax")} (${currency.code})`} value={prixMax} onChange={(e) => { setPrixMax(e.target.value); if (errors.prixMax) setErrors(p => { const n = {...p}; delete n.prixMax; return n; }); }} className={`border-0 border-b rounded-none px-0 pr-12 focus-visible:ring-0 ${errors.prixMax ? "border-destructive" : "border-primary/30 focus-visible:border-primary"}`} />
-                            <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">{currency.symbol}</span>
+                          <div className="space-y-2">
+                            <button onClick={() => { setPrixMax(prixMax === "__devis__" ? "" : prixMax); if (prixMax === "__devis__") setPrixMax(""); }} className={`w-full text-left px-4 py-3 rounded-xl border transition-all text-sm ${prixMax && prixMax !== "__devis__" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/30"}`}>
+                              <p className="font-medium text-foreground">Tarif fixe</p>
+                              <p className="text-xs text-muted-foreground">Vous définissez le budget maximum</p>
+                            </button>
+                            {prixMax !== "__devis__" && (
+                              <div className="relative pl-4">
+                                <Input placeholder={`${t("missions.priceMax")} (${currency.code})`} value={prixMax} onChange={(e) => { setPrixMax(e.target.value); if (errors.prixMax) setErrors(p => { const n = {...p}; delete n.prixMax; return n; }); }} className={`border-0 border-b rounded-none px-0 pr-12 focus-visible:ring-0 ${errors.prixMax ? "border-destructive" : "border-primary/30 focus-visible:border-primary"}`} />
+                                <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">{currency.symbol}</span>
+                              </div>
+                            )}
+                            <button onClick={() => setPrixMax("__devis__")} className={`w-full text-left px-4 py-3 rounded-xl border transition-all text-sm ${prixMax === "__devis__" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/30"}`}>
+                              <p className="font-medium text-foreground">Sur devis</p>
+                              <p className="text-xs text-muted-foreground">Le voyageur proposera un prix</p>
+                            </button>
                           </div>
                           {errors.prixMax && <p className="text-xs mt-1" style={{ color: "#FF453A" }}>{errors.prixMax}</p>}
                         </div>
