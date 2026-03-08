@@ -436,14 +436,39 @@ const SendColy = () => {
       <BottomNav />
 
       {createdReminderInfo && (
-        <ReminderDialog
-          info={createdReminderInfo}
-          open={showReminderPrompt}
-          onOpenChange={(open) => {
-            setShowReminderPrompt(open);
-            if (!open) navigate("/dashboard");
-          }}
-        />
+        <>
+          <ReminderDialog
+            info={createdReminderInfo}
+            open={showReminderPrompt}
+            onOpenChange={(open) => {
+              setShowReminderPrompt(open);
+              if (!open) navigate("/dashboard");
+            }}
+          />
+          {!showReminderPrompt && (
+            <div className="fixed inset-0 z-50 bg-background/80 flex items-center justify-center p-6">
+              <div className="bg-card border border-border rounded-2xl p-6 max-w-sm w-full space-y-4 text-center">
+                <p className="text-lg font-bold text-foreground">🎉 Mission créée !</p>
+                <p className="text-sm text-muted-foreground">Partagez votre mission sur WhatsApp pour trouver un voyageur plus rapidement.</p>
+                <WhatsAppShareButton
+                  type="shipment"
+                  id={createdReminderInfo.itemId}
+                  title={`Colis ${size}`}
+                  from={createdReminderInfo.departureCity}
+                  destination={createdReminderInfo.arrivalCity}
+                  price={tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : "Sur devis"}
+                  variant="full"
+                />
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Passer →
+                </button>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       <Dialog open={showCustomsWarning} onOpenChange={() => {}}>
