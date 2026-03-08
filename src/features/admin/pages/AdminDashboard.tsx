@@ -194,6 +194,87 @@ const AdminDashboard = () => {
               </div>
             </div>
           </TabsContent>
+
+          <TabsContent value="disputes" className="space-y-3 mt-0">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Gavel size={14} className="text-warning" /> Litiges en cours</h3>
+                <span className="text-xs text-muted-foreground">{disputes.length} total</span>
+              </div>
+              {disputes.length === 0 ? (
+                <div className="px-4 py-12 text-center text-sm text-muted-foreground">Aucun litige pour le moment 🎉</div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {disputes.map((d) => (
+                    <div key={d.id} className="p-4 space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{d.shipment_ref}</p>
+                          <p className="text-xs text-muted-foreground">Par {d.reporter_name} · {formatDateTime(d.created_at)}</p>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          d.status === "open" ? "bg-warning/10 text-warning" :
+                          d.status === "investigating" ? "bg-primary/10 text-primary" :
+                          d.status === "resolved" ? "bg-success/10 text-success" :
+                          d.status === "refunded" ? "bg-accent/10 text-accent" :
+                          "bg-muted text-muted-foreground"
+                        }`}>
+                          {d.status === "open" ? "En attente" : d.status === "investigating" ? "En cours" : d.status === "resolved" ? "Résolu" : d.status === "refunded" ? "Remboursé" : d.status}
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-foreground capitalize">{d.reason.replace("_", " ")}</p>
+                      <p className="text-sm text-muted-foreground">{d.description}</p>
+                      {d.photo_url && (
+                        <img src={d.photo_url} alt="Preuve" className="w-32 h-24 object-cover rounded-xl border border-border" />
+                      )}
+                      {d.resolution && (
+                        <div className="bg-muted/50 rounded-xl p-3">
+                          <p className="text-xs font-semibold text-foreground">Résolution :</p>
+                          <p className="text-xs text-muted-foreground">{d.resolution}</p>
+                        </div>
+                      )}
+                      {(d.status === "open" || d.status === "investigating") && (
+                        <div className="flex gap-2">
+                          <button
+                            disabled={resolvingId === d.id}
+                            onClick={async () => {
+                              setResolvingId(d.id);
+                              const { error } = await supabase.from("disputes").update({ status: "resolved", resolution: "Litige résolu par l'administration." }).eq("id", d.id);
+                              if (!error) {
+                                await supabase.from("shipments").update({ escrow_status: "released" }).eq("id", d.shipment_id);
+                                toast.success("Litige résolu, escrow libéré");
+                                loadAll();
+                              } else { toast.error(error.message); }
+                              setResolvingId(null);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-success/10 text-success text-xs font-semibold hover:bg-success/20 transition-colors"
+                          >
+                            <CheckCircle size={14} /> Résoudre
+                          </button>
+                          <button
+                            disabled={resolvingId === d.id}
+                            onClick={async () => {
+                              setResolvingId(d.id);
+                              const { error } = await supabase.from("disputes").update({ status: "refunded", resolution: "Remboursement effectué par l'administration." }).eq("id", d.id);
+                              if (!error) {
+                                await supabase.from("shipments").update({ escrow_status: "refunded" }).eq("id", d.shipment_id);
+                                toast.success("Remboursement enregistré");
+                                loadAll();
+                              } else { toast.error(error.message); }
+                              setResolvingId(null);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 text-accent text-xs font-semibold hover:bg-accent/20 transition-colors"
+                          >
+                            <RotateCcw size={14} /> Rembourser
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
     </div>
