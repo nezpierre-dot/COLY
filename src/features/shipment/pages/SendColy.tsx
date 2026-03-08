@@ -115,7 +115,7 @@ const SendColy = () => {
 
   useEffect(() => { if (!user) return; const check = async () => { const [profileRes, shipmentsRes] = await Promise.all([supabase.from("profiles").select("kyc_status").eq("user_id", user.id).maybeSingle(), supabase.from("shipments").select("id").eq("user_id", user.id).limit(1)]); setKycStatus(profileRes.data?.kyc_status || "pending"); setHasExistingShipments((shipmentsRes.data?.length || 0) > 0); setKycChecked(true); }; check(); }, [user]);
   useEffect(() => { if (kycChecked && !hasExistingShipments && kycStatus !== "submitted" && kycStatus !== "verified") navigate("/kyc", { state: { returnTo: "/send-coly" } }); }, [kycChecked, hasExistingShipments, kycStatus, navigate]);
-  useEffect(() => { if (step === 3 && !aiLoaded) setTimeout(() => setAiLoaded(true), 800); }, [step, aiLoaded]);
+  
   useEffect(() => { if (step === 2 && isInternational && !customsShown) setTimeout(() => { setShowCustomsDialog(true); setCustomsShown(true); }, 500); }, [step, isInternational, customsShown]);
 
   const totalSteps = 4;
