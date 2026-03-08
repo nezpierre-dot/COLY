@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package, Image, Ruler, CreditCard, Shield, Sparkles, Truck, AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown } from "lucide-react";
+import MatchingSuggestions from "@/features/matching/components/MatchingSuggestions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
