@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Rocket, SlidersHorizontal, X, ShoppingCart, Package, Home } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Rocket, SlidersHorizontal, X, ShoppingCart, Package, Home, Star, Thermometer, PawPrint } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +10,7 @@ import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import StarRating from "@/components/StarRating";
 import PullToRefresh from "@/components/PullToRefresh";
+import { Slider } from "@/components/ui/slider";
 import { hapticLight, hapticMedium } from "@/lib/haptics";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -25,9 +27,11 @@ interface Voyage {
   accept_needit: boolean;
   can_pickup: boolean;
   deliver_to_address: boolean;
+  can_move: boolean;
   status: string;
   user_id: string;
-  avg_rating?: number;
+  max_weight_kg: number | null;
+  avg_rating?: number | null;
   total_ratings?: number;
 }
 
@@ -61,8 +65,6 @@ const VoyageurSearch = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
 
-  const [voyages, setVoyages] = useState<Voyage[]>([]);
-  const [loading, setLoading] = useState(true);
   const [destQuery, setDestQuery] = useState("");
   const [originQuery, setOriginQuery] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -70,16 +72,20 @@ const VoyageurSearch = () => {
   const [filterPickup, setFilterPickup] = useState(false);
   const [filterDeliver, setFilterDeliver] = useState(false);
   const [filterMethod, setFilterMethod] = useState<string>("");
+  const [filterMinRating, setFilterMinRating] = useState(0);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from("voyages")
-      .select("*")
-      .eq("status", "active")
-      .order("departure_date", { ascending: true });
+  // TanStack Query for data fetching
+  const { data: voyages = [], isLoading: loading, refetch } = useQuery({
+    queryKey: ["voyageur-search"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("voyages")
+        .select("*")
+        .eq("status", "active")
+        .order("departure_date", { ascending: true });
 
-    if (data) {
+      if (!data) return [];
+
       const enriched = await Promise.all(
         data.map(async (v) => {
           const { data: ratingData } = await supabase.rpc("get_user_rating", { _user_id: v.user_id });
@@ -90,16 +96,14 @@ const VoyageurSearch = () => {
           };
         })
       );
-      setVoyages(enriched);
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { loadData(); }, [loadData]);
+      return enriched as Voyage[];
+    },
+    staleTime: 30_000,
+  });
 
   const handleRefresh = useCallback(async () => {
-    await loadData();
-  }, [loadData]);
+    await refetch();
+  }, [refetch]);
 
   const filtered = useMemo(() => {
     return voyages.filter((v) => {
@@ -124,9 +128,13 @@ const VoyageurSearch = () => {
         const methods = v.transport_method?.toLowerCase().split(",").map((m: string) => m.trim()) || [];
         if (!methods.includes(filterMethod)) return false;
       }
+      // Rating filter
+      if (filterMinRating > 0) {
+        if (!v.avg_rating || v.avg_rating < filterMinRating) return false;
+      }
       return true;
     });
-  }, [voyages, destQuery, originQuery, filterNeedit, filterPickup, filterDeliver, filterMethod]);
+  }, [voyages, destQuery, originQuery, filterNeedit, filterPickup, filterDeliver, filterMethod, filterMinRating]);
 
   const formatDate = (dateStr: string) => {
     try {
@@ -134,7 +142,24 @@ const VoyageurSearch = () => {
     } catch { return dateStr; }
   };
 
-  const activeFiltersCount = [filterNeedit, filterPickup, filterDeliver, !!filterMethod].filter(Boolean).length;
+  const activeFiltersCount = [filterNeedit, filterPickup, filterDeliver, !!filterMethod, filterMinRating > 0].filter(Boolean).length;
+
+  const resetFilters = () => {
+    setFilterNeedit(false);
+    setFilterPickup(false);
+    setFilterDeliver(false);
+    setFilterMethod("");
+    setFilterMinRating(0);
+  };
+
+  const ratingLabels: Record<number, string> = {
+    0: "Tous",
+    3: "≥ 3.0",
+    3.5: "≥ 3.5",
+    4: "≥ 4.0",
+    4.5: "≥ 4.5",
+    4.8: "≥ 4.8 ⭐",
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -217,7 +242,7 @@ const VoyageurSearch = () => {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden mb-4"
               >
-                <div className="bg-card border border-border rounded-2xl p-4 space-y-4">
+                <div className="bg-card border border-border rounded-2xl p-4 space-y-5">
                   {/* Transport method */}
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("search.transport")}</p>
@@ -238,31 +263,57 @@ const VoyageurSearch = () => {
                     </div>
                   </div>
 
+                  {/* Rating filter */}
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      <Star size={10} className="inline mr-1" />
+                      Note minimum
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {[0, 3, 3.5, 4, 4.5, 4.8].map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => { hapticLight(); setFilterMinRating(r); }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            filterMinRating === r
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground hover:bg-muted/80"
+                          }`}
+                        >
+                          {ratingLabels[r]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Options */}
                   <div>
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t("search.options")}</p>
                     <div className="space-y-2">
                       {[
-                        { label: t("search.acceptsNeedit"), val: filterNeedit, set: setFilterNeedit },
-                        { label: t("search.canPickup"), val: filterPickup, set: setFilterPickup },
-                        { label: t("search.deliverAddress"), val: filterDeliver, set: setFilterDeliver },
+                        { label: t("search.acceptsNeedit"), val: filterNeedit, set: setFilterNeedit, icon: <ShoppingCart size={12} /> },
+                        { label: t("search.canPickup"), val: filterPickup, set: setFilterPickup, icon: <Package size={12} /> },
+                        { label: t("search.deliverAddress"), val: filterDeliver, set: setFilterDeliver, icon: <Home size={12} /> },
                       ].map((opt) => (
-                        <label key={opt.label} className="flex items-center gap-2.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={opt.val}
-                            onChange={(e) => opt.set(e.target.checked)}
-                            className="w-4 h-4 accent-primary rounded"
-                          />
-                          <span className="text-sm text-foreground">{opt.label}</span>
-                        </label>
+                        <button
+                          key={opt.label}
+                          onClick={() => { hapticLight(); opt.set(!opt.val); }}
+                          className={`flex items-center gap-2.5 w-full text-left px-3 py-2.5 rounded-xl border transition-all text-sm ${
+                            opt.val
+                              ? "border-primary bg-primary/5 text-foreground"
+                              : "border-border bg-background text-muted-foreground hover:border-primary/30"
+                          }`}
+                        >
+                          <span className={opt.val ? "text-primary" : "text-muted-foreground"}>{opt.icon}</span>
+                          <span>{opt.label}</span>
+                        </button>
                       ))}
                     </div>
                   </div>
 
                   {activeFiltersCount > 0 && (
                     <button
-                      onClick={() => { setFilterNeedit(false); setFilterPickup(false); setFilterDeliver(false); setFilterMethod(""); }}
+                      onClick={resetFilters}
                       className="text-xs text-destructive hover:underline"
                     >
                       {t("common.resetFilters")}
@@ -322,9 +373,9 @@ const VoyageurSearch = () => {
                   </div>
 
                   {/* Rating */}
-                  {v.total_ratings > 0 && (
+                  {(v.total_ratings ?? 0) > 0 && (
                     <div className="flex items-center gap-1.5 mb-3">
-                      <StarRating score={v.avg_rating ?? 0} total={v.total_ratings} size={14} />
+                      <StarRating score={v.avg_rating ?? 0} total={v.total_ratings ?? 0} size={14} />
                     </div>
                   )}
 
@@ -343,6 +394,11 @@ const VoyageurSearch = () => {
                     {v.deliver_to_address && (
                       <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-accent/15 text-accent flex items-center gap-1">
                         <Home size={10} /> Livraison adresse
+                      </span>
+                    )}
+                    {v.max_weight_kg && (
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                        Max {v.max_weight_kg}kg
                       </span>
                     )}
                   </div>
