@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import MatchingSuggestions from "@/features/matching/components/MatchingSuggestions";
+import { calculateSuggestedPrice, type PriceSuggestion } from "@/lib/priceSuggestion";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package, Image, Ruler, CreditCard, Shield, Sparkles, Truck, AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown } from "lucide-react";
