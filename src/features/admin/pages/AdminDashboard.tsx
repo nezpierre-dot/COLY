@@ -90,6 +90,22 @@ const AdminDashboard = () => {
     toast.success(t("admin.dataRefreshed"));
   };
 
+  const handleDisputeAction = async (disputeId: string, action: "resolve" | "refund") => {
+    setResolvingId(disputeId);
+    try {
+      const { data, error } = await supabase.functions.invoke("resolve-dispute", {
+        body: { dispute_id: disputeId, action },
+      });
+      if (error) throw error;
+      toast.success(action === "refund" ? "Remboursement effectué" : "Litige résolu");
+      await loadAll();
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors du traitement");
+    } finally {
+      setResolvingId(null);
+    }
+  };
+
   const roleDistribution = useMemo(() => stats ? [{ name: t("admin.demandeurs"), value: stats.total_demandeurs }, { name: t("admin.voyageurs"), value: stats.total_voyageurs }] : [], [stats, t]);
   const kycDistribution = useMemo(() => stats ? [{ name: t("admin.verified"), value: stats.kyc_verified }, { name: t("admin.pending"), value: stats.kyc_pending }] : [], [stats, t]);
 
