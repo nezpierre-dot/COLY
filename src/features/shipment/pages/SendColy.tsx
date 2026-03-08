@@ -95,7 +95,7 @@ const SendColy = () => {
   const [insured, setInsured] = useState<boolean | null>(null);
   const [showCustomsDialog, setShowCustomsDialog] = useState(false);
   const [customsShown, setCustomsShown] = useState(false);
-  const [aiLoaded, setAiLoaded] = useState(false);
+  
   const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
   const [showReminderPrompt, setShowReminderPrompt] = useState(false);
   const [showCustomsWarning, setShowCustomsWarning] = useState(false);
