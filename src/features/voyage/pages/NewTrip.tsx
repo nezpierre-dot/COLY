@@ -260,13 +260,30 @@ const NewTrip = () => {
   };
 
   const handleNext = () => {
+    setDirection(1);
     if (step < TOTAL_STEPS) setStep(step + 1);
     else handleSubmit();
   };
 
   const handleBack = () => {
+    setDirection(-1);
     if (step > 1) setStep(step - 1);
     else navigate("/dashboard");
+  };
+
+  const stepVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 60 : -60,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -60 : 60,
+      opacity: 0,
+    }),
   };
 
   return (
