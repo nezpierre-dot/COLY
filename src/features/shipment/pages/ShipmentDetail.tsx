@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Package, Shield, Clock, Pencil, X, Check, Loader2, AlertTriangle, User, Phone, Mail, Bell } from "lucide-react";
+import WhatsAppShareButton from "@/components/WhatsAppShareButton";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import LiveLocationSharing from "@/components/LiveLocationSharing";
 import PageTransition from "@/components/PageTransition";
