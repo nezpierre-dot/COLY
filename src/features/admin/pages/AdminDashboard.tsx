@@ -122,6 +122,14 @@ const AdminDashboard = () => {
             <TabsTrigger value="analytics" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><BarChart3 size={13} className="mr-1" /> {t("admin.analytics")}</TabsTrigger>
             <TabsTrigger value="shipments" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Package size={13} className="mr-1" /> {t("admin.parcels")}</TabsTrigger>
             <TabsTrigger value="users" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Users size={13} className="mr-1" /> {t("admin.users")}</TabsTrigger>
+            <TabsTrigger value="fraud" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground relative">
+              <ShieldAlert size={13} className="mr-1" /> Fraude
+              {fraudChecks.filter(f => f.result === "fraudulent" || f.result === "suspicious").length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                  {fraudChecks.filter(f => f.result === "fraudulent" || f.result === "suspicious").length}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-6 mt-0">
