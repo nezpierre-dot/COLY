@@ -136,6 +136,14 @@ const AdminDashboard = () => {
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="disputes" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-warning data-[state=active]:text-warning-foreground relative">
+              <Gavel size={13} className="mr-1" /> Litiges
+              {disputes.filter(d => d.status === "open" || d.status === "investigating").length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-warning text-warning-foreground text-[10px] font-bold flex items-center justify-center">
+                  {disputes.filter(d => d.status === "open" || d.status === "investigating").length}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-6 mt-0">
