@@ -131,12 +131,10 @@ export function useTransportFeasibility(
       const result: DisabledTransports = {};
 
       if (shouldDisable) {
-        const reason = diffContinent
-          ? "traversée océanique"
-          : "distance trop longue";
-        result.train = `Impossible par Train entre ces villes (${reason})`;
-        result.bus = `Impossible par Bus entre ces villes (${reason})`;
-        result.voiture = `Impossible par Voiture entre ces villes (${reason})`;
+        const reason = "Impossible sur cet axe (traversée maritime ou aérienne requise)";
+        result.train = reason;
+        result.bus = reason;
+        result.voiture = reason;
       }
 
       // Bateau et Vélo restent toujours disponibles
