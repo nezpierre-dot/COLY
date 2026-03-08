@@ -26,6 +26,30 @@ const TAX_ESTIMATES: Record<string, { tva: string; douane: string; total: string
 
 const ErrorHint = ({ message }: { message: string }) => <p className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1 duration-200">{message}</p>;
 
+const CityAutocomplete = ({ value, onChange, cities, placeholder, disabled, error }: { value: string; onChange: (v: string) => void; cities: string[]; placeholder: string; disabled?: boolean; error?: string }) => {
+  const matches = value.length >= 1
+    ? cities.filter(c => c.toLowerCase().includes(value.toLowerCase()) && c.toLowerCase() !== value.toLowerCase()).slice(0, 20)
+    : [];
+  return (
+    <div className="relative">
+      <Input
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className={error ? "border-destructive" : ""}
+      />
+      {matches.length > 0 && (
+        <div className="absolute left-0 right-0 top-full mt-1 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
+          {matches.map(c => (
+            <button key={c} onClick={() => onChange(c)} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors">{c}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const TrustBadge = ({ variant = "inline" }: { variant?: "inline" | "card" }) => {
   const { t } = useTranslation();
   if (variant === "card") return (<div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-3"><div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center shrink-0"><ShieldCheck size={16} className="text-emerald-600 dark:text-emerald-400" /></div><div><p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{t("coly.securedBy")}</p><p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">{t("coly.insuranceDesc")}</p></div><Lock size={12} className="text-emerald-500 ml-auto shrink-0" /></div>);
