@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package, Image, Ruler, CreditCard, Shield, Sparkles, Users, Truck, Zap, AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown } from "lucide-react";
+import { ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package, Image, Ruler, CreditCard, Shield, Sparkles, Truck, AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -91,10 +91,11 @@ const SendColy = () => {
   const [pickupAccessCode, setPickupAccessCode] = useState("");
   const [size, setSize] = useState("S");
   const [tarif, setTarif] = useState<string>("");
+  const [tarifFixe, setTarifFixe] = useState("");
   const [insured, setInsured] = useState<boolean | null>(null);
   const [showCustomsDialog, setShowCustomsDialog] = useState(false);
   const [customsShown, setCustomsShown] = useState(false);
-  const [aiLoaded, setAiLoaded] = useState(false);
+  
   const [createdReminderInfo, setCreatedReminderInfo] = useState<ReminderInfo | null>(null);
   const [showReminderPrompt, setShowReminderPrompt] = useState(false);
   const [showCustomsWarning, setShowCustomsWarning] = useState(false);
@@ -103,25 +104,18 @@ const SendColy = () => {
   const STEP_TITLES = [t("coly.route"), t("coly.parcel"), t("coly.rate"), t("coly.recap")];
   const DEPART_LABELS: Record<string, string> = { main: t("coly.handDelivery"), address: t("coly.pickupAddress"), relay: t("coly.relayPoint") };
 
-  const getTarifOptions = (country: string) => {
-    const { symbol } = getCurrencyForCountry(country);
-    return [
-      { id: "standard", label: t("sendcoly.standard"), price: `18.99${symbol}`, desc: t("sendcoly.standardDesc"), icon: Truck, popular: true },
-      { id: "express", label: t("sendcoly.express"), price: `24.99${symbol}`, desc: t("sendcoly.expressDesc"), icon: Zap, popular: false },
-      { id: "custom", label: t("sendcoly.custom"), price: t("sendcoly.onQuote"), desc: t("sendcoly.customDesc"), icon: CreditCard, popular: false },
-    ];
-  };
+  const { symbol: currencySymbol } = getCurrencyForCountry(arrCountry);
 
   useEffect(() => { fetch("https://countriesnow.space/api/v0.1/countries").then((r) => r.json()).then((res) => { if (res?.data) setCountries(res.data.map((c: any) => c.country).sort()); }).catch(() => {}); }, []);
   const fetchCitiesFor = (country: string, setter: (c: string[]) => void) => { setter([]); if (!country) return; fetch("https://countriesnow.space/api/v0.1/countries/cities", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ country }) }).then((r) => r.json()).then((res) => { if (res?.data) setter(res.data.sort()); }).catch(() => {}); };
   const handleDepartCountryChange = (v: string) => { setDepartCountry(v); setDepartCity(""); clearError("departCountry"); fetchCitiesFor(v, setDepartCities); };
   const handleArrCountryChange = (v: string) => { setArrCountry(v); setArrCity(""); clearError("arrCountry"); fetchCitiesFor(v, setArrCities); };
   const isInternational = useMemo(() => arrCountry.toLowerCase().trim().length > 0 && !["france", "fr"].includes(arrCountry.toLowerCase().trim()), [arrCountry]);
-  const aiSuggestion = useMemo(() => (!arrCity || !departCity ? null : { voyageurs: Math.floor(Math.random() * 5) + 1, prix: (15 + Math.random() * 10).toFixed(2) }), [arrCity, departCity]);
+  
 
   useEffect(() => { if (!user) return; const check = async () => { const [profileRes, shipmentsRes] = await Promise.all([supabase.from("profiles").select("kyc_status").eq("user_id", user.id).maybeSingle(), supabase.from("shipments").select("id").eq("user_id", user.id).limit(1)]); setKycStatus(profileRes.data?.kyc_status || "pending"); setHasExistingShipments((shipmentsRes.data?.length || 0) > 0); setKycChecked(true); }; check(); }, [user]);
   useEffect(() => { if (kycChecked && !hasExistingShipments && kycStatus !== "submitted" && kycStatus !== "verified") navigate("/kyc", { state: { returnTo: "/send-coly" } }); }, [kycChecked, hasExistingShipments, kycStatus, navigate]);
-  useEffect(() => { if (step === 3 && !aiLoaded) setTimeout(() => setAiLoaded(true), 800); }, [step, aiLoaded]);
+  
   useEffect(() => { if (step === 2 && isInternational && !customsShown) setTimeout(() => { setShowCustomsDialog(true); setCustomsShown(true); }, 500); }, [step, isInternational, customsShown]);
 
   const totalSteps = 4;
@@ -142,7 +136,7 @@ const SendColy = () => {
         if (!pickupAddress.trim()) e.pickupAddress = "Adresse de récupération obligatoire";
         break;
       case 2: if (!photo) e.photo = t("sendcoly.takePhoto"); break;
-      case 3: if (!tarif) e.tarif = t("sendcoly.chooseTariffReq"); if (insured === null) e.insured = t("sendcoly.chooseInsurance"); break;
+      case 3: if (!tarif) e.tarif = t("sendcoly.chooseTariffReq"); if (tarif === "fixe" && !tarifFixe.trim()) e.tarifFixe = "Montant obligatoire"; if (insured === null) e.insured = t("sendcoly.chooseInsurance"); break;
     }
     setErrors(e); if (Object.keys(e).length > 0) { toast.error(t("sendcoly.fillRequired")); return false; } return true;
   };
@@ -161,7 +155,7 @@ const SendColy = () => {
     setSubmitting(true);
     try {
       const photoUrl = await uploadPhoto();
-      const { data: inserted, error } = await supabase.from("shipments").insert({ user_id: user.id, departure_date: date, departure_method: departMethod, departure_city: departCity || null, relay_point: relayPoint || null, arrival_city: arrCity, arrival_country: arrCountry, contact_nom: contactNom, contact_prenom: contactPrenom, contact_tel: contactTel, contact_email: contactMail || null, photo_url: photoUrl, size, tarif, insured: insured || false, is_international: isInternational, status: "pending", pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null } as any).select("id").single();
+      const { data: inserted, error } = await supabase.from("shipments").insert({ user_id: user.id, departure_date: date, departure_method: departMethod, departure_city: departCity || null, relay_point: relayPoint || null, arrival_city: arrCity, arrival_country: arrCountry, contact_nom: contactNom, contact_prenom: contactPrenom, contact_tel: contactTel, contact_email: contactMail || null, photo_url: photoUrl, size, tarif: tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : "Sur devis", insured: insured || false, is_international: isInternational, status: "pending", pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null } as any).select("id").single();
       if (error) throw error;
       supabase.functions.invoke("notify-match", { body: { type: "shipment", record_id: inserted.id } }).catch(() => {});
       successFeedback(t("sendcoly.createdSuccess"), { description: t("sendcoly.createdDesc") });
@@ -193,7 +187,7 @@ const SendColy = () => {
   };
 
   const SIZES = getSizes(arrCountry);
-  const TARIF_OPTIONS = getTarifOptions(arrCountry);
+  const tarifDisplay = tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : tarif === "devis" ? "Sur devis" : "—";
   const localeUnits = getUnitsForCountry(arrCountry);
   const sizeLabel = SIZES.find(s => s.id === size)?.label || size;
 
@@ -230,15 +224,52 @@ const SendColy = () => {
       );
       case 3: return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-          {aiSuggestion && aiLoaded && (<div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-2xl p-4 animate-in fade-in duration-500"><div className="flex items-center gap-2 mb-2"><Sparkles size={16} className="text-accent" /><span className="text-xs font-semibold text-accent">{t("sendcoly.aiSuggestion")}</span></div><div className="flex items-center justify-between"><div className="flex items-center gap-3"><div className="flex items-center gap-1 text-sm text-foreground"><Users size={14} className="text-primary" /><span className="font-semibold">{aiSuggestion.voyageurs} {t("sendcoly.travelers")}</span><span className="text-muted-foreground">{t("sendcoly.available")}</span></div></div><div className="text-right"><p className="text-lg font-bold text-foreground">{aiSuggestion.prix}{getCurrencyForCountry(arrCountry).symbol}</p><p className="text-xs text-muted-foreground">{t("sendcoly.estimatedPrice")}</p></div></div></div>)}
-          {aiSuggestion && !aiLoaded && (<div className="bg-muted/50 rounded-2xl p-4 flex items-center gap-3 animate-pulse"><Sparkles size={16} className="text-muted-foreground" /><span className="text-sm text-muted-foreground">{t("sendcoly.analyzingTravelers")}</span></div>)}
-          <div className="space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><CreditCard size={16} className="text-primary" /> {t("sendcoly.chooseTariff")}</h3>{errors.tarif && <ErrorHint message={errors.tarif} />}<div className="space-y-2">{TARIF_OPTIONS.map((option) => (<button key={option.id} onClick={() => { setTarif(option.id); clearError("tarif"); }} className={`w-full text-left px-4 py-4 rounded-xl border transition-all relative ${tarif === option.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"}`}>{option.popular && <span className="absolute -top-2 right-3 bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">{t("sendcoly.popular")}</span>}<div className="flex items-center justify-between"><div className="flex items-center gap-3"><option.icon size={20} className="text-primary" /><div><p className="font-medium text-foreground">{option.label}</p><p className="text-xs text-muted-foreground">{option.desc}</p></div></div><span className="font-bold text-foreground">{option.price}</span></div></button>))}</div><p className="text-xs text-muted-foreground text-center">{t("sendcoly.paymentNote")}</p></div>
-          {isInternational && (<button onClick={() => setShowCustomsDialog(true)} className="w-full flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl px-4 py-3 text-left transition-colors hover:bg-primary/10"><Globe size={16} className="text-primary shrink-0" /><div className="flex-1"><p className="text-xs font-semibold text-foreground">{t("sendcoly.taxesEstimated")} : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p><p className="text-xs text-muted-foreground">{t("coly.aiEstimate")} — {t("common.seeAll")}</p></div><Sparkles size={12} className="text-accent shrink-0" /></button>)}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><CreditCard size={16} className="text-primary" /> {t("sendcoly.chooseTariff")}</h3>
+            {errors.tarif && <ErrorHint message={errors.tarif} />}
+            <div className="space-y-2">
+              <button onClick={() => { setTarif("fixe"); clearError("tarif"); }} className={`w-full text-left px-4 py-4 rounded-xl border transition-all ${tarif === "fixe" ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"}`}>
+                <div className="flex items-center gap-3">
+                  <CreditCard size={20} className="text-primary" />
+                  <div>
+                    <p className="font-medium text-foreground">Tarif fixe</p>
+                    <p className="text-xs text-muted-foreground">Vous définissez le prix de l'envoi</p>
+                  </div>
+                </div>
+              </button>
+              {tarif === "fixe" && (
+                <div className="pl-4">
+                  <div className="relative">
+                    <input
+                      className={`w-full border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none bg-background transition-all pr-12 ${errors.tarifFixe ? "border-destructive ring-1 ring-destructive/30" : "border-border focus:border-primary focus:ring-1 focus:ring-primary/30"}`}
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="Montant"
+                      value={tarifFixe}
+                      onChange={(e) => { setTarifFixe(e.target.value); if (errors.tarifFixe) { setErrors(prev => { const n = {...prev}; delete n.tarifFixe; return n; }); } }}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">{currencySymbol}</span>
+                  </div>
+                  {errors.tarifFixe && <ErrorHint message={errors.tarifFixe} />}
+                </div>
+              )}
+              <button onClick={() => { setTarif("devis"); clearError("tarif"); }} className={`w-full text-left px-4 py-4 rounded-xl border transition-all ${tarif === "devis" ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border bg-background hover:border-primary/30"}`}>
+                <div className="flex items-center gap-3">
+                  <Truck size={20} className="text-primary" />
+                  <div>
+                    <p className="font-medium text-foreground">Sur devis</p>
+                    <p className="text-xs text-muted-foreground">Le voyageur proposera un prix</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+          {isInternational && (<button onClick={() => setShowCustomsDialog(true)} className="w-full flex items-center gap-3 bg-primary/5 border border-primary/15 rounded-xl px-4 py-3 text-left transition-colors hover:bg-primary/10"><Globe size={16} className="text-primary shrink-0" /><div className="flex-1"><p className="text-xs font-semibold text-foreground">{t("sendcoly.taxesEstimated")} : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p><p className="text-xs text-muted-foreground">{t("coly.aiEstimate")} — {t("common.seeAll")}</p></div></button>)}
           <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Shield size={16} className="text-primary" /> {t("sendcoly.insuranceAxa")} <TrustBadge /></h3><p className="text-xs text-muted-foreground">{t("sendcoly.protectParcel")}</p><div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3"><Info size={14} className="text-primary shrink-0 mt-0.5" /><div className="text-xs text-foreground"><p className="font-medium">{t("sendcoly.optionalFee")}</p></div></div>{errors.insured && <ErrorHint message={errors.insured} />}<div className="grid grid-cols-2 gap-3"><button onClick={() => { setInsured(true); clearError("insured"); }} className={`py-3 rounded-xl border font-medium transition-all text-sm ${insured === true ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}><ShieldCheck size={14} className="inline mr-1" /> {t("sendcoly.yesInsure")}</button><button onClick={() => { setInsured(false); clearError("insured"); }} className={`py-3 rounded-xl border font-medium transition-all text-sm ${insured === false ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-primary/30"}`}>{t("sendcoly.noThanks")}</button></div>{insured === true && <p className="text-xs text-primary font-medium animate-in fade-in duration-200">{t("sendcoly.coveredByAxa")}</p>}</div>
         </div>
       );
       case 4: {
-        const sizeObj = SIZES.find((s) => s.id === size); const tarifObj = TARIF_OPTIONS.find(t => t.id === tarif);
+        const sizeObj = SIZES.find((s) => s.id === size);
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="flex items-center gap-2 mb-2"><CheckCircle2 size={20} className="text-primary" /><h3 className="text-lg font-bold text-foreground">{t("sendcoly.summary")}</h3><TrustBadge /></div>
@@ -246,10 +277,9 @@ const SendColy = () => {
             <SummaryRow icon={MapPin} label={t("dashboard.departure")} value={DEPART_LABELS[departMethod] || "—"} detail={departMethod !== "main" ? departCity : undefined} onEdit={() => setStep(1)} />
             <SummaryRow icon={MapPin} label={t("dashboard.arrival")} value={`${arrCity}, ${arrCountry}`} detail={`${contactPrenom} ${contactNom} — ${contactTel}`} onEdit={() => setStep(1)} badge={isInternational ? "international" : undefined} />
             <SummaryRow icon={Package} label={t("coly.parcel")} value={sizeObj?.label || size} detail={photo ? t("sendcoly.photoAdded") : t("sendcoly.noPhoto")} onEdit={() => setStep(2)} />
-            <SummaryRow icon={CreditCard} label={t("coly.rate")} value={tarifObj ? `${tarifObj.label} — ${tarifObj.price}` : tarif} onEdit={() => setStep(3)} />
+            <SummaryRow icon={CreditCard} label={t("coly.rate")} value={tarifDisplay} onEdit={() => setStep(3)} />
             <SummaryRow icon={Shield} label={t("tracking.insurance")} value={insured ? `Oui — AXA` : "Non"} onEdit={() => setStep(3)} badge={insured ? "axa" : undefined} />
             {isInternational && (<button onClick={() => setShowCustomsDialog(true)} className="w-full flex items-center gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-left"><Globe size={14} className="text-amber-600 dark:text-amber-400 shrink-0" /><div className="flex-1"><p className="text-xs font-semibold text-amber-700 dark:text-amber-300">{t("sendcoly.taxesEstimated")} : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p></div></button>)}
-            {aiSuggestion && (<div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-xl p-3 mt-2"><div className="flex items-center gap-2"><Sparkles size={14} className="text-accent" /><span className="text-xs text-muted-foreground">{aiSuggestion.voyageurs} {t("sendcoly.travelers")} {t("sendcoly.available")} — {t("sendcoly.estimatedPrice")} {aiSuggestion.prix}{getCurrencyForCountry(arrCountry).symbol}</span></div></div>)}
             <TrustBadge variant="card" />
           </div>
         );

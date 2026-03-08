@@ -178,7 +178,7 @@ const NeeditMission = () => {
     else if (step === 3) setStep(4);
     else if (step === 4) {
       if (!prixMax.trim()) { setErrors({ prixMax: t("needit.budgetRequired") }); toast.error(t("needit.budgetRequired")); return; }
-      if (!pickupAddress.trim()) { setErrors({ pickupAddress: "L'adresse de récupération est obligatoire" }); toast.error("L'adresse de récupération est obligatoire"); return; }
+      const finalPrixMax = prixMax === "__devis__" ? "Sur devis" : prixMax;
       if (!user) { toast.error(t("needit.mustBeLoggedIn")); return; }
       setSubmitting(true);
       try {
@@ -189,7 +189,7 @@ const NeeditMission = () => {
           if (!uploadErr) { const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90); photo_url = data?.signedUrl ?? null; }
         }
         const pathLabels = categoryPath.map((n) => n.label); if (selectedLeaf) pathLabels.push(selectedLeaf);
-        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: prixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
+        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: finalPrixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
         if (editId) {
           await supabase.from("needit_missions").update(missionData as any).eq("id", editId).eq("user_id", user.id);
           successFeedback(t("needit.missionUpdated"), { description: t("needit.missionUpdatedDesc") });
@@ -279,9 +279,21 @@ const NeeditMission = () => {
                               </Tooltip>
                             </TooltipProvider>
                           </div>
-                          <div className="relative">
-                            <Input placeholder={`${t("missions.priceMax")} (${currency.code})`} value={prixMax} onChange={(e) => { setPrixMax(e.target.value); if (errors.prixMax) setErrors(p => { const n = {...p}; delete n.prixMax; return n; }); }} className={`border-0 border-b rounded-none px-0 pr-12 focus-visible:ring-0 ${errors.prixMax ? "border-destructive" : "border-primary/30 focus-visible:border-primary"}`} />
-                            <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">{currency.symbol}</span>
+                          <div className="space-y-2">
+                            <button onClick={() => { setPrixMax(prixMax === "__devis__" ? "" : prixMax); if (prixMax === "__devis__") setPrixMax(""); }} className={`w-full text-left px-4 py-3 rounded-xl border transition-all text-sm ${prixMax && prixMax !== "__devis__" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/30"}`}>
+                              <p className="font-medium text-foreground">Tarif fixe</p>
+                              <p className="text-xs text-muted-foreground">Vous définissez le budget maximum</p>
+                            </button>
+                            {prixMax !== "__devis__" && (
+                              <div className="relative pl-4">
+                                <Input placeholder={`${t("missions.priceMax")} (${currency.code})`} value={prixMax} onChange={(e) => { setPrixMax(e.target.value); if (errors.prixMax) setErrors(p => { const n = {...p}; delete n.prixMax; return n; }); }} className={`border-0 border-b rounded-none px-0 pr-12 focus-visible:ring-0 ${errors.prixMax ? "border-destructive" : "border-primary/30 focus-visible:border-primary"}`} />
+                                <span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">{currency.symbol}</span>
+                              </div>
+                            )}
+                            <button onClick={() => setPrixMax("__devis__")} className={`w-full text-left px-4 py-3 rounded-xl border transition-all text-sm ${prixMax === "__devis__" ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/30"}`}>
+                              <p className="font-medium text-foreground">Sur devis</p>
+                              <p className="text-xs text-muted-foreground">Le voyageur proposera un prix</p>
+                            </button>
                           </div>
                           {errors.prixMax && <p className="text-xs mt-1" style={{ color: "#FF453A" }}>{errors.prixMax}</p>}
                         </div>
@@ -325,7 +337,7 @@ const NeeditMission = () => {
                       </div>
                       {prixMax && (
                         <div className="text-center mb-2">
-                          <span className="text-lg font-bold" style={{ color: "#30D158" }}>{t("needit.budgetMax")} : {prixMax} {currency.symbol}</span>
+                          <span className="text-lg font-bold" style={{ color: "#30D158" }}>{prixMax === "__devis__" ? "Sur devis" : `${t("needit.budgetMax")} : ${prixMax} ${currency.symbol}`}</span>
                         </div>
                       )}
 
