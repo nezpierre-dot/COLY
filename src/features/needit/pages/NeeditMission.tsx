@@ -107,6 +107,7 @@ const NeeditMission = () => {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [loadingEdit, setLoadingEdit] = useState(!!editId);
   const [step, setStep] = useState(1);
+  const [direction, setDirection] = useState(1);
   const [pays, setPays] = useState("");
   const [ville, setVille] = useState("");
   const [timing, setTiming] = useState("");
