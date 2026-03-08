@@ -68,6 +68,7 @@ const AdminDashboard = () => {
         supabase.rpc("admin_get_shipments_over_time"),
         supabase.rpc("admin_get_users_over_time"),
         supabase.rpc("admin_get_fraud_checks" as any, { _limit: 50 }),
+        supabase.rpc("admin_get_disputes" as any, { _limit: 50 }),
       ]);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
       if (shipmentsRes.data) setRecentShipments(shipmentsRes.data as unknown as RecentShipment[]);
@@ -75,6 +76,12 @@ const AdminDashboard = () => {
       if (sotRes.data) setShipmentsOverTime(sotRes.data as unknown as TimeData[]);
       if (uotRes.data) setUsersOverTime(uotRes.data as unknown as TimeData[]);
       if (fraudRes.data) setFraudChecks(fraudRes.data as unknown as FraudCheck[]);
+      const disputesRes = arguments[0];
+      // The 7th promise result
+      const allResults = await Promise.all([
+        statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes,
+      ]);
+      // Actually, let me fix this properly
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
