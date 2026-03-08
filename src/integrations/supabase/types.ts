@@ -806,6 +806,31 @@ export type Database = {
         Returns: string
       }
       get_admin_stats: { Args: never; Returns: Json }
+      get_matching_voyageurs: {
+        Args: {
+          _departure_date?: string
+          _destination_city?: string
+          _destination_country: string
+          _limit?: number
+          _max_weight_kg?: number
+        }
+        Returns: {
+          arrival_city: string
+          arrival_country: string
+          avatar_url: string
+          average_score: number
+          departure_city: string
+          departure_country: string
+          departure_date: string
+          full_name: string
+          max_items: number
+          max_weight_kg: number
+          total_ratings: number
+          transport_method: string
+          voyage_id: string
+          voyageur_id: string
+        }[]
+      }
       get_pending_needit_missions: {
         Args: never
         Returns: {
