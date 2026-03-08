@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
+import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
+import ReferralSection from "@/components/ReferralSection";
 import {
   AlertDialog,
   AlertDialogAction,
