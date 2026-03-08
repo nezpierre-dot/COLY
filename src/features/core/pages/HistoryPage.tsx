@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Package, Image } from "lucide-react";
+import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Package, Image, Download, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -260,6 +260,30 @@ const HistoryPage = () => {
     await Promise.all([refetchShip(), refetchMiss()]);
   };
 
+  const exportCSV = () => {
+    const header = "Référence;Type;Statut;Date;Montant\n";
+    const rows = filtered.map(i =>
+      `${i.ref};${i.type};${statusConfig[i.status]?.label || i.status};${i.date};${i.amount.toFixed(2)}`
+    ).join("\n");
+    const blob = new Blob(["\uFEFF" + header + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `nidit-historique-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = () => {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const rows = filtered.map(i =>
+      `<tr><td>${i.ref}</td><td>${i.type}</td><td>${statusConfig[i.status]?.label || i.status}</td><td>${i.date}</td><td style="text-align:right;color:${i.amount >= 0 ? '#2563eb' : '#dc2626'}">${i.amount >= 0 ? "+" : ""}${i.amount.toFixed(2)}€</td></tr>`
+    ).join("");
+    w.document.write(`<!DOCTYPE html><html><head><title>Historique Nidit</title><style>body{font-family:system-ui,sans-serif;padding:32px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #ddd;padding:8px 12px;font-size:13px}th{background:#f3f4f6;text-align:left}h1{font-size:20px;margin:0}p{color:#666;font-size:13px;margin:4px 0 0}</style></head><body><h1>Historique des transactions</h1><p>${filtered.length} transaction(s) — Exporté le ${new Date().toLocaleDateString("fr-FR")}</p><table><thead><tr><th>Réf.</th><th>Type</th><th>Statut</th><th>Date</th><th style="text-align:right">Montant</th></tr></thead><tbody>${rows}</tbody></table><script>setTimeout(()=>{window.print()},300)<\/script></body></html>`);
+    w.document.close();
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <PullToRefresh onRefresh={handleRefresh}>
@@ -443,14 +467,26 @@ const HistoryPage = () => {
               ))}
             </div>
 
-            {/* Total for current filter */}
+            {/* Total for current filter + export */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground">
                 {loading ? t("common.loading") : `${filtered.length} transaction${filtered.length > 1 ? "s" : ""}`}
               </p>
-              <p className={`text-lg font-bold ${total >= 0 ? "text-primary" : "text-destructive"}`}>
-                {total >= 0 ? "+" : ""}{total.toFixed(2)}{getCurrencySymbol()}
-              </p>
+              <div className="flex items-center gap-2">
+                {filtered.length > 0 && (
+                  <>
+                    <button onClick={exportCSV} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-xs font-medium text-muted-foreground transition-colors" title="Exporter CSV">
+                      <Download size={13} /> CSV
+                    </button>
+                    <button onClick={exportPDF} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-muted hover:bg-muted/80 text-xs font-medium text-muted-foreground transition-colors" title="Exporter PDF">
+                      <FileText size={13} /> PDF
+                    </button>
+                  </>
+                )}
+                <p className={`text-lg font-bold ${total >= 0 ? "text-primary" : "text-destructive"}`}>
+                  {total >= 0 ? "+" : ""}{total.toFixed(2)}{getCurrencySymbol()}
+                </p>
+              </div>
             </div>
 
             {/* Transaction list */}
