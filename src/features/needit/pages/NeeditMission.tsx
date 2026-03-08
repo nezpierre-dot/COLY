@@ -262,14 +262,16 @@ const NeeditMission = () => {
                         className={`pr-8 ${errors.ville ? "border-destructive" : ""}`}
                       />
                       {loadingCities && <Loader2 size={14} className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground" />}
-                      {!loadingCities && pays && ville && cities.filter(c => c.toLowerCase().includes(ville.toLowerCase()) && c.toLowerCase() !== ville.toLowerCase()).length > 0 && (
-                        <div className="absolute left-0 right-0 top-full mt-1 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
-                          {cities.filter(c => c.toLowerCase().includes(ville.toLowerCase()) && c.toLowerCase() !== ville.toLowerCase()).slice(0, 20).map(c => (
-                            <button key={c} onClick={() => setVille(c)} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors">{c}</button>
-                          ))}
-                        </div>
-                      )}
-                      {!loadingCities && pays && ville && !cities.some(c => c.toLowerCase() === ville.toLowerCase()) && ville.length >= 2 && cities.filter(c => c.toLowerCase().includes(ville.toLowerCase())).length > 0 && cities.filter(c => c.toLowerCase().includes(ville.toLowerCase()) && c.toLowerCase() !== ville.toLowerCase()).length === 0 && null}
+                      {!loadingCities && pays && ville.length >= 1 && (() => {
+                        const matches = cities.filter(c => c.toLowerCase().includes(ville.toLowerCase()) && c.toLowerCase() !== ville.toLowerCase());
+                        return matches.length > 0 ? (
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto">
+                            {matches.slice(0, 20).map(c => (
+                              <button key={c} onClick={() => setVille(c)} className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted transition-colors">{c}</button>
+                            ))}
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
                     {errors.ville && <p className="text-xs text-destructive mt-1">{errors.ville}</p>}
                   </div>
