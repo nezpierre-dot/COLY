@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
