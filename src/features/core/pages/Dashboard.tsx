@@ -1215,8 +1215,16 @@ const Dashboard = () => {
                         {m.prix_max && <span className="font-medium text-foreground">{m.prix_max}</span>}
                       </div>
                       {m.status === "pending" && (
-                        <div className="mt-1.5">
+                        <div className="mt-1.5 space-y-2">
                           <VoyageurAvailability country={m.country} city={m.city} variant="compact" />
+                          <WhatsAppShareButton
+                            type="needit"
+                            id={m.id}
+                            title={m.product_name || "Mission NeedIt"}
+                            destination={`${m.country}${m.city ? `, ${m.city}` : ""}`}
+                            price={m.prix_max}
+                            compact
+                          />
                         </div>
                       )}
                     </div>
