@@ -48,6 +48,7 @@ const VoyageDetail = lazy(() => import("./features/voyage/pages/VoyageDetail"));
 const ShipmentDetail = lazy(() => import("./features/shipment/pages/ShipmentDetail"));
 const NeeditMissionDetail = lazy(() => import("./features/needit/pages/NeeditMissionDetail"));
 const FavoritesPage = lazy(() => import("./features/core/pages/FavoritesPage"));
+const DisputesPage = lazy(() => import("./features/disputes/pages/DisputesPage"));
 
 const queryClient = new QueryClient();
 
