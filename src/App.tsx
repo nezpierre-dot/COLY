@@ -100,6 +100,7 @@ const App = () => {
                     <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
                     <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
                     <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
+                    <Route path="/live-tracking/:colisId" element={<ProtectedRoute><ColisLiveTracker /></ProtectedRoute>} />
                     <Route path="/voyage/:id" element={<ProtectedRoute><VoyageDetail /></ProtectedRoute>} />
                     <Route path="/shipment/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
                     <Route path="/mission/:id" element={<ProtectedRoute><NeeditMissionDetail /></ProtectedRoute>} />
