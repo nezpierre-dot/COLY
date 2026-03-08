@@ -269,7 +269,7 @@ const SendColy = () => {
         </div>
       );
       case 4: {
-        const sizeObj = SIZES.find((s) => s.id === size); const tarifObj = TARIF_OPTIONS.find(t => t.id === tarif);
+        const sizeObj = SIZES.find((s) => s.id === size);
         return (
           <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="flex items-center gap-2 mb-2"><CheckCircle2 size={20} className="text-primary" /><h3 className="text-lg font-bold text-foreground">{t("sendcoly.summary")}</h3><TrustBadge /></div>
@@ -277,10 +277,9 @@ const SendColy = () => {
             <SummaryRow icon={MapPin} label={t("dashboard.departure")} value={DEPART_LABELS[departMethod] || "—"} detail={departMethod !== "main" ? departCity : undefined} onEdit={() => setStep(1)} />
             <SummaryRow icon={MapPin} label={t("dashboard.arrival")} value={`${arrCity}, ${arrCountry}`} detail={`${contactPrenom} ${contactNom} — ${contactTel}`} onEdit={() => setStep(1)} badge={isInternational ? "international" : undefined} />
             <SummaryRow icon={Package} label={t("coly.parcel")} value={sizeObj?.label || size} detail={photo ? t("sendcoly.photoAdded") : t("sendcoly.noPhoto")} onEdit={() => setStep(2)} />
-            <SummaryRow icon={CreditCard} label={t("coly.rate")} value={tarifObj ? `${tarifObj.label} — ${tarifObj.price}` : tarif} onEdit={() => setStep(3)} />
+            <SummaryRow icon={CreditCard} label={t("coly.rate")} value={tarifDisplay} onEdit={() => setStep(3)} />
             <SummaryRow icon={Shield} label={t("tracking.insurance")} value={insured ? `Oui — AXA` : "Non"} onEdit={() => setStep(3)} badge={insured ? "axa" : undefined} />
             {isInternational && (<button onClick={() => setShowCustomsDialog(true)} className="w-full flex items-center gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-left"><Globe size={14} className="text-amber-600 dark:text-amber-400 shrink-0" /><div className="flex-1"><p className="text-xs font-semibold text-amber-700 dark:text-amber-300">{t("sendcoly.taxesEstimated")} : {(TAX_ESTIMATES[arrCountry.toLowerCase().trim()] || TAX_ESTIMATES.default).total}</p></div></button>)}
-            {aiSuggestion && (<div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-xl p-3 mt-2"><div className="flex items-center gap-2"><Sparkles size={14} className="text-accent" /><span className="text-xs text-muted-foreground">{aiSuggestion.voyageurs} {t("sendcoly.travelers")} {t("sendcoly.available")} — {t("sendcoly.estimatedPrice")} {aiSuggestion.prix}{getCurrencyForCountry(arrCountry).symbol}</span></div></div>)}
             <TrustBadge variant="card" />
           </div>
         );
