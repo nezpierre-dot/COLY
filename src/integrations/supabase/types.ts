@@ -71,6 +71,48 @@ export type Database = {
         }
         Relationships: []
       }
+      disputes: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          photo_url: string | null
+          reason: string
+          resolution: string | null
+          resolved_by: string | null
+          shipment_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          photo_url?: string | null
+          reason: string
+          resolution?: string | null
+          resolved_by?: string | null
+          shipment_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          photo_url?: string | null
+          reason?: string
+          resolution?: string | null
+          resolved_by?: string | null
+          shipment_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ean_products: {
         Row: {
           brand: string | null
@@ -181,6 +223,39 @@ export type Database = {
           from_city?: string
           id?: string
           to_city?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fraud_checks: {
+        Row: {
+          confidence: number | null
+          created_at: string
+          details: string | null
+          id: string
+          photo_url: string
+          result: string
+          shipment_id: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          photo_url: string
+          result?: string
+          shipment_id: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string
+          details?: string | null
+          id?: string
+          photo_url?: string
+          result?: string
+          shipment_id?: string
           user_id?: string
         }
         Relationships: []
@@ -402,7 +477,10 @@ export type Database = {
           kyc_status: string
           phone: string | null
           preferred_transports: string[] | null
+          referral_code: string | null
+          referred_by: string | null
           stripe_customer_id: string | null
+          trust_badges: string[]
           updated_at: string
           user_id: string
         }
@@ -416,7 +494,10 @@ export type Database = {
           kyc_status?: string
           phone?: string | null
           preferred_transports?: string[] | null
+          referral_code?: string | null
+          referred_by?: string | null
           stripe_customer_id?: string | null
+          trust_badges?: string[]
           updated_at?: string
           user_id: string
         }
@@ -430,7 +511,10 @@ export type Database = {
           kyc_status?: string
           phone?: string | null
           preferred_transports?: string[] | null
+          referral_code?: string | null
+          referred_by?: string | null
           stripe_customer_id?: string | null
+          trust_badges?: string[]
           updated_at?: string
           user_id?: string
         }
@@ -499,6 +583,33 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          bonus_amount: number
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          bonus_amount?: number
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       reminders: {
         Row: {
           body: string
@@ -554,6 +665,8 @@ export type Database = {
           departure_city: string | null
           departure_date: string
           departure_method: string
+          escrow_expires_at: string | null
+          escrow_status: string
           id: string
           insured: boolean
           is_international: boolean
@@ -580,6 +693,8 @@ export type Database = {
           departure_city?: string | null
           departure_date: string
           departure_method: string
+          escrow_expires_at?: string | null
+          escrow_status?: string
           id?: string
           insured?: boolean
           is_international?: boolean
@@ -606,6 +721,8 @@ export type Database = {
           departure_city?: string | null
           departure_date?: string
           departure_method?: string
+          escrow_expires_at?: string | null
+          escrow_status?: string
           id?: string
           insured?: boolean
           is_international?: boolean
@@ -751,6 +868,107 @@ export type Database = {
         }
         Relationships: []
       }
+      voyageur_availability: {
+        Row: {
+          available_date: string
+          city: string | null
+          country: string | null
+          created_at: string
+          id: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          available_date: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          available_date?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          reference_type: string | null
+          type: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          type?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -758,6 +976,22 @@ export type Database = {
     Functions: {
       accept_needit_mission: { Args: { _mission_id: string }; Returns: string }
       accept_shipment: { Args: { _shipment_id: string }; Returns: string }
+      admin_get_disputes: {
+        Args: { _limit?: number }
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          photo_url: string
+          reason: string
+          reporter_name: string
+          resolution: string
+          shipment_id: string
+          shipment_ref: string
+          status: string
+          user_id: string
+        }[]
+      }
       admin_get_recent_shipments: {
         Args: { _limit?: number }
         Returns: {
@@ -797,6 +1031,7 @@ export type Database = {
           user_ref: string
         }[]
       }
+      compute_trust_badges: { Args: { _user_id: string }; Returns: string[] }
       count_voyageurs_for_destination: {
         Args: { _city?: string; _country: string }
         Returns: number
@@ -806,6 +1041,31 @@ export type Database = {
         Returns: string
       }
       get_admin_stats: { Args: never; Returns: Json }
+      get_matching_voyageurs: {
+        Args: {
+          _departure_date?: string
+          _destination_city?: string
+          _destination_country: string
+          _limit?: number
+          _max_weight_kg?: number
+        }
+        Returns: {
+          arrival_city: string
+          arrival_country: string
+          avatar_url: string
+          average_score: number
+          departure_city: string
+          departure_country: string
+          departure_date: string
+          full_name: string
+          max_items: number
+          max_weight_kg: number
+          total_ratings: number
+          transport_method: string
+          voyage_id: string
+          voyageur_id: string
+        }[]
+      }
       get_pending_needit_missions: {
         Args: never
         Returns: {
