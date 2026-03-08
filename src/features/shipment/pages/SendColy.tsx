@@ -91,6 +91,7 @@ const SendColy = () => {
   const [pickupAccessCode, setPickupAccessCode] = useState("");
   const [size, setSize] = useState("S");
   const [tarif, setTarif] = useState<string>("");
+  const [tarifFixe, setTarifFixe] = useState("");
   const [insured, setInsured] = useState<boolean | null>(null);
   const [showCustomsDialog, setShowCustomsDialog] = useState(false);
   const [customsShown, setCustomsShown] = useState(false);
