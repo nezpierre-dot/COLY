@@ -111,6 +111,7 @@ const App = () => {
                     <Route path="/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
                     <Route path="/aide" element={<ProtectedRoute><AidePage /></ProtectedRoute>} />
                     <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
+                    <Route path="/live-tracking/:colisId" element={<ProtectedRoute><ColisLiveTracker /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
