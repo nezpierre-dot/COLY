@@ -12,7 +12,7 @@ type NotifFilter = "all" | "match" | "proof" | "status" | "reminder";
 const getNotifCategory = (type: string): NotifFilter => {
   if (type.startsWith("match:")) return "match";
   if (type.startsWith("proof:")) return "proof";
-  if (type.startsWith("pickup:") || type.startsWith("mission_status:")) return "status";
+  if (type.startsWith("pickup:") || type.startsWith("mission_status:") || type.startsWith("mission_cancelled:") || type.startsWith("shipment_cancelled:") || type.startsWith("accepted:") || type.startsWith("delivery:")) return "status";
   if (type.startsWith("reminder:")) return "reminder";
   return "all";
 };
@@ -43,27 +43,53 @@ const getNotifIcon = (type: string): ReactNode => {
   if (type.startsWith("proof:")) return <ShoppingBag size={18} className="text-amber-400" />;
   if (type.startsWith("match:")) return <Star size={18} className="text-amber-400" />;
   if (type.startsWith("pickup:")) return <Package size={18} className="text-emerald-400" />;
-  if (type.startsWith("mission_status:")) return <ShoppingBag size={18} className="text-primary" />;
+  if (type.startsWith("mission_status:") || type.startsWith("accepted:needit:")) return <ShoppingBag size={18} className="text-primary" />;
+  if (type.startsWith("mission_cancelled:") || type.startsWith("shipment_cancelled:")) return <XCircle size={18} className="text-destructive" />;
+  if (type.startsWith("accepted:shipment:")) return <Package size={18} className="text-primary" />;
+  if (type.startsWith("delivery:")) return <CheckCircle2 size={18} className="text-emerald-400" />;
   if (type.startsWith("reminder:")) return <Bell size={18} className="text-blue-400" />;
   return typeIcon[type] || defaultIcon;
 };
 
 const getNotifLink = (type: string): string | null => {
-  // proof:conversationId
+  // proof:conversationId → chat
   if (type.startsWith("proof:")) return `/chat/${type.replace("proof:", "")}`;
-  // match:shipment:id / match:needit:id / match:voyage:id
+
+  // match:shipment:id → shipment detail
   if (type.startsWith("match:shipment:")) return `/shipment/${type.replace("match:shipment:", "")}`;
-  if (type.startsWith("match:needit:")) return `/needit/${type.replace("match:needit:", "")}`;
+  // match:needit:id → mission detail
+  if (type.startsWith("match:needit:")) return `/mission/${type.replace("match:needit:", "")}`;
+  // match:voyage:id → voyage detail (voyageur sees their matches)
   if (type.startsWith("match:voyage:")) return `/voyage/${type.replace("match:voyage:", "")}`;
-  // pickup:shipmentId / pickup:needit:missionId
-  if (type.startsWith("pickup:needit:")) return `/needit/${type.replace("pickup:needit:", "")}`;
+
+  // pickup:needit:missionId → mission detail
+  if (type.startsWith("pickup:needit:")) return `/mission/${type.replace("pickup:needit:", "")}`;
+  // pickup:shipmentId → shipment detail
   if (type.startsWith("pickup:")) return `/shipment/${type.replace("pickup:", "")}`;
-  // mission_status:missionId
-  if (type.startsWith("mission_status:")) return `/needit/${type.replace("mission_status:", "")}`;
+
+  // mission_status:missionId → mission detail
+  if (type.startsWith("mission_status:")) return `/mission/${type.replace("mission_status:", "")}`;
+
+  // mission_cancelled:missionId → mission detail
+  if (type.startsWith("mission_cancelled:")) return `/mission/${type.replace("mission_cancelled:", "")}`;
+
+  // shipment_cancelled:shipmentId → shipment detail
+  if (type.startsWith("shipment_cancelled:")) return `/shipment/${type.replace("shipment_cancelled:", "")}`;
+
+  // accepted:shipment:id → shipment detail
+  if (type.startsWith("accepted:shipment:")) return `/shipment/${type.split(":")[2]}`;
+  // accepted:needit:id → mission detail
+  if (type.startsWith("accepted:needit:")) return `/mission/${type.split(":")[2]}`;
+
   // reminder:item_type:item_id
   if (type.startsWith("reminder:shipment:")) return `/shipment/${type.split(":")[2]}`;
-  if (type.startsWith("reminder:needit_mission:")) return `/needit/${type.split(":")[2]}`;
+  if (type.startsWith("reminder:needit_mission:")) return `/mission/${type.split(":")[2]}`;
   if (type.startsWith("reminder:voyage:")) return `/voyage/${type.split(":")[2]}`;
+
+  // delivery:shipmentId → shipment detail
+  if (type.startsWith("delivery:")) return `/shipment/${type.replace("delivery:", "")}`;
+
+  // Fallback: try to extract an ID pattern for known prefixes
   return null;
 };
 
