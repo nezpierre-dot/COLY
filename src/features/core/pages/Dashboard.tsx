@@ -276,6 +276,8 @@ const Dashboard = () => {
         toast.success(t("dashboard.acceptedShipment"));
         setPendingShipments(prev => prev.filter(s => s.id !== id));
         setAcceptDialog(null);
+        // Send email notification to owner (fire & forget)
+        supabase.functions.invoke("notify-acceptance", { body: { type: "shipment", item_id: id } }).catch(() => {});
         navigate(`/chat/${data}`);
       } else {
         const { data, error } = await supabase.rpc("accept_needit_mission", { _mission_id: id });
@@ -284,6 +286,8 @@ const Dashboard = () => {
         toast.success(t("dashboard.acceptedMission"));
         setNeeditMissions(prev => prev.filter(m => m.id !== id));
         setAcceptDialog(null);
+        // Send email notification to owner (fire & forget)
+        supabase.functions.invoke("notify-acceptance", { body: { type: "needit", item_id: id } }).catch(() => {});
         navigate(`/chat/${data}`);
       }
     } catch (err: any) {
