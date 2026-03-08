@@ -613,6 +613,8 @@ const Dashboard = () => {
 
             <FavoriteRoutes t={t} />
 
+            <WalletCard compact />
+
             {/* Quick action: Je transporte */}
             <button
               onClick={() => navigate("/transporter")}
