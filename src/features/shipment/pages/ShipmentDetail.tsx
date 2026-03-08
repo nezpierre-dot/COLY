@@ -43,6 +43,8 @@ const ShipmentDetail = () => {
   const [contactPrenom, setContactPrenom] = useState("");
   const [contactTel, setContactTel] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupAccessCode, setPickupAccessCode] = useState("");
 
   const loadShipment = useCallback(async () => {
     if (!id) return;
@@ -54,6 +56,8 @@ const ShipmentDetail = () => {
       setContactPrenom(data.contact_prenom || "");
       setContactTel(data.contact_tel || "");
       setContactEmail(data.contact_email || "");
+      setPickupAddress(data.pickup_address || "");
+      setPickupAccessCode(data.pickup_access_code || "");
     }
     setLoading(false);
   }, [id]);
@@ -73,7 +77,9 @@ const ShipmentDetail = () => {
       contact_prenom: contactPrenom,
       contact_tel: contactTel,
       contact_email: contactEmail || null,
-    }).eq("id", id);
+      pickup_address: pickupAddress || null,
+      pickup_access_code: pickupAccessCode || null,
+    } as any).eq("id", id);
     setSaving(false);
     if (error) {
       toast.error(t("common.error"));
@@ -201,8 +207,15 @@ const ShipmentDetail = () => {
                   <p className="text-xs font-semibold text-muted-foreground mb-2">{t("sendcoly.destinationContact")}</p>
                   <InfoRow icon={<User size={14} />} label={t("common.name")} value={`${shipment.contact_prenom} ${shipment.contact_nom}`} />
                   <InfoRow icon={<Phone size={14} />} label={t("common.phone")} value={shipment.contact_tel} />
-                  {shipment.contact_email && <InfoRow icon={<Mail size={14} />} label="Email" value={shipment.contact_email} />}
+                {shipment.contact_email && <InfoRow icon={<Mail size={14} />} label="Email" value={shipment.contact_email} />}
                 </div>
+                {(shipment.pickup_address || shipment.pickup_access_code) && (
+                  <div className="border-t border-border pt-3 mt-3">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">📍 Récupération</p>
+                    {shipment.pickup_address && <InfoRow icon={<MapPin size={14} />} label="Adresse" value={shipment.pickup_address} />}
+                    {shipment.pickup_access_code && <InfoRow icon={<span className="text-xs">🔑</span>} label="Code d'accès" value={shipment.pickup_access_code} />}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
@@ -229,6 +242,17 @@ const ShipmentDetail = () => {
                   <div className="mt-2">
                     <Label className="text-xs text-muted-foreground">Email</Label>
                     <Input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+                  </div>
+                </div>
+                <div className="border-t border-border pt-3 mt-3">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">📍 Récupération</p>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Adresse complète de récupération</Label>
+                    <Input value={pickupAddress} onChange={(e) => setPickupAddress(e.target.value)} placeholder="Ex : 12 rue de la Paix, 75002 Paris" />
+                  </div>
+                  <div className="mt-2">
+                    <Label className="text-xs text-muted-foreground">Code d'accès / étage / interphone</Label>
+                    <Input value={pickupAccessCode} onChange={(e) => setPickupAccessCode(e.target.value)} placeholder="Optionnel" />
                   </div>
                 </div>
               </div>

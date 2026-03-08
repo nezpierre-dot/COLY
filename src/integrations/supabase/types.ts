@@ -558,6 +558,8 @@ export type Database = {
           insured: boolean
           is_international: boolean
           photo_url: string | null
+          pickup_access_code: string | null
+          pickup_address: string | null
           relay_point: string | null
           size: string
           status: string
@@ -582,6 +584,8 @@ export type Database = {
           insured?: boolean
           is_international?: boolean
           photo_url?: string | null
+          pickup_access_code?: string | null
+          pickup_address?: string | null
           relay_point?: string | null
           size?: string
           status?: string
@@ -606,6 +610,8 @@ export type Database = {
           insured?: boolean
           is_international?: boolean
           photo_url?: string | null
+          pickup_access_code?: string | null
+          pickup_address?: string | null
           relay_point?: string | null
           size?: string
           status?: string
