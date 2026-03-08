@@ -100,6 +100,12 @@ const ShipmentTracking = () => {
   const handleDeliveryConfirmed = () => {
     // Don't auto-set delivered — the confirmation code flow handles that
     setShipment((prev: any) => ({ ...prev, status: "in_transit" }));
+    // Notify owner by email
+    if (id) {
+      supabase.functions.invoke("notify-status-change", {
+        body: { item_id: id, item_type: "shipment", new_status: "in_transit" },
+      }).catch(() => {});
+    }
   };
 
   const handleCodeConfirmed = () => {
