@@ -1298,8 +1298,8 @@ const Dashboard = () => {
                       <motion.div
                         key={item.id}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => item.type === "coly" ? navigate(`/tracking/${item.id}`) : undefined}
-                        className={`flex items-center gap-3 bg-card border border-border rounded-xl px-3.5 py-3 ${item.type === "coly" ? "cursor-pointer hover:shadow-sm" : ""}`}
+                        onClick={() => item.type === "coly" ? navigate(`/tracking/${item.id}`) : navigate(`/mission/${item.id}`)}
+                        className="flex items-center gap-3 bg-card border border-border rounded-xl px-3.5 py-3 cursor-pointer hover:shadow-sm"
                       >
                         <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
                           item.type === "coly" ? "bg-primary/10" : "bg-secondary/10"
@@ -1312,13 +1312,24 @@ const Dashboard = () => {
                           <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
                           <p className="text-xs text-muted-foreground">{item.subtitle}</p>
                         </div>
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                          item.status === "pending" ? "bg-accent/15 text-accent" :
-                          item.status === "accepted" ? "bg-primary/15 text-primary" :
-                          "bg-muted text-muted-foreground"
-                        }`}>
-                          {getStatusLabel(item.status)}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {(item.status === "accepted" || item.status === "picked_up" || item.status === "in_transit") && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); navigate(`/live-tracking/${item.id}`); }}
+                              className="flex items-center gap-1 text-[10px] font-bold text-green-600 dark:text-green-400 bg-green-500/10 border border-green-500/20 rounded-full px-2 py-1 hover:bg-green-500/20 transition-colors"
+                            >
+                              <MapPin size={10} />
+                              Live
+                            </button>
+                          )}
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                            item.status === "pending" ? "bg-accent/15 text-accent" :
+                            item.status === "accepted" ? "bg-primary/15 text-primary" :
+                            "bg-muted text-muted-foreground"
+                          }`}>
+                            {getStatusLabel(item.status)}
+                          </span>
+                        </div>
                       </motion.div>
                     ))}
                   </div>

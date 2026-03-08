@@ -296,12 +296,22 @@ const ShipmentDetail = () => {
 
           {/* Tracking link */}
           {shipment.status !== "pending" && shipment.status !== "cancelled" && (
-            <button
-              onClick={() => navigate(`/tracking/${shipment.id}`)}
-              className="w-full py-3.5 rounded-2xl bg-secondary text-secondary-foreground font-bold text-sm"
-            >
-              {t("tracking.viewTracking")}
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate(`/tracking/${shipment.id}`)}
+                className="flex-1 py-3.5 rounded-2xl bg-secondary text-secondary-foreground font-bold text-sm"
+              >
+                {t("tracking.viewTracking")}
+              </button>
+              {(shipment.status === "accepted" || shipment.status === "picked_up" || shipment.status === "in_transit") && (
+                <button
+                  onClick={() => navigate(`/live-tracking/${shipment.id}`)}
+                  className="py-3.5 px-5 rounded-2xl bg-green-600 text-white font-bold text-sm flex items-center gap-2"
+                >
+                  <MapPin size={14} /> Live
+                </button>
+              )}
+            </div>
           )}
 
           {/* Action buttons */}

@@ -35,6 +35,7 @@ const ConfidentialitePage = lazy(() => import("./features/legal/pages/Confidenti
 const PaymentMethods = lazy(() => import("./features/account/pages/PaymentMethods"));
 const NewTrip = lazy(() => import("./features/voyage/pages/NewTrip"));
 const ShipmentTracking = lazy(() => import("./features/shipment/pages/ShipmentTracking"));
+const ColisLiveTracker = lazy(() => import("./features/tracking/pages/ColisLiveTracker"));
 const ConversationsPage = lazy(() => import("./features/chat/pages/ConversationsPage"));
 const ChatPage = lazy(() => import("./features/chat/pages/ChatPage"));
 const AdminDashboard = lazy(() => import("./features/admin/pages/AdminDashboard"));
@@ -99,6 +100,7 @@ const App = () => {
                     <Route path="/payment-methods" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
                     <Route path="/new-trip" element={<ProtectedRoute><NewTrip /></ProtectedRoute>} />
                     <Route path="/tracking/:id" element={<ProtectedRoute><ShipmentTracking /></ProtectedRoute>} />
+                    <Route path="/live-tracking/:colisId" element={<ProtectedRoute><ColisLiveTracker /></ProtectedRoute>} />
                     <Route path="/voyage/:id" element={<ProtectedRoute><VoyageDetail /></ProtectedRoute>} />
                     <Route path="/shipment/:id" element={<ProtectedRoute><ShipmentDetail /></ProtectedRoute>} />
                     <Route path="/mission/:id" element={<ProtectedRoute><NeeditMissionDetail /></ProtectedRoute>} />
