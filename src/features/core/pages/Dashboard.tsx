@@ -569,8 +569,8 @@ const Dashboard = () => {
 
           <div className="bg-[#F8FAFC] dark:bg-[#0F1115] px-5 pt-5 pb-5">
             <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <img src={appLogo} alt="Coly" className="w-8 h-8" />
+              <div className="flex items-center gap-3">
+                <img src={appLogo} alt="WeAppYou" className="w-10 h-10 object-contain" />
                 <NotificationBell />
               </div>
               <button
