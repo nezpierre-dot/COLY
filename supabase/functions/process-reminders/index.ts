@@ -20,7 +20,7 @@ async function sendEmail(to: string, subject: string, html: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "WeApp You <noreply@weappyou.com>",
+        from: "Nidit <noreply@nidit.app>",
         to: [to],
         subject,
         html,
@@ -46,7 +46,7 @@ function buildReminderEmailHtml(title: string, body: string): string {
     <body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
       <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
         <div style="text-align:center;margin-bottom:32px;">
-          <h1 style="font-size:22px;color:#0D84FF;margin:0;">WeApp You</h1>
+          <h1 style="font-size:22px;color:#0D84FF;margin:0;">Nidit</h1>
         </div>
         <div style="background:#f8fafc;border-radius:12px;padding:24px;border:1px solid #e2e8f0;">
           <h2 style="font-size:18px;color:#1e293b;margin:0 0 12px 0;">🔔 ${title}</h2>
@@ -59,7 +59,7 @@ function buildReminderEmailHtml(title: string, body: string): string {
           </a>
         </div>
         <p style="text-align:center;font-size:12px;color:#94a3b8;margin-top:32px;">
-          © WeApp You — Vous recevez cet e-mail car vous avez activé un rappel.
+          © Nidit — Vous recevez cet e-mail car vous avez activé un rappel.
         </p>
       </div>
     </body>
@@ -73,7 +73,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate: require CRON_SECRET
     const authHeader = req.headers.get("Authorization");
     const cronSecret = Deno.env.get("CRON_SECRET");
 
@@ -97,7 +96,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Get all pending reminders that are due
     const { data: reminders, error } = await supabase
       .from("reminders")
       .select("*")
@@ -115,7 +113,6 @@ Deno.serve(async (req) => {
     let processed = 0;
 
     for (const reminder of reminders) {
-      // Get push subscription for user
       const { data: sub } = await supabase
         .from("push_subscriptions")
         .select("*")
@@ -126,7 +123,6 @@ Deno.serve(async (req) => {
         console.log(`Would send push to ${sub.endpoint} for reminder ${reminder.id}`);
       }
 
-      // Always create in-app notification
       await supabase.from("notifications").insert({
         user_id: reminder.user_id,
         title: reminder.title,
@@ -134,7 +130,6 @@ Deno.serve(async (req) => {
         type: `reminder:${reminder.item_type}:${reminder.item_id}`,
       });
 
-      // Send email via Resend
       const { data: userData } = await supabase.auth.admin.getUserById(reminder.user_id);
       if (userData?.user?.email) {
         await sendEmail(
@@ -144,7 +139,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Mark as sent
       await supabase
         .from("reminders")
         .update({ status: "sent" })

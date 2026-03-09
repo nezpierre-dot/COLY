@@ -56,8 +56,8 @@ export default function AidePage() {
       color: "text-primary", bgColor: "bg-primary/10",
     },
     {
-      icon: Mail, label: t("help.emailLabel"), desc: "support@weappyou.com",
-      action: () => window.open("mailto:support@weappyou.com", "_blank"),
+      icon: Mail, label: t("help.emailLabel"), desc: "support@nidit.app",
+      action: () => window.open("mailto:support@nidit.app", "_blank"),
       color: "text-emerald-500", bgColor: "bg-emerald-500/10",
     },
     {
@@ -144,7 +144,7 @@ export default function AidePage() {
         </section>
 
         <div className="text-center pt-4">
-          <p className="text-xs text-muted-foreground">WeAppYou · Version 1.0.0</p>
+          <p className="text-xs text-muted-foreground">Nidit · Version 1.0.0</p>
           <p className="text-xs text-muted-foreground mt-0.5">© 2026 Tous droits réservés</p>
         </div>
       </div>

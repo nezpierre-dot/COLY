@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
       </a>
     </div>
     <div style="padding: 16px 24px; background: #f8fafc; text-align: center;">
-      <p style="color: #94a3b8; font-size: 12px; margin: 0;">WeApp You — Livraison collaborative</p>
+      <p style="color: #94a3b8; font-size: 12px; margin: 0;">Nidit Livraison collaborative</p>
     </div>
   </div>
 </body>
@@ -165,8 +165,7 @@ Deno.serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "WeApp You <noreply@weappyou.com>",
-            to: [ownerEmail],
+            from: "WeApNidit <noreply@nidit.app            to: [ownerEmail],
             subject,
             html,
           }),
