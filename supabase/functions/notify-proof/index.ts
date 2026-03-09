@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
             Voir dans le chat
           </a>
         </div>
-        <p style="color: #999; font-size: 11px; text-align: center; margin-top: 24px;">Nidit — Transport collaboratif</p>
+        <p style="color: #999; font-size: 11px; text-align: center; margin-top: 24px;">Nidit Transport collaboratif</p>
       </div>
     `;
 
@@ -100,8 +100,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "WeApp You <noreply@weappyou.com>",
-        to: [email],
+        from: "WeApNidit <noreply@nidit.app        to: [email],
         subject: `🧾 Preuve d'achat reçue pour ${productLabel}`,
         html,
       }),

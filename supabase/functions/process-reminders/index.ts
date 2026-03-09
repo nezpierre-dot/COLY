@@ -20,7 +20,7 @@ async function sendEmail(to: string, subject: string, html: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Nidit <noreply@nidit.app     to: [to],
+        from: "Nidit <noreply@nidit.app: [to],
         subject,
         html,
       }),
@@ -45,7 +45,7 @@ function buildReminderEmailHtml(title: string, body: string): string {
     <body style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
       <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
         <div style="text-align:center;margin-bottom:32px;">
-          <h1 style="font-size:22px;color:#0D84FF;margin:0;">WeApp YNidit       </div>
+          <h1 style="font-size:22px;color:#0D84FF;margin:0;">WeApp YNidit  Niditv>
         <div style="background:#f8fafc;border-radius:12px;padding:24px;border:1px solid #e2e8f0;">
           <h2 style="font-size:18px;color:#1e293b;margin:0 0 12px 0;">🔔 ${title}</h2>
           <p style="font-size:15px;color:#475569;line-height:1.6;margin:0;">${body}</p>
@@ -57,7 +57,7 @@ function buildReminderEmailHtml(title: string, body: string): string {
           </a>
         </div>
         <p style="text-align:center;font-size:12px;color:#94a3b8;margin-top:32px;">
-          © WeApp You — Vous recevez cet e-mail car vous avez activé un rappel.
+          © WeApp You �Niditecevez cet e-mail car vous avez activé un rappel.
         </p>
       </div>
     </body>
