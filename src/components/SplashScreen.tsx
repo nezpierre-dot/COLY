@@ -42,11 +42,7 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
               transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
               className="mb-6"
             >
-              <div className="w-20 h-20 rounded-3xl bg-[#0D84FF]/15 backdrop-blur-sm flex items-center justify-center shadow-2xl border border-[#0D84FF]/20">
-                <svg width="40" height="24" viewBox="0 0 40 24">
-                  <path d="M2 12c5-10 12-10 18 0s12 10 18 0" stroke="#0D84FF" strokeWidth="3" fill="none" strokeLinecap="round"/>
-                </svg>
-              </div>
+              <img src={logo} alt="Coly logo" className="w-24 h-24" />
             </motion.div>
 
             {/* App name */}
