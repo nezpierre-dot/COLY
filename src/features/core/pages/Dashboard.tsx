@@ -567,8 +567,11 @@ const Dashboard = () => {
         >
 
           <div className="bg-[#F8FAFC] dark:bg-[#0F1115] px-5 pt-5 pb-5">
-            <div className="flex justify-between items-start mb-4">
-              <NotificationBell />
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <img src={appLogo} alt="Coly" className="w-8 h-8" />
+                <NotificationBell />
+              </div>
               <button
                 onClick={toggleRole}
                 className="px-3.5 py-1.5 rounded-full text-[13px] font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.97]"
