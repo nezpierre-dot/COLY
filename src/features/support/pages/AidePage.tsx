@@ -144,7 +144,7 @@ export default function AidePage() {
         </section>
 
         <div className="text-center pt-4">
-          <p className="text-xs text-muted-foreground">WeAppYou · Version 1.0.0</p>
+          <p className="text-xs text-muted-foreground">Nidit · Version 1.0.0</p>
           <p className="text-xs text-muted-foreground mt-0.5">© 2026 Tous droits réservés</p>
         </div>
       </div>
