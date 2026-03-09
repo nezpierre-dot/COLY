@@ -486,7 +486,7 @@ const fr: TranslationDict = {
   "payment.pricingTransparency": "Transparence tarifaire",
   "payment.feeDetails": "Détail des frais",
   "payment.grossAmount": "Montant brut",
-  "payment.commission": "Commission WeAppYou (18%)",
+  "payment.commission": "Commission Nidit (18%)",
   "payment.insuranceAxa": "Assurance AXA (2%)",
   "payment.netAmount": "Montant net",
   "payment.addMethod": "Ajouter un moyen de paiement",
