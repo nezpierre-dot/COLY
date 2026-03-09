@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
             Voir le détail
           </a>
         </div>
-        <p style="color: #999; font-size: 11px; text-align: center; margin-top: 24px;">WeApp You — Transport collaboratif</p>
+        <p style="color: #999; font-size: 11px; text-align: center; margin-top: 24px;">Nidit — Transport collaboratif</p>
       </div>
     `;
 
