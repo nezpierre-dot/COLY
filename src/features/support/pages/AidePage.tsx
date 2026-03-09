@@ -56,8 +56,8 @@ export default function AidePage() {
       color: "text-primary", bgColor: "bg-primary/10",
     },
     {
-      icon: Mail, label: t("help.emailLabel"), desc: "support@weappyou.com",
-      action: () => window.open("mailto:support@weappyou.com", "_blank"),
+      icon: Mail, label: t("help.emailLabel"), desc: "support@nidit.app",
+      action: () => window.open("mailto:support@nidit.app", "_blank"),
       color: "text-emerald-500", bgColor: "bg-emerald-500/10",
     },
     {
