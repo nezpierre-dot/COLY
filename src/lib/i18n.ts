@@ -2069,7 +2069,7 @@ const es: TranslationDict = {
   "dashboard.matches": "Coincidencias",
   "dashboard.recentActivity": "Actividad reciente",
   "dashboard.last30": "Últimos 30 días",
-  "dashboard.sendColy": "Enviar un Coly",
+  "dashboard.sendColy": "Enviar un paquete",
   "dashboard.needitMission": "Misión NeedIt",
   "dashboard.findVoyageur": "Buscar viajero",
   "dashboard.history": "Historial",
