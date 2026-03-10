@@ -1297,7 +1297,7 @@ const en: TranslationDict = {
   "history.distribution": "Distribution",
   "history.timeline": "Timeline",
   "history.voyageur": "Traveler",
-  "history.coly": "Coly",
+  "history.coly": "Shipment",
   "history.needit": "NeedIt",
   "history.searchPlaceholder": "Search a transaction…",
   "history.aiBest": "Best gains",
