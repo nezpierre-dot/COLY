@@ -1132,7 +1132,7 @@ const en: TranslationDict = {
   "dashboard.voyageurMode": "Traveler Mode",
   "dashboard.demandeurMode": "Sender Mode",
   "dashboard.switchRole": "Switch role",
-  "dashboard.sendColy": "Send a Coly",
+  "dashboard.sendColy": "Send a Parcel",
   "dashboard.needitMission": "NeedIt Mission",
   "dashboard.findVoyageur": "Find a traveler",
   "dashboard.history": "History",
