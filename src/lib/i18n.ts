@@ -124,7 +124,7 @@ const fr: TranslationDict = {
   "dashboard.voyageurMode": "Mode Voyageur",
   "dashboard.demandeurMode": "Mode Demandeur",
   "dashboard.switchRole": "Changer de rôle",
-  "dashboard.sendColy": "Envoyer un Coly",
+  "dashboard.sendColy": "Envoyer un Colis",
   "dashboard.needitMission": "Mission NeedIt",
   "dashboard.findVoyageur": "Trouver un voyageur",
   "dashboard.history": "Historique",
