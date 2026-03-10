@@ -1770,7 +1770,7 @@ const en: TranslationDict = {
   "voySettings.section": "Traveler Settings",
   "voySettings.dashboardHistory": "History Dashboard",
   "voySettings.travelerHistory": "My Traveler History",
-  "voySettings.colyHistory": "My Coly History",
+  "voySettings.colyHistory": "My Shipment History",
   "voySettings.needitHistory": "My NeedIt History",
   "voySettings.favoriteTrips": "My Favorite Trips",
   "voySettings.budgetBalance": "NeedIt Balance",
