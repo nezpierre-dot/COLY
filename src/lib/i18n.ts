@@ -773,7 +773,7 @@ const fr: TranslationDict = {
   "voySettings.section": "Réglages Voyageur",
   "voySettings.dashboardHistory": "Tableau de bord Historique",
   "voySettings.travelerHistory": "Mon historique Voyageur",
-  "voySettings.colyHistory": "Mon historique Coly",
+  "voySettings.colyHistory": "Mon historique Envois",
   "voySettings.needitHistory": "Mon historique Needit",
   "voySettings.favoriteTrips": "Mes Trajets Favoris",
   "voySettings.budgetBalance": "Solde Needit",
