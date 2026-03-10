@@ -2142,7 +2142,7 @@ const de: TranslationDict = {
   "dashboard.voyages": "Reisen",
   "dashboard.colisAvail": "Pakete verf.",
   "dashboard.matches": "Treffer",
-  "dashboard.sendColy": "Coly senden",
+  "dashboard.sendColy": "Paket senden",
 
   "settings.title": "Einstellungen",
   "settings.light": "Hell",
