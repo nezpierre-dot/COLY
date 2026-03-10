@@ -190,7 +190,7 @@ const fr: TranslationDict = {
   "transport.bateau": "Bateau / Ferry",
   "transport.velo": "Vélo / E-Bike",
 
-  // ─── Send Coly ───
+  // ─── Send Colis ───
   "coly.route": "Trajet",
   "coly.parcel": "Colis",
   "coly.rate": "Tarif",
