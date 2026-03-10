@@ -509,8 +509,8 @@ const fr: TranslationDict = {
   "notif.markRead": "Marquer comme lu",
   "notif.delete": "Supprimer",
 
-  // ─── SendColy ───
-  "sendcoly.title": "Envoyer un Coly",
+  // ─── SendColis ───
+  "sendcoly.title": "Envoyer un Colis",
   "sendcoly.summary": "Récapitulatif",
   "sendcoly.step": "Étape",
   "sendcoly.shippingDate": "Date d'expédition",
