@@ -40,20 +40,10 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-              className="mb-6"
+              className="mb-8"
             >
-              <img src={logo} alt="Coly logo" className="w-24 h-24" />
+              <img src={logo} alt="Nidit" className="w-60 h-60 object-contain" />
             </motion.div>
-
-            {/* App name */}
-            <motion.h1
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="text-3xl font-black tracking-tight mb-2 text-foreground"
-            >
-              Coly
-            </motion.h1>
 
             {/* Tagline */}
             <motion.p
