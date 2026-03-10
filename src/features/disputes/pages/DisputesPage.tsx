@@ -46,8 +46,8 @@ const DisputesPage = () => {
       if (s) {
         setShipments(s.map((x) => ({
           id: x.id,
-          ref: "COLY-" + x.id.slice(0, 8).toUpperCase(),
-          label: `COLY-${x.id.slice(0, 8).toUpperCase()} → ${x.arrival_city}`,
+          ref: "NIDIT-" + x.id.slice(0, 8).toUpperCase(),
+          label: `NIDIT-${x.id.slice(0, 8).toUpperCase()} → ${x.arrival_city}`,
         })));
       }
       const { data: d } = await supabase
