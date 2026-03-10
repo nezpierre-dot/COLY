@@ -8,9 +8,9 @@ import { useTranslation } from "@/hooks/useTranslation";
 const MOCK_TRANSACTIONS = [
   { id: "1", type: "Mission NeedIt", ref: "N°224513", amount: 32.9, date: "30/01/2025", direction: "in" as const, icon: "needit" },
   { id: "2", type: "Réception", ref: "virement solde", amount: -500, date: "12/01/2025", direction: "out" as const, icon: "reception" },
-  { id: "3", type: "Transport", ref: "COLY N°244365", amount: 14.2, date: "04/01/2025", direction: "in" as const, icon: "transport" },
-  { id: "4", type: "Envoi", ref: "COLY N°263214", amount: -23.0, date: "03/01/2025", direction: "out" as const, icon: "envoi" },
-  { id: "5", type: "Envoi", ref: "COLY N°246531", amount: -44.4, date: "27/12/2024", direction: "out" as const, icon: "envoi" },
+  { id: "3", type: "Transport", ref: "NIDIT N°244365", amount: 14.2, date: "04/01/2025", direction: "in" as const, icon: "transport" },
+  { id: "4", type: "Envoi", ref: "NIDIT N°263214", amount: -23.0, date: "03/01/2025", direction: "out" as const, icon: "envoi" },
+  { id: "5", type: "Envoi", ref: "NIDIT N°246531", amount: -44.4, date: "27/12/2024", direction: "out" as const, icon: "envoi" },
   { id: "6", type: "Réception", ref: "virement solde", amount: -50, date: "15/12/2024", direction: "out" as const, icon: "reception" },
 ];
 

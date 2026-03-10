@@ -108,7 +108,7 @@ const ShipmentDetail = () => {
       await supabase.from("notifications").insert({
         user_id: shipment.voyageur_id,
         title: "Envoi annulé ❌",
-        message: `L'envoi COLY-${shipment.id.slice(0, 8).toUpperCase()} a été annulé par l'expéditeur. Le budget sera remboursé si déjà payé.`,
+        message: `L'envoi NIDIT-${shipment.id.slice(0, 8).toUpperCase()} a été annulé par l'expéditeur. Le budget sera remboursé si déjà payé.`,
         type: "shipment_cancelled:" + id,
       });
     }
@@ -173,7 +173,7 @@ const ShipmentDetail = () => {
               {statusLabels[shipment.status] || shipment.status}
             </span>
             <span className="text-xs text-muted-foreground">
-              REF: COLY-{shipment.id.slice(0, 8).toUpperCase()}
+              REF: NIDIT-{shipment.id.slice(0, 8).toUpperCase()}
             </span>
           </div>
 

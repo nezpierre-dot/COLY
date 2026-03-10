@@ -126,7 +126,7 @@ serve(async (req) => {
         await supabaseAdmin.from("notifications").insert({
           user_id: shipment.voyageur_id,
           title: "Litige résolu — Remboursement ⚠️",
-          message: `Un litige a été résolu avec remboursement au demandeur pour le colis COLY-${shipment.id.slice(0, 8).toUpperCase()}.`,
+          message: `Un litige a été résolu avec remboursement au demandeur pour le colis NIDIT-${shipment.id.slice(0, 8).toUpperCase()}.`,
           type: "dispute_refunded:" + dispute_id,
         });
       }

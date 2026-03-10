@@ -153,7 +153,7 @@ const ShipmentTracking = () => {
             </button>
             <div className="flex-1">
               <h1 className="text-xl font-bold text-foreground">{t("tracking.title")}</h1>
-              <p className="text-xs text-muted-foreground">COLY-{shipment.id.slice(0, 8).toUpperCase()}</p>
+              <p className="text-xs text-muted-foreground">NIDIT-{shipment.id.slice(0, 8).toUpperCase()}</p>
             </div>
             {isDelivered && (
               <span className="text-xs font-bold bg-green-500/15 text-green-700 px-2 py-1 rounded-full flex items-center gap-1">

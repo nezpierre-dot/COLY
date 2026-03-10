@@ -124,8 +124,8 @@ const HistoryPage = () => {
           id: `s-dem-${s.id}`,
           realId: s.id,
           dbTable: "shipments",
-          type: "Envoi Coly",
-          ref: `COLY-${s.id.slice(0, 8).toUpperCase()}`,
+          type: "Envoi",
+          ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`,
           amount: -raw,
           date: new Date(s.created_at).toLocaleDateString("fr-FR"),
           rawDate: new Date(s.created_at),
@@ -143,8 +143,8 @@ const HistoryPage = () => {
             id: `s-voy-${s.id}`,
             realId: s.id,
             dbTable: "shipments",
-            type: "Transport Coly",
-            ref: `COLY-${s.id.slice(0, 8).toUpperCase()}`,
+            type: "Transport",
+            ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`,
             amount: gain,
             date: new Date(s.created_at).toLocaleDateString("fr-FR"),
             rawDate: new Date(s.created_at),
@@ -268,12 +268,12 @@ const HistoryPage = () => {
     const items: HistoryItem[] = [];
     shipRes.data?.filter(s => s.user_id === user.id).forEach((s) => {
       const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
-      items.push({ id: `s-dem-${s.id}`, realId: s.id, dbTable: "shipments", type: "Envoi Coly", ref: `COLY-${s.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "coly", icon: "envoi" });
+      items.push({ id: `s-dem-${s.id}`, realId: s.id, dbTable: "shipments", type: "Envoi", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "coly", icon: "envoi" });
     });
     shipRes.data?.filter(s => s.voyageur_id === user.id).forEach((s) => {
       const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
       const gain = raw * (1 - PLATFORM_RATE);
-      if (gain > 0) items.push({ id: `s-voy-${s.id}`, realId: s.id, dbTable: "shipments", type: "Transport Coly", ref: `COLY-${s.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "voyageur", icon: "transport" });
+      if (gain > 0) items.push({ id: `s-voy-${s.id}`, realId: s.id, dbTable: "shipments", type: "Transport", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "voyageur", icon: "transport" });
     });
     missRes.data?.filter(m => m.user_id === user.id).forEach((m) => {
       const raw = parseFloat(m.prix_max?.replace(/[^0-9.]/g, "") ?? "0") || 0;

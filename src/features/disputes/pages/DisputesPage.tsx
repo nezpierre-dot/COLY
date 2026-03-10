@@ -46,8 +46,8 @@ const DisputesPage = () => {
       if (s) {
         setShipments(s.map((x) => ({
           id: x.id,
-          ref: "COLY-" + x.id.slice(0, 8).toUpperCase(),
-          label: `COLY-${x.id.slice(0, 8).toUpperCase()} → ${x.arrival_city}`,
+          ref: "NIDIT-" + x.id.slice(0, 8).toUpperCase(),
+          label: `NIDIT-${x.id.slice(0, 8).toUpperCase()} → ${x.arrival_city}`,
         })));
       }
       const { data: d } = await supabase
@@ -216,7 +216,7 @@ const DisputesPage = () => {
               <div key={d.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono font-medium text-foreground">
-                    COLY-{d.shipment_id.slice(0, 8).toUpperCase()}
+                    NIDIT-{d.shipment_id.slice(0, 8).toUpperCase()}
                   </span>
                   {statusLabel(d.status)}
                 </div>
