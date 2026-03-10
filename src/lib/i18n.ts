@@ -2181,7 +2181,7 @@ const it: TranslationDict = {
   "common.search": "Cerca", "common.logout": "Esci", "common.login": "Accedi", "common.signup": "Registrati",
   "nav.home": "Home", "nav.missions": "Missioni", "nav.messages": "Messaggi", "nav.profile": "Profilo",
   "welcome.tagline": "Condividi il viaggio,\nsemplifica i tuoi\nscambi.",
-  "dashboard.voyages": "Viaggi", "dashboard.sendColy": "Invia un Coly",
+  "dashboard.voyages": "Viaggi", "dashboard.sendColy": "Invia un pacco",
   "settings.title": "Impostazioni", "settings.light": "Chiaro", "settings.dark": "Scuro", "settings.auto": "Auto",
   "transport.avion": "Aereo", "transport.train": "Treno", "transport.voiture": "Auto", "transport.bus": "Autobus",
   "transport.bateau": "Nave / Traghetto", "transport.velo": "Bici / E-Bike",
