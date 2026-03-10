@@ -276,7 +276,7 @@ const ColisLiveTracker = () => {
   const item = shipment || mission;
   const itemType = shipment ? "shipment" : "needit";
   const refLabel = shipment
-    ? `COLY-${colisId?.slice(0, 8).toUpperCase()}`
+    ? `NIDIT-${colisId?.slice(0, 8).toUpperCase()}`
     : `NEED-${colisId?.slice(0, 8).toUpperCase()}`;
 
   // Compute time since last update

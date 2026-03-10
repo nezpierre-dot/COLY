@@ -2194,7 +2194,7 @@ const ar: TranslationDict = {
   "common.search": "بحث", "common.logout": "تسجيل الخروج", "common.login": "تسجيل الدخول", "common.signup": "إنشاء حساب",
   "nav.home": "الرئيسية", "nav.missions": "المهام", "nav.messages": "الرسائل", "nav.profile": "الملف الشخصي",
   "welcome.tagline": "شارك الرحلة،\nسهّل تبادلاتك.",
-  "dashboard.voyages": "الرحلات", "dashboard.sendColy": "إرسال Coly",
+  "dashboard.voyages": "الرحلات", "dashboard.sendColy": "إرسال طرد",
   "settings.title": "الإعدادات",
   "transport.avion": "طائرة", "transport.train": "قطار", "transport.voiture": "سيارة", "transport.bus": "حافلة",
   "transport.bateau": "سفينة / عبّارة", "transport.velo": "دراجة",

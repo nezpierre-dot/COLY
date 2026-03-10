@@ -173,7 +173,7 @@ const ShipmentDetail = () => {
               {statusLabels[shipment.status] || shipment.status}
             </span>
             <span className="text-xs text-muted-foreground">
-              REF: COLY-{shipment.id.slice(0, 8).toUpperCase()}
+              REF: NIDIT-{shipment.id.slice(0, 8).toUpperCase()}
             </span>
           </div>
 

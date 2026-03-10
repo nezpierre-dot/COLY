@@ -216,7 +216,7 @@ const DisputesPage = () => {
               <div key={d.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono font-medium text-foreground">
-                    COLY-{d.shipment_id.slice(0, 8).toUpperCase()}
+                    NIDIT-{d.shipment_id.slice(0, 8).toUpperCase()}
                   </span>
                   {statusLabel(d.status)}
                 </div>
