@@ -362,8 +362,8 @@ const Dashboard = () => {
     if (isVoyageur || !user) return;
     const loadDemandeurData = async () => {
       const [shipRes, missRes] = await Promise.all([
-        supabase.from("shipments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("needit_missions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("shipments").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
+        supabase.from("needit_missions").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
       ]);
       if (shipRes.data) setDemandeurShipments(shipRes.data);
       if (missRes.data) setDemandeurMissions(missRes.data);
@@ -546,8 +546,8 @@ const Dashboard = () => {
       if (nRes.data) setNeeditMissions(nRes.data);
     } else {
       const [shipRes, missRes] = await Promise.all([
-        supabase.from("shipments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-        supabase.from("needit_missions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("shipments").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
+        supabase.from("needit_missions").select("*").eq("user_id", user.id).neq("status", "cancelled").order("created_at", { ascending: false }),
       ]);
       if (shipRes.data) setDemandeurShipments(shipRes.data);
       if (missRes.data) setDemandeurMissions(missRes.data);
