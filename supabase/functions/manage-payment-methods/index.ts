@@ -157,8 +157,9 @@ serve(async (req) => {
 
     throw new Error("Invalid action");
   } catch (error) {
+    console.error("manage-payment-methods error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Payment operation failed. Please try again." }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
     );
   }

@@ -9,16 +9,14 @@ const corsHeaders = {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const IDNOW_AUTH_URL =
-  Deno.env.get("IDNOW_AUTH_URL") ||
-  "https://api.idcheck-sandbox.ariadnext.io/auth/realms/customer-identity/protocol/openid-connect/token";
-const IDNOW_CIS_URL =
-  Deno.env.get("IDNOW_CIS_URL") ||
-  "https://api.idcheck-sandbox.ariadnext.io/gw/cis";
-const IDNOW_CLIENT_ID =
-  Deno.env.get("IDNOW_CLIENT_ID") || "sa-coly-sandbox";
-const IDNOW_CLIENT_SECRET =
-  Deno.env.get("IDNOW_CLIENT_SECRET") || "gZSnxK8DWkKzr0TH58tfavbFbUKfz2bg";
+const IDNOW_AUTH_URL = Deno.env.get("IDNOW_AUTH_URL");
+if (!IDNOW_AUTH_URL) throw new Error("IDNOW_AUTH_URL not configured");
+const IDNOW_CIS_URL = Deno.env.get("IDNOW_CIS_URL");
+if (!IDNOW_CIS_URL) throw new Error("IDNOW_CIS_URL not configured");
+const IDNOW_CLIENT_ID = Deno.env.get("IDNOW_CLIENT_ID");
+if (!IDNOW_CLIENT_ID) throw new Error("IDNOW_CLIENT_ID not configured");
+const IDNOW_CLIENT_SECRET = Deno.env.get("IDNOW_CLIENT_SECRET");
+if (!IDNOW_CLIENT_SECRET) throw new Error("IDNOW_CLIENT_SECRET not configured");
 
 async function getAccessToken(): Promise<string> {
   const res = await fetch(IDNOW_AUTH_URL, {

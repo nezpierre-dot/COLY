@@ -6,17 +6,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// IDnow sandbox defaults – override via Supabase secrets for production
-const IDNOW_AUTH_URL =
-  Deno.env.get("IDNOW_AUTH_URL") ||
-  "https://api.idcheck-sandbox.ariadnext.io/auth/realms/customer-identity/protocol/openid-connect/token";
-const IDNOW_SDKWEB_URL =
-  Deno.env.get("IDNOW_SDKWEB_URL") ||
-  "https://sdkweb.idcheck-sandbox.ariadnext.io/rest/v1/idcheckio-sdk-web";
-const IDNOW_CLIENT_ID =
-  Deno.env.get("IDNOW_CLIENT_ID") || "sa-coly-sandbox";
-const IDNOW_CLIENT_SECRET =
-  Deno.env.get("IDNOW_CLIENT_SECRET") || "gZSnxK8DWkKzr0TH58tfavbFbUKfz2bg";
+const IDNOW_AUTH_URL = Deno.env.get("IDNOW_AUTH_URL");
+if (!IDNOW_AUTH_URL) throw new Error("IDNOW_AUTH_URL not configured");
+const IDNOW_SDKWEB_URL = Deno.env.get("IDNOW_SDKWEB_URL");
+if (!IDNOW_SDKWEB_URL) throw new Error("IDNOW_SDKWEB_URL not configured");
+const IDNOW_CLIENT_ID = Deno.env.get("IDNOW_CLIENT_ID");
+if (!IDNOW_CLIENT_ID) throw new Error("IDNOW_CLIENT_ID not configured");
+const IDNOW_CLIENT_SECRET = Deno.env.get("IDNOW_CLIENT_SECRET");
+if (!IDNOW_CLIENT_SECRET) throw new Error("IDNOW_CLIENT_SECRET not configured");
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
