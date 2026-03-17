@@ -177,7 +177,7 @@ const SendColy = () => {
 
   const handleNext = () => {
     if (!validateStep()) return;
-    if (step === 1 && !customsWarningAccepted) {
+    if (step === 1 && isInternational && !customsWarningAccepted) {
       setShowCustomsWarning(true);
       return;
     }
