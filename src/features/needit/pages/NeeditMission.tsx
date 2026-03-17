@@ -172,7 +172,8 @@ const NeeditMission = () => {
     setDirection(1);
     if (step === 1 && validateStep1()) setStep(2);
     else if (step === 2 && validateStep2()) {
-      if (!customsAccepted) {
+      const isInternational = pays.trim().length > 0 && !["france", "fr"].includes(pays.toLowerCase().trim());
+      if (isInternational && !customsAccepted) {
         setShowCustomsWarning(true);
         return;
       }
