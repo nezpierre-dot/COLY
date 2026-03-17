@@ -459,7 +459,7 @@ const SendColy = () => {
       )}
 
       <Dialog open={showCustomsWarning} onOpenChange={() => {}}>
-        <DialogContent className="max-w-sm mx-auto rounded-2xl [&>button:last-child]:hidden">
+        <DialogContent className="max-w-sm mx-auto rounded-2xl [&>button[class*='absolute']]:hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-foreground">
               <AlertTriangle size={20} className="text-amber-500" /> ⚠️ Informations douanières
