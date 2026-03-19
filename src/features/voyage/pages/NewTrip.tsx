@@ -408,7 +408,7 @@ const NewTrip = () => {
               <h2 className="text-lg font-bold text-foreground">{t("trip.travelInfo")}</h2>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-muted-foreground text-sm">{t("trip.departDate")}</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.departDate")} <span className="text-destructive">*</span></Label>
                   <Input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} />
                 </div>
                 <div>
