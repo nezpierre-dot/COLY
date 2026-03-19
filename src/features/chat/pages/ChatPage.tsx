@@ -187,7 +187,7 @@ const ChatPage = () => {
         });
         // Send email notification (fire & forget)
         supabase.functions.invoke("notify-proof", {
-          body: { demandeur_id: otherUserId, product_name: productName },
+          body: { item_id: shipmentId, item_type: itemDetail?.type === "mission" ? "needit_mission" : "shipment" },
         }).catch(() => {});
       }
       
