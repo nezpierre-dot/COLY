@@ -420,7 +420,7 @@ const NewTrip = () => {
                   <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">{t("trip.departCity")}</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.departCity")} <span className="text-destructive">*</span></Label>
                   <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departureCountry} recentItems={recentCities} />
                 </div>
                 <div>
