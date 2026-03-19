@@ -848,7 +848,7 @@ const fr: TranslationDict = {
   "dashboard.switchToDemandeur": "Passer Demandeur",
   "dashboard.switchToVoyageur": "Passer Voyageur",
   "dashboard.voyageurSubtitle": "Propose tes trajets et gagne de l'argent",
-  "dashboard.demandeurSubtitle": "Trouve un voyageur et économise jusqu'à 70 %",
+  "dashboard.demandeurSubtitle": "Trouve un voyageur et économise jusqu'à 70 %. Envoi un objet ou commande-le !",
   "dashboard.installWeAppYou": "Installer Nidit",
   "dashboard.installQuick": "Accès rapide & mode hors-ligne",
   "dashboard.installBtn": "Installer",
