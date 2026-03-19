@@ -5,6 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const escapeHtml = (s: string): string =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,41 +29,90 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { demandeur_id, product_name } = await req.json();
-    if (!demandeur_id) {
-      return new Response(JSON.stringify({ error: "Missing demandeur_id" }), {
+    const callerId = user.id;
+
+    const { item_id, item_type } = await req.json();
+    if (!item_id || !item_type) {
+      return new Response(JSON.stringify({ error: "Missing item_id or item_type" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Get demandeur email via admin client
+    // Get item data from DB (don't trust client-supplied product_name or demandeur_id)
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!serviceRoleKey) {
       throw new Error("SUPABASE_SERVICE_ROLE_KEY not configured");
     }
-
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
-    const { data: userData } = await adminClient.auth.admin.getUserById(demandeur_id);
-    const email = userData?.user?.email;
 
-    if (!email) {
-      console.warn("No email found for demandeur", demandeur_id);
+    let demandeurId: string | null = null;
+    let productName = "votre produit";
+
+    if (item_type === "needit_mission") {
+      const { data } = await adminClient.from("needit_missions").select("user_id, voyageur_id, product_name").eq("id", item_id).maybeSingle();
+      if (!data) {
+        return new Response(JSON.stringify({ error: "Item not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Verify caller is the assigned voyageur
+      if (data.voyageur_id !== callerId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      demandeurId = data.user_id;
+      productName = data.product_name || "votre produit";
+    } else if (item_type === "shipment") {
+      const { data } = await adminClient.from("shipments").select("user_id, voyageur_id, departure_city, arrival_city").eq("id", item_id).maybeSingle();
+      if (!data) {
+        return new Response(JSON.stringify({ error: "Item not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (data.voyageur_id !== callerId) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      demandeurId = data.user_id;
+      productName = `votre colis ${data.departure_city || ""} → ${data.arrival_city}`;
+    } else {
+      return new Response(JSON.stringify({ error: "Invalid item_type" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!demandeurId) {
       return new Response(JSON.stringify({ success: true, skipped: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Send email via Resend
+    const { data: userData } = await adminClient.auth.admin.getUserById(demandeurId);
+    const email = userData?.user?.email;
+
+    if (!email) {
+      console.warn("No email found for demandeur", demandeurId);
+      return new Response(JSON.stringify({ success: true, skipped: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
       console.warn("RESEND_API_KEY not set, skipping email");
@@ -69,7 +121,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const productLabel = product_name || "votre produit";
+    // Sanitize for HTML embedding
+    const productLabel = escapeHtml(productName);
 
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
@@ -102,7 +155,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: "Nidit <noreply@nidit.app>",
         to: [email],
-        subject: `🧾 Preuve d'achat reçue pour ${productLabel}`,
+        subject: `🧾 Preuve d'achat reçue pour ${productName}`,
         html,
       }),
     });
