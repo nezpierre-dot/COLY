@@ -1,4 +1,5 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, type ReactNode } from "react";
+import { useAutoLogout } from "@/hooks/useAutoLogout";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -59,6 +60,11 @@ const PageLoader = () => (
   </div>
 );
 
+const AutoLogoutWrapper = ({ children }: { children: ReactNode }) => {
+  useAutoLogout();
+  return <>{children}</>;
+};
+
 const App = () => {
   const [splashDone, setSplashDone] = useState(() => {
     if (sessionStorage.getItem("splash-shown")) return true;
@@ -75,6 +81,7 @@ const App = () => {
           {!splashDone && <SplashScreen onFinished={() => setSplashDone(true)} />}
           <BrowserRouter>
             <AuthProvider>
+              <AutoLogoutWrapper>
               <FavoritesProvider>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
@@ -120,6 +127,7 @@ const App = () => {
                   </Routes>
                 </Suspense>
               </FavoritesProvider>
+              </AutoLogoutWrapper>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
