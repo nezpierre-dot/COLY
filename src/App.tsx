@@ -60,6 +60,11 @@ const PageLoader = () => (
   </div>
 );
 
+const AutoLogoutWrapper = ({ children }: { children: ReactNode }) => {
+  useAutoLogout();
+  return <>{children}</>;
+};
+
 const App = () => {
   const [splashDone, setSplashDone] = useState(() => {
     if (sessionStorage.getItem("splash-shown")) return true;
