@@ -1839,7 +1839,7 @@ const en: TranslationDict = {
   "dashboard.switchToDemandeur": "Switch to Sender",
   "dashboard.switchToVoyageur": "Switch to Traveler",
   "dashboard.voyageurSubtitle": "Share your trips and earn money",
-  "dashboard.demandeurSubtitle": "Find a traveler and save up to 70%",
+  "dashboard.demandeurSubtitle": "Find a traveler and save up to 70%. Send an item or order it!",
   "dashboard.installWeAppYou": "Install Nidit",
   "dashboard.installQuick": "Quick access & offline mode",
   "dashboard.installBtn": "Install",
