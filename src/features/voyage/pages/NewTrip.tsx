@@ -408,7 +408,7 @@ const NewTrip = () => {
               <h2 className="text-lg font-bold text-foreground">{t("trip.travelInfo")}</h2>
               <div className="space-y-3">
                 <div>
-                  <Label className="text-muted-foreground text-sm">{t("trip.departDate")}</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.departDate")} <span className="text-destructive">*</span></Label>
                   <Input type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} />
                 </div>
                 <div>
@@ -416,11 +416,11 @@ const NewTrip = () => {
                   <Input type="time" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">{t("trip.departCountry")}</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.departCountry")} <span className="text-destructive">*</span></Label>
                   <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">{t("trip.departCity")}</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.departCity")} <span className="text-destructive">*</span></Label>
                   <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departureCountry} recentItems={recentCities} />
                 </div>
                 <div>
@@ -445,11 +445,11 @@ const NewTrip = () => {
                   <Input type="time" value={arrivalTime} onChange={(e) => setArrivalTime(e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">{t("trip.arrivalCountry")}</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.arrivalCountry")} <span className="text-destructive">*</span></Label>
                   <SearchableSelect value={arrivalCountry} onChange={handleArrivalCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">{t("trip.arrivalCity")}</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.arrivalCity")} <span className="text-destructive">*</span></Label>
                   <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} recentItems={recentCities} />
                 </div>
                 <div>
@@ -466,7 +466,7 @@ const NewTrip = () => {
               <h2 className="text-lg font-bold text-foreground">{t("trip.travelInfo")}</h2>
 
               <div>
-                <Label className="text-muted-foreground text-sm mb-2 block">{t("trip.selectTransport")}</Label>
+                <Label className="text-muted-foreground text-sm mb-2 block">{t("trip.selectTransport")} <span className="text-destructive">*</span></Label>
                 <TooltipProvider delayDuration={0}>
                   <div className="grid grid-cols-2 gap-2">
                     {TRANSPORT_METHODS.map((t) => {
