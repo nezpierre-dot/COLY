@@ -5,6 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const escapeHtml = (s: string): string =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 interface StatusChangePayload {
   item_id: string;
   item_type: "shipment" | "needit_mission";
@@ -68,6 +71,8 @@ Deno.serve(async (req) => {
       });
     }
 
+    const callerId = user.id;
+
     const { item_id, item_type, new_status } = (await req.json()) as StatusChangePayload;
     if (!item_id || !item_type || !new_status) {
       return new Response(JSON.stringify({ error: "Missing fields" }), {
@@ -86,21 +91,35 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Get item owner and label
+    // Get item owner and label from DB, and verify caller is the voyageur
     let ownerId: string | null = null;
     let itemLabel = "votre colis";
     let detailPath = "";
 
     if (item_type === "shipment") {
-      const { data } = await adminClient.from("shipments").select("user_id, departure_city, arrival_city, arrival_country").eq("id", item_id).maybeSingle();
+      const { data } = await adminClient.from("shipments").select("user_id, voyageur_id, departure_city, arrival_city, arrival_country").eq("id", item_id).maybeSingle();
       if (data) {
+        // Verify caller is the assigned voyageur
+        if (data.voyageur_id !== callerId) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         ownerId = data.user_id;
         itemLabel = `votre colis ${data.departure_city || ""} → ${data.arrival_city}`;
         detailPath = `/shipment/${item_id}`;
       }
     } else {
-      const { data } = await adminClient.from("needit_missions").select("user_id, product_name").eq("id", item_id).maybeSingle();
+      const { data } = await adminClient.from("needit_missions").select("user_id, voyageur_id, product_name").eq("id", item_id).maybeSingle();
       if (data) {
+        // Verify caller is the assigned voyageur
+        if (data.voyageur_id !== callerId) {
+          return new Response(JSON.stringify({ error: "Unauthorized" }), {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         ownerId = data.user_id;
         itemLabel = data.product_name || "votre produit";
         detailPath = `/needit-mission/${item_id}`;
@@ -131,6 +150,8 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Sanitize for HTML embedding
+    const safeLabel = escapeHtml(itemLabel);
     const deepLink = `https://we-app-you.lovable.app${detailPath}`;
 
     const html = `
@@ -140,7 +161,7 @@ Deno.serve(async (req) => {
         </div>
         <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
           <p style="margin: 0 0 12px; color: #1a1a1a; font-size: 15px;">
-            ${config.description(itemLabel)}
+            ${config.description(safeLabel)}
           </p>
         </div>
         <div style="text-align: center;">
