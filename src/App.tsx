@@ -127,6 +127,7 @@ const App = () => {
                   </Routes>
                 </Suspense>
               </FavoritesProvider>
+              </AutoLogoutWrapper>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
