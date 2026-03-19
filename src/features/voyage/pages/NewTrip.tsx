@@ -416,7 +416,7 @@ const NewTrip = () => {
                   <Input type="time" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} />
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-sm">{t("trip.departCountry")}</Label>
+                  <Label className="text-muted-foreground text-sm">{t("trip.departCountry")} <span className="text-destructive">*</span></Label>
                   <SearchableSelect value={departureCountry} onChange={handleDepartureCountry} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
                 </div>
                 <div>
