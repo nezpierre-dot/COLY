@@ -466,7 +466,7 @@ const NewTrip = () => {
               <h2 className="text-lg font-bold text-foreground">{t("trip.travelInfo")}</h2>
 
               <div>
-                <Label className="text-muted-foreground text-sm mb-2 block">{t("trip.selectTransport")}</Label>
+                <Label className="text-muted-foreground text-sm mb-2 block">{t("trip.selectTransport")} <span className="text-destructive">*</span></Label>
                 <TooltipProvider delayDuration={0}>
                   <div className="grid grid-cols-2 gap-2">
                     {TRANSPORT_METHODS.map((t) => {
