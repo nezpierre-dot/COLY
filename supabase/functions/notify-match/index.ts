@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
         notifications.push({
           user_id: voyage.user_id,
           title: "🎯 Nouveaux matchs !",
-          message: `${total} demande(s) correspondent à votre trajet vers ${voyage.arrival_city}, ${voyage.arrival_country}.`,
+          message: `${total} demande(s) correspondent à votre trajet vers ${voyage.arrival_city}, ${voyage.arrival_country}. Cliquez pour voir et accepter.`,
           type: `match:voyage:${record_id}`,
         });
       }
