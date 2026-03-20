@@ -196,12 +196,19 @@ const VoyageDetail = () => {
         .eq("arrival_country", voyage.arrival_country)
         .eq("departure_date", voyage.departure_date);
 
-      const { data: missionData } = await supabase
+      let missionQuery = supabase
         .from("needit_missions")
         .select("id, product_name, status, country, city, prix_max")
         .eq("voyageur_id", user.id)
         .in("status", ["accepted", "picked_up", "in_transit", "completed"])
         .eq("country", voyage.arrival_country);
+      
+      // Also filter by city if the voyage has a specific arrival city
+      if (voyage.arrival_city) {
+        missionQuery = missionQuery.eq("city", voyage.arrival_city);
+      }
+
+      const { data: missionData } = await missionQuery;
 
       setAcceptedColis(shipData || []);
       setAcceptedMissions(missionData || []);
