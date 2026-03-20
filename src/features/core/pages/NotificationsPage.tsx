@@ -59,8 +59,8 @@ const getNotifLink = (type: string): string | null => {
   if (type.startsWith("match:shipment:")) return `/shipment/${type.replace("match:shipment:", "")}`;
   // match:needit:id → mission detail
   if (type.startsWith("match:needit:")) return `/mission/${type.replace("match:needit:", "")}`;
-  // match:voyage:id → voyage detail (voyageur sees their matches)
-  if (type.startsWith("match:voyage:")) return `/voyage/${type.replace("match:voyage:", "")}`;
+  // match:voyage:id → dashboard (voyageur sees matching items to accept there)
+  if (type.startsWith("match:voyage:")) return "/dashboard";
 
   // pickup:needit:missionId → mission detail
   if (type.startsWith("pickup:needit:")) return `/mission/${type.replace("pickup:needit:", "")}`;
