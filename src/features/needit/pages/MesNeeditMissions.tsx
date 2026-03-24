@@ -76,6 +76,13 @@ const MesNeeditMissions = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
+    // Find the mission to check its status
+    const mission = missions.find(m => m.id === deleteId);
+    if (mission && (mission.status === "picked_up" || mission.status === "in_transit")) {
+      toast.error("L'objet a déjà été récupéré. Ouvrez un litige en cas de problème.");
+      setDeleteId(null);
+      return;
+    }
     const { error } = await supabase.from("needit_missions").update({ status: "cancelled" }).eq("id", deleteId);
     if (error) {
       toast.error("Erreur lors de la suppression");
