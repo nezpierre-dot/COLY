@@ -641,7 +641,7 @@ const VoyageDetail = () => {
                     />
                   )}
                 </div>
-              ))
+              ))}
             </div>
           )}
 
