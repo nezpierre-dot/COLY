@@ -404,6 +404,7 @@ const DisputesPage = () => {
         {myDisputes.length > 0 && (
           <div className="space-y-3">
             <h2 className="text-base font-bold text-foreground">Mes litiges</h2>
+            <p className="text-xs text-muted-foreground">Litiges ouverts par vous ou concernant vos missions en tant que voyageur.</p>
             {myDisputes.map((d) => {
               const messages = disputeMessages[d.id] || [];
               const isExpanded = expandedDispute === d.id;
