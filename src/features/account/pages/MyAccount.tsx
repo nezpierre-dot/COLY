@@ -65,6 +65,14 @@ const MyAccount = () => {
     supabase.from("ratings").select("id, score, comment, rater_role, created_at").eq("rated_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
       if (data) setReviews(data);
     });
+    // Fetch existing replies
+    supabase.from("rating_replies").select("rating_id, content").eq("user_id", user.id).then(({ data }) => {
+      if (data) {
+        const map: Record<string, string> = {};
+        data.forEach((r: any) => { map[r.rating_id] = r.content; });
+        setReplies(map);
+      }
+    });
     supabase.from("profiles").select("bio, avatar_url, kyc_status").eq("user_id", user.id).single().then(({ data }) => {
       if (data) {
         setBio((data as any).bio || "");
