@@ -417,7 +417,13 @@ const DisputesPage = () => {
                                 </span>
                               </div>
                               {msg.photo_url && (
-                                <img src={msg.photo_url} alt="Photo jointe" className="w-full max-w-[200px] rounded-lg mb-1.5 border border-border" />
+                                msg.photo_url.includes('.pdf') ? (
+                                  <a href={msg.photo_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary text-xs underline mb-1.5">
+                                    <FileText size={14} /> Voir le PDF joint
+                                  </a>
+                                ) : (
+                                  <img src={msg.photo_url} alt="Photo jointe" className="w-full max-w-[200px] rounded-lg mb-1.5 border border-border" />
+                                )
                               )}
                               <p className="text-foreground whitespace-pre-wrap">{msg.content}</p>
                             </div>
