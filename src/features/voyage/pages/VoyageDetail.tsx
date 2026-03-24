@@ -409,7 +409,46 @@ const VoyageDetail = () => {
                 <InfoRow icon={<Package size={14} />} label={t("trip.canMove") || "Peut se déplacer"} value={voyage.can_move ? "✅" : "❌"} />
                 <InfoRow icon={<MapPin size={14} />} label={t("trip.deliverToAddress") || "Livrer à domicile"} value={voyage.deliver_to_address ? "✅" : "❌"} />
                 <InfoRow icon={<Package size={14} />} label="NeedIt" value={voyage.accept_needit ? "✅" : "❌"} />
-                <InfoRow icon={<Clock size={14} />} label="Fermeture matchs" value={`${voyage.cutoff_hours ?? 24}h avant le départ`} />
+                {!editingCutoff ? (
+                  <div className="flex items-center justify-between">
+                    <InfoRow icon={<Clock size={14} />} label="Fermeture matchs" value={`${voyage.cutoff_hours ?? 24}h avant le départ`} />
+                    {canEditCapacity && (
+                      <button onClick={() => { setEditCutoffHours(String(voyage.cutoff_hours ?? 24)); setEditingCutoff(true); }} className="ml-2 text-primary">
+                        <Pencil size={12} />
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-muted-foreground shrink-0" />
+                    <select
+                      value={editCutoffHours}
+                      onChange={(e) => setEditCutoffHours(e.target.value)}
+                      className="flex-1 rounded-lg border border-border bg-background px-2 py-1 text-sm"
+                    >
+                      {[6, 12, 24, 48, 72].map((h) => (
+                        <option key={h} value={String(h)}>{h}h avant le départ</option>
+                      ))}
+                    </select>
+                    <button
+                      disabled={savingCapacity}
+                      onClick={async () => {
+                        if (!id) return;
+                        setSavingCapacity(true);
+                        const { error } = await supabase.from("voyages").update({ cutoff_hours: parseInt(editCutoffHours) }).eq("id", id);
+                        setSavingCapacity(false);
+                        if (error) { toast.error(t("common.error")); }
+                        else { toast.success(t("common.saved")); setEditingCutoff(false); loadVoyage(); }
+                      }}
+                      className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
+                    >
+                      {savingCapacity ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                    </button>
+                    <button onClick={() => setEditingCutoff(false)} className="w-7 h-7 rounded-full bg-muted text-muted-foreground flex items-center justify-center">
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
                 {voyage.accept_needit && voyage.needit_budget && (
                   <InfoRow icon={<Package size={14} />} label={t("trip.needitBudget") || "Budget NeedIt"} value={`${voyage.needit_budget} €`} />
                 )}
