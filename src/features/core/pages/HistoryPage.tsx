@@ -220,8 +220,18 @@ const HistoryPage = () => {
       items = [...items].sort((a, b) => a.amount - b.amount).filter((i) => i.amount < 0);
     }
 
+    // Apply sort (only when not using AI filter which has its own sort)
+    if (aiFilter === "all") {
+      items = applySortOption(items, historySort, {
+        dateCreated: "rawDate",
+        price: "amount",
+        departureDate: "rawDate",
+        destination: "ref",
+      });
+    }
+
     return items;
-  }, [activeTab, search, aiFilter, allData]);
+  }, [activeTab, search, aiFilter, allData, historySort]);
 
   // Stats
   const totalGains = useMemo(() => allData.filter((i) => i.amount > 0).reduce((s, i) => s + i.amount, 0), [allData]);
