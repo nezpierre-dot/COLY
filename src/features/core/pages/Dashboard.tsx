@@ -29,6 +29,7 @@ import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import { useTranslation } from "@/hooks/useTranslation";
 import StatisticsTab from "@/features/profile/StatisticsTab";
 import WalletCard from "@/components/WalletCard";
+import VoyageurOnboarding from "@/components/VoyageurOnboarding";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
