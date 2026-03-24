@@ -108,7 +108,31 @@ const AdminDashboard = () => {
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadAll(); }, []);
+  useEffect(() => {
+    loadAll();
+
+    // Realtime subscription for dispute messages
+    const channel = supabase
+      .channel('dispute-messages-admin')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'dispute_messages' },
+        (payload) => {
+          const newMsg = payload.new as any;
+          setDisputeMessages((prev) => {
+            const existing = prev[newMsg.dispute_id] || [];
+            if (existing.some((m: any) => m.id === newMsg.id)) return prev;
+            return { ...prev, [newMsg.dispute_id]: [...existing, newMsg] };
+          });
+          if (newMsg.sender_role === "user") {
+            toast.info("📩 Nouveau message d'un demandeur sur un litige");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
