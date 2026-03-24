@@ -433,7 +433,7 @@ const DisputesPage = () => {
                     </div>
                     {statusLabel(d.status)}
                   </div>
-                  <p className="text-xs text-muted-foreground">{DISPUTE_REASONS.find((r) => r.value === d.reason)?.label ?? d.reason}</p>
+                  <p className="text-xs text-muted-foreground">{[...DEMANDEUR_REASONS, ...VOYAGEUR_REASONS].find((r) => r.value === d.reason)?.label ?? d.reason}</p>
                   <p className="text-sm text-foreground">{d.description}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(d.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
