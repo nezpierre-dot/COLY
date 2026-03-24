@@ -56,44 +56,45 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Determine if it's a shipment or a needit mission and get the voyageur
+    // Determine if it's a shipment or a needit mission and get parties
     let voyageurId: string | null = null;
+    let demandeurId: string | null = null;
     let itemLabel = "un envoi";
     let itemRef = "";
 
     const { data: shipment } = await adminClient.from("shipments")
-      .select("voyageur_id, departure_city, arrival_city")
+      .select("voyageur_id, user_id, departure_city, arrival_city")
       .eq("id", shipment_id).maybeSingle();
 
     if (shipment) {
       voyageurId = shipment.voyageur_id;
+      demandeurId = shipment.user_id;
       itemRef = "NIDIT-" + shipment_id.substring(0, 8).toUpperCase();
       itemLabel = `colis ${shipment.departure_city || "—"} → ${shipment.arrival_city}`;
     } else {
       const { data: mission } = await adminClient.from("needit_missions")
-        .select("voyageur_id, product_name")
+        .select("voyageur_id, user_id, product_name")
         .eq("id", shipment_id).maybeSingle();
 
       if (mission) {
         voyageurId = mission.voyageur_id;
+        demandeurId = mission.user_id;
         itemRef = "NEED-" + shipment_id.substring(0, 8).toUpperCase();
         itemLabel = mission.product_name || "une mission NeedIt";
       }
     }
 
-    const safeLabel = escapeHtml(itemLabel);
-    const safeRef = escapeHtml(itemRef);
-    const safeReason = escapeHtml(reason);
-    const safeDesc = escapeHtml(description || "");
-    const disputeRef = "LIT-" + dispute_id.substring(0, 8).toUpperCase();
-    const deepLink = `https://we-app-you.lovable.app/litiges`;
+    // Determine who opened the dispute and who should be notified
+    const isOpenedByVoyageur = user.id === voyageurId;
+    const targetUserId = isOpenedByVoyageur ? demandeurId : voyageurId;
+    const targetLabel = isOpenedByVoyageur ? "le voyageur" : "le demandeur";
 
-    // In-app notification for the voyageur
-    if (voyageurId) {
+    // In-app notification for the other party
+    if (targetUserId) {
       await adminClient.from("notifications").insert({
-        user_id: voyageurId,
-        title: "⚠️ Litige ouvert contre vous",
-        message: `Un litige a été ouvert pour ${itemLabel} (${itemRef}). Motif : ${reason}.`,
+        user_id: targetUserId,
+        title: "⚠️ Litige ouvert",
+        message: `Un litige a été ouvert par ${targetLabel} pour ${itemLabel} (${itemRef}). Motif : ${reason}.`,
         type: "dispute_opened:" + dispute_id,
       });
     }
