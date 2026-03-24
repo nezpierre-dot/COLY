@@ -346,7 +346,7 @@ const DisputesPage = () => {
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground">Colis ou mission concerné(e) *</label>
-            <Select value={selectedShipment} onValueChange={setSelectedShipment}>
+            <Select value={selectedShipment} onValueChange={(v) => { setSelectedShipment(v); setReason(""); }}>
               <SelectTrigger className="rounded-xl"><SelectValue placeholder="Sélectionner un élément" /></SelectTrigger>
               <SelectContent>
                 {shipments.map((s) => (
