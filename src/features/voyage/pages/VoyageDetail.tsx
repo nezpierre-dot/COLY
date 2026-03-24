@@ -676,6 +676,14 @@ const VoyageDetail = () => {
               </h2>
               {acceptedColis.map((shipment) => (
                 <div key={shipment.id} className="space-y-2">
+                  {shipment.user_id && (
+                    <button
+                      onClick={() => navigate(`/profile/${shipment.user_id}`)}
+                      className="flex items-center gap-1.5 text-primary text-xs font-semibold hover:underline"
+                    >
+                      <User size={12} /> {demandeurNames[shipment.user_id] || "Voir le profil"}
+                    </button>
+                  )}
                   <AcceptedItemCard
                     id={shipment.id}
                     title={`${shipment.departure_city || "—"} → ${shipment.arrival_city}`}
