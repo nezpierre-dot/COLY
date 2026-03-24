@@ -132,6 +132,26 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Send in-app notification to demandeur
+    await adminClient.from("notifications").insert({
+      user_id: ownerId,
+      title: `${config.emoji} ${config.title}`,
+      message: config.description(itemLabel).replace(/<[^>]*>/g, ""),
+      type: `status_change:${item_type}:${item_id}`,
+    });
+
+    // Send push notification if subscribed
+    try {
+      const { data: pushSubs } = await adminClient.from("push_subscriptions").select("endpoint, p256dh, auth").eq("user_id", ownerId);
+      if (pushSubs && pushSubs.length > 0) {
+        console.log(`Found ${pushSubs.length} push subscription(s) for demandeur ${ownerId}`);
+        // Push notifications would be sent here with web-push library
+        // For now, the in-app notification above ensures the user is notified
+      }
+    } catch (pushErr) {
+      console.warn("Push notification check failed:", pushErr);
+    }
+
     // Get owner email
     const { data: userData } = await adminClient.auth.admin.getUserById(ownerId);
     const email = userData?.user?.email;
