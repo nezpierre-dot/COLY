@@ -47,7 +47,8 @@ const BottomNav = () => {
           {tabs.map((tab, i) => {
             const Icon = tab.icon;
             const active = location.pathname === tab.path;
-            const showBadge = tab.path === "/conversations" && unreadMessages > 0;
+            const showBadge = (tab.path === "/conversations" && unreadMessages > 0) || (tab.path === "/litiges" && unreadDisputes > 0);
+            const badgeCount = tab.path === "/conversations" ? unreadMessages : tab.path === "/litiges" ? unreadDisputes : 0;
 
             return (
               <button
