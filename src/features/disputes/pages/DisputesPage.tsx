@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle, MessageSquare, Clock, ImagePlus } from "lucide-react";
+import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle, MessageSquare, Clock, ImagePlus, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -147,14 +147,22 @@ const DisputesPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
+    if (file.type === "application/pdf") {
+      setPhotoPreview("pdf");
+    } else {
+      setPhotoPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleReplyPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setReplyPhoto(file);
-    setReplyPhotoPreview(URL.createObjectURL(file));
+    if (file.type === "application/pdf") {
+      setReplyPhotoPreview("pdf:" + file.name);
+    } else {
+      setReplyPhotoPreview(URL.createObjectURL(file));
+    }
   };
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
@@ -333,17 +341,24 @@ const DisputesPage = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Photo preuve (optionnel)</label>
+            <label className="text-xs font-semibold text-muted-foreground">Photo ou PDF (optionnel)</label>
             <label className="flex items-center justify-center gap-2 h-24 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors">
               {photoPreview ? (
-                <img src={photoPreview} alt="Preuve" className="h-full object-cover rounded-lg" />
+                photoFile?.type === "application/pdf" ? (
+                  <div className="flex items-center gap-2 text-primary">
+                    <FileText size={24} />
+                    <span className="text-xs font-medium">{photoFile.name}</span>
+                  </div>
+                ) : (
+                  <img src={photoPreview} alt="Preuve" className="h-full object-cover rounded-lg" />
+                )
               ) : (
                 <div className="text-center">
                   <Camera size={20} className="text-muted-foreground mx-auto mb-1" />
-                  <span className="text-xs text-muted-foreground">Ajouter une photo</span>
+                  <span className="text-xs text-muted-foreground">Photo ou PDF</span>
                 </div>
               )}
-              <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+              <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePhoto} />
             </label>
           </div>
 
@@ -410,7 +425,13 @@ const DisputesPage = () => {
                                 </span>
                               </div>
                               {msg.photo_url && (
-                                <img src={msg.photo_url} alt="Photo jointe" className="w-full max-w-[200px] rounded-lg mb-1.5 border border-border" />
+                                msg.photo_url.includes('.pdf') ? (
+                                  <a href={msg.photo_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary text-xs underline mb-1.5">
+                                    <FileText size={14} /> Voir le PDF joint
+                                  </a>
+                                ) : (
+                                  <img src={msg.photo_url} alt="Photo jointe" className="w-full max-w-[200px] rounded-lg mb-1.5 border border-border" />
+                                )
                               )}
                               <p className="text-foreground whitespace-pre-wrap">{msg.content}</p>
                             </div>
@@ -422,7 +443,14 @@ const DisputesPage = () => {
                         <div className="space-y-2 pt-1">
                           {replyPhotoPreview && (
                             <div className="relative inline-block">
-                              <img src={replyPhotoPreview} alt="Photo à joindre" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                              {replyPhotoPreview.startsWith("pdf:") ? (
+                                <div className="flex items-center gap-1.5 text-primary text-xs bg-primary/5 rounded-lg p-2 border border-primary/20">
+                                  <FileText size={16} />
+                                  <span>{replyPhotoPreview.replace("pdf:", "")}</span>
+                                </div>
+                              ) : (
+                                <img src={replyPhotoPreview} alt="Photo à joindre" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                              )}
                               <button
                                 onClick={() => { setReplyPhoto(null); setReplyPhotoPreview(null); }}
                                 className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs"
@@ -436,7 +464,7 @@ const DisputesPage = () => {
                             >
                               <ImagePlus size={16} className="text-muted-foreground" />
                             </button>
-                            <input ref={replyPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleReplyPhoto} />
+                            <input ref={replyPhotoRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleReplyPhoto} />
                             <input
                               type="text"
                               value={replyText}

@@ -1,14 +1,16 @@
-import { Home, LayoutGrid, MessageCircle, User } from "lucide-react";
+import { Home, LayoutGrid, MessageCircle, User, AlertTriangle } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { hapticLight } from "@/lib/haptics";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useUnreadMessages } from "@/features/chat";
+import { useUnreadDisputes } from "@/hooks/useUnreadDisputes";
 import { useAuth } from "@/hooks/useAuth";
 
 const tabsDef = [
   { icon: Home, path: "/dashboard", key: "nav.home" },
   { icon: LayoutGrid, path: "/mes-missions-needit", key: "nav.missions" },
   { icon: MessageCircle, path: "/conversations", key: "nav.messages" },
+  { icon: AlertTriangle, path: "/litiges", key: "nav.disputes" },
   { icon: User, path: "/my-account", key: "nav.profile" },
 ];
 
@@ -18,6 +20,7 @@ const BottomNav = () => {
   const { t } = useTranslation();
   const { roles } = useAuth();
   const unreadMessages = useUnreadMessages();
+  const unreadDisputes = useUnreadDisputes();
   const tabs = tabsDef.map(tab => ({ ...tab, label: t(tab.key) }));
   const isVoyageur = roles.includes("voyageur");
 
@@ -44,7 +47,8 @@ const BottomNav = () => {
           {tabs.map((tab, i) => {
             const Icon = tab.icon;
             const active = location.pathname === tab.path;
-            const showBadge = tab.path === "/conversations" && unreadMessages > 0;
+            const showBadge = (tab.path === "/conversations" && unreadMessages > 0) || (tab.path === "/litiges" && unreadDisputes > 0);
+            const badgeCount = tab.path === "/conversations" ? unreadMessages : tab.path === "/litiges" ? unreadDisputes : 0;
 
             return (
               <button
@@ -70,7 +74,7 @@ const BottomNav = () => {
                       className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] font-bold border border-white dark:border-[#0F1115] animate-bounce"
                       style={{ backgroundColor: "#FF453A", color: "#FFFFFF" }}
                     >
-                      {unreadMessages > 99 ? "99+" : unreadMessages}
+                      {badgeCount > 99 ? "99+" : badgeCount}
                     </span>
                   )}
                 </div>

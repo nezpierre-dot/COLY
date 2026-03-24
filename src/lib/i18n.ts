@@ -53,6 +53,7 @@ const fr: TranslationDict = {
   "nav.home": "Accueil",
   "nav.missions": "Missions",
   "nav.messages": "Messages",
+  "nav.disputes": "Litiges",
   "nav.profile": "Profil",
 
   // ─── Welcome / Auth ───
@@ -1063,6 +1064,7 @@ const en: TranslationDict = {
   "nav.home": "Home",
   "nav.missions": "Missions",
   "nav.messages": "Messages",
+  "nav.disputes": "Disputes",
   "nav.profile": "Profile",
 
   "welcome.tagline": "Share the journey,\nsimplify your\nexchanges.",
@@ -2052,6 +2054,7 @@ const es: TranslationDict = {
   "nav.home": "Inicio",
   "nav.missions": "Misiones",
   "nav.messages": "Mensajes",
+  "nav.disputes": "Disputas",
   "nav.profile": "Perfil",
 
   "welcome.tagline": "Comparte el viaje,\nfacilita tus\nintercambios.",
@@ -2129,6 +2132,7 @@ const de: TranslationDict = {
   "nav.home": "Start",
   "nav.missions": "Missionen",
   "nav.messages": "Nachrichten",
+  "nav.disputes": "Streitigkeiten",
   "nav.profile": "Profil",
 
   "welcome.tagline": "Teile die Reise,\nvereinfache deine\nAustausche.",
