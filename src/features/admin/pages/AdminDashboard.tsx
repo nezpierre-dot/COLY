@@ -54,6 +54,7 @@ const AdminDashboard = () => {
   const [replyPhotoPreview, setReplyPhotoPreview] = useState<string | null>(null);
   const replyPhotoRef = useRef<HTMLInputElement>(null);
   const [disputeStats, setDisputeStats] = useState<any>(null);
+  const [disputePeriod, setDisputePeriod] = useState<number>(30);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -408,15 +409,30 @@ const AdminDashboard = () => {
             )}
             {/* Disputes over time chart */}
             {disputes.length > 0 && (() => {
+              const cutoff = new Date(Date.now() - disputePeriod * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+              const filtered = disputes.filter(d => new Date(d.created_at).toISOString().slice(0, 10) >= cutoff);
               const byDay: Record<string, number> = {};
-              disputes.forEach(d => {
+              filtered.forEach(d => {
                 const day = new Date(d.created_at).toISOString().slice(0, 10);
                 byDay[day] = (byDay[day] || 0) + 1;
               });
               const chartData = Object.entries(byDay).sort(([a], [b]) => a.localeCompare(b)).map(([day, count]) => ({ day, count }));
               return (
                 <div className="bg-card border border-border rounded-2xl p-4">
-                  <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingUp size={14} className="text-warning" /> Évolution des litiges</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><TrendingUp size={14} className="text-warning" /> Évolution des litiges</h3>
+                    <div className="flex gap-1">
+                      {[{ label: "7j", value: 7 }, { label: "30j", value: 30 }, { label: "90j", value: 90 }].map(p => (
+                        <button
+                          key={p.value}
+                          onClick={() => setDisputePeriod(p.value)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors ${disputePeriod === p.value ? "bg-warning text-warning-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData}>
