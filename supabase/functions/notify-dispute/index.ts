@@ -157,17 +157,20 @@ Deno.serve(async (req) => {
       }
     };
 
-    // 1. Email the voyageur (if assigned)
-    if (voyageurId) {
-      const { data: voyageurUser } = await adminClient.auth.admin.getUserById(voyageurId);
-      const voyageurEmail = voyageurUser?.user?.email;
-      if (voyageurEmail) {
+    // 1. Email the other party (voyageur or demandeur)
+    if (targetUserId) {
+      const { data: targetUser } = await adminClient.auth.admin.getUserById(targetUserId);
+      const targetEmail = targetUser?.user?.email;
+      if (targetEmail) {
+        const intro = isOpenedByVoyageur
+          ? "Un litige a été ouvert par le voyageur concernant une livraison que vous avez demandée."
+          : "Un litige a été ouvert par le demandeur concernant une livraison qui vous est assignée.";
         await sendEmail(
-          voyageurEmail,
+          targetEmail,
           `⚠️ Litige ouvert — ${itemRef}`,
           emailHtml(
             "Litige ouvert sur votre livraison",
-            "Un litige a été ouvert par le demandeur concernant une livraison qui vous est assignée."
+            intro
           )
         );
       }
