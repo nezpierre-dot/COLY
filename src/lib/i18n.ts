@@ -53,6 +53,7 @@ const fr: TranslationDict = {
   "nav.home": "Accueil",
   "nav.missions": "Missions",
   "nav.messages": "Messages",
+  "nav.disputes": "Litiges",
   "nav.profile": "Profil",
 
   // ─── Welcome / Auth ───
