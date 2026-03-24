@@ -561,7 +561,12 @@ const VoyageDetail = () => {
                       <Package size={13} className="text-primary" />
                       {total} élément{total > 1 ? "s" : ""} lié{total > 1 ? "s" : ""}
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      {totalTarifs > 0 && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                          <Euro size={10} /> {totalTarifs.toFixed(0)} €
+                        </span>
+                      )}
                       {delivered > 0 && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                           <Check size={10} /> {delivered} livré{delivered > 1 ? "s" : ""}
