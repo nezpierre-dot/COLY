@@ -1731,6 +1731,7 @@ const Dashboard = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 };
 
