@@ -103,9 +103,9 @@ const MatchingSuggestions = ({
           <div className="flex items-start gap-3">
             {/* Avatar */}
             <Avatar className={compact ? "h-9 w-9" : "h-11 w-11"}>
-              <AvatarImage src={v.avatar_url || undefined} alt={v.full_name || "Voyageur"} />
+              <AvatarImage src={v.avatar_url || undefined} alt="Voyageur" />
               <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                {(v.full_name || "V").charAt(0).toUpperCase()}
+                V
               </AvatarFallback>
             </Avatar>
 
@@ -113,7 +113,7 @@ const MatchingSuggestions = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <p className={`font-semibold text-foreground truncate ${compact ? "text-sm" : "text-base"}`}>
-                  {v.full_name || "Voyageur"}
+                  {`VOY-${v.voyageur_id.substring(0, 8).toUpperCase()}`}
                 </p>
                 {Number(v.total_ratings) > 0 && (
                   <div className="flex items-center gap-0.5 shrink-0">
