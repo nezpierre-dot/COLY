@@ -62,6 +62,7 @@ const DisputesPage = () => {
   const [closingDispute, setClosingDispute] = useState<string | null>(null);
   const [myRatings, setMyRatings] = useState<Record<string, number>>({});
   const [ratingComment, setRatingComment] = useState("");
+  const [ratingScore, setRatingScore] = useState(0);
   const [ratingDisputeId, setRatingDisputeId] = useState<string | null>(null);
   const [submittingRating, setSubmittingRating] = useState(false);
   const replyPhotoRef = useRef<HTMLInputElement>(null);

@@ -409,7 +409,39 @@ const AdminDashboard = () => {
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Gavel size={14} className="text-warning" /> Litiges en cours</h3>
-                <span className="text-xs text-muted-foreground">{disputes.filter(d => d.status === "open" || d.status === "investigating").length} actif(s)</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs rounded-lg gap-1"
+                    onClick={() => {
+                      const headers = ["Réf", "Motif", "Statut", "Signalé par", "Date", "Résolution"];
+                      const rows = disputes.map(d => [
+                        d.shipment_ref,
+                        d.reason,
+                        d.status,
+                        d.reporter_name,
+                        new Date(d.created_at).toLocaleDateString("fr-FR"),
+                        d.resolution || "",
+                      ]);
+                      const statsRow = disputeStats ? [
+                        "", "", "", "", "",
+                        `Ouverts: ${disputeStats.open} | Résolus: ${disputeStats.resolved} | Temps moy: ${disputeStats.avg_resolution_hours}h | Satisfaction: ${disputeStats.avg_satisfaction}/5`,
+                      ] : [];
+                      const csv = [headers, ...rows, [], statsRow].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+                      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `litiges_export_${new Date().toISOString().slice(0, 10)}.csv`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    <Download size={12} /> Export CSV
+                  </Button>
+                  <span className="text-xs text-muted-foreground">{disputes.filter(d => d.status === "open" || d.status === "investigating").length} actif(s)</span>
+                </div>
               </div>
               {disputes.length === 0 ? (
                 <div className="px-4 py-8 text-center text-sm text-muted-foreground">Aucun litige signalé</div>
