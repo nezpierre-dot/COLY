@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Star, MapPin, ArrowLeft, User, MessageSquare, Plane, Package, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
@@ -10,6 +11,7 @@ import BottomNav from "@/components/BottomNav";
 const PublicProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [profile, setProfile] = useState<any>(null);
   const [rating, setRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
@@ -18,6 +20,7 @@ const PublicProfile = () => {
   const [trustBadges, setTrustBadges] = useState<string[]>([]);
   const [stats, setStats] = useState({ voyages: 0, delivered: 0 });
   const [loading, setLoading] = useState(true);
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
