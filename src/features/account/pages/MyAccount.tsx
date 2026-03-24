@@ -47,6 +47,8 @@ const MyAccount = () => {
   const [totalEarned, setTotalEarned] = useState(0);
   const [activityDates, setActivityDates] = useState<string[]>([]);
   const [trustBadges, setTrustBadges] = useState<string[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   useEffect(() => {
     if (!user) return;
