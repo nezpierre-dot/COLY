@@ -609,6 +609,10 @@ const Dashboard = () => {
   }, [user, isVoyageur, selectedVoyage]);
 
   return (
+    <>
+    {showVoyageurOnboarding && (
+      <VoyageurOnboarding onComplete={() => setShowVoyageurOnboarding(false)} />
+    )}
     <div className="min-h-screen bg-background pb-24">
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
