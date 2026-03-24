@@ -29,6 +29,7 @@ import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import { useTranslation } from "@/hooks/useTranslation";
 import StatisticsTab from "@/features/profile/StatisticsTab";
 import WalletCard from "@/components/WalletCard";
+import VoyageurOnboarding from "@/components/VoyageurOnboarding";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -189,6 +190,11 @@ const Dashboard = () => {
   const { canInstall, promptInstall } = usePWAInstall();
   const [dismissedBanner, setDismissedBanner] = useState(() => localStorage.getItem("pwa-banner-dismissed") === "1");
   const showInstallBanner = canInstall && !dismissedBanner;
+
+  // Voyageur onboarding tutorial
+  const [showVoyageurOnboarding, setShowVoyageurOnboarding] = useState(() =>
+    isVoyageur && localStorage.getItem("voyageur-onboarding-done") !== "1"
+  );
 
   const [voyages, setVoyages] = useState<Voyage[]>([]);
   const [selectedVoyage, setSelectedVoyage] = useState<string | null>(null);
@@ -603,6 +609,10 @@ const Dashboard = () => {
   }, [user, isVoyageur, selectedVoyage]);
 
   return (
+    <>
+    {showVoyageurOnboarding && (
+      <VoyageurOnboarding onComplete={() => setShowVoyageurOnboarding(false)} />
+    )}
     <div className="min-h-screen bg-background pb-24">
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
@@ -1721,6 +1731,7 @@ const Dashboard = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </>
   );
 };
 
