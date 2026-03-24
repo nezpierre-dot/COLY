@@ -10,6 +10,7 @@ const tabsDef = [
   { icon: Home, path: "/dashboard", key: "nav.home" },
   { icon: LayoutGrid, path: "/mes-missions-needit", key: "nav.missions" },
   { icon: MessageCircle, path: "/conversations", key: "nav.messages" },
+  { icon: AlertTriangle, path: "/litiges", key: "nav.disputes" },
   { icon: User, path: "/my-account", key: "nav.profile" },
 ];
 
