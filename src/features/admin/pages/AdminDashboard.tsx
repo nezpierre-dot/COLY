@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus } from "lucide-react";
+import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
