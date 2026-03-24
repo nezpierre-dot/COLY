@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HandshakeIcon,
@@ -11,6 +11,7 @@ import {
   Navigation,
   Bell,
   Shield,
+  Timer,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +31,9 @@ interface PostMatchActionsProps {
   compact?: boolean; // for ChatPage embedding
   itemType?: "shipment" | "needit"; // defaults to shipment
 }
+
+// OTP expiration in milliseconds (30 minutes)
+const OTP_EXPIRY_MS = 30 * 60 * 1000;
 
 // Generate a random 6-char OTP
 const generateOtp = () => {
@@ -59,13 +63,32 @@ const PostMatchActions = ({
   const tableName = itemType === "needit" ? "needit_missions" : "shipments";
   const [pickupOtp, setPickupOtp] = useState<string | null>(null);
   const [deliveryOtp, setDeliveryOtp] = useState<string | null>(null);
+  const [pickupOtpCreatedAt, setPickupOtpCreatedAt] = useState<number | null>(null);
+  const [deliveryOtpCreatedAt, setDeliveryOtpCreatedAt] = useState<number | null>(null);
   const [enteredCode, setEnteredCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [otpLoading, setOtpLoading] = useState(true);
+  const [pickupTimeLeft, setPickupTimeLeft] = useState<number | null>(null);
+  const [deliveryTimeLeft, setDeliveryTimeLeft] = useState<number | null>(null);
 
   const isSender = user?.id === senderId;
   const isVoyageur = user?.id === voyageurId;
+
+  const parseOtpCodes = (raw: string | null) => {
+    try {
+      const codes = JSON.parse(raw || "{}");
+      setPickupOtp(codes.pickup || null);
+      setDeliveryOtp(codes.delivery || null);
+      setPickupOtpCreatedAt(codes.pickupCreatedAt || null);
+      setDeliveryOtpCreatedAt(codes.deliveryCreatedAt || null);
+    } catch {
+      setPickupOtp(raw || null);
+      setDeliveryOtp(null);
+      setPickupOtpCreatedAt(null);
+      setDeliveryOtpCreatedAt(null);
+    }
+  };
 
   // Load existing OTPs
   const loadOtps = useCallback(async () => {
@@ -76,15 +99,7 @@ const PostMatchActions = ({
       .eq("id", shipmentId)
       .maybeSingle();
     if (data) {
-      const row = data as any;
-      try {
-        const codes = JSON.parse(row.confirmation_code || "{}");
-        setPickupOtp(codes.pickup || null);
-        setDeliveryOtp(codes.delivery || null);
-      } catch {
-        setPickupOtp(row.confirmation_code || null);
-        setDeliveryOtp(null);
-      }
+      parseOtpCodes((data as any).confirmation_code);
     }
     setOtpLoading(false);
   }, [shipmentId, tableName]);
@@ -107,21 +122,63 @@ const PostMatchActions = ({
         if (row.status !== shipmentStatus) {
           onStatusChange?.(row.status);
         }
-        try {
-          const codes = JSON.parse(row.confirmation_code || "{}");
-          setPickupOtp(codes.pickup || null);
-          setDeliveryOtp(codes.delivery || null);
-        } catch {
-          setPickupOtp(row.confirmation_code || null);
-        }
+        parseOtpCodes(row.confirmation_code);
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [shipmentId, shipmentStatus, onStatusChange]);
 
-  const saveOtpCodes = async (pickup: string | null, delivery: string | null) => {
-    const codes = JSON.stringify({ pickup, delivery });
+  // Timer countdown for OTP expiration
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (pickupOtpCreatedAt) {
+        const remaining = OTP_EXPIRY_MS - (Date.now() - pickupOtpCreatedAt);
+        if (remaining <= 0) {
+          setPickupTimeLeft(0);
+          // Auto-expire: clear pickup OTP
+          if (pickupOtp) {
+            setPickupOtp(null);
+            setPickupOtpCreatedAt(null);
+            saveOtpCodes(null, deliveryOtp, null, deliveryOtpCreatedAt);
+          }
+        } else {
+          setPickupTimeLeft(remaining);
+        }
+      } else {
+        setPickupTimeLeft(null);
+      }
+      if (deliveryOtpCreatedAt) {
+        const remaining = OTP_EXPIRY_MS - (Date.now() - deliveryOtpCreatedAt);
+        if (remaining <= 0) {
+          setDeliveryTimeLeft(0);
+          if (deliveryOtp) {
+            setDeliveryOtp(null);
+            setDeliveryOtpCreatedAt(null);
+            saveOtpCodes(pickupOtp, null, pickupOtpCreatedAt, null);
+          }
+        } else {
+          setDeliveryTimeLeft(remaining);
+        }
+      } else {
+        setDeliveryTimeLeft(null);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [pickupOtpCreatedAt, deliveryOtpCreatedAt, pickupOtp, deliveryOtp]);
+
+  const saveOtpCodes = async (
+    pickup: string | null,
+    delivery: string | null,
+    pickupTs?: number | null,
+    deliveryTs?: number | null
+  ) => {
+    const codes = JSON.stringify({
+      pickup,
+      delivery,
+      pickupCreatedAt: pickupTs !== undefined ? pickupTs : pickupOtpCreatedAt,
+      deliveryCreatedAt: deliveryTs !== undefined ? deliveryTs : deliveryOtpCreatedAt,
+    });
     await supabase
       .from(tableName as any)
       .update({ confirmation_code: codes } as any)
@@ -151,8 +208,10 @@ const PostMatchActions = ({
     setLoading(true);
     try {
       const otp = generateOtp();
-      await saveOtpCodes(otp, deliveryOtp);
+      const now = Date.now();
+      await saveOtpCodes(otp, deliveryOtp, now, deliveryOtpCreatedAt);
       setPickupOtp(otp);
+      setPickupOtpCreatedAt(now);
 
       // Notify voyageur
       if (voyageurId) {
@@ -175,6 +234,11 @@ const PostMatchActions = ({
 
   // ─── STEP 2: Voyageur confirms pickup with OTP ───
   const handleConfirmPickup = async () => {
+    // Check expiration
+    if (pickupOtpCreatedAt && Date.now() - pickupOtpCreatedAt > OTP_EXPIRY_MS) {
+      toast.error(t("postmatch.codeExpired") || "Code expiré. Demandez un nouveau code au demandeur.");
+      return;
+    }
     if (enteredCode.toUpperCase() !== pickupOtp?.toUpperCase()) {
       toast.error(t("postmatch.wrongCode"));
       return;
@@ -184,8 +248,21 @@ const PostMatchActions = ({
       await supabase.from(tableName as any).update({ status: "picked_up" } as any).eq("id", shipmentId);
       await addTrackingEvent("picked_up", t("postmatch.trackPickedUp"), t("postmatch.trackPickedUpDesc"));
       
-      // Notify sender
+      // Notify sender (in-app)
       await sendNotification(senderId, t("postmatch.notifPickedUp"), t("postmatch.notifPickedUpDesc"), "picked_up");
+
+      // Send push notification to sender via edge function
+      try {
+        await supabase.functions.invoke("notify-status-change", {
+          body: {
+            shipment_id: shipmentId,
+            item_type: itemType === "needit" ? "needit_mission" : "shipment",
+            new_status: "picked_up",
+          },
+        });
+      } catch (pushErr) {
+        console.warn("Push notification failed:", pushErr);
+      }
       
       setEnteredCode("");
       onStatusChange?.("picked_up");
@@ -202,8 +279,10 @@ const PostMatchActions = ({
     setLoading(true);
     try {
       const otp = generateOtp();
-      await saveOtpCodes(pickupOtp, otp);
+      const now = Date.now();
+      await saveOtpCodes(pickupOtp, otp, pickupOtpCreatedAt, now);
       setDeliveryOtp(otp);
+      setDeliveryOtpCreatedAt(now);
 
       // Update status to in_transit
       await supabase.from(tableName as any).update({ status: "in_transit" } as any).eq("id", shipmentId);
@@ -223,6 +302,11 @@ const PostMatchActions = ({
 
   // ─── STEP 4: Confirm delivery with OTP ───
   const handleConfirmDelivery = async () => {
+    // Check expiration
+    if (deliveryOtpCreatedAt && Date.now() - deliveryOtpCreatedAt > OTP_EXPIRY_MS) {
+      toast.error(t("postmatch.codeExpired") || "Code expiré. Demandez un nouveau code au voyageur.");
+      return;
+    }
     if (enteredCode.toUpperCase() !== deliveryOtp?.toUpperCase()) {
       toast.error(t("postmatch.wrongCode"));
       return;
@@ -246,6 +330,13 @@ const PostMatchActions = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatTimeLeft = (ms: number | null) => {
+    if (ms === null || ms <= 0) return null;
+    const mins = Math.floor(ms / 60000);
+    const secs = Math.floor((ms % 60000) / 1000);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleCopy = async (code: string) => {
@@ -353,6 +444,16 @@ const PostMatchActions = ({
           <p className="text-[10px] text-amber-600 dark:text-amber-400 text-center font-medium flex items-center justify-center gap-1">
             <Shield size={10} /> {t("postmatch.shareOnlyAtHandover")}
           </p>
+          {formatTimeLeft(pickupTimeLeft) && (
+            <p className="text-[10px] text-center font-medium flex items-center justify-center gap-1 text-muted-foreground">
+              <Timer size={10} /> Expire dans {formatTimeLeft(pickupTimeLeft)}
+            </p>
+          )}
+          {pickupTimeLeft !== null && pickupTimeLeft <= 0 && (
+            <p className="text-[10px] text-center font-medium text-destructive">
+              Code expiré — générez un nouveau code
+            </p>
+          )}
         </motion.div>
       )}
 
@@ -449,6 +550,16 @@ const PostMatchActions = ({
           <p className="text-[10px] text-amber-600 dark:text-amber-400 text-center font-medium flex items-center justify-center gap-1">
             <Shield size={10} /> {t("postmatch.shareOnlyAtDelivery")}
           </p>
+          {formatTimeLeft(deliveryTimeLeft) && (
+            <p className="text-[10px] text-center font-medium flex items-center justify-center gap-1 text-muted-foreground">
+              <Timer size={10} /> Expire dans {formatTimeLeft(deliveryTimeLeft)}
+            </p>
+          )}
+          {deliveryTimeLeft !== null && deliveryTimeLeft <= 0 && (
+            <p className="text-[10px] text-center font-medium text-destructive">
+              Code expiré — générez un nouveau code
+            </p>
+          )}
         </motion.div>
       )}
 
