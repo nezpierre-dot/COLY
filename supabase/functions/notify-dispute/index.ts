@@ -56,29 +56,47 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Determine if it's a shipment or a needit mission and get the voyageur
+    // Determine if it's a shipment or a needit mission and get parties
     let voyageurId: string | null = null;
+    let demandeurId: string | null = null;
     let itemLabel = "un envoi";
     let itemRef = "";
 
     const { data: shipment } = await adminClient.from("shipments")
-      .select("voyageur_id, departure_city, arrival_city")
+      .select("voyageur_id, user_id, departure_city, arrival_city")
       .eq("id", shipment_id).maybeSingle();
 
     if (shipment) {
       voyageurId = shipment.voyageur_id;
+      demandeurId = shipment.user_id;
       itemRef = "NIDIT-" + shipment_id.substring(0, 8).toUpperCase();
       itemLabel = `colis ${shipment.departure_city || "—"} → ${shipment.arrival_city}`;
     } else {
       const { data: mission } = await adminClient.from("needit_missions")
-        .select("voyageur_id, product_name")
+        .select("voyageur_id, user_id, product_name")
         .eq("id", shipment_id).maybeSingle();
 
       if (mission) {
         voyageurId = mission.voyageur_id;
+        demandeurId = mission.user_id;
         itemRef = "NEED-" + shipment_id.substring(0, 8).toUpperCase();
         itemLabel = mission.product_name || "une mission NeedIt";
       }
+    }
+
+    // Determine who opened the dispute and who should be notified
+    const isOpenedByVoyageur = user.id === voyageurId;
+    const targetUserId = isOpenedByVoyageur ? demandeurId : voyageurId;
+    const targetLabel = isOpenedByVoyageur ? "le voyageur" : "le demandeur";
+
+    // In-app notification for the other party
+    if (targetUserId) {
+      await adminClient.from("notifications").insert({
+        user_id: targetUserId,
+        title: "⚠️ Litige ouvert",
+        message: `Un litige a été ouvert par ${targetLabel} pour ${itemLabel} (${itemRef}). Motif : ${reason}.`,
+        type: "dispute_opened:" + dispute_id,
+      });
     }
 
     const safeLabel = escapeHtml(itemLabel);
@@ -88,17 +106,7 @@ Deno.serve(async (req) => {
     const disputeRef = "LIT-" + dispute_id.substring(0, 8).toUpperCase();
     const deepLink = `https://we-app-you.lovable.app/litiges`;
 
-    // In-app notification for the voyageur
-    if (voyageurId) {
-      await adminClient.from("notifications").insert({
-        user_id: voyageurId,
-        title: "⚠️ Litige ouvert contre vous",
-        message: `Un litige a été ouvert pour ${itemLabel} (${itemRef}). Motif : ${reason}.`,
-        type: "dispute_opened:" + dispute_id,
-      });
-    }
 
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
       console.warn("RESEND_API_KEY not set, skipping emails");
       return new Response(JSON.stringify({ success: true, skipped: true }), {
@@ -149,17 +157,20 @@ Deno.serve(async (req) => {
       }
     };
 
-    // 1. Email the voyageur (if assigned)
-    if (voyageurId) {
-      const { data: voyageurUser } = await adminClient.auth.admin.getUserById(voyageurId);
-      const voyageurEmail = voyageurUser?.user?.email;
-      if (voyageurEmail) {
+    // 1. Email the other party (voyageur or demandeur)
+    if (targetUserId) {
+      const { data: targetUser } = await adminClient.auth.admin.getUserById(targetUserId);
+      const targetEmail = targetUser?.user?.email;
+      if (targetEmail) {
+        const intro = isOpenedByVoyageur
+          ? "Un litige a été ouvert par le voyageur concernant une livraison que vous avez demandée."
+          : "Un litige a été ouvert par le demandeur concernant une livraison qui vous est assignée.";
         await sendEmail(
-          voyageurEmail,
+          targetEmail,
           `⚠️ Litige ouvert — ${itemRef}`,
           emailHtml(
             "Litige ouvert sur votre livraison",
-            "Un litige a été ouvert par le demandeur concernant une livraison qui vous est assignée."
+            intro
           )
         );
       }

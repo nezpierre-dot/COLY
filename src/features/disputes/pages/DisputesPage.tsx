@@ -12,6 +12,7 @@ interface UserShipment {
   id: string;
   ref: string;
   label: string;
+  isVoyageur: boolean;
 }
 
 interface DisputeMessage {
@@ -23,11 +24,19 @@ interface DisputeMessage {
   created_at: string;
 }
 
-const DISPUTE_REASONS = [
+const DEMANDEUR_REASONS = [
   { value: "damaged", label: "Colis endommagé" },
   { value: "missing", label: "Colis non reçu" },
   { value: "wrong_item", label: "Mauvais article" },
   { value: "partial", label: "Contenu incomplet" },
+  { value: "other", label: "Autre" },
+];
+
+const VOYAGEUR_REASONS = [
+  { value: "absent_recipient", label: "Destinataire absent au RDV" },
+  { value: "wrong_package", label: "Colis non conforme à la description" },
+  { value: "overweight", label: "Colis trop lourd / hors gabarit" },
+  { value: "unreachable", label: "Demandeur injoignable" },
   { value: "other", label: "Autre" },
 ];
 
@@ -60,13 +69,13 @@ const DisputesPage = () => {
     const load = async () => {
       const { data: s } = await supabase
         .from("shipments")
-        .select("id, arrival_city, departure_city, status")
+        .select("id, arrival_city, departure_city, status, user_id, voyageur_id")
         .or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`)
         .in("status", ["delivered", "accepted", "picked_up", "in_transit"]);
 
       const { data: m } = await supabase
         .from("needit_missions")
-        .select("id, product_name, country, city, status")
+        .select("id, product_name, country, city, status, user_id, voyageur_id")
         .or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`)
         .in("status", ["accepted", "picked_up", "in_transit", "completed"]);
 
@@ -76,6 +85,7 @@ const DisputesPage = () => {
           id: x.id,
           ref: "NIDIT-" + x.id.slice(0, 8).toUpperCase(),
           label: `📦 NIDIT-${x.id.slice(0, 8).toUpperCase()} — ${x.departure_city || "—"} → ${x.arrival_city}`,
+          isVoyageur: x.voyageur_id === user.id,
         })));
       }
       if (m) {
@@ -83,6 +93,7 @@ const DisputesPage = () => {
           id: x.id,
           ref: "NEED-" + x.id.slice(0, 8).toUpperCase(),
           label: `🛒 NEED-${x.id.slice(0, 8).toUpperCase()} — ${x.product_name || "Mission"} (${x.city || x.country})`,
+          isVoyageur: x.voyageur_id === user.id,
         })));
       }
       setShipments(items);
@@ -335,7 +346,7 @@ const DisputesPage = () => {
 
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground">Colis ou mission concerné(e) *</label>
-            <Select value={selectedShipment} onValueChange={setSelectedShipment}>
+            <Select value={selectedShipment} onValueChange={(v) => { setSelectedShipment(v); setReason(""); }}>
               <SelectTrigger className="rounded-xl"><SelectValue placeholder="Sélectionner un élément" /></SelectTrigger>
               <SelectContent>
                 {shipments.map((s) => (
@@ -350,7 +361,7 @@ const DisputesPage = () => {
             <Select value={reason} onValueChange={setReason}>
               <SelectTrigger className="rounded-xl"><SelectValue placeholder="Sélectionner un motif" /></SelectTrigger>
               <SelectContent>
-                {DISPUTE_REASONS.map((r) => (
+                {(selectedShipment && shipments.find(s => s.id === selectedShipment)?.isVoyageur ? VOYAGEUR_REASONS : DEMANDEUR_REASONS).map((r) => (
                   <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
                 ))}
               </SelectContent>
@@ -422,7 +433,7 @@ const DisputesPage = () => {
                     </div>
                     {statusLabel(d.status)}
                   </div>
-                  <p className="text-xs text-muted-foreground">{DISPUTE_REASONS.find((r) => r.value === d.reason)?.label ?? d.reason}</p>
+                  <p className="text-xs text-muted-foreground">{[...DEMANDEUR_REASONS, ...VOYAGEUR_REASONS].find((r) => r.value === d.reason)?.label ?? d.reason}</p>
                   <p className="text-sm text-foreground">{d.description}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(d.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
