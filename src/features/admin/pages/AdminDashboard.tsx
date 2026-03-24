@@ -71,7 +71,7 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes, dStatsRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
@@ -79,7 +79,9 @@ const AdminDashboard = () => {
         supabase.rpc("admin_get_users_over_time"),
         supabase.rpc("admin_get_fraud_checks" as any, { _limit: 50 }),
         supabase.rpc("admin_get_disputes" as any, { _limit: 50 }),
+        supabase.rpc("admin_get_dispute_stats" as any),
       ]);
+      if (dStatsRes.data) setDisputeStats(dStatsRes.data);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
       if (shipmentsRes.data) setRecentShipments(shipmentsRes.data as unknown as RecentShipment[]);
       if (usersRes.data) setUsers(usersRes.data as unknown as UserRow[]);
