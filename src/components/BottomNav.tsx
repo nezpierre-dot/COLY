@@ -20,6 +20,7 @@ const BottomNav = () => {
   const { t } = useTranslation();
   const { roles } = useAuth();
   const unreadMessages = useUnreadMessages();
+  const unreadDisputes = useUnreadDisputes();
   const tabs = tabsDef.map(tab => ({ ...tab, label: t(tab.key) }));
   const isVoyageur = roles.includes("voyageur");
 
