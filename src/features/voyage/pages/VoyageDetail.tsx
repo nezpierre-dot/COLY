@@ -199,7 +199,7 @@ const VoyageDetail = () => {
 
       let missionQuery = supabase
         .from("needit_missions")
-        .select("id, product_name, status, country, city, prix_max")
+        .select("id, product_name, status, country, city, prix_max, user_id")
         .eq("voyageur_id", user.id)
         .in("status", ["accepted", "picked_up", "in_transit", "completed"])
         .eq("country", voyage.arrival_country);
