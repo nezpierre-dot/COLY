@@ -171,9 +171,10 @@ const PostMatchActions = ({
     return () => clearInterval(interval);
   }, [pickupOtpCreatedAt, deliveryOtpCreatedAt, pickupOtp, deliveryOtp]);
 
-  // Check if demandeur already rated this shipment
+  // Check if current user already rated this shipment
   useEffect(() => {
-    if (!user || !isSender || shipmentStatus !== "delivered") return;
+    if (!user || shipmentStatus !== "delivered") return;
+    if (!isSender && !isVoyageur) return;
     supabase
       .from("ratings")
       .select("id")
@@ -182,7 +183,7 @@ const PostMatchActions = ({
       .then(({ data }) => {
         if (data && data.length > 0) setHasRated(true);
       });
-  }, [user, isSender, shipmentStatus, shipmentId]);
+  }, [user, isSender, isVoyageur, shipmentStatus, shipmentId]);
 
   const saveOtpCodes = async (
     pickup: string | null,
@@ -680,18 +681,47 @@ const PostMatchActions = ({
         </motion.div>
       )}
 
-      {shipmentStatus === "delivered" && isSender && hasRated && (
+      {/* ─── DELIVERED: Rating invitation for voyageur ─── */}
+      {shipmentStatus === "delivered" && isVoyageur && !hasRated && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Button
+            onClick={() => setShowRating(true)}
+            variant="outline"
+            className="w-full rounded-xl border-accent/30 text-accent hover:bg-accent/10 gap-2"
+          >
+            <Star size={16} className="fill-accent" />
+            {t("postmatch.rateDemandeur")}
+          </Button>
+        </motion.div>
+      )}
+
+      {shipmentStatus === "delivered" && (isSender || isVoyageur) && hasRated && (
         <p className="text-xs text-center text-muted-foreground">✅ {t("postmatch.alreadyRated")}</p>
       )}
 
-      {/* Rating dialog */}
-      {voyageurId && (
+      {/* Rating dialog - demandeur rates voyageur */}
+      {voyageurId && isSender && (
         <RatingDialog
           open={showRating}
           onClose={() => { setShowRating(false); setHasRated(true); }}
           shipmentId={shipmentId}
           ratedUserId={voyageurId}
           raterRole="demandeur"
+        />
+      )}
+
+      {/* Rating dialog - voyageur rates demandeur */}
+      {isVoyageur && (
+        <RatingDialog
+          open={showRating}
+          onClose={() => { setShowRating(false); setHasRated(true); }}
+          shipmentId={shipmentId}
+          ratedUserId={senderId}
+          raterRole="voyageur"
         />
       )}
 
