@@ -82,7 +82,26 @@ const AdminDashboard = () => {
       if (sotRes.data) setShipmentsOverTime(sotRes.data as unknown as TimeData[]);
       if (uotRes.data) setUsersOverTime(uotRes.data as unknown as TimeData[]);
       if (fraudRes.data) setFraudChecks(fraudRes.data as unknown as FraudCheck[]);
-      if (disputesRes.data) setDisputes(disputesRes.data as unknown as DisputeRow[]);
+      if (disputesRes.data) {
+        const disputeData = disputesRes.data as unknown as DisputeRow[];
+        setDisputes(disputeData);
+        // Load all dispute messages
+        if (disputeData.length > 0) {
+          const { data: msgs } = await supabase
+            .from("dispute_messages" as any)
+            .select("*")
+            .in("dispute_id", disputeData.map(d => d.id))
+            .order("created_at", { ascending: true });
+          if (msgs) {
+            const grouped: Record<string, any[]> = {};
+            (msgs as any[]).forEach((msg: any) => {
+              if (!grouped[msg.dispute_id]) grouped[msg.dispute_id] = [];
+              grouped[msg.dispute_id].push(msg);
+            });
+            setDisputeMessages(grouped);
+          }
+        }
+      }
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
