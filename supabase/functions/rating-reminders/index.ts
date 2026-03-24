@@ -105,6 +105,48 @@ Deno.serve(async (req) => {
           type: notifType,
         });
 
+        // Send email reminder via Resend
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("user_id", userId)
+            .single();
+
+          const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+          const userEmail = authUser?.user?.email;
+
+          if (userEmail) {
+            const userName = profile?.full_name || "Utilisateur";
+            await supabase.functions.invoke("send-email", {
+              body: {
+                to: userEmail,
+                subject: "N'oubliez pas de noter ! ⭐",
+                html: `
+                  <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+                    <h2 style="color:#005BB5;margin-bottom:16px;">Bonjour ${userName} 👋</h2>
+                    <p style="color:#333;line-height:1.6;">
+                      Votre livraison est terminée depuis 24h. Prenez un moment pour noter le <strong>${otherRole}</strong>.
+                    </p>
+                    <p style="color:#333;line-height:1.6;">
+                      Votre avis aide la communauté Nidit à maintenir un service de qualité !
+                    </p>
+                    <div style="text-align:center;margin:24px 0;">
+                      <a href="https://we-app-you.lovable.app/dashboard" 
+                         style="background:#007AFF;color:white;padding:12px 28px;border-radius:12px;text-decoration:none;font-weight:600;display:inline-block;">
+                        Noter maintenant ⭐
+                      </a>
+                    </div>
+                    <p style="color:#999;font-size:12px;margin-top:24px;">— L'équipe Nidit</p>
+                  </div>
+                `,
+              },
+            });
+          }
+        } catch (emailErr) {
+          console.error("Failed to send rating reminder email:", emailErr);
+        }
+
         sent++;
       }
     }

@@ -47,6 +47,8 @@ const MyAccount = () => {
   const [totalEarned, setTotalEarned] = useState(0);
   const [activityDates, setActivityDates] = useState<string[]>([]);
   const [trustBadges, setTrustBadges] = useState<string[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -55,6 +57,9 @@ const MyAccount = () => {
     });
     supabase.rpc("compute_trust_badges", { _user_id: user.id }).then(({ data }) => {
       if (data) setTrustBadges(data);
+    });
+    supabase.from("ratings").select("id, score, comment, rater_role, created_at").eq("rated_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
+      if (data) setReviews(data);
     });
     supabase.from("profiles").select("bio, avatar_url, kyc_status").eq("user_id", user.id).single().then(({ data }) => {
       if (data) {
@@ -473,6 +478,60 @@ const MyAccount = () => {
             );
           })}
         </div>
+
+        {/* Detailed Reviews */}
+        {reviews.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-1.5 mb-3">
+              <Star size={14} className="text-amber-400" />
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Avis reçus ({reviews.length})
+              </h3>
+            </div>
+            <div className="space-y-3">
+              {reviews.slice(0, showAllReviews ? undefined : 3).map((review) => (
+                <motion.div
+                  key={review.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-card border border-border rounded-2xl p-4 shadow-sm"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          size={12}
+                          className={s <= review.score ? "text-amber-400" : "text-muted-foreground/20"}
+                          fill={s <= review.score ? "currentColor" : "none"}
+                        />
+                      ))}
+                      <span className="text-xs font-semibold text-foreground ml-1">{review.score}/5</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(review.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                  </div>
+                  {review.comment && (
+                    <p className="text-sm text-foreground/80 italic">"{review.comment}"</p>
+                  )}
+                  <div className="flex items-center gap-1.5 mt-2">
+                    <User size={12} className="text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{review.rater_role === "demandeur" ? "Demandeur" : "Voyageur"}</span>
+                  </div>
+                </motion.div>
+              ))}
+              {reviews.length > 3 && (
+                <button
+                  onClick={() => setShowAllReviews(!showAllReviews)}
+                  className="w-full text-center text-sm font-medium text-primary hover:underline py-2"
+                >
+                  {showAllReviews ? "Voir moins" : `Voir tous les avis (${reviews.length})`}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Trust Badges (from Supabase compute) */}
         {trustBadges.length > 0 && (
