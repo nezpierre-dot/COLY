@@ -792,6 +792,20 @@ const Dashboard = () => {
                                     </span>
                                   );
                                 }
+                                if (v.status === "completed") {
+                                  return (
+                                    <span className="flex items-center gap-0.5 text-[10px] font-semibold bg-green-500/90 text-white px-1.5 py-0.5 rounded-full">
+                                      ✅ Terminé
+                                    </span>
+                                  );
+                                }
+                                if (v.status === "cancelled") {
+                                  return (
+                                    <span className="flex items-center gap-0.5 text-[10px] font-semibold bg-destructive/90 text-destructive-foreground px-1.5 py-0.5 rounded-full">
+                                      Annulé
+                                    </span>
+                                  );
+                                }
                                 return null;
                               })()}
                             </div>
