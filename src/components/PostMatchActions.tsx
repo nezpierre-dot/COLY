@@ -122,21 +122,63 @@ const PostMatchActions = ({
         if (row.status !== shipmentStatus) {
           onStatusChange?.(row.status);
         }
-        try {
-          const codes = JSON.parse(row.confirmation_code || "{}");
-          setPickupOtp(codes.pickup || null);
-          setDeliveryOtp(codes.delivery || null);
-        } catch {
-          setPickupOtp(row.confirmation_code || null);
-        }
+        parseOtpCodes(row.confirmation_code);
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [shipmentId, shipmentStatus, onStatusChange]);
 
-  const saveOtpCodes = async (pickup: string | null, delivery: string | null) => {
-    const codes = JSON.stringify({ pickup, delivery });
+  // Timer countdown for OTP expiration
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (pickupOtpCreatedAt) {
+        const remaining = OTP_EXPIRY_MS - (Date.now() - pickupOtpCreatedAt);
+        if (remaining <= 0) {
+          setPickupTimeLeft(0);
+          // Auto-expire: clear pickup OTP
+          if (pickupOtp) {
+            setPickupOtp(null);
+            setPickupOtpCreatedAt(null);
+            saveOtpCodes(null, deliveryOtp, null, deliveryOtpCreatedAt);
+          }
+        } else {
+          setPickupTimeLeft(remaining);
+        }
+      } else {
+        setPickupTimeLeft(null);
+      }
+      if (deliveryOtpCreatedAt) {
+        const remaining = OTP_EXPIRY_MS - (Date.now() - deliveryOtpCreatedAt);
+        if (remaining <= 0) {
+          setDeliveryTimeLeft(0);
+          if (deliveryOtp) {
+            setDeliveryOtp(null);
+            setDeliveryOtpCreatedAt(null);
+            saveOtpCodes(pickupOtp, null, pickupOtpCreatedAt, null);
+          }
+        } else {
+          setDeliveryTimeLeft(remaining);
+        }
+      } else {
+        setDeliveryTimeLeft(null);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [pickupOtpCreatedAt, deliveryOtpCreatedAt, pickupOtp, deliveryOtp]);
+
+  const saveOtpCodes = async (
+    pickup: string | null,
+    delivery: string | null,
+    pickupTs?: number | null,
+    deliveryTs?: number | null
+  ) => {
+    const codes = JSON.stringify({
+      pickup,
+      delivery,
+      pickupCreatedAt: pickupTs !== undefined ? pickupTs : pickupOtpCreatedAt,
+      deliveryCreatedAt: deliveryTs !== undefined ? deliveryTs : deliveryOtpCreatedAt,
+    });
     await supabase
       .from(tableName as any)
       .update({ confirmation_code: codes } as any)
