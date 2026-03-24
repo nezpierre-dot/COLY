@@ -2054,6 +2054,7 @@ const es: TranslationDict = {
   "nav.home": "Inicio",
   "nav.missions": "Misiones",
   "nav.messages": "Mensajes",
+  "nav.disputes": "Disputas",
   "nav.profile": "Perfil",
 
   "welcome.tagline": "Comparte el viaje,\nfacilita tus\nintercambios.",
