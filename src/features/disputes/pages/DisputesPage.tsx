@@ -62,6 +62,7 @@ const DisputesPage = () => {
   const [closingDispute, setClosingDispute] = useState<string | null>(null);
   const [myRatings, setMyRatings] = useState<Record<string, number>>({});
   const [ratingComment, setRatingComment] = useState("");
+  const [ratingScore, setRatingScore] = useState(0);
   const [ratingDisputeId, setRatingDisputeId] = useState<string | null>(null);
   const [submittingRating, setSubmittingRating] = useState(false);
   const replyPhotoRef = useRef<HTMLInputElement>(null);
@@ -553,21 +554,34 @@ const DisputesPage = () => {
                         {[1, 2, 3, 4, 5].map(s => (
                           <button
                             key={s}
-                            onClick={() => {
-                              if (ratingDisputeId === d.id) {
-                                handleSubmitRating(d.id, s);
-                              } else {
-                                setRatingDisputeId(d.id);
-                                handleSubmitRating(d.id, s);
-                              }
-                            }}
+                            onClick={() => setRatingDisputeId(d.id)}
                             disabled={submittingRating}
-                            className="w-8 h-8 rounded-lg bg-muted hover:bg-yellow-500/20 flex items-center justify-center transition-colors"
+                            className={`w-8 h-8 rounded-lg bg-muted hover:bg-yellow-500/20 flex items-center justify-center transition-colors ${ratingDisputeId === d.id && ratingScore >= s ? "bg-yellow-500/20" : ""}`}
+                            onClickCapture={(e) => { e.stopPropagation(); setRatingDisputeId(d.id); setRatingScore(s); }}
                           >
-                            <Star size={16} className="text-yellow-500" fill={ratingDisputeId === d.id ? "currentColor" : "none"} />
+                            <Star size={16} className="text-yellow-500" fill={ratingDisputeId === d.id && ratingScore >= s ? "currentColor" : "none"} />
                           </button>
                         ))}
                       </div>
+                      {ratingDisputeId === d.id && ratingScore > 0 && (
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={ratingComment}
+                            onChange={(e) => setRatingComment(e.target.value)}
+                            placeholder="Un commentaire ? (optionnel)"
+                            className="w-full h-8 rounded-lg border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          />
+                          <Button
+                            size="sm"
+                            className="h-7 rounded-lg text-xs gap-1"
+                            disabled={submittingRating}
+                            onClick={() => handleSubmitRating(d.id, ratingScore)}
+                          >
+                            <Send size={12} /> Envoyer
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                   {(d.status === "resolved" || d.status === "refunded") && myRatings[d.id] && (
