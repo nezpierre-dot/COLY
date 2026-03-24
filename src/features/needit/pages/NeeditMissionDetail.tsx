@@ -610,14 +610,30 @@ const NeeditMissionDetail = () => {
             </motion.div>
           )}
 
-          {/* Cancel button for owner when mission is accepted (voyageur assigned) */}
-          {isOwner && isAccepted && mission.status !== "cancelled" && mission.status !== "completed" && !canEdit && (
+          {/* Cancel button — only when accepted (before pickup) */}
+          {isOwner && isAccepted && mission.status === "accepted" && !canEdit && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <button
                 onClick={() => setShowCancel(true)}
                 className="w-full py-3.5 rounded-2xl bg-destructive text-destructive-foreground font-bold text-sm flex items-center justify-center gap-2"
               >
                 <X size={16} /> Annuler la mission
+              </button>
+            </motion.div>
+          )}
+
+          {/* After pickup: dispute instead of cancel */}
+          {isOwner && isAccepted && (mission.status === "picked_up" || mission.status === "in_transit") && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+              <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-xl p-3 text-xs">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                <span>L'objet a déjà été récupéré par le voyageur. L'annulation n'est plus possible. En cas de problème, ouvrez un litige.</span>
+              </div>
+              <button
+                onClick={() => navigate(`/disputes?mission=${mission.id}`)}
+                className="w-full py-3.5 rounded-2xl border border-destructive/30 text-destructive font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <AlertTriangle size={16} /> Signaler un litige
               </button>
             </motion.div>
           )}
