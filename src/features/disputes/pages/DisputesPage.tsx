@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle, MessageSquare, Clock } from "lucide-react";
+import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle, MessageSquare, Clock, ImagePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -16,8 +16,10 @@ interface UserShipment {
 
 interface DisputeMessage {
   id: string;
+  dispute_id?: string;
   sender_role: string;
   content: string;
+  photo_url?: string | null;
   created_at: string;
 }
 
@@ -45,7 +47,10 @@ const DisputesPage = () => {
   const [disputeMessages, setDisputeMessages] = useState<Record<string, DisputeMessage[]>>({});
   const [expandedDispute, setExpandedDispute] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [replyPhoto, setReplyPhoto] = useState<File | null>(null);
+  const [replyPhotoPreview, setReplyPhotoPreview] = useState<string | null>(null);
   const [sendingReply, setSendingReply] = useState(false);
+  const replyPhotoRef = useRef<HTMLInputElement>(null);
 
   const prefillShipment = searchParams.get("shipment");
   const prefillMission = searchParams.get("mission");
@@ -94,7 +99,6 @@ const DisputesPage = () => {
         .order("created_at", { ascending: false });
       if (d) {
         setMyDisputes(d);
-        // Load messages for all disputes
         const disputeIds = d.map((x: any) => x.id);
         if (disputeIds.length > 0) {
           const { data: msgs } = await supabase
@@ -114,6 +118,29 @@ const DisputesPage = () => {
       }
     };
     load();
+
+    // Realtime subscription for new dispute messages
+    const channel = supabase
+      .channel('dispute-messages-user')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'dispute_messages' },
+        (payload) => {
+          const newMsg = payload.new as any;
+          // Only add if it's for one of my disputes and not from me
+          setDisputeMessages((prev) => {
+            const existing = prev[newMsg.dispute_id] || [];
+            if (existing.some((m) => m.id === newMsg.id)) return prev;
+            return { ...prev, [newMsg.dispute_id]: [...existing, newMsg] };
+          });
+          if (newMsg.sender_role === "admin" && newMsg.sender_id !== user.id) {
+            toast.info("📩 Nouvelle réponse du support sur votre litige");
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user, prefillShipment, prefillMission]);
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,6 +148,23 @@ const DisputesPage = () => {
     if (!file) return;
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const handleReplyPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setReplyPhoto(file);
+    setReplyPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const uploadPhoto = async (file: File): Promise<string | null> => {
+    if (!user) return null;
+    const ext = file.name.split(".").pop();
+    const path = `disputes/${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("shipment-photos").upload(path, file);
+    if (error) return null;
+    const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 365);
+    return data?.signedUrl ?? null;
   };
 
   const handleSubmit = async () => {
@@ -132,13 +176,7 @@ const DisputesPage = () => {
     try {
       let photoUrl: string | null = null;
       if (photoFile) {
-        const ext = photoFile.name.split(".").pop();
-        const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("shipment-photos").upload(path, photoFile);
-        if (!upErr) {
-          const { data: urlData } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 365);
-          photoUrl = urlData?.signedUrl ?? null;
-        }
+        photoUrl = await uploadPhoto(photoFile);
       }
 
       const disputeId = crypto.randomUUID();
@@ -152,12 +190,12 @@ const DisputesPage = () => {
       });
       if (error) throw error;
 
-      // Save initial message in history
       await supabase.from("dispute_messages" as any).insert({
         dispute_id: disputeId,
         sender_id: user.id,
         sender_role: "user",
         content: description.trim(),
+        photo_url: photoUrl,
       } as any);
 
       supabase.functions.invoke("notify-dispute", {
@@ -174,26 +212,25 @@ const DisputesPage = () => {
   };
 
   const handleUserReply = async (disputeId: string) => {
-    if (!user || !replyText.trim()) return;
+    if (!user || (!replyText.trim() && !replyPhoto)) return;
     setSendingReply(true);
     try {
+      let photoUrl: string | null = null;
+      if (replyPhoto) {
+        photoUrl = await uploadPhoto(replyPhoto);
+      }
+
       await supabase.from("dispute_messages" as any).insert({
         dispute_id: disputeId,
         sender_id: user.id,
         sender_role: "user",
-        content: replyText.trim(),
+        content: replyText.trim() || (photoUrl ? "📷 Photo jointe" : ""),
+        photo_url: photoUrl,
       } as any);
 
-      setDisputeMessages((prev) => ({
-        ...prev,
-        [disputeId]: [...(prev[disputeId] || []), {
-          id: crypto.randomUUID(),
-          sender_role: "user",
-          content: replyText.trim(),
-          created_at: new Date().toISOString(),
-        }],
-      }));
       setReplyText("");
+      setReplyPhoto(null);
+      setReplyPhotoPreview(null);
       toast.success("Message envoyé");
     } catch (err: any) {
       toast.error("Erreur lors de l'envoi");
@@ -250,7 +287,7 @@ const DisputesPage = () => {
           <div className="flex items-start gap-2 bg-primary/5 border border-primary/20 rounded-xl p-3 text-xs text-primary">
             <AlertTriangle size={14} className="shrink-0 mt-0.5" />
             <span>
-              L'élément <strong>{shipments.find(s => s.id === selectedShipment)?.ref}</strong> a été pré-sélectionné. Décrivez le problème ci-dessous.
+              L'élément <strong>{shipments.find(s => s.id === selectedShipment)?.ref}</strong> a été pré-sélectionné.
             </span>
           </div>
         )}
@@ -341,7 +378,6 @@ const DisputesPage = () => {
                     {new Date(d.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                   </p>
 
-                  {/* Toggle message history */}
                   <button
                     onClick={() => setExpandedDispute(isExpanded ? null : d.id)}
                     className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
@@ -352,11 +388,10 @@ const DisputesPage = () => {
 
                   {isExpanded && (
                     <div className="space-y-2 pt-1">
-                      {/* Message thread */}
                       {messages.length === 0 ? (
                         <p className="text-xs text-muted-foreground italic">Aucun échange pour le moment.</p>
                       ) : (
-                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                        <div className="space-y-2 max-h-72 overflow-y-auto">
                           {messages.map((msg) => (
                             <div
                               key={msg.id}
@@ -374,31 +409,51 @@ const DisputesPage = () => {
                                   <Clock size={9} /> {formatTime(msg.created_at)}
                                 </span>
                               </div>
+                              {msg.photo_url && (
+                                <img src={msg.photo_url} alt="Photo jointe" className="w-full max-w-[200px] rounded-lg mb-1.5 border border-border" />
+                              )}
                               <p className="text-foreground whitespace-pre-wrap">{msg.content}</p>
                             </div>
                           ))}
                         </div>
                       )}
 
-                      {/* Reply box for active disputes */}
                       {isActive && (
-                        <div className="flex gap-2 pt-1">
-                          <input
-                            type="text"
-                            value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="Répondre..."
-                            className="flex-1 h-9 rounded-xl border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleUserReply(d.id)}
-                          />
-                          <Button
-                            size="sm"
-                            className="h-9 rounded-xl gap-1"
-                            disabled={sendingReply || !replyText.trim()}
-                            onClick={() => handleUserReply(d.id)}
-                          >
-                            <Send size={12} />
-                          </Button>
+                        <div className="space-y-2 pt-1">
+                          {replyPhotoPreview && (
+                            <div className="relative inline-block">
+                              <img src={replyPhotoPreview} alt="Photo à joindre" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                              <button
+                                onClick={() => { setReplyPhoto(null); setReplyPhotoPreview(null); }}
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs"
+                              >×</button>
+                            </div>
+                          )}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => replyPhotoRef.current?.click()}
+                              className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors shrink-0"
+                            >
+                              <ImagePlus size={16} className="text-muted-foreground" />
+                            </button>
+                            <input ref={replyPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleReplyPhoto} />
+                            <input
+                              type="text"
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              placeholder="Répondre..."
+                              className="flex-1 h-9 rounded-xl border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleUserReply(d.id)}
+                            />
+                            <Button
+                              size="sm"
+                              className="h-9 rounded-xl gap-1"
+                              disabled={sendingReply || (!replyText.trim() && !replyPhoto)}
+                              onClick={() => handleUserReply(d.id)}
+                            >
+                              <Send size={12} />
+                            </Button>
+                          </div>
                         </div>
                       )}
                     </div>
