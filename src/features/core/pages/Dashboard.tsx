@@ -710,6 +710,29 @@ const Dashboard = () => {
 
               {/* ---- Voyages tab ---- */}
               <TabsContent value="voyages" className="space-y-3 mt-0">
+                {/* Status filter */}
+                {voyages.length > 0 && (
+                  <div className="flex gap-1.5 overflow-x-auto pb-1">
+                    {([
+                      { key: "all" as const, label: `Tous (${voyages.length})` },
+                      { key: "active" as const, label: `Actifs (${voyages.filter(v => v.status === "active").length})` },
+                      { key: "completed" as const, label: `Terminés (${voyages.filter(v => v.status === "completed").length})` },
+                      { key: "cancelled" as const, label: `Annulés (${voyages.filter(v => v.status === "cancelled").length})` },
+                    ]).map(f => (
+                      <button
+                        key={f.key}
+                        onClick={() => setVoyageStatusFilter(f.key)}
+                        className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                          voyageStatusFilter === f.key
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               {voyages.length === 0 ? (
                   <EmptyState
                     icon={Plane}
@@ -722,7 +745,9 @@ const Dashboard = () => {
                     }
                   />
                 ) : (
-                  voyages.map((v) => {
+                  voyages.filter(v => voyageStatusFilter === "all" || v.status === voyageStatusFilter).length === 0 ? (
+                    <p className="text-center text-sm text-muted-foreground py-6">Aucun voyage avec ce statut</p>
+                  ) : voyages.filter(v => voyageStatusFilter === "all" || v.status === voyageStatusFilter).map((v) => {
                     const isSelected = selectedVoyage === v.id;
                     const fav = isRouteFavorite(v.departure_city, v.arrival_city);
                     return (
