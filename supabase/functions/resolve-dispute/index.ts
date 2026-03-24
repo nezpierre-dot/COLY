@@ -37,9 +37,81 @@ serve(async (req) => {
     });
     if (!isAdmin) throw new Error("Admin access required");
 
-    const { dispute_id, action } = await req.json();
-    if (!dispute_id || !["resolve", "refund"].includes(action)) {
-      throw new Error("Invalid parameters: dispute_id and action (resolve|refund) required");
+    const { dispute_id, action, admin_response } = await req.json();
+    if (!dispute_id || !["resolve", "refund", "respond"].includes(action)) {
+      throw new Error("Invalid parameters: dispute_id and action (resolve|refund|respond) required");
+    }
+
+    // Handle admin response (message without resolving)
+    if (action === "respond") {
+      if (!admin_response?.trim()) throw new Error("admin_response is required for respond action");
+
+      const { data: dispute, error: disputeErr } = await supabaseAdmin
+        .from("disputes")
+        .select("id, shipment_id, user_id, status")
+        .eq("id", dispute_id)
+        .single();
+      if (disputeErr || !dispute) throw new Error("Dispute not found");
+
+      // Update dispute status to investigating if still open
+      if (dispute.status === "open") {
+        await supabaseAdmin.from("disputes").update({
+          status: "investigating",
+          resolution: admin_response.trim(),
+        }).eq("id", dispute_id);
+      } else {
+        await supabaseAdmin.from("disputes").update({
+          resolution: admin_response.trim(),
+        }).eq("id", dispute_id);
+      }
+
+      // In-app notification to demandeur
+      await supabaseAdmin.from("notifications").insert({
+        user_id: dispute.user_id,
+        title: "Réponse à votre litige 📩",
+        message: admin_response.trim().substring(0, 200),
+        type: "dispute_response:" + dispute_id,
+      });
+
+      // Email to demandeur
+      const resendApiKey = Deno.env.get("RESEND_API_KEY");
+      if (resendApiKey) {
+        const { data: demandeurUser } = await supabaseAdmin.auth.admin.getUserById(dispute.user_id);
+        const demandeurEmail = demandeurUser?.user?.email;
+        if (demandeurEmail) {
+          const disputeRef = "LIT-" + dispute_id.substring(0, 8).toUpperCase();
+          const safeResponse = admin_response.trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const html = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+              <div style="background: linear-gradient(135deg, #0D84FF, #5856D6); border-radius: 16px; padding: 24px; color: white; text-align: center; margin-bottom: 24px;">
+                <h1 style="margin: 0; font-size: 20px;">📩 Réponse à votre litige</h1>
+              </div>
+              <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+                <p style="margin: 0 0 8px; color: #666; font-size: 12px; font-weight: 600;">Référence : ${disputeRef}</p>
+                <p style="margin: 0; color: #1a1a1a; font-size: 15px; line-height: 1.5;">${safeResponse}</p>
+              </div>
+              <div style="text-align: center;">
+                <a href="https://we-app-you.lovable.app/litiges" style="display: inline-block; background: #0D84FF; color: white; padding: 12px 28px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 14px;">Voir le litige</a>
+              </div>
+              <p style="color: #999; font-size: 11px; text-align: center; margin-top: 24px;">Nidit Transport collaboratif</p>
+            </div>
+          `;
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from: "Nidit <noreply@nidit.app>",
+              to: [demandeurEmail],
+              subject: `📩 Réponse à votre litige ${disputeRef}`,
+              html,
+            }),
+          });
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, action: "respond" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Get the dispute details

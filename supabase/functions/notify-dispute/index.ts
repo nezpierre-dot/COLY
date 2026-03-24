@@ -88,6 +88,16 @@ Deno.serve(async (req) => {
     const disputeRef = "LIT-" + dispute_id.substring(0, 8).toUpperCase();
     const deepLink = `https://we-app-you.lovable.app/litiges`;
 
+    // In-app notification for the voyageur
+    if (voyageurId) {
+      await adminClient.from("notifications").insert({
+        user_id: voyageurId,
+        title: "⚠️ Litige ouvert contre vous",
+        message: `Un litige a été ouvert pour ${itemLabel} (${itemRef}). Motif : ${reason}.`,
+        type: "dispute_opened:" + dispute_id,
+      });
+    }
+
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) {
       console.warn("RESEND_API_KEY not set, skipping emails");

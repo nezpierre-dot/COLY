@@ -45,6 +45,9 @@ const AdminDashboard = () => {
   const [fraudChecks, setFraudChecks] = useState<FraudCheck[]>([]);
   const [disputes, setDisputes] = useState<DisputeRow[]>([]);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [replyingId, setReplyingId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
