@@ -206,7 +206,7 @@ const PostMatchActions = ({
       setDeliveryOtp(otp);
 
       // Update status to in_transit
-      await supabase.from("shipments").update({ status: "in_transit" } as any).eq("id", shipmentId);
+      await supabase.from(tableName as any).update({ status: "in_transit" } as any).eq("id", shipmentId);
       await addTrackingEvent("in_transit", t("postmatch.trackInTransit"), t("postmatch.trackInTransitDesc"));
 
       // Notify sender
