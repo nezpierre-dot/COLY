@@ -1637,6 +1637,7 @@ const en: TranslationDict = {
   "postmatch.pickupConfirmed": "Pickup confirmed!",
   "postmatch.deliveryConfirmed": "Delivery confirmed!",
   "postmatch.rateVoyageur": "⭐ Rate the traveler",
+  "postmatch.rateDemandeur": "⭐ Rate the sender",
   "postmatch.alreadyRated": "You already rated this delivery",
   "postmatch.notifPickupReady": "Parcel ready for pickup 📦",
   "postmatch.notifPickupReadyDesc": "The sender generated a handover code. Pick up the parcel and enter the code to confirm.",
