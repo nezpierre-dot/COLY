@@ -170,6 +170,7 @@ const NewTrip = () => {
   const [canPickup, setCanPickup] = useState(false);
   const [canMove, setCanMove] = useState(false);
   const [deliverToAddress, setDeliverToAddress] = useState(false);
+  const [cutoffHours, setCutoffHours] = useState("24");
 
   // Step 5 – NeedIt
   const [acceptNeedit, setAcceptNeedit] = useState(false);
@@ -230,7 +231,8 @@ const NewTrip = () => {
       max_items: maxItems ? parseInt(maxItems) : null,
       capacity_volume_liters: volumeType === "liters" && volumeLiters ? parseFloat(volumeLiters) : null,
       capacity_dimensions: volumeType === "dimensions" && capacityDimensions ? capacityDimensions.trim() : null,
-    }).select("id").single();
+      cutoff_hours: parseInt(cutoffHours) || 24,
+    } as any).select("id").single();
     setSubmitting(false);
     if (error) {
       toast.error(t("trip.errorCreate"));
@@ -537,6 +539,24 @@ const NewTrip = () => {
                   </span>
                   <Switch checked={deliverToAddress} onCheckedChange={setDeliverToAddress} />
                 </div>
+              </div>
+
+              {/* Cutoff hours */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <Label className="text-sm font-semibold text-foreground">⏰ Fermeture du voyage aux matchs</Label>
+                <p className="text-xs text-muted-foreground">Le voyage ne sera plus visible pour les demandeurs avant ce délai de départ.</p>
+                <Select value={cutoffHours} onValueChange={setCutoffHours}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="6">6 heures avant</SelectItem>
+                    <SelectItem value="12">12 heures avant</SelectItem>
+                    <SelectItem value="24">24 heures avant (recommandé)</SelectItem>
+                    <SelectItem value="48">48 heures avant</SelectItem>
+                    <SelectItem value="72">72 heures avant</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Capacity section */}
