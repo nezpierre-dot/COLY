@@ -38,6 +38,7 @@ interface HistoryItem {
   rawDate: Date;
   category: HistoryType;
   icon: string;
+  destination: string;
 }
 
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
