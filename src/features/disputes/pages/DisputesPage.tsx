@@ -342,6 +342,27 @@ const DisputesPage = () => {
     }
   };
 
+  const handleSubmitRating = async (disputeId: string, score: number) => {
+    if (!user) return;
+    setSubmittingRating(true);
+    try {
+      await supabase.from("dispute_ratings" as any).insert({
+        dispute_id: disputeId,
+        user_id: user.id,
+        score,
+        comment: ratingComment.trim() || null,
+      } as any);
+      setMyRatings(prev => ({ ...prev, [disputeId]: score }));
+      setRatingDisputeId(null);
+      setRatingComment("");
+      toast.success("Merci pour votre évaluation !");
+    } catch {
+      toast.error("Erreur lors de l'envoi");
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
+
   const statusLabel = (s: string) => {
     const map: Record<string, { label: string; cls: string }> = {
       open: { label: "En attente", cls: "bg-warning/10 text-warning" },
