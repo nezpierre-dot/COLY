@@ -90,6 +90,8 @@ const VoyageDetail = () => {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [demandeurNames, setDemandeurNames] = useState<Record<string, string>>({});
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [batchTransiting, setBatchTransiting] = useState(false);
 
   // Check if within 24h of departure
   const isWithin24h = useCallback(() => {
