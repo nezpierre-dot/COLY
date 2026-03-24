@@ -388,6 +388,24 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="disputes" className="space-y-3 mt-0">
+            {/* Dispute Statistics */}
+            {disputeStats && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <StatCard icon={AlertTriangle} label="Ouverts" value={disputeStats.open ?? 0} color="warning" />
+                <StatCard icon={Eye} label="En cours / Escaladés" value={disputeStats.investigating ?? 0} color="primary" />
+                <StatCard icon={CheckCircle} label="Résolus" value={disputeStats.resolved ?? 0} color="accent" />
+                <StatCard icon={Clock} label="Temps moy. résolution" value={`${disputeStats.avg_resolution_hours ?? 0}h`} color="secondary" />
+              </div>
+            )}
+            {disputeStats && (disputeStats.total_ratings > 0 || disputeStats.avg_satisfaction > 0) && (
+              <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center text-lg">⭐</div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Satisfaction post-résolution : {disputeStats.avg_satisfaction}/5</p>
+                  <p className="text-xs text-muted-foreground">{disputeStats.total_ratings} évaluation(s) reçue(s)</p>
+                </div>
+              </div>
+            )}
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Gavel size={14} className="text-warning" /> Litiges en cours</h3>

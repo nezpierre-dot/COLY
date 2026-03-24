@@ -543,6 +543,39 @@ const DisputesPage = () => {
                     )}
                   </div>
 
+                  {/* Post-resolution satisfaction rating */}
+                  {(d.status === "resolved" || d.status === "refunded") && !myRatings[d.id] && (
+                    <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-3 space-y-2">
+                      <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                        <Star size={13} className="text-yellow-500" /> Comment évaluez-vous la résolution de ce litige ?
+                      </p>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map(s => (
+                          <button
+                            key={s}
+                            onClick={() => {
+                              if (ratingDisputeId === d.id) {
+                                handleSubmitRating(d.id, s);
+                              } else {
+                                setRatingDisputeId(d.id);
+                                handleSubmitRating(d.id, s);
+                              }
+                            }}
+                            disabled={submittingRating}
+                            className="w-8 h-8 rounded-lg bg-muted hover:bg-yellow-500/20 flex items-center justify-center transition-colors"
+                          >
+                            <Star size={16} className="text-yellow-500" fill={ratingDisputeId === d.id ? "currentColor" : "none"} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {(d.status === "resolved" || d.status === "refunded") && myRatings[d.id] && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Star size={12} className="text-yellow-500" fill="currentColor" /> Votre note : {myRatings[d.id]}/5
+                    </div>
+                  )}
+
                   {isExpanded && (
                     <div className="space-y-2 pt-1">
                       {messages.length === 0 ? (
