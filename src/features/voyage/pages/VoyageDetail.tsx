@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight, User } from "lucide-react";
 import AcceptedItemCard from "@/components/AcceptedItemCard";
 import PostMatchActions from "@/components/PostMatchActions";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
@@ -86,6 +86,7 @@ const VoyageDetail = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+  const [demandeurNames, setDemandeurNames] = useState<Record<string, string>>({});
 
   // Check if within 24h of departure
   const isWithin24h = useCallback(() => {
@@ -244,6 +245,18 @@ const VoyageDetail = () => {
           }
         }
         setMissionsWithProof(proofSet);
+      }
+      // Fetch demandeur names
+      const allUserIds = new Set<string>();
+      (shipData || []).forEach((s: any) => { if (s.user_id) allUserIds.add(s.user_id); });
+      (missionData || []).forEach((m: any) => { if (m.user_id) allUserIds.add(m.user_id); });
+      if (allUserIds.size > 0) {
+        const { data: profilesData } = await supabase.from("profiles").select("user_id, full_name").in("user_id", Array.from(allUserIds));
+        if (profilesData) {
+          const nameMap: Record<string, string> = {};
+          profilesData.forEach((p: any) => { nameMap[p.user_id] = p.full_name || "Utilisateur"; });
+          setDemandeurNames(nameMap);
+        }
       }
     };
     checkAccepted();
@@ -602,6 +615,14 @@ const VoyageDetail = () => {
               </h2>
               {acceptedMissions.map((mission) => (
                 <div key={mission.id} className="space-y-2">
+                  {mission.user_id && (
+                    <button
+                      onClick={() => navigate(`/profile/${mission.user_id}`)}
+                      className="flex items-center gap-1.5 text-primary text-xs font-semibold hover:underline"
+                    >
+                      <User size={12} /> {demandeurNames[mission.user_id] || "Voir le profil"}
+                    </button>
+                  )}
                   <AcceptedItemCard
                     id={mission.id}
                     title={mission.product_name || "Mission NeedIt"}
@@ -655,6 +676,14 @@ const VoyageDetail = () => {
               </h2>
               {acceptedColis.map((shipment) => (
                 <div key={shipment.id} className="space-y-2">
+                  {shipment.user_id && (
+                    <button
+                      onClick={() => navigate(`/profile/${shipment.user_id}`)}
+                      className="flex items-center gap-1.5 text-primary text-xs font-semibold hover:underline"
+                    >
+                      <User size={12} /> {demandeurNames[shipment.user_id] || "Voir le profil"}
+                    </button>
+                  )}
                   <AcceptedItemCard
                     id={shipment.id}
                     title={`${shipment.departure_city || "—"} → ${shipment.arrival_city}`}

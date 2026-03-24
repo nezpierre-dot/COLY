@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Star, MapPin, ArrowLeft, User, MessageSquare, Plane, Package, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
@@ -10,6 +11,7 @@ import BottomNav from "@/components/BottomNav";
 const PublicProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [profile, setProfile] = useState<any>(null);
   const [rating, setRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
@@ -18,6 +20,7 @@ const PublicProfile = () => {
   const [trustBadges, setTrustBadges] = useState<string[]>([]);
   const [stats, setStats] = useState({ voyages: 0, delivered: 0 });
   const [loading, setLoading] = useState(true);
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -45,11 +48,23 @@ const PublicProfile = () => {
         setReplies(map);
       }
       setStats({ voyages: voyagesRes.count || 0, delivered: deliveredRes.count || 0 });
+
+      // Check if current user has a conversation with this profile user
+      if (user && userId && user.id !== userId) {
+        const { data: convo } = await supabase
+          .from("conversations")
+          .select("id")
+          .or(`and(demandeur_id.eq.${user.id},voyageur_id.eq.${userId}),and(demandeur_id.eq.${userId},voyageur_id.eq.${user.id})`)
+          .limit(1)
+          .maybeSingle();
+        if (convo) setConversationId(convo.id);
+      }
+
       setLoading(false);
     };
 
     load();
-  }, [userId]);
+  }, [userId, user]);
 
   if (loading) {
     return (
@@ -116,6 +131,15 @@ const PublicProfile = () => {
       </div>
 
       <div className="px-6 -mt-4 relative z-10">
+        {/* Contact button */}
+        {conversationId && (
+          <button
+            onClick={() => navigate(`/chat/${conversationId}`)}
+            className="w-full mb-4 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 shadow-md"
+          >
+            <MessageSquare size={16} /> Contacter
+          </button>
+        )}
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-card border border-border rounded-2xl p-4 text-center shadow-sm">

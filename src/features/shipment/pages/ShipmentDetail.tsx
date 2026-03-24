@@ -37,6 +37,7 @@ const ShipmentDetail = () => {
   const [saving, setSaving] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
   const [showReminder, setShowReminder] = useState(false);
+  const [voyageurName, setVoyageurName] = useState<string | null>(null);
 
   // Editable fields
   const [departureDate, setDepartureDate] = useState("");
@@ -65,6 +66,13 @@ const ShipmentDetail = () => {
   }, [id]);
 
   useEffect(() => { loadShipment(); }, [loadShipment]);
+
+  // Fetch voyageur profile name
+  useEffect(() => {
+    if (!shipment?.voyageur_id) return;
+    supabase.from("profiles").select("full_name").eq("user_id", shipment.voyageur_id).maybeSingle()
+      .then(({ data }) => { if (data) setVoyageurName(data.full_name); });
+  }, [shipment?.voyageur_id]);
 
   const isOwner = shipment?.user_id === user?.id;
   const isPending = shipment?.status === "pending";
@@ -272,6 +280,20 @@ const ShipmentDetail = () => {
               </div>
             )}
           </div>
+
+          {/* Voyageur profile link */}
+          {shipment.voyageur_id && (
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <p className="text-xs font-semibold text-muted-foreground mb-2">🚀 Voyageur assigné</p>
+              <button
+                onClick={() => navigate(`/profile/${shipment.voyageur_id}`)}
+                className="flex items-center gap-2 text-primary font-semibold text-sm hover:underline"
+              >
+                <User size={14} />
+                {voyageurName || "Voir le profil"}
+              </button>
+            </div>
+          )}
 
           {/* Post-match actions (OTP, location, status transitions) */}
           {shipment.voyageur_id && shipment.status !== "pending" && shipment.status !== "cancelled" && (
