@@ -408,6 +408,7 @@ const VoyageDetail = () => {
                 <InfoRow icon={<MapPin size={14} />} label={t("trip.deliverToAddress") || "Livrer à domicile"} value={voyage.deliver_to_address ? "✅" : "❌"} />
                 <InfoRow icon={<Package size={14} />} label="NeedIt" value={voyage.accept_needit ? "✅" : "❌"} />
                 <InfoRow icon={<Clock size={14} />} label="Fermeture matchs" value={`${voyage.cutoff_hours ?? 24}h avant le départ`} />
+                {voyage.accept_needit && voyage.needit_budget && (
                   <InfoRow icon={<Package size={14} />} label={t("trip.needitBudget") || "Budget NeedIt"} value={`${voyage.needit_budget} €`} />
                 )}
                 {voyage.capacity_dimensions && (
