@@ -58,6 +58,9 @@ const MyAccount = () => {
     supabase.rpc("compute_trust_badges", { _user_id: user.id }).then(({ data }) => {
       if (data) setTrustBadges(data);
     });
+    supabase.from("ratings").select("id, score, comment, rater_role, created_at").eq("rated_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
+      if (data) setReviews(data);
+    });
     supabase.from("profiles").select("bio, avatar_url, kyc_status").eq("user_id", user.id).single().then(({ data }) => {
       if (data) {
         setBio((data as any).bio || "");
