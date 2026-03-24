@@ -411,10 +411,15 @@ const DisputesPage = () => {
               const isActive = d.status === "open" || d.status === "investigating";
               return (
                 <div key={d.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-medium text-foreground">
-                      LIT-{d.id.slice(0, 8).toUpperCase()}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-medium text-foreground">
+                        LIT-{d.id.slice(0, 8).toUpperCase()}
+                      </span>
+                      {d.user_id !== user?.id && (
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-accent/10 text-accent-foreground">Voyageur</span>
+                      )}
+                    </div>
                     {statusLabel(d.status)}
                   </div>
                   <p className="text-xs text-muted-foreground">{DISPUTE_REASONS.find((r) => r.value === d.reason)?.label ?? d.reason}</p>
