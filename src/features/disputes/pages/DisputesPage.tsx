@@ -480,13 +480,32 @@ const DisputesPage = () => {
                     {new Date(d.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                   </p>
 
-                  <button
-                    onClick={() => setExpandedDispute(isExpanded ? null : d.id)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-                  >
-                    <MessageSquare size={13} />
-                    {messages.length > 0 ? `Échanges (${messages.length})` : "Voir les échanges"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setExpandedDispute(isExpanded ? null : d.id)}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                    >
+                      <MessageSquare size={13} />
+                      {messages.length > 0 ? `Échanges (${messages.length})` : "Voir les échanges"}
+                    </button>
+
+                    {isActive && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 rounded-xl gap-1.5 text-xs border-success/30 text-success hover:bg-success/10"
+                        disabled={closingDispute === d.id}
+                        onClick={() => {
+                          if (confirm("Êtes-vous sûr de vouloir clôturer ce litige à l'amiable ? Cette action est irréversible.")) {
+                            handleAmicableClosure(d.id);
+                          }
+                        }}
+                      >
+                        <Handshake size={13} />
+                        {closingDispute === d.id ? "Clôture..." : "Clôturer à l'amiable"}
+                      </Button>
+                    )}
+                  </div>
 
                   {isExpanded && (
                     <div className="space-y-2 pt-1">
