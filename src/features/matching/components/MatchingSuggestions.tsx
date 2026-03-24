@@ -57,6 +57,7 @@ const MatchingSuggestions = ({
     maxWeightKg: estimatedWeightKg,
     enabled: !!destinationCountry,
   });
+  const nav = useNavigate();
 
   if (!destinationCountry) return null;
 
