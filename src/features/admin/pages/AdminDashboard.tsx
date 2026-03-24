@@ -159,20 +159,41 @@ const AdminDashboard = () => {
     }
   };
 
+  const uploadAdminPhoto = async (file: File): Promise<string | null> => {
+    const ext = file.name.split(".").pop();
+    const path = `disputes/admin/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("shipment-photos").upload(path, file);
+    if (error) return null;
+    const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 365);
+    return data?.signedUrl ?? null;
+  };
+
   const handleDisputeReply = async (disputeId: string) => {
-    if (!replyText.trim()) {
-      toast.error("Veuillez saisir une réponse");
+    if (!replyText.trim() && !replyPhoto) {
+      toast.error("Veuillez saisir une réponse ou joindre une photo");
       return;
     }
     setSendingReply(true);
     try {
+      let photoUrl: string | null = null;
+      if (replyPhoto) {
+        photoUrl = await uploadAdminPhoto(replyPhoto);
+      }
+
       const { error } = await supabase.functions.invoke("resolve-dispute", {
-        body: { dispute_id: disputeId, action: "respond", admin_response: replyText.trim() },
+        body: {
+          dispute_id: disputeId,
+          action: "respond",
+          admin_response: replyText.trim() || (photoUrl ? "📷 Photo jointe" : ""),
+          photo_url: photoUrl,
+        },
       });
       if (error) throw error;
       toast.success("Réponse envoyée au demandeur par email et notification");
       setReplyingId(null);
       setReplyText("");
+      setReplyPhoto(null);
+      setReplyPhotoPreview(null);
       await loadAll();
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de l'envoi");
