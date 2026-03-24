@@ -191,6 +191,11 @@ const Dashboard = () => {
   const [dismissedBanner, setDismissedBanner] = useState(() => localStorage.getItem("pwa-banner-dismissed") === "1");
   const showInstallBanner = canInstall && !dismissedBanner;
 
+  // Voyageur onboarding tutorial
+  const [showVoyageurOnboarding, setShowVoyageurOnboarding] = useState(() =>
+    isVoyageur && localStorage.getItem("voyageur-onboarding-done") !== "1"
+  );
+
   const [voyages, setVoyages] = useState<Voyage[]>([]);
   const [selectedVoyage, setSelectedVoyage] = useState<string | null>(null);
 
