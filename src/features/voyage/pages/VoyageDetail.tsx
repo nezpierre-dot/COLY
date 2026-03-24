@@ -439,6 +439,38 @@ const VoyageDetail = () => {
               }
             };
 
+            // Batch: mark all picked_up items as in_transit
+            const eligibleForBatchTransit = [
+              ...acceptedColis.filter(s => s.status === "picked_up").map(s => ({ id: s.id, type: "shipment" as const })),
+              ...acceptedMissions.filter(m => m.status === "picked_up").map(m => ({ id: m.id, type: "mission" as const })),
+            ];
+
+            const handleBatchTransit = async () => {
+              if (eligibleForBatchTransit.length === 0) return;
+              setBatchTransiting(true);
+              try {
+                for (const item of eligibleForBatchTransit) {
+                  if (item.type === "shipment") {
+                    await supabase.from("shipments").update({ status: "in_transit" as any }).eq("id", item.id);
+                  } else {
+                    await supabase.from("needit_missions").update({ status: "in_transit" as any }).eq("id", item.id);
+                  }
+                  try {
+                    await supabase.functions.invoke("notify-status-change", {
+                      body: { item_id: item.id, item_type: item.type === "shipment" ? "shipment" : "needit_mission", new_status: "in_transit" },
+                    });
+                  } catch {}
+                }
+                setAcceptedColis(prev => prev.map(s => s.status === "picked_up" ? { ...s, status: "in_transit" } : s));
+                setAcceptedMissions(prev => prev.map(m => m.status === "picked_up" ? { ...m, status: "in_transit" } : m));
+                toast.success(`${eligibleForBatchTransit.length} élément(s) passé(s) en transit ✅`);
+              } catch (err: any) {
+                toast.error(err.message || "Erreur");
+              } finally {
+                setBatchTransiting(false);
+              }
+            };
+
             return (
               <div className="bg-card border border-border rounded-2xl overflow-hidden">
                 {/* Header with progress */}
