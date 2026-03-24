@@ -56,6 +56,7 @@ type Voyage = {
   status: string;
   max_weight_kg: number | null;
   max_items: number | null;
+  cutoff_hours?: number;
 };
 
 // --- Voyageur Quick Stats with mini chart ---
@@ -746,6 +747,21 @@ const Dashboard = () => {
                                   {v.departure_time}
                                 </span>
                               )}
+                              {(() => {
+                                const depTime = new Date(v.departure_date + "T" + (v.departure_time || "00:00")).getTime();
+                                const cutoffMs = (v.cutoff_hours ?? 24) * 60 * 60 * 1000;
+                                const remaining = depTime - Date.now();
+                                // Show badge if remaining time is less than 2x cutoff (close to closing)
+                                if (v.status === "active" && remaining > 0 && remaining < cutoffMs * 2) {
+                                  return (
+                                    <span className="flex items-center gap-0.5 text-[10px] font-semibold bg-warning/90 text-warning-foreground px-1.5 py-0.5 rounded-full">
+                                      <Clock size={9} />
+                                      Bientôt fermé
+                                    </span>
+                                  );
+                                }
+                                return null;
+                              })()}
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
