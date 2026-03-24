@@ -158,7 +158,11 @@ const DisputesPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     setReplyPhoto(file);
-    setReplyPhotoPreview(URL.createObjectURL(file));
+    if (file.type === "application/pdf") {
+      setReplyPhotoPreview("pdf:" + file.name);
+    } else {
+      setReplyPhotoPreview(URL.createObjectURL(file));
+    }
   };
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
