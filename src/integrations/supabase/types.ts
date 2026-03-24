@@ -109,6 +109,41 @@ export type Database = {
           },
         ]
       }
+      dispute_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          dispute_id: string
+          id: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          dispute_id: string
+          id?: string
+          score: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          dispute_id?: string
+          id?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_ratings_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disputes: {
         Row: {
           created_at: string
@@ -1014,6 +1049,7 @@ export type Database = {
     Functions: {
       accept_needit_mission: { Args: { _mission_id: string }; Returns: string }
       accept_shipment: { Args: { _shipment_id: string }; Returns: string }
+      admin_get_dispute_stats: { Args: never; Returns: Json }
       admin_get_disputes: {
         Args: { _limit?: number }
         Returns: {
