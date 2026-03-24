@@ -353,14 +353,30 @@ const ShipmentDetail = () => {
             </div>
           )}
 
-          {/* Cancel button for owner when shipment is accepted */}
-          {isOwner && isAccepted && shipment.status !== "cancelled" && shipment.status !== "delivered" && !canEdit && (
+          {/* Cancel button — only when accepted (before pickup) */}
+          {isOwner && isAccepted && shipment.status === "accepted" && !canEdit && (
             <button
               onClick={() => setShowCancel(true)}
               className="w-full py-3.5 rounded-2xl bg-destructive text-destructive-foreground font-bold text-sm flex items-center justify-center gap-2"
             >
               <X size={16} /> Annuler l'envoi
             </button>
+          )}
+
+          {/* After pickup: dispute instead of cancel */}
+          {isOwner && isAccepted && (shipment.status === "picked_up" || shipment.status === "in_transit") && (
+            <div className="space-y-2">
+              <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-xl p-3 text-xs">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                <span>Le colis a déjà été récupéré par le voyageur. L'annulation n'est plus possible. En cas de problème, ouvrez un litige.</span>
+              </div>
+              <button
+                onClick={() => navigate(`/disputes?shipment=${shipment.id}`)}
+                className="w-full py-3.5 rounded-2xl border border-destructive/30 text-destructive font-bold text-sm flex items-center justify-center gap-2"
+              >
+                <AlertTriangle size={16} /> Signaler un litige
+              </button>
+            </div>
           )}
         </div>
       </PageTransition>
