@@ -638,7 +638,9 @@ const PostMatchActions = ({
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">{t("postmatch.missionComplete")}</p>
-            <p className="text-xs text-muted-foreground">{t("postmatch.missionCompleteDesc")}</p>
+            <p className="text-xs text-muted-foreground">
+              {isVoyageur ? t("postmatch.missionCompleteDescVoyageur") : t("postmatch.missionCompleteDescDemandeur")}
+            </p>
           </div>
         </motion.div>
       )}
