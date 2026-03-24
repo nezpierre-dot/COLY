@@ -447,8 +447,8 @@ const DisputesPage = () => {
                               }`}
                             >
                               <div className="flex items-center justify-between mb-1">
-                                <span className={`font-semibold ${msg.sender_role === "admin" ? "text-primary" : "text-foreground"}`}>
-                                  {msg.sender_role === "admin" ? "🛡️ Support Nidit" : "Vous"}
+                                <span className={`font-semibold ${msg.sender_role === "admin" ? "text-primary" : msg.sender_role === "voyageur" ? "text-accent-foreground" : "text-foreground"}`}>
+                                  {msg.sender_role === "admin" ? "🛡️ Support Nidit" : msg.sender_role === "voyageur" ? "🚀 Voyageur" : (d.user_id === user?.id ? "Vous" : "Demandeur")}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                                   <Clock size={9} /> {formatTime(msg.created_at)}
