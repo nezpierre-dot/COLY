@@ -101,11 +101,35 @@ const AdminDashboard = () => {
       });
       if (error) throw error;
       toast.success(action === "refund" ? "Remboursement effectué" : "Litige résolu");
+      setReplyingId(null);
+      setReplyText("");
       await loadAll();
     } catch (err: any) {
       toast.error(err.message || "Erreur lors du traitement");
     } finally {
       setResolvingId(null);
+    }
+  };
+
+  const handleDisputeReply = async (disputeId: string) => {
+    if (!replyText.trim()) {
+      toast.error("Veuillez saisir une réponse");
+      return;
+    }
+    setSendingReply(true);
+    try {
+      const { error } = await supabase.functions.invoke("resolve-dispute", {
+        body: { dispute_id: disputeId, action: "respond", admin_response: replyText.trim() },
+      });
+      if (error) throw error;
+      toast.success("Réponse envoyée au demandeur par email et notification");
+      setReplyingId(null);
+      setReplyText("");
+      await loadAll();
+    } catch (err: any) {
+      toast.error(err.message || "Erreur lors de l'envoi");
+    } finally {
+      setSendingReply(false);
     }
   };
 
