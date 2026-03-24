@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import appLogo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield, Trash2 } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield, Trash2, Archive, ArrowUpDown } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
@@ -403,8 +403,35 @@ const Dashboard = () => {
   const [colisMatchOnly, setColisMatchOnly] = useState(false);
   const [needitMatchOnly, setNeeditMatchOnly] = useState(false);
 
-  // Voyage status filter
+  // Voyage status filter & sort
   const [voyageStatusFilter, setVoyageStatusFilter] = useState<"all" | "active" | "completed" | "cancelled">("all");
+  const [voyageSortDir, setVoyageSortDir] = useState<"asc" | "desc">("asc");
+  const [archivedVoyageIds, setArchivedVoyageIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem("archived-voyages");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+
+  const archiveVoyage = (id: string) => {
+    setArchivedVoyageIds(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      localStorage.setItem("archived-voyages", JSON.stringify([...next]));
+      return next;
+    });
+    toast.success("Voyage archivé");
+  };
+
+  const unarchiveVoyage = (id: string) => {
+    setArchivedVoyageIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      localStorage.setItem("archived-voyages", JSON.stringify([...next]));
+      return next;
+    });
+    toast.success("Voyage désarchivé");
+  };
 
   // Sort state
   const [voyageurColisSort, setVoyageurColisSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
@@ -733,6 +760,27 @@ const Dashboard = () => {
                     ))}
                   </div>
                 )}
+                {/* Sort & archive controls */}
+                {voyages.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setVoyageSortDir(d => d === "asc" ? "desc" : "asc")}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted text-xs font-semibold transition-all"
+                    >
+                      <ArrowUpDown size={12} />
+                      {voyageSortDir === "asc" ? "Plus proches" : "Plus lointains"}
+                    </button>
+                    {archivedVoyageIds.size > 0 && voyageStatusFilter === "all" && (
+                      <button
+                        onClick={() => setVoyageStatusFilter("completed")}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted text-xs font-semibold transition-all"
+                      >
+                        <Archive size={12} />
+                        {archivedVoyageIds.size} archivé{archivedVoyageIds.size > 1 ? "s" : ""}
+                      </button>
+                    )}
+                  </div>
+                )}
               {voyages.length === 0 ? (
                   <EmptyState
                     icon={Plane}
@@ -744,10 +792,17 @@ const Dashboard = () => {
                       </button>
                     }
                   />
-                ) : (
-                  voyages.filter(v => voyageStatusFilter === "all" || v.status === voyageStatusFilter).length === 0 ? (
+                ) : (() => {
+                  const filtered = voyages
+                    .filter(v => voyageStatusFilter === "all" ? !archivedVoyageIds.has(v.id) : v.status === voyageStatusFilter)
+                    .sort((a, b) => {
+                      const da = new Date(a.departure_date).getTime();
+                      const db = new Date(b.departure_date).getTime();
+                      return voyageSortDir === "asc" ? da - db : db - da;
+                    });
+                  return filtered.length === 0 ? (
                     <p className="text-center text-sm text-muted-foreground py-6">Aucun voyage avec ce statut</p>
-                  ) : voyages.filter(v => voyageStatusFilter === "all" || v.status === voyageStatusFilter).map((v) => {
+                  ) : filtered.map((v) => {
                     const isSelected = selectedVoyage === v.id;
                     const fav = isRouteFavorite(v.departure_city, v.arrival_city);
                     return (
@@ -811,6 +866,15 @@ const Dashboard = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
+                            {v.status === "completed" && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); archivedVoyageIds.has(v.id) ? unarchiveVoyage(v.id) : archiveVoyage(v.id); }}
+                                className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-primary-foreground/30 flex items-center justify-center transition-colors"
+                                title={archivedVoyageIds.has(v.id) ? "Désarchiver" : "Archiver"}
+                              >
+                                <Archive size={12} />
+                              </button>
+                            )}
                             {v.status === "cancelled" ? (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setDeleteDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
@@ -818,14 +882,14 @@ const Dashboard = () => {
                               >
                                 <Trash2 size={12} />
                               </button>
-                            ) : (
+                            ) : v.status !== "completed" ? (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setCancelDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
                                 className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
                               >
                                 <X size={12} />
                               </button>
-                            )}
+                            ) : null}
                             <button
                               onClick={(e) => { e.stopPropagation(); handleToggleFavorite(v.departure_city, v.arrival_city); }}
                               className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
@@ -838,7 +902,27 @@ const Dashboard = () => {
                         </div>
                       </button>
                     );
-                  })
+                  });
+                })()}
+
+                {/* Archive button for completed voyages */}
+                {voyageStatusFilter === "completed" && voyages.filter(v => v.status === "completed" && !archivedVoyageIds.has(v.id)).length > 0 && (
+                  <button
+                    onClick={() => {
+                      const completedIds = voyages.filter(v => v.status === "completed").map(v => v.id);
+                      setArchivedVoyageIds(prev => {
+                        const next = new Set(prev);
+                        completedIds.forEach(id => next.add(id));
+                        localStorage.setItem("archived-voyages", JSON.stringify([...next]));
+                        return next;
+                      });
+                      toast.success("Tous les voyages terminés ont été archivés");
+                      setVoyageStatusFilter("all");
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-muted/30 text-muted-foreground text-xs font-semibold hover:bg-muted transition-colors"
+                  >
+                    <Archive size={14} /> Archiver tous les terminés
+                  </button>
                 )}
 
               </TabsContent>
