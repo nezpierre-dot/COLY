@@ -542,6 +542,10 @@ const Dashboard = () => {
       case "pending": return t("dashboard.statusPending");
       case "accepted": return t("dashboard.statusAccepted");
       case "cancelled": return t("dashboard.statusCancelled");
+      case "completed": return "Terminé";
+      case "delivered": return "Livré";
+      case "picked_up": return "Récupéré";
+      case "in_transit": return "En transit";
       default: return status;
     }
   };
