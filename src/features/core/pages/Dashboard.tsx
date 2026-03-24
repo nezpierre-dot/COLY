@@ -893,7 +893,27 @@ const Dashboard = () => {
                         </div>
                       </button>
                     );
-                  })
+                  });
+                })()}
+
+                {/* Archive button for completed voyages */}
+                {voyageStatusFilter === "completed" && voyages.filter(v => v.status === "completed" && !archivedVoyageIds.has(v.id)).length > 0 && (
+                  <button
+                    onClick={() => {
+                      const completedIds = voyages.filter(v => v.status === "completed").map(v => v.id);
+                      setArchivedVoyageIds(prev => {
+                        const next = new Set(prev);
+                        completedIds.forEach(id => next.add(id));
+                        localStorage.setItem("archived-voyages", JSON.stringify([...next]));
+                        return next;
+                      });
+                      toast.success("Tous les voyages terminés ont été archivés");
+                      setVoyageStatusFilter("all");
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-muted/30 text-muted-foreground text-xs font-semibold hover:bg-muted transition-colors"
+                  >
+                    <Archive size={14} /> Archiver tous les terminés
+                  </button>
                 )}
 
               </TabsContent>
