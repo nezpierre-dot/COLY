@@ -197,6 +197,11 @@ const Dashboard = () => {
     isVoyageur && localStorage.getItem("voyageur-onboarding-done") !== "1"
   );
 
+  // Demandeur onboarding tutorial
+  const [showDemandeurOnboarding, setShowDemandeurOnboarding] = useState(() =>
+    !isVoyageur && localStorage.getItem("demandeur-onboarding-done") !== "1"
+  );
+
   const [voyages, setVoyages] = useState<Voyage[]>([]);
   const [selectedVoyage, setSelectedVoyage] = useState<string | null>(null);
 
