@@ -361,7 +361,7 @@ const DisputesPage = () => {
             <Select value={reason} onValueChange={setReason}>
               <SelectTrigger className="rounded-xl"><SelectValue placeholder="Sélectionner un motif" /></SelectTrigger>
               <SelectContent>
-                {DISPUTE_REASONS.map((r) => (
+                {(selectedShipment && shipments.find(s => s.id === selectedShipment)?.isVoyageur ? VOYAGEUR_REASONS : DEMANDEUR_REASONS).map((r) => (
                   <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
                 ))}
               </SelectContent>
