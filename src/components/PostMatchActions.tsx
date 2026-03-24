@@ -73,6 +73,8 @@ const PostMatchActions = ({
   const [otpLoading, setOtpLoading] = useState(true);
   const [pickupTimeLeft, setPickupTimeLeft] = useState<number | null>(null);
   const [deliveryTimeLeft, setDeliveryTimeLeft] = useState<number | null>(null);
+  const [showRating, setShowRating] = useState(false);
+  const [hasRated, setHasRated] = useState(false);
 
   const isSender = user?.id === senderId;
   const isVoyageur = user?.id === voyageurId;
