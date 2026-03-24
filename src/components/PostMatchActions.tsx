@@ -208,8 +208,10 @@ const PostMatchActions = ({
     setLoading(true);
     try {
       const otp = generateOtp();
-      await saveOtpCodes(otp, deliveryOtp);
+      const now = Date.now();
+      await saveOtpCodes(otp, deliveryOtp, now, deliveryOtpCreatedAt);
       setPickupOtp(otp);
+      setPickupOtpCreatedAt(now);
 
       // Notify voyageur
       if (voyageurId) {
@@ -232,6 +234,11 @@ const PostMatchActions = ({
 
   // ─── STEP 2: Voyageur confirms pickup with OTP ───
   const handleConfirmPickup = async () => {
+    // Check expiration
+    if (pickupOtpCreatedAt && Date.now() - pickupOtpCreatedAt > OTP_EXPIRY_MS) {
+      toast.error(t("postmatch.codeExpired") || "Code expiré. Demandez un nouveau code au demandeur.");
+      return;
+    }
     if (enteredCode.toUpperCase() !== pickupOtp?.toUpperCase()) {
       toast.error(t("postmatch.wrongCode"));
       return;
@@ -241,8 +248,21 @@ const PostMatchActions = ({
       await supabase.from(tableName as any).update({ status: "picked_up" } as any).eq("id", shipmentId);
       await addTrackingEvent("picked_up", t("postmatch.trackPickedUp"), t("postmatch.trackPickedUpDesc"));
       
-      // Notify sender
+      // Notify sender (in-app)
       await sendNotification(senderId, t("postmatch.notifPickedUp"), t("postmatch.notifPickedUpDesc"), "picked_up");
+
+      // Send push notification to sender via edge function
+      try {
+        await supabase.functions.invoke("notify-status-change", {
+          body: {
+            shipment_id: shipmentId,
+            item_type: itemType === "needit" ? "needit_mission" : "shipment",
+            new_status: "picked_up",
+          },
+        });
+      } catch (pushErr) {
+        console.warn("Push notification failed:", pushErr);
+      }
       
       setEnteredCode("");
       onStatusChange?.("picked_up");
@@ -259,8 +279,10 @@ const PostMatchActions = ({
     setLoading(true);
     try {
       const otp = generateOtp();
-      await saveOtpCodes(pickupOtp, otp);
+      const now = Date.now();
+      await saveOtpCodes(pickupOtp, otp, pickupOtpCreatedAt, now);
       setDeliveryOtp(otp);
+      setDeliveryOtpCreatedAt(now);
 
       // Update status to in_transit
       await supabase.from(tableName as any).update({ status: "in_transit" } as any).eq("id", shipmentId);
