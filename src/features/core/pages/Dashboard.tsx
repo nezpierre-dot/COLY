@@ -30,6 +30,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import StatisticsTab from "@/features/profile/StatisticsTab";
 import WalletCard from "@/components/WalletCard";
 import VoyageurOnboarding from "@/components/VoyageurOnboarding";
+import DemandeurOnboarding from "@/components/DemandeurOnboarding";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -194,6 +195,11 @@ const Dashboard = () => {
   // Voyageur onboarding tutorial
   const [showVoyageurOnboarding, setShowVoyageurOnboarding] = useState(() =>
     isVoyageur && localStorage.getItem("voyageur-onboarding-done") !== "1"
+  );
+
+  // Demandeur onboarding tutorial
+  const [showDemandeurOnboarding, setShowDemandeurOnboarding] = useState(() =>
+    !isVoyageur && localStorage.getItem("demandeur-onboarding-done") !== "1"
   );
 
   const [voyages, setVoyages] = useState<Voyage[]>([]);
@@ -612,6 +618,9 @@ const Dashboard = () => {
     <>
     {showVoyageurOnboarding && (
       <VoyageurOnboarding onComplete={() => setShowVoyageurOnboarding(false)} />
+    )}
+    {showDemandeurOnboarding && (
+      <DemandeurOnboarding onComplete={() => setShowDemandeurOnboarding(false)} />
     )}
     <div className="min-h-screen bg-background pb-24">
       <PullToRefresh onRefresh={handleRefresh}>
