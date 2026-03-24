@@ -53,6 +53,7 @@ const AdminDashboard = () => {
   const [replyPhoto, setReplyPhoto] = useState<File | null>(null);
   const [replyPhotoPreview, setReplyPhotoPreview] = useState<string | null>(null);
   const replyPhotoRef = useRef<HTMLInputElement>(null);
+  const [disputeStats, setDisputeStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -70,7 +71,7 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes, dStatsRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
@@ -78,7 +79,9 @@ const AdminDashboard = () => {
         supabase.rpc("admin_get_users_over_time"),
         supabase.rpc("admin_get_fraud_checks" as any, { _limit: 50 }),
         supabase.rpc("admin_get_disputes" as any, { _limit: 50 }),
+        supabase.rpc("admin_get_dispute_stats" as any),
       ]);
+      if (dStatsRes.data) setDisputeStats(dStatsRes.data);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
       if (shipmentsRes.data) setRecentShipments(shipmentsRes.data as unknown as RecentShipment[]);
       if (usersRes.data) setUsers(usersRes.data as unknown as UserRow[]);
@@ -385,6 +388,24 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="disputes" className="space-y-3 mt-0">
+            {/* Dispute Statistics */}
+            {disputeStats && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <StatCard icon={AlertTriangle} label="Ouverts" value={disputeStats.open ?? 0} color="warning" />
+                <StatCard icon={Eye} label="En cours / Escaladés" value={disputeStats.investigating ?? 0} color="primary" />
+                <StatCard icon={CheckCircle} label="Résolus" value={disputeStats.resolved ?? 0} color="accent" />
+                <StatCard icon={Clock} label="Temps moy. résolution" value={`${disputeStats.avg_resolution_hours ?? 0}h`} color="secondary" />
+              </div>
+            )}
+            {disputeStats && (disputeStats.total_ratings > 0 || disputeStats.avg_satisfaction > 0) && (
+              <div className="bg-card border border-border rounded-2xl p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center text-lg">⭐</div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Satisfaction post-résolution : {disputeStats.avg_satisfaction}/5</p>
+                  <p className="text-xs text-muted-foreground">{disputeStats.total_ratings} évaluation(s) reçue(s)</p>
+                </div>
+              </div>
+            )}
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Gavel size={14} className="text-warning" /> Litiges en cours</h3>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle, MessageSquare, Clock, ImagePlus, FileText, Handshake } from "lucide-react";
+import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle, MessageSquare, Clock, ImagePlus, FileText, Handshake, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -60,6 +60,10 @@ const DisputesPage = () => {
   const [replyPhotoPreview, setReplyPhotoPreview] = useState<string | null>(null);
   const [sendingReply, setSendingReply] = useState(false);
   const [closingDispute, setClosingDispute] = useState<string | null>(null);
+  const [myRatings, setMyRatings] = useState<Record<string, number>>({});
+  const [ratingComment, setRatingComment] = useState("");
+  const [ratingDisputeId, setRatingDisputeId] = useState<string | null>(null);
+  const [submittingRating, setSubmittingRating] = useState(false);
   const replyPhotoRef = useRef<HTMLInputElement>(null);
 
   const prefillShipment = searchParams.get("shipment");
@@ -136,18 +140,29 @@ const DisputesPage = () => {
         setMyDisputes(deduped);
         const disputeIds = deduped.map((x: any) => x.id);
         if (disputeIds.length > 0) {
-          const { data: msgs } = await supabase
-            .from("dispute_messages" as any)
-            .select("*")
-            .in("dispute_id", disputeIds)
-            .order("created_at", { ascending: true });
-          if (msgs) {
+          const [msgsRes, ratingsRes] = await Promise.all([
+            supabase
+              .from("dispute_messages" as any)
+              .select("*")
+              .in("dispute_id", disputeIds)
+              .order("created_at", { ascending: true }),
+            supabase
+              .from("dispute_ratings" as any)
+              .select("*")
+              .eq("user_id", user.id),
+          ]);
+          if (msgsRes.data) {
             const grouped: Record<string, DisputeMessage[]> = {};
-            (msgs as any[]).forEach((msg: any) => {
+            (msgsRes.data as any[]).forEach((msg: any) => {
               if (!grouped[msg.dispute_id]) grouped[msg.dispute_id] = [];
               grouped[msg.dispute_id].push(msg);
             });
             setDisputeMessages(grouped);
+          }
+          if (ratingsRes.data) {
+            const rMap: Record<string, number> = {};
+            (ratingsRes.data as any[]).forEach((r: any) => { rMap[r.dispute_id] = r.score; });
+            setMyRatings(rMap);
           }
         }
       }
@@ -324,6 +339,27 @@ const DisputesPage = () => {
       toast.error("Erreur lors de la clôture");
     } finally {
       setClosingDispute(null);
+    }
+  };
+
+  const handleSubmitRating = async (disputeId: string, score: number) => {
+    if (!user) return;
+    setSubmittingRating(true);
+    try {
+      await supabase.from("dispute_ratings" as any).insert({
+        dispute_id: disputeId,
+        user_id: user.id,
+        score,
+        comment: ratingComment.trim() || null,
+      } as any);
+      setMyRatings(prev => ({ ...prev, [disputeId]: score }));
+      setRatingDisputeId(null);
+      setRatingComment("");
+      toast.success("Merci pour votre évaluation !");
+    } catch {
+      toast.error("Erreur lors de l'envoi");
+    } finally {
+      setSubmittingRating(false);
     }
   };
 
@@ -506,6 +542,39 @@ const DisputesPage = () => {
                       </Button>
                     )}
                   </div>
+
+                  {/* Post-resolution satisfaction rating */}
+                  {(d.status === "resolved" || d.status === "refunded") && !myRatings[d.id] && (
+                    <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-3 space-y-2">
+                      <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                        <Star size={13} className="text-yellow-500" /> Comment évaluez-vous la résolution de ce litige ?
+                      </p>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map(s => (
+                          <button
+                            key={s}
+                            onClick={() => {
+                              if (ratingDisputeId === d.id) {
+                                handleSubmitRating(d.id, s);
+                              } else {
+                                setRatingDisputeId(d.id);
+                                handleSubmitRating(d.id, s);
+                              }
+                            }}
+                            disabled={submittingRating}
+                            className="w-8 h-8 rounded-lg bg-muted hover:bg-yellow-500/20 flex items-center justify-center transition-colors"
+                          >
+                            <Star size={16} className="text-yellow-500" fill={ratingDisputeId === d.id ? "currentColor" : "none"} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {(d.status === "resolved" || d.status === "refunded") && myRatings[d.id] && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Star size={12} className="text-yellow-500" fill="currentColor" /> Votre note : {myRatings[d.id]}/5
+                    </div>
+                  )}
 
                   {isExpanded && (
                     <div className="space-y-2 pt-1">
