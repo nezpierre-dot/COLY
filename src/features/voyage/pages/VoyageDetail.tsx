@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight, User } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight, User, ChevronRight, Truck } from "lucide-react";
 import AcceptedItemCard from "@/components/AcceptedItemCard";
 import PostMatchActions from "@/components/PostMatchActions";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
@@ -369,94 +369,191 @@ const VoyageDetail = () => {
           </div>
 
           {/* Linked items summary */}
-          {(acceptedColis.length > 0 || acceptedMissions.length > 0) && (
-            <div className="bg-card border border-border rounded-2xl overflow-hidden">
-              <div className="px-4 py-2.5 bg-muted/30 border-b border-border flex items-center justify-between">
-                <p className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Package size={13} className="text-primary" />
-                  {acceptedColis.length + acceptedMissions.length} élément{(acceptedColis.length + acceptedMissions.length) > 1 ? "s" : ""} lié{(acceptedColis.length + acceptedMissions.length) > 1 ? "s" : ""}
-                </p>
-                {(() => {
-                  const delivered = acceptedColis.filter(s => s.status === "delivered").length + acceptedMissions.filter(m => m.status === "completed").length;
-                  const enCours = (acceptedColis.length + acceptedMissions.length) - delivered;
-                  return (
+          {(acceptedColis.length > 0 || acceptedMissions.length > 0) && (() => {
+            const total = acceptedColis.length + acceptedMissions.length;
+            const delivered = acceptedColis.filter(s => s.status === "delivered").length + acceptedMissions.filter(m => m.status === "completed").length;
+            const progressPct = total > 0 ? Math.round((delivered / total) * 100) : 0;
+
+            const statusFlow = ["accepted", "picked_up", "in_transit", "delivered"];
+            const missionStatusFlow = ["accepted", "picked_up", "in_transit", "completed"];
+
+            const getNextStatus = (current: string, isMission: boolean) => {
+              const flow = isMission ? missionStatusFlow : statusFlow;
+              const idx = flow.indexOf(current);
+              return idx >= 0 && idx < flow.length - 1 ? flow[idx + 1] : null;
+            };
+
+            const nextActionLabel = (next: string | null) => {
+              switch (next) {
+                case "picked_up": return { label: "Récupérer", icon: <Camera size={12} />, needsProof: true };
+                case "in_transit": return { label: "En transit", icon: <Truck size={12} />, needsProof: false };
+                case "delivered":
+                case "completed": return { label: "Livré", icon: <Check size={12} />, needsProof: true };
+                default: return null;
+              }
+            };
+
+            const handleQuickStatus = async (itemId: string, itemType: "shipment" | "mission", nextStatus: string, needsProof: boolean) => {
+              if (needsProof && nextStatus === "picked_up") {
+                // Trigger camera for pickup proof
+                setCapturingMissionId(itemId);
+                setCapturingType(itemType === "shipment" ? "shipment" : "mission");
+                setTimeout(() => cameraRef.current?.click(), 100);
+                return;
+              }
+
+              if (nextStatus === "delivered" || nextStatus === "completed") {
+                // Navigate to detail page where confirmation code entry exists
+                if (itemType === "shipment") {
+                  navigate(`/shipment/${itemId}`);
+                } else {
+                  navigate(`/needit/${itemId}`);
+                }
+                toast.info("Entrez le code de confirmation pour valider la livraison.");
+                return;
+              }
+
+              // Direct status change (in_transit)
+              try {
+                if (itemType === "shipment") {
+                  await supabase.from("shipments").update({ status: nextStatus as any }).eq("id", itemId);
+                  setAcceptedColis(prev => prev.map(s => s.id === itemId ? { ...s, status: nextStatus } : s));
+                } else {
+                  await supabase.from("needit_missions").update({ status: nextStatus as any }).eq("id", itemId);
+                  setAcceptedMissions(prev => prev.map(m => m.id === itemId ? { ...m, status: nextStatus } : m));
+                }
+
+                // Notify via edge function
+                try {
+                  await supabase.functions.invoke("notify-status-change", {
+                    body: { item_id: itemId, item_type: itemType === "shipment" ? "shipment" : "needit_mission", new_status: nextStatus },
+                  });
+                } catch {}
+
+                toast.success("Statut mis à jour ✅");
+              } catch (err: any) {
+                toast.error(err.message || "Erreur");
+              }
+            };
+
+            return (
+              <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                {/* Header with progress */}
+                <div className="px-4 py-3 bg-muted/30 border-b border-border space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Package size={13} className="text-primary" />
+                      {total} élément{total > 1 ? "s" : ""} lié{total > 1 ? "s" : ""}
+                    </p>
                     <div className="flex items-center gap-2">
                       {delivered > 0 && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                           <Check size={10} /> {delivered} livré{delivered > 1 ? "s" : ""}
                         </span>
                       )}
-                      {enCours > 0 && (
+                      {(total - delivered) > 0 && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                          <Loader2 size={10} /> {enCours} en cours
+                          <Loader2 size={10} /> {total - delivered} en cours
                         </span>
                       )}
                     </div>
-                  );
-                })()}
+                  </div>
+                  {/* Progress bar */}
+                  <div className="flex items-center gap-2">
+                    <Progress value={progressPct} className="h-2 flex-1" />
+                    <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">{delivered}/{total}</span>
+                  </div>
+                </div>
+
+                <div className="divide-y divide-border">
+                  {acceptedColis.map((shipment) => {
+                    const st = shipment.status;
+                    const badge = st === "delivered" ? { label: "Livré", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" }
+                      : st === "in_transit" ? { label: "En transit", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" }
+                      : st === "picked_up" ? { label: "Récupéré", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" }
+                      : { label: "Accepté", cls: "bg-primary/10 text-primary" };
+                    const next = getNextStatus(st, false);
+                    const action = nextActionLabel(next);
+                    return (
+                      <div key={shipment.id} className="px-4 py-3 space-y-2">
+                        <button
+                          onClick={() => navigate(`/shipment/${shipment.id}`)}
+                          className="w-full flex items-center gap-3 hover:bg-muted/40 transition-colors text-left rounded-lg -mx-1 px-1"
+                        >
+                          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                            <Package size={15} className="text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">
+                              {shipment.departure_city || "—"} → {shipment.arrival_city}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {demandeurNames[shipment.user_id] || "Expéditeur"} · {shipment.tarif} €
+                            </p>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${badge.cls}`}>
+                            {badge.label}
+                          </span>
+                          <ChevronRight size={14} className="text-muted-foreground shrink-0" />
+                        </button>
+                        {/* Quick action button */}
+                        {isOwner && action && next && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleQuickStatus(shipment.id, "shipment", next, action.needsProof); }}
+                            className="ml-11 flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                          >
+                            {action.icon} {action.label}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {acceptedMissions.map((mission) => {
+                    const st = mission.status;
+                    const badge = st === "completed" ? { label: "Livré", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" }
+                      : st === "in_transit" ? { label: "En transit", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" }
+                      : st === "picked_up" ? { label: "Récupéré", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" }
+                      : { label: "Acceptée", cls: "bg-primary/10 text-primary" };
+                    const next = getNextStatus(st, true);
+                    const action = nextActionLabel(next);
+                    return (
+                      <div key={mission.id} className="px-4 py-3 space-y-2">
+                        <button
+                          onClick={() => navigate(`/needit/${mission.id}`)}
+                          className="w-full flex items-center gap-3 hover:bg-muted/40 transition-colors text-left rounded-lg -mx-1 px-1"
+                        >
+                          <div className="w-8 h-8 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
+                            <ShoppingBag size={15} className="text-secondary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">
+                              {mission.product_name || "Mission NeedIt"}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {demandeurNames[mission.user_id] || "Demandeur"}{mission.prix_max ? ` · ${mission.prix_max} €` : ""}
+                            </p>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${badge.cls}`}>
+                            {badge.label}
+                          </span>
+                          <ChevronRight size={14} className="text-muted-foreground shrink-0" />
+                        </button>
+                        {/* Quick action button */}
+                        {isOwner && action && next && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleQuickStatus(mission.id, "mission", next, action.needsProof); }}
+                            className="ml-11 flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                          >
+                            {action.icon} {action.label}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="divide-y divide-border">
-                {acceptedColis.map((shipment) => {
-                  const st = shipment.status;
-                  const badge = st === "delivered" ? { label: "Livré", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" }
-                    : st === "in_transit" ? { label: "En transit", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" }
-                    : st === "picked_up" ? { label: "Récupéré", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" }
-                    : { label: "Accepté", cls: "bg-primary/10 text-primary" };
-                  return (
-                    <button
-                      key={shipment.id}
-                      onClick={() => navigate(`/shipment/${shipment.id}`)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-left"
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                        <Package size={15} className="text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {shipment.departure_city || "—"} → {shipment.arrival_city}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {demandeurNames[shipment.user_id] || "Expéditeur"} · {shipment.tarif} €
-                        </p>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${badge.cls}`}>
-                        {badge.label}
-                      </span>
-                    </button>
-                  );
-                })}
-                {acceptedMissions.map((mission) => {
-                  const st = mission.status;
-                  const badge = st === "completed" ? { label: "Livré", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" }
-                    : st === "in_transit" ? { label: "En transit", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" }
-                    : st === "picked_up" ? { label: "Récupéré", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" }
-                    : { label: "Acceptée", cls: "bg-primary/10 text-primary" };
-                  return (
-                    <button
-                      key={mission.id}
-                      onClick={() => navigate(`/needit/${mission.id}`)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-left"
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
-                        <ShoppingBag size={15} className="text-secondary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {mission.product_name || "Mission NeedIt"}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {demandeurNames[mission.user_id] || "Demandeur"}{mission.prix_max ? ` · ${mission.prix_max} €` : ""}
-                        </p>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${badge.cls}`}>
-                        {badge.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Route card */}
           <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
