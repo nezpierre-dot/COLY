@@ -242,9 +242,15 @@ const DisputesPage = () => {
     }
   };
 
+  const getMyRole = (dispute: any) => {
+    return dispute.user_id === user?.id ? "user" : "voyageur";
+  };
+
   const handleUserReply = async (disputeId: string) => {
     if (!user || (!replyText.trim() && !replyPhoto)) return;
     setSendingReply(true);
+    const dispute = myDisputes.find(d => d.id === disputeId);
+    const role = dispute ? getMyRole(dispute) : "user";
     try {
       let photoUrl: string | null = null;
       if (replyPhoto) {
@@ -254,7 +260,7 @@ const DisputesPage = () => {
       await supabase.from("dispute_messages" as any).insert({
         dispute_id: disputeId,
         sender_id: user.id,
-        sender_role: "user",
+        sender_role: role,
         content: replyText.trim() || (photoUrl ? "📷 Photo jointe" : ""),
         photo_url: photoUrl,
       } as any);
