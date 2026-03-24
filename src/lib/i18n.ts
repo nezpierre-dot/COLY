@@ -665,6 +665,7 @@ const fr: TranslationDict = {
   "postmatch.pickupConfirmed": "Récupération confirmée !",
   "postmatch.deliveryConfirmed": "Livraison confirmée !",
   "postmatch.rateVoyageur": "⭐ Noter le voyageur",
+  "postmatch.rateDemandeur": "⭐ Noter le demandeur",
   "postmatch.alreadyRated": "Vous avez déjà noté cette livraison",
   "postmatch.notifPickupReady": "Colis prêt à récupérer 📦",
   "postmatch.notifPickupReadyDesc": "L'expéditeur a généré un code de remise. Récupérez le colis et saisissez le code pour confirmer.",
