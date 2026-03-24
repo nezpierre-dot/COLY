@@ -114,7 +114,10 @@ const MatchingSuggestions = ({
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className={`font-semibold text-foreground truncate ${compact ? "text-sm" : "text-base"}`}>
+                <p
+                  onClick={() => nav(`/profile/${v.voyageur_id}`)}
+                  className={`font-semibold text-foreground truncate cursor-pointer hover:text-primary transition-colors ${compact ? "text-sm" : "text-base"}`}
+                >
                   {`VOY-${v.voyageur_id.substring(0, 8).toUpperCase()}`}
                 </p>
                 {Number(v.total_ratings) > 0 && (
