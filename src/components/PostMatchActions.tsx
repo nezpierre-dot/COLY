@@ -32,6 +32,9 @@ interface PostMatchActionsProps {
   itemType?: "shipment" | "needit"; // defaults to shipment
 }
 
+// OTP expiration in milliseconds (30 minutes)
+const OTP_EXPIRY_MS = 30 * 60 * 1000;
+
 // Generate a random 6-char OTP
 const generateOtp = () => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
