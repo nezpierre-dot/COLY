@@ -70,7 +70,8 @@ serve(async (req) => {
         dispute_id,
         sender_id: user.id,
         sender_role: "admin",
-        content: admin_response.trim(),
+        content: (admin_response || "").trim() || (photo_url ? "📷 Photo jointe" : ""),
+        photo_url: photo_url || null,
       });
 
       // In-app notification to demandeur
