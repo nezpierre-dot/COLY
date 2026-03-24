@@ -59,6 +59,7 @@ const DisputesPage = () => {
   const [replyPhoto, setReplyPhoto] = useState<File | null>(null);
   const [replyPhotoPreview, setReplyPhotoPreview] = useState<string | null>(null);
   const [sendingReply, setSendingReply] = useState(false);
+  const [closingDispute, setClosingDispute] = useState<string | null>(null);
   const replyPhotoRef = useRef<HTMLInputElement>(null);
 
   const prefillShipment = searchParams.get("shipment");
