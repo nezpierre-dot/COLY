@@ -55,6 +55,7 @@ Deno.serve(async (req) => {
     }
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     // Determine if it's a shipment or a needit mission and get parties
     let voyageurId: string | null = null;

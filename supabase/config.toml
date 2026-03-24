@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.notify-dispute]
 verify_jwt = false
+
+[functions.escalate-disputes]
+verify_jwt = false
