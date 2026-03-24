@@ -100,7 +100,7 @@ const PostMatchActions = ({
       .on("postgres_changes", {
         event: "UPDATE",
         schema: "public",
-        table: "shipments",
+        table: tableName,
         filter: `id=eq.${shipmentId}`,
       }, (payload: any) => {
         const row = payload.new;
