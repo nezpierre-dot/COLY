@@ -601,33 +601,47 @@ const VoyageDetail = () => {
                 Missions NeedIt acceptées
               </h2>
               {acceptedMissions.map((mission) => (
-                <AcceptedItemCard
-                  key={mission.id}
-                  id={mission.id}
-                  title={mission.product_name || "Mission NeedIt"}
-                  price={mission.prix_max}
-                  status={mission.status}
-                  steps={[
-                    { key: "accepted", label: "Acceptée" },
-                    { key: "picked_up", label: "Récupéré" },
-                    { key: "in_transit", label: "En transit" },
-                    { key: "completed", label: "Livré" },
-                  ]}
-                  onClick={() => navigate(`/needit/${mission.id}`)}
-                  blocked={!missionsWithProof.has(mission.id)}
-                  blockedMessage="En attente de la preuve d'achat dans le chat avant récupération"
-                  previewUrl={previewUrl}
-                  capturingId={capturingMissionId}
-                  uploadingProof={uploadingProof}
-                  onStartCapture={(id) => {
-                    setCapturingMissionId(id);
-                    setCapturingType("mission");
-                    setTimeout(() => cameraRef.current?.click(), 50);
-                  }}
-                  onRetake={handleRetake}
-                  onConfirm={handleConfirmCapture}
-                />
-              ))}
+                <div key={mission.id} className="space-y-2">
+                  <AcceptedItemCard
+                    id={mission.id}
+                    title={mission.product_name || "Mission NeedIt"}
+                    price={mission.prix_max}
+                    status={mission.status}
+                    steps={[
+                      { key: "accepted", label: "Acceptée" },
+                      { key: "picked_up", label: "Récupéré" },
+                      { key: "in_transit", label: "En transit" },
+                      { key: "completed", label: "Livré" },
+                    ]}
+                    onClick={() => navigate(`/needit/${mission.id}`)}
+                    blocked={!missionsWithProof.has(mission.id)}
+                    blockedMessage="En attente de la preuve d'achat dans le chat avant récupération"
+                    previewUrl={previewUrl}
+                    capturingId={capturingMissionId}
+                    uploadingProof={uploadingProof}
+                    onStartCapture={(id) => {
+                      setCapturingMissionId(id);
+                      setCapturingType("mission");
+                      setTimeout(() => cameraRef.current?.click(), 50);
+                    }}
+                    onRetake={handleRetake}
+                    onConfirm={handleConfirmCapture}
+                  />
+                  {/* OTP codes for this mission */}
+                  {mission.status !== "pending" && mission.status !== "cancelled" && (
+                    <PostMatchActions
+                      shipmentId={mission.id}
+                      shipmentStatus={mission.status}
+                      senderId={mission.user_id || ""}
+                      voyageurId={user?.id || null}
+                      onStatusChange={(s) => {
+                        setAcceptedMissions(prev => prev.map(m => m.id === mission.id ? { ...m, status: s } : m));
+                      }}
+                      compact
+                    />
+                  )}
+                </div>
+              ))
             </div>
           )}
 
