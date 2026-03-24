@@ -134,6 +134,7 @@ const HistoryPage = () => {
           rawDate: new Date(s.created_at),
           category: "coly",
           icon: "envoi",
+          destination: s.arrival_city || "",
         });
       });
 
