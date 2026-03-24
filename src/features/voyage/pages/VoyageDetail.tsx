@@ -471,8 +471,14 @@ const VoyageDetail = () => {
               }
             };
 
+            // Trigger confetti when 100%
+            if (progressPct === 100 && total > 0 && !showConfetti) {
+              setTimeout(() => setShowConfetti(true), 300);
+            }
+
             return (
               <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                <ConfettiCelebration show={showConfetti} />
                 {/* Header with progress */}
                 <div className="px-4 py-3 bg-muted/30 border-b border-border space-y-2">
                   <div className="flex items-center justify-between">
@@ -495,9 +501,25 @@ const VoyageDetail = () => {
                   </div>
                   {/* Progress bar */}
                   <div className="flex items-center gap-2">
-                    <Progress value={progressPct} className="h-2 flex-1" />
+                    <Progress value={progressPct} className={`h-2 flex-1 ${progressPct === 100 ? "[&>div]:bg-emerald-500" : ""}`} />
                     <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">{delivered}/{total}</span>
                   </div>
+                  {progressPct === 100 && (
+                    <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 text-center">
+                      🎉 Toutes les livraisons sont terminées !
+                    </p>
+                  )}
+                  {/* Batch transit button */}
+                  {isOwner && eligibleForBatchTransit.length > 1 && (
+                    <button
+                      onClick={handleBatchTransit}
+                      disabled={batchTransiting}
+                      className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                    >
+                      {batchTransiting ? <Loader2 size={14} className="animate-spin" /> : <Truck size={14} />}
+                      Tout passer en transit ({eligibleForBatchTransit.length})
+                    </button>
+                  )}
                 </div>
 
                 <div className="divide-y divide-border">
