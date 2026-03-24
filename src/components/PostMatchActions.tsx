@@ -63,13 +63,32 @@ const PostMatchActions = ({
   const tableName = itemType === "needit" ? "needit_missions" : "shipments";
   const [pickupOtp, setPickupOtp] = useState<string | null>(null);
   const [deliveryOtp, setDeliveryOtp] = useState<string | null>(null);
+  const [pickupOtpCreatedAt, setPickupOtpCreatedAt] = useState<number | null>(null);
+  const [deliveryOtpCreatedAt, setDeliveryOtpCreatedAt] = useState<number | null>(null);
   const [enteredCode, setEnteredCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [otpLoading, setOtpLoading] = useState(true);
+  const [pickupTimeLeft, setPickupTimeLeft] = useState<number | null>(null);
+  const [deliveryTimeLeft, setDeliveryTimeLeft] = useState<number | null>(null);
 
   const isSender = user?.id === senderId;
   const isVoyageur = user?.id === voyageurId;
+
+  const parseOtpCodes = (raw: string | null) => {
+    try {
+      const codes = JSON.parse(raw || "{}");
+      setPickupOtp(codes.pickup || null);
+      setDeliveryOtp(codes.delivery || null);
+      setPickupOtpCreatedAt(codes.pickupCreatedAt || null);
+      setDeliveryOtpCreatedAt(codes.deliveryCreatedAt || null);
+    } catch {
+      setPickupOtp(raw || null);
+      setDeliveryOtp(null);
+      setPickupOtpCreatedAt(null);
+      setDeliveryOtpCreatedAt(null);
+    }
+  };
 
   // Load existing OTPs
   const loadOtps = useCallback(async () => {
@@ -80,15 +99,7 @@ const PostMatchActions = ({
       .eq("id", shipmentId)
       .maybeSingle();
     if (data) {
-      const row = data as any;
-      try {
-        const codes = JSON.parse(row.confirmation_code || "{}");
-        setPickupOtp(codes.pickup || null);
-        setDeliveryOtp(codes.delivery || null);
-      } catch {
-        setPickupOtp(row.confirmation_code || null);
-        setDeliveryOtp(null);
-      }
+      parseOtpCodes((data as any).confirmation_code);
     }
     setOtpLoading(false);
   }, [shipmentId, tableName]);
