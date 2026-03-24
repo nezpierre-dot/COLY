@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight, User, ChevronRight, Truck } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight, User, ChevronRight, Truck, Download, Euro } from "lucide-react";
 import AcceptedItemCard from "@/components/AcceptedItemCard";
 import PostMatchActions from "@/components/PostMatchActions";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
@@ -377,6 +377,81 @@ const VoyageDetail = () => {
             const delivered = acceptedColis.filter(s => s.status === "delivered").length + acceptedMissions.filter(m => m.status === "completed").length;
             const progressPct = total > 0 ? Math.round((delivered / total) * 100) : 0;
 
+            // Financial summary
+            const totalTarifs = acceptedColis.reduce((sum, s) => {
+              const val = parseFloat(s.tarif);
+              return sum + (isNaN(val) ? 0 : val);
+            }, 0) + acceptedMissions.reduce((sum, m) => {
+              const val = parseFloat(m.prix_max || "0");
+              return sum + (isNaN(val) ? 0 : val);
+            }, 0);
+
+            // PDF export
+            const handleExportPDF = () => {
+              const ref = `VOY-${voyage.id.slice(0, 8).toUpperCase()}`;
+              const dep = `${voyage.departure_city} (${voyage.departure_country})`;
+              const arr = `${voyage.arrival_city} (${voyage.arrival_country})`;
+              const statusMap: Record<string, string> = {
+                accepted: "Accepté", picked_up: "Récupéré", in_transit: "En transit",
+                delivered: "Livré", completed: "Complété", pending: "En attente",
+              };
+
+              let html = `<html><head><meta charset="utf-8"/><style>
+                body{font-family:Arial,sans-serif;padding:40px;color:#222}
+                h1{font-size:22px;color:#2563eb;margin-bottom:4px}
+                h2{font-size:16px;color:#444;margin-top:24px;border-bottom:2px solid #e5e7eb;padding-bottom:4px}
+                .info{font-size:13px;color:#666;margin:4px 0}
+                table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+                th{background:#f3f4f6;text-align:left;padding:8px 10px;font-weight:600;border-bottom:2px solid #d1d5db}
+                td{padding:8px 10px;border-bottom:1px solid #e5e7eb}
+                .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+                .delivered{background:#d1fae5;color:#065f46}
+                .transit{background:#dbeafe;color:#1e40af}
+                .pickup{background:#fef3c7;color:#92400e}
+                .accepted{background:#ede9fe;color:#5b21b6}
+                .summary{margin-top:24px;padding:16px;background:#f0f9ff;border-radius:12px;font-size:14px}
+                .total{font-size:18px;font-weight:700;color:#2563eb}
+              </style></head><body>`;
+              html += `<h1>📦 Récapitulatif Voyage</h1>`;
+              html += `<p class="info"><strong>Référence:</strong> ${ref}</p>`;
+              html += `<p class="info"><strong>Trajet:</strong> ${dep} → ${arr}</p>`;
+              html += `<p class="info"><strong>Date de départ:</strong> ${voyage.departure_date}${voyage.departure_time ? ` à ${voyage.departure_time}` : ""}</p>`;
+              html += `<p class="info"><strong>Transport:</strong> ${voyage.transport_method}</p>`;
+              html += `<p class="info"><strong>Statut:</strong> ${statusMap[voyage.status] || voyage.status}</p>`;
+
+              if (acceptedColis.length > 0) {
+                html += `<h2>📦 Colis (${acceptedColis.length})</h2><table><tr><th>Trajet</th><th>Taille</th><th>Tarif</th><th>Statut</th><th>Demandeur</th></tr>`;
+                acceptedColis.forEach(s => {
+                  const cls = s.status === "delivered" ? "delivered" : s.status === "in_transit" ? "transit" : s.status === "picked_up" ? "pickup" : "accepted";
+                  html += `<tr><td>${s.departure_city || "—"} → ${s.arrival_city}</td><td>${s.size || "—"}</td><td>${s.tarif || "—"} €</td><td><span class="badge ${cls}">${statusMap[s.status] || s.status}</span></td><td>${demandeurNames[s.user_id] || "—"}</td></tr>`;
+                });
+                html += `</table>`;
+              }
+
+              if (acceptedMissions.length > 0) {
+                html += `<h2>🛒 Missions NeedIt (${acceptedMissions.length})</h2><table><tr><th>Produit</th><th>Destination</th><th>Budget max</th><th>Statut</th><th>Demandeur</th></tr>`;
+                acceptedMissions.forEach(m => {
+                  const cls = m.status === "completed" ? "delivered" : m.status === "in_transit" ? "transit" : m.status === "picked_up" ? "pickup" : "accepted";
+                  html += `<tr><td>${m.product_name || "—"}</td><td>${m.city || m.country}</td><td>${m.prix_max || "—"} €</td><td><span class="badge ${cls}">${statusMap[m.status] || m.status}</span></td><td>${demandeurNames[m.user_id] || "—"}</td></tr>`;
+                });
+                html += `</table>`;
+              }
+
+              html += `<div class="summary">`;
+              html += `<p>✅ <strong>${delivered}</strong> livré${delivered > 1 ? "s" : ""} sur <strong>${total}</strong> · Progression: <strong>${progressPct}%</strong></p>`;
+              html += `<p class="total" style="margin-top:8px">💰 Total estimé : ${totalTarifs.toFixed(2)} €</p>`;
+              html += `</div>`;
+              html += `<p style="margin-top:24px;font-size:11px;color:#999;text-align:center">Généré le ${new Date().toLocaleDateString("fr-FR")} — ColyTracker</p>`;
+              html += `</body></html>`;
+
+              const printWindow = window.open("", "_blank");
+              if (printWindow) {
+                printWindow.document.write(html);
+                printWindow.document.close();
+                setTimeout(() => printWindow.print(), 400);
+              }
+            };
+
             const statusFlow = ["accepted", "picked_up", "in_transit", "delivered"];
             const missionStatusFlow = ["accepted", "picked_up", "in_transit", "completed"];
 
@@ -486,7 +561,12 @@ const VoyageDetail = () => {
                       <Package size={13} className="text-primary" />
                       {total} élément{total > 1 ? "s" : ""} lié{total > 1 ? "s" : ""}
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      {totalTarifs > 0 && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                          <Euro size={10} /> {totalTarifs.toFixed(0)} €
+                        </span>
+                      )}
                       {delivered > 0 && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                           <Check size={10} /> {delivered} livré{delivered > 1 ? "s" : ""}
@@ -518,6 +598,16 @@ const VoyageDetail = () => {
                     >
                       {batchTransiting ? <Loader2 size={14} className="animate-spin" /> : <Truck size={14} />}
                       Tout passer en transit ({eligibleForBatchTransit.length})
+                    </button>
+                  )}
+                  {/* PDF export button */}
+                  {isOwner && (
+                    <button
+                      onClick={handleExportPDF}
+                      className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 rounded-xl bg-muted/50 text-muted-foreground hover:bg-muted transition-colors"
+                    >
+                      <Download size={14} />
+                      Exporter le récapitulatif PDF
                     </button>
                   )}
                 </div>
