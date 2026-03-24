@@ -550,6 +550,16 @@ const PostMatchActions = ({
           <p className="text-[10px] text-amber-600 dark:text-amber-400 text-center font-medium flex items-center justify-center gap-1">
             <Shield size={10} /> {t("postmatch.shareOnlyAtDelivery")}
           </p>
+          {formatTimeLeft(deliveryTimeLeft) && (
+            <p className="text-[10px] text-center font-medium flex items-center justify-center gap-1 text-muted-foreground">
+              <Timer size={10} /> Expire dans {formatTimeLeft(deliveryTimeLeft)}
+            </p>
+          )}
+          {deliveryTimeLeft !== null && deliveryTimeLeft <= 0 && (
+            <p className="text-[10px] text-center font-medium text-destructive">
+              Code expiré — générez un nouveau code
+            </p>
+          )}
         </motion.div>
       )}
 
