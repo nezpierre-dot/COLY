@@ -276,7 +276,40 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
         </div>
       )}
 
-      {/* Charts side by side */}
+      {/* Voyage status breakdown */}
+      {stats.totalVoyages > 0 && (
+        <div className="bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Plane size={16} className="text-primary" />
+            <span className="text-sm font-semibold text-foreground">Voyages</span>
+            <span className="text-xs text-muted-foreground ml-auto">{stats.totalVoyages} au total</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 text-center">
+              <Plane size={14} className="text-primary mx-auto mb-1" />
+              <p className="text-lg font-bold text-foreground">{stats.activeVoyages}</p>
+              <p className="text-xs text-muted-foreground">Actifs</p>
+            </div>
+            <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-3 text-center">
+              <CheckCircle size={14} className="text-green-500 mx-auto mb-1" />
+              <p className="text-lg font-bold text-foreground">{stats.completedVoyages}</p>
+              <p className="text-xs text-muted-foreground">Terminés</p>
+            </div>
+            <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-3 text-center">
+              <XCircle size={14} className="text-destructive mx-auto mb-1" />
+              <p className="text-lg font-bold text-foreground">{stats.cancelledVoyages}</p>
+              <p className="text-xs text-muted-foreground">Annulés</p>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div className="flex rounded-full overflow-hidden h-2 mt-3">
+            {stats.activeVoyages > 0 && <div className="bg-primary" style={{ width: `${(stats.activeVoyages / stats.totalVoyages) * 100}%` }} />}
+            {stats.completedVoyages > 0 && <div className="bg-green-500" style={{ width: `${(stats.completedVoyages / stats.totalVoyages) * 100}%` }} />}
+            {stats.cancelledVoyages > 0 && <div className="bg-destructive" style={{ width: `${(stats.cancelledVoyages / stats.totalVoyages) * 100}%` }} />}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         {/* Pie chart */}
         {pieData.length > 0 && (
