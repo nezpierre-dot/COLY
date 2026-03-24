@@ -122,7 +122,9 @@ const DisputesPage = () => {
         }
       }
 
+      const disputeId = crypto.randomUUID();
       const { error } = await supabase.from("disputes").insert({
+        id: disputeId,
         shipment_id: selectedShipment,
         user_id: user.id,
         reason,
@@ -130,6 +132,17 @@ const DisputesPage = () => {
         photo_url: photoUrl,
       });
       if (error) throw error;
+
+      // Notify voyageur + support by email (fire & forget)
+      supabase.functions.invoke("notify-dispute", {
+        body: {
+          dispute_id: disputeId,
+          shipment_id: selectedShipment,
+          reason,
+          description: description.trim(),
+        },
+      }).catch((e: any) => console.warn("notify-dispute error:", e));
+
       setSubmitted(true);
       toast.success("Litige soumis avec succès");
     } catch (err: any) {
