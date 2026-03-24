@@ -71,7 +71,7 @@ const PostMatchActions = ({
   const loadOtps = useCallback(async () => {
     setOtpLoading(true);
     const { data } = await supabase
-      .from("shipments")
+      .from(tableName as any)
       .select("confirmation_code, status")
       .eq("id", shipmentId)
       .maybeSingle();
