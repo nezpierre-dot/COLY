@@ -92,13 +92,36 @@ const DisputesPage = () => {
         setSelectedShipment(prefillId);
       }
 
-      const { data: d } = await supabase
+      // Fetch disputes I opened + disputes on my shipments/missions as voyageur
+      const { data: dOwned } = await supabase
         .from("disputes")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      if (d) {
-        setMyDisputes(d);
+
+      // Fetch disputes where I'm the voyageur (via shipments or needit_missions)
+      const myShipmentIds = (s || []).map(x => x.id);
+      const myMissionIds = (m || []).map(x => x.id);
+      const allItemIds = [...myShipmentIds, ...myMissionIds].filter(Boolean);
+      
+      let dAsVoyageur: any[] = [];
+      if (allItemIds.length > 0) {
+        const { data: dv } = await supabase
+          .from("disputes")
+          .select("*")
+          .in("shipment_id", allItemIds)
+          .neq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        if (dv) dAsVoyageur = dv;
+      }
+
+      // Merge and deduplicate
+      const allDisputes = [...(dOwned || []), ...dAsVoyageur];
+      const seen = new Set<string>();
+      const deduped = allDisputes.filter(d => { if (seen.has(d.id)) return false; seen.add(d.id); return true; });
+      
+      if (deduped.length > 0) {
+        setMyDisputes(deduped);
         const disputeIds = d.map((x: any) => x.id);
         if (disputeIds.length > 0) {
           const { data: msgs } = await supabase
