@@ -99,7 +99,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const safeLabel = escapeHtml(itemLabel);
+    const safeRef = escapeHtml(itemRef);
+    const safeReason = escapeHtml(reason);
+    const safeDesc = escapeHtml(description || "");
+    const disputeRef = "LIT-" + dispute_id.substring(0, 8).toUpperCase();
+    const deepLink = `https://we-app-you.lovable.app/litiges`;
+
+
     if (!resendApiKey) {
       console.warn("RESEND_API_KEY not set, skipping emails");
       return new Response(JSON.stringify({ success: true, skipped: true }), {
