@@ -12,6 +12,7 @@ interface UserShipment {
   id: string;
   ref: string;
   label: string;
+  isVoyageur: boolean;
 }
 
 interface DisputeMessage {
