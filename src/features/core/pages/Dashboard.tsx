@@ -778,6 +778,29 @@ const Dashboard = () => {
                           <X size={12} />
                         </button>
                       )}
+                      {/* Autocomplete dropdown */}
+                      {voyageCitySearch.trim().length >= 1 && (() => {
+                        const searchLower = voyageCitySearch.toLowerCase().trim();
+                        const allCities = Array.from(new Set(
+                          voyages.flatMap(v => [v.departure_city, v.arrival_city]).filter(Boolean)
+                        )).sort();
+                        const suggestions = allCities.filter(c => c.toLowerCase().includes(searchLower) && c.toLowerCase() !== searchLower);
+                        if (suggestions.length === 0) return null;
+                        return (
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg z-50 max-h-40 overflow-y-auto">
+                            {suggestions.map(city => (
+                              <button
+                                key={city}
+                                onClick={() => setVoyageCitySearch(city)}
+                                className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-muted/60 transition-colors flex items-center gap-2"
+                              >
+                                <MapPin size={11} className="text-muted-foreground shrink-0" />
+                                {city}
+                              </button>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <button
                       onClick={() => setVoyageSortDir(d => d === "asc" ? "desc" : "asc")}
