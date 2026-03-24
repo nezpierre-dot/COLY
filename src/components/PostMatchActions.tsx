@@ -52,9 +52,11 @@ const PostMatchActions = ({
   voyageurId,
   onStatusChange,
   compact = false,
+  itemType = "shipment",
 }: PostMatchActionsProps) => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const tableName = itemType === "needit" ? "needit_missions" : "shipments";
   const [pickupOtp, setPickupOtp] = useState<string | null>(null);
   const [deliveryOtp, setDeliveryOtp] = useState<string | null>(null);
   const [enteredCode, setEnteredCode] = useState("");
