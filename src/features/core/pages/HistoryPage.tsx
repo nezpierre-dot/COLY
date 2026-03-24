@@ -195,6 +195,7 @@ const HistoryPage = () => {
             rawDate: new Date(m.created_at),
             category: "voyageur",
             icon: "transport",
+            destination: m.city || m.country || "",
           });
         }
       });
