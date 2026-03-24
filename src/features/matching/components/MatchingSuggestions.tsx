@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Star, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Loader2, Users, Sparkles, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useMatchingVoyageurs } from "../hooks/useMatchingVoyageurs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
@@ -56,6 +57,7 @@ const MatchingSuggestions = ({
     maxWeightKg: estimatedWeightKg,
     enabled: !!destinationCountry,
   });
+  const nav = useNavigate();
 
   if (!destinationCountry) return null;
 
@@ -112,7 +114,10 @@ const MatchingSuggestions = ({
             {/* Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className={`font-semibold text-foreground truncate ${compact ? "text-sm" : "text-base"}`}>
+                <p
+                  onClick={() => nav(`/profile/${v.voyageur_id}`)}
+                  className={`font-semibold text-foreground truncate cursor-pointer hover:text-primary transition-colors ${compact ? "text-sm" : "text-base"}`}
+                >
                   {`VOY-${v.voyageur_id.substring(0, 8).toUpperCase()}`}
                 </p>
                 {Number(v.total_ratings) > 0 && (

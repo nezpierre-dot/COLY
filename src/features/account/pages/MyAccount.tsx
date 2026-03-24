@@ -62,7 +62,7 @@ const MyAccount = () => {
     supabase.rpc("compute_trust_badges", { _user_id: user.id }).then(({ data }) => {
       if (data) setTrustBadges(data);
     });
-    supabase.from("ratings").select("id, score, comment, rater_role, created_at").eq("rated_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
+    supabase.from("ratings").select("id, score, comment, rater_role, rater_id, created_at").eq("rated_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
       if (data) setReviews(data);
     });
     // Fetch existing replies
@@ -572,6 +572,15 @@ const MyAccount = () => {
                               } as any);
                               setSubmittingReply(false);
                               if (error) { toast.error("Erreur lors de l'envoi"); return; }
+                              // Notify the rater
+                              if (review.rater_id) {
+                                await supabase.from("notifications").insert({
+                                  user_id: review.rater_id,
+                                  title: "Réponse à votre avis 💬",
+                                  message: `${fullName || "L'utilisateur"} a répondu à votre avis.`,
+                                  type: `reply:rating:${review.id}`,
+                                } as any);
+                              }
                               setReplies(prev => ({ ...prev, [review.id]: replyText.trim() }));
                               setReplyingTo(null);
                               setReplyText("");
