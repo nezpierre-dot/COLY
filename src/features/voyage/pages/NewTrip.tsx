@@ -541,6 +541,24 @@ const NewTrip = () => {
                 </div>
               </div>
 
+              {/* Cutoff hours */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <Label className="text-sm font-semibold text-foreground">⏰ Fermeture du voyage aux matchs</Label>
+                <p className="text-xs text-muted-foreground">Le voyage ne sera plus visible pour les demandeurs avant ce délai de départ.</p>
+                <Select value={cutoffHours} onValueChange={setCutoffHours}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="6">6 heures avant</SelectItem>
+                    <SelectItem value="12">12 heures avant</SelectItem>
+                    <SelectItem value="24">24 heures avant (recommandé)</SelectItem>
+                    <SelectItem value="48">48 heures avant</SelectItem>
+                    <SelectItem value="72">72 heures avant</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Capacity section */}
               <div className="space-y-3 pt-2 border-t border-border">
                 <h3 className="text-sm font-semibold text-foreground">{t("trip.capacityTitle")}</h3>
