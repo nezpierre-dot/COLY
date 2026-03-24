@@ -73,6 +73,8 @@ const VoyageDetail = () => {
   const [editMaxWeight, setEditMaxWeight] = useState("");
   const [editVolume, setEditVolume] = useState("");
   const [savingCapacity, setSavingCapacity] = useState(false);
+  const [editingCutoff, setEditingCutoff] = useState(false);
+  const [editCutoffHours, setEditCutoffHours] = useState("");
 
   const isOwner = voyage && voyage.user_id === user?.id;
   const isActive = voyage && voyage.status === "active";
