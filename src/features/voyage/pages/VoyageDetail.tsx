@@ -653,30 +653,44 @@ const VoyageDetail = () => {
                 Colis acceptés
               </h2>
               {acceptedColis.map((shipment) => (
-                <AcceptedItemCard
-                  key={shipment.id}
-                  id={shipment.id}
-                  title={`${shipment.departure_city || "—"} → ${shipment.arrival_city}`}
-                  price={shipment.tarif}
-                  status={shipment.status}
-                  steps={[
-                    { key: "accepted", label: "Accepté" },
-                    { key: "picked_up", label: "Récupéré" },
-                    { key: "in_transit", label: "En transit" },
-                    { key: "delivered", label: "Livré" },
-                  ]}
-                  onClick={() => navigate(`/shipment/${shipment.id}`)}
-                  previewUrl={previewUrl}
-                  capturingId={capturingMissionId}
-                  uploadingProof={uploadingProof}
-                  onStartCapture={(id) => {
-                    setCapturingMissionId(id);
-                    setCapturingType("shipment");
-                    setTimeout(() => cameraRef.current?.click(), 50);
-                  }}
-                  onRetake={handleRetake}
-                  onConfirm={handleConfirmCapture}
-                />
+                <div key={shipment.id} className="space-y-2">
+                  <AcceptedItemCard
+                    id={shipment.id}
+                    title={`${shipment.departure_city || "—"} → ${shipment.arrival_city}`}
+                    price={shipment.tarif}
+                    status={shipment.status}
+                    steps={[
+                      { key: "accepted", label: "Accepté" },
+                      { key: "picked_up", label: "Récupéré" },
+                      { key: "in_transit", label: "En transit" },
+                      { key: "delivered", label: "Livré" },
+                    ]}
+                    onClick={() => navigate(`/shipment/${shipment.id}`)}
+                    previewUrl={previewUrl}
+                    capturingId={capturingMissionId}
+                    uploadingProof={uploadingProof}
+                    onStartCapture={(id) => {
+                      setCapturingMissionId(id);
+                      setCapturingType("shipment");
+                      setTimeout(() => cameraRef.current?.click(), 50);
+                    }}
+                    onRetake={handleRetake}
+                    onConfirm={handleConfirmCapture}
+                  />
+                  {/* OTP codes for this shipment */}
+                  {shipment.status !== "pending" && shipment.status !== "cancelled" && (
+                    <PostMatchActions
+                      shipmentId={shipment.id}
+                      shipmentStatus={shipment.status}
+                      senderId={shipment.user_id || ""}
+                      voyageurId={user?.id || null}
+                      onStatusChange={(s) => {
+                        setAcceptedColis(prev => prev.map(c => c.id === shipment.id ? { ...c, status: s } : c));
+                      }}
+                      compact
+                    />
+                  )}
+                </div>
               ))}
             </div>
           )}
