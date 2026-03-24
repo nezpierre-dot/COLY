@@ -403,6 +403,9 @@ const Dashboard = () => {
   const [colisMatchOnly, setColisMatchOnly] = useState(false);
   const [needitMatchOnly, setNeeditMatchOnly] = useState(false);
 
+  // Voyage status filter
+  const [voyageStatusFilter, setVoyageStatusFilter] = useState<"all" | "active" | "completed" | "cancelled">("all");
+
   // Sort state
   const [voyageurColisSort, setVoyageurColisSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
   const [voyageurNeeditSort, setVoyageurNeeditSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
