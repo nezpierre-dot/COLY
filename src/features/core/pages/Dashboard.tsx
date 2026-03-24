@@ -406,6 +406,7 @@ const Dashboard = () => {
   // Voyage status filter & sort
   const [voyageStatusFilter, setVoyageStatusFilter] = useState<"all" | "active" | "completed" | "cancelled">("all");
   const [voyageSortDir, setVoyageSortDir] = useState<"asc" | "desc">("asc");
+  const [voyageCitySearch, setVoyageCitySearch] = useState("");
   const [archivedVoyageIds, setArchivedVoyageIds] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem("archived-voyages");
@@ -760,12 +761,27 @@ const Dashboard = () => {
                     ))}
                   </div>
                 )}
-                {/* Sort & archive controls */}
+                {/* Search & sort controls */}
                 {voyages.length > 0 && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="relative flex-1 min-w-[140px]">
+                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        type="text"
+                        value={voyageCitySearch}
+                        onChange={(e) => setVoyageCitySearch(e.target.value)}
+                        placeholder="Rechercher une ville…"
+                        className="w-full pl-8 pr-3 py-1.5 rounded-full bg-muted/60 text-xs text-foreground placeholder:text-muted-foreground border-none outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                      />
+                      {voyageCitySearch && (
+                        <button onClick={() => setVoyageCitySearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
                     <button
                       onClick={() => setVoyageSortDir(d => d === "asc" ? "desc" : "asc")}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted text-xs font-semibold transition-all"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted text-xs font-semibold transition-all shrink-0"
                     >
                       <ArrowUpDown size={12} />
                       {voyageSortDir === "asc" ? "Plus proches" : "Plus lointains"}
@@ -773,7 +789,7 @@ const Dashboard = () => {
                     {archivedVoyageIds.size > 0 && voyageStatusFilter === "all" && (
                       <button
                         onClick={() => setVoyageStatusFilter("completed")}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted text-xs font-semibold transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted text-xs font-semibold transition-all shrink-0"
                       >
                         <Archive size={12} />
                         {archivedVoyageIds.size} archivé{archivedVoyageIds.size > 1 ? "s" : ""}
@@ -793,8 +809,10 @@ const Dashboard = () => {
                     }
                   />
                 ) : (() => {
+                  const searchLower = voyageCitySearch.toLowerCase().trim();
                   const filtered = voyages
                     .filter(v => voyageStatusFilter === "all" ? !archivedVoyageIds.has(v.id) : v.status === voyageStatusFilter)
+                    .filter(v => !searchLower || v.departure_city?.toLowerCase().includes(searchLower) || v.arrival_city?.toLowerCase().includes(searchLower))
                     .sort((a, b) => {
                       const da = new Date(a.departure_date).getTime();
                       const db = new Date(b.departure_date).getTime();
