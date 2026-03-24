@@ -368,6 +368,78 @@ const VoyageDetail = () => {
             </span>
           </div>
 
+          {/* Linked items summary */}
+          {(acceptedColis.length > 0 || acceptedMissions.length > 0) && (
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-2.5 bg-muted/30 border-b border-border">
+                <p className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Package size={13} className="text-primary" />
+                  {acceptedColis.length + acceptedMissions.length} élément{(acceptedColis.length + acceptedMissions.length) > 1 ? "s" : ""} lié{(acceptedColis.length + acceptedMissions.length) > 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="divide-y divide-border">
+                {acceptedColis.map((shipment) => {
+                  const st = shipment.status;
+                  const badge = st === "delivered" ? { label: "Livré", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" }
+                    : st === "in_transit" ? { label: "En transit", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" }
+                    : st === "picked_up" ? { label: "Récupéré", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" }
+                    : { label: "Accepté", cls: "bg-primary/10 text-primary" };
+                  return (
+                    <button
+                      key={shipment.id}
+                      onClick={() => navigate(`/shipment/${shipment.id}`)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-left"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                        <Package size={15} className="text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {shipment.departure_city || "—"} → {shipment.arrival_city}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {demandeurNames[shipment.user_id] || "Expéditeur"} · {shipment.tarif} €
+                        </p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${badge.cls}`}>
+                        {badge.label}
+                      </span>
+                    </button>
+                  );
+                })}
+                {acceptedMissions.map((mission) => {
+                  const st = mission.status;
+                  const badge = st === "completed" ? { label: "Livré", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" }
+                    : st === "in_transit" ? { label: "En transit", cls: "bg-blue-500/15 text-blue-600 dark:text-blue-400" }
+                    : st === "picked_up" ? { label: "Récupéré", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400" }
+                    : { label: "Acceptée", cls: "bg-primary/10 text-primary" };
+                  return (
+                    <button
+                      key={mission.id}
+                      onClick={() => navigate(`/needit/${mission.id}`)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/40 transition-colors text-left"
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-secondary/10 flex items-center justify-center shrink-0">
+                        <ShoppingBag size={15} className="text-secondary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {mission.product_name || "Mission NeedIt"}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {demandeurNames[mission.user_id] || "Demandeur"}{mission.prix_max ? ` · ${mission.prix_max} €` : ""}
+                        </p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${badge.cls}`}>
+                        {badge.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Route card */}
           <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
             <div className="flex items-center gap-3">
