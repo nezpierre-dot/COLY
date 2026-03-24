@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -24,6 +24,7 @@ const DISPUTE_REASONS = [
 
 const DisputesPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [shipments, setShipments] = useState<UserShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState("");
@@ -35,21 +36,53 @@ const DisputesPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [myDisputes, setMyDisputes] = useState<any[]>([]);
 
+  // Pre-fill from URL params
+  const prefillShipment = searchParams.get("shipment");
+  const prefillMission = searchParams.get("mission");
+
   useEffect(() => {
     if (!user) return;
     const load = async () => {
+      // Load shipments
       const { data: s } = await supabase
         .from("shipments")
-        .select("id, arrival_city, status")
+        .select("id, arrival_city, departure_city, status")
         .or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`)
         .in("status", ["delivered", "accepted", "picked_up", "in_transit"]);
+
+      // Load needit missions too
+      const { data: m } = await supabase
+        .from("needit_missions")
+        .select("id, product_name, country, city, status")
+        .or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`)
+        .in("status", ["accepted", "picked_up", "in_transit", "completed"]);
+
+      const items: UserShipment[] = [];
+
       if (s) {
-        setShipments(s.map((x) => ({
+        items.push(...s.map((x) => ({
           id: x.id,
           ref: "NIDIT-" + x.id.slice(0, 8).toUpperCase(),
-          label: `NIDIT-${x.id.slice(0, 8).toUpperCase()} → ${x.arrival_city}`,
+          label: `📦 NIDIT-${x.id.slice(0, 8).toUpperCase()} — ${x.departure_city || "—"} → ${x.arrival_city}`,
         })));
       }
+
+      if (m) {
+        items.push(...m.map((x) => ({
+          id: x.id,
+          ref: "NEED-" + x.id.slice(0, 8).toUpperCase(),
+          label: `🛒 NEED-${x.id.slice(0, 8).toUpperCase()} — ${x.product_name || "Mission"} (${x.city || x.country})`,
+        })));
+      }
+
+      setShipments(items);
+
+      // Auto-select from URL params
+      const prefillId = prefillShipment || prefillMission;
+      if (prefillId && items.some((i) => i.id === prefillId)) {
+        setSelectedShipment(prefillId);
+      }
+
       const { data: d } = await supabase
         .from("disputes")
         .select("*")
@@ -58,7 +91,7 @@ const DisputesPage = () => {
       if (d) setMyDisputes(d);
     };
     load();
-  }, [user]);
+  }, [user, prefillShipment, prefillMission]);
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -144,14 +177,24 @@ const DisputesPage = () => {
       </div>
 
       <div className="max-w-lg mx-auto px-4 pt-6 space-y-6">
+        {/* Pre-fill banner */}
+        {(prefillShipment || prefillMission) && selectedShipment && (
+          <div className="flex items-start gap-2 bg-primary/5 border border-primary/20 rounded-xl p-3 text-xs text-primary">
+            <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+            <span>
+              L'élément <strong>{shipments.find(s => s.id === selectedShipment)?.ref}</strong> a été pré-sélectionné. Décrivez le problème ci-dessous.
+            </span>
+          </div>
+        )}
+
         {/* Form */}
         <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
           <h2 className="text-base font-bold text-foreground">Ouvrir un litige</h2>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Colis concerné *</label>
+            <label className="text-xs font-semibold text-muted-foreground">Colis ou mission concerné(e) *</label>
             <Select value={selectedShipment} onValueChange={setSelectedShipment}>
-              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Sélectionner un colis" /></SelectTrigger>
+              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Sélectionner un élément" /></SelectTrigger>
               <SelectContent>
                 {shipments.map((s) => (
                   <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
