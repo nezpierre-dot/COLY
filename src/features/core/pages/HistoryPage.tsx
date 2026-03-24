@@ -524,7 +524,15 @@ const HistoryPage = () => {
                         {item.category}
                       </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{item.ref}</p>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span>{item.ref}</span>
+                      {item.destination && (
+                        <>
+                          <span>•</span>
+                          <span className="flex items-center gap-0.5"><MapPin size={10} className="shrink-0" />{item.destination}</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                   <div className="text-right shrink-0 flex items-center gap-2">
                     <div>
