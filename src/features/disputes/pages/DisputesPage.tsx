@@ -69,13 +69,13 @@ const DisputesPage = () => {
     const load = async () => {
       const { data: s } = await supabase
         .from("shipments")
-        .select("id, arrival_city, departure_city, status")
+        .select("id, arrival_city, departure_city, status, user_id, voyageur_id")
         .or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`)
         .in("status", ["delivered", "accepted", "picked_up", "in_transit"]);
 
       const { data: m } = await supabase
         .from("needit_missions")
-        .select("id, product_name, country, city, status")
+        .select("id, product_name, country, city, status, user_id, voyageur_id")
         .or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`)
         .in("status", ["accepted", "picked_up", "in_transit", "completed"]);
 
@@ -85,6 +85,7 @@ const DisputesPage = () => {
           id: x.id,
           ref: "NIDIT-" + x.id.slice(0, 8).toUpperCase(),
           label: `📦 NIDIT-${x.id.slice(0, 8).toUpperCase()} — ${x.departure_city || "—"} → ${x.arrival_city}`,
+          isVoyageur: x.voyageur_id === user.id,
         })));
       }
       if (m) {
@@ -92,6 +93,7 @@ const DisputesPage = () => {
           id: x.id,
           ref: "NEED-" + x.id.slice(0, 8).toUpperCase(),
           label: `🛒 NEED-${x.id.slice(0, 8).toUpperCase()} — ${x.product_name || "Mission"} (${x.city || x.country})`,
+          isVoyageur: x.voyageur_id === user.id,
         })));
       }
       setShipments(items);
