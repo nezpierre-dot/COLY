@@ -809,8 +809,10 @@ const Dashboard = () => {
                     }
                   />
                 ) : (() => {
+                  const searchLower = voyageCitySearch.toLowerCase().trim();
                   const filtered = voyages
                     .filter(v => voyageStatusFilter === "all" ? !archivedVoyageIds.has(v.id) : v.status === voyageStatusFilter)
+                    .filter(v => !searchLower || v.departure_city?.toLowerCase().includes(searchLower) || v.arrival_city?.toLowerCase().includes(searchLower))
                     .sort((a, b) => {
                       const da = new Date(a.departure_date).getTime();
                       const db = new Date(b.departure_date).getTime();
