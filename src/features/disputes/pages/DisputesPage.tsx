@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle, MessageSquare, Clock, ImagePlus, FileText } from "lucide-react";
+import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle, MessageSquare, Clock, ImagePlus, FileText, Handshake } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -59,6 +59,7 @@ const DisputesPage = () => {
   const [replyPhoto, setReplyPhoto] = useState<File | null>(null);
   const [replyPhotoPreview, setReplyPhotoPreview] = useState<string | null>(null);
   const [sendingReply, setSendingReply] = useState(false);
+  const [closingDispute, setClosingDispute] = useState<string | null>(null);
   const replyPhotoRef = useRef<HTMLInputElement>(null);
 
   const prefillShipment = searchParams.get("shipment");
@@ -287,10 +288,50 @@ const DisputesPage = () => {
     }
   };
 
+  const handleAmicableClosure = async (disputeId: string) => {
+    if (!user) return;
+    setClosingDispute(disputeId);
+    try {
+      const dispute = myDisputes.find(d => d.id === disputeId);
+      if (!dispute) return;
+
+      // Add closure message
+      const role = getMyRole(dispute);
+      await supabase.from("dispute_messages" as any).insert({
+        dispute_id: disputeId,
+        sender_id: user.id,
+        sender_role: role,
+        content: "🤝 Ce litige a été clôturé à l'amiable entre les deux parties.",
+      } as any);
+
+      // Update dispute status
+      // Only the dispute opener can close it, but we allow both parties
+      // We use a function call via edge or direct update
+      const { error } = await supabase
+        .from("disputes")
+        .update({ status: "resolved", resolution: "Clôture amiable entre les parties" } as any)
+        .eq("id", disputeId);
+
+      if (error) {
+        // If the user is not the owner, try via the other party acceptance pattern
+        toast.error("Seul le demandeur du litige ou un admin peut clôturer le litige.");
+        return;
+      }
+
+      setMyDisputes(prev => prev.map(d => d.id === disputeId ? { ...d, status: "resolved", resolution: "Clôture amiable entre les parties" } : d));
+      toast.success("Litige clôturé à l'amiable ✅");
+    } catch (err: any) {
+      toast.error("Erreur lors de la clôture");
+    } finally {
+      setClosingDispute(null);
+    }
+  };
+
   const statusLabel = (s: string) => {
     const map: Record<string, { label: string; cls: string }> = {
       open: { label: "En attente", cls: "bg-warning/10 text-warning" },
       investigating: { label: "En cours", cls: "bg-primary/10 text-primary" },
+      escalated: { label: "Escaladé", cls: "bg-destructive/10 text-destructive" },
       resolved: { label: "Résolu", cls: "bg-success/10 text-success" },
       refunded: { label: "Remboursé", cls: "bg-accent/10 text-accent" },
     };
@@ -439,13 +480,32 @@ const DisputesPage = () => {
                     {new Date(d.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
                   </p>
 
-                  <button
-                    onClick={() => setExpandedDispute(isExpanded ? null : d.id)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-                  >
-                    <MessageSquare size={13} />
-                    {messages.length > 0 ? `Échanges (${messages.length})` : "Voir les échanges"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setExpandedDispute(isExpanded ? null : d.id)}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                    >
+                      <MessageSquare size={13} />
+                      {messages.length > 0 ? `Échanges (${messages.length})` : "Voir les échanges"}
+                    </button>
+
+                    {isActive && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 rounded-xl gap-1.5 text-xs border-success/30 text-success hover:bg-success/10"
+                        disabled={closingDispute === d.id}
+                        onClick={() => {
+                          if (confirm("Êtes-vous sûr de vouloir clôturer ce litige à l'amiable ? Cette action est irréversible.")) {
+                            handleAmicableClosure(d.id);
+                          }
+                        }}
+                      >
+                        <Handshake size={13} />
+                        {closingDispute === d.id ? "Clôture..." : "Clôturer à l'amiable"}
+                      </Button>
+                    )}
+                  </div>
 
                   {isExpanded && (
                     <div className="space-y-2 pt-1">
