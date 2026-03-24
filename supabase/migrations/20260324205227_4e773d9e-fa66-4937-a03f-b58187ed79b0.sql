@@ -1,0 +1,1 @@
+ALTER TABLE public.voyages ADD COLUMN cutoff_hours integer NOT NULL DEFAULT 24;

@@ -902,6 +902,7 @@ export type Database = {
           capacity_dimensions: string | null
           capacity_volume_liters: number | null
           created_at: string
+          cutoff_hours: number
           deliver_to_address: boolean
           departure_address: string | null
           departure_city: string
@@ -929,6 +930,7 @@ export type Database = {
           capacity_dimensions?: string | null
           capacity_volume_liters?: number | null
           created_at?: string
+          cutoff_hours?: number
           deliver_to_address?: boolean
           departure_address?: string | null
           departure_city: string
@@ -956,6 +958,7 @@ export type Database = {
           capacity_dimensions?: string | null
           capacity_volume_liters?: number | null
           created_at?: string
+          cutoff_hours?: number
           deliver_to_address?: boolean
           departure_address?: string | null
           departure_city?: string
