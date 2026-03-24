@@ -231,7 +231,8 @@ const NewTrip = () => {
       max_items: maxItems ? parseInt(maxItems) : null,
       capacity_volume_liters: volumeType === "liters" && volumeLiters ? parseFloat(volumeLiters) : null,
       capacity_dimensions: volumeType === "dimensions" && capacityDimensions ? capacityDimensions.trim() : null,
-    }).select("id").single();
+      cutoff_hours: parseInt(cutoffHours) || 24,
+    } as any).select("id").single();
     setSubmitting(false);
     if (error) {
       toast.error(t("trip.errorCreate"));
