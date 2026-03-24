@@ -760,6 +760,27 @@ const Dashboard = () => {
                     ))}
                   </div>
                 )}
+                {/* Sort & archive controls */}
+                {voyages.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setVoyageSortDir(d => d === "asc" ? "desc" : "asc")}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted text-xs font-semibold transition-all"
+                    >
+                      <ArrowUpDown size={12} />
+                      {voyageSortDir === "asc" ? "Plus proches" : "Plus lointains"}
+                    </button>
+                    {archivedVoyageIds.size > 0 && voyageStatusFilter === "all" && (
+                      <button
+                        onClick={() => setVoyageStatusFilter("completed")}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted text-xs font-semibold transition-all"
+                      >
+                        <Archive size={12} />
+                        {archivedVoyageIds.size} archivé{archivedVoyageIds.size > 1 ? "s" : ""}
+                      </button>
+                    )}
+                  </div>
+                )}
               {voyages.length === 0 ? (
                   <EmptyState
                     icon={Plane}
@@ -771,10 +792,17 @@ const Dashboard = () => {
                       </button>
                     }
                   />
-                ) : (
-                  voyages.filter(v => voyageStatusFilter === "all" || v.status === voyageStatusFilter).length === 0 ? (
+                ) : (() => {
+                  const filtered = voyages
+                    .filter(v => voyageStatusFilter === "all" ? !archivedVoyageIds.has(v.id) : v.status === voyageStatusFilter)
+                    .sort((a, b) => {
+                      const da = new Date(a.departure_date).getTime();
+                      const db = new Date(b.departure_date).getTime();
+                      return voyageSortDir === "asc" ? da - db : db - da;
+                    });
+                  return filtered.length === 0 ? (
                     <p className="text-center text-sm text-muted-foreground py-6">Aucun voyage avec ce statut</p>
-                  ) : voyages.filter(v => voyageStatusFilter === "all" || v.status === voyageStatusFilter).map((v) => {
+                  ) : filtered.map((v) => {
                     const isSelected = selectedVoyage === v.id;
                     const fav = isRouteFavorite(v.departure_city, v.arrival_city);
                     return (
