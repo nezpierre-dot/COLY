@@ -37,14 +37,14 @@ serve(async (req) => {
     });
     if (!isAdmin) throw new Error("Admin access required");
 
-    const { dispute_id, action, admin_response } = await req.json();
+    const { dispute_id, action, admin_response, photo_url } = await req.json();
     if (!dispute_id || !["resolve", "refund", "respond"].includes(action)) {
       throw new Error("Invalid parameters: dispute_id and action (resolve|refund|respond) required");
     }
 
     // Handle admin response (message without resolving)
     if (action === "respond") {
-      if (!admin_response?.trim()) throw new Error("admin_response is required for respond action");
+      if (!admin_response?.trim() && !photo_url) throw new Error("admin_response or photo_url is required for respond action");
 
       const { data: dispute, error: disputeErr } = await supabaseAdmin
         .from("disputes")
