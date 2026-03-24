@@ -12,6 +12,7 @@ import {
   Bell,
   Shield,
   Timer,
+  Star,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
 import LiveLocationSharing from "@/components/LiveLocationSharing";
+import RatingDialog from "@/components/RatingDialog";
 
 interface PostMatchActionsProps {
   shipmentId: string;
@@ -71,6 +73,8 @@ const PostMatchActions = ({
   const [otpLoading, setOtpLoading] = useState(true);
   const [pickupTimeLeft, setPickupTimeLeft] = useState<number | null>(null);
   const [deliveryTimeLeft, setDeliveryTimeLeft] = useState<number | null>(null);
+  const [showRating, setShowRating] = useState(false);
+  const [hasRated, setHasRated] = useState(false);
 
   const isSender = user?.id === senderId;
   const isVoyageur = user?.id === voyageurId;
@@ -166,6 +170,19 @@ const PostMatchActions = ({
     }, 1000);
     return () => clearInterval(interval);
   }, [pickupOtpCreatedAt, deliveryOtpCreatedAt, pickupOtp, deliveryOtp]);
+
+  // Check if demandeur already rated this shipment
+  useEffect(() => {
+    if (!user || !isSender || shipmentStatus !== "delivered") return;
+    supabase
+      .from("ratings")
+      .select("id")
+      .eq("shipment_id", shipmentId)
+      .eq("rater_id", user.id)
+      .then(({ data }) => {
+        if (data && data.length > 0) setHasRated(true);
+      });
+  }, [user, isSender, shipmentStatus, shipmentId]);
 
   const saveOtpCodes = async (
     pickup: string | null,
@@ -645,7 +662,39 @@ const PostMatchActions = ({
         </motion.div>
       )}
 
-      {/* Live location - always show when active and not delivered */}
+      {/* ─── DELIVERED: Rating invitation for demandeur ─── */}
+      {shipmentStatus === "delivered" && isSender && !hasRated && voyageurId && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Button
+            onClick={() => setShowRating(true)}
+            variant="outline"
+            className="w-full rounded-xl border-accent/30 text-accent hover:bg-accent/10 gap-2"
+          >
+            <Star size={16} className="fill-accent" />
+            {t("postmatch.rateVoyageur")}
+          </Button>
+        </motion.div>
+      )}
+
+      {shipmentStatus === "delivered" && isSender && hasRated && (
+        <p className="text-xs text-center text-muted-foreground">✅ {t("postmatch.alreadyRated")}</p>
+      )}
+
+      {/* Rating dialog */}
+      {voyageurId && (
+        <RatingDialog
+          open={showRating}
+          onClose={() => { setShowRating(false); setHasRated(true); }}
+          shipmentId={shipmentId}
+          ratedUserId={voyageurId}
+          raterRole="demandeur"
+        />
+      )}
+
       {voyageurId && shipmentStatus !== "delivered" && shipmentStatus !== "cancelled" && !compact && (
         <LiveLocationSharing
           itemId={shipmentId}
