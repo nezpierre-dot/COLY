@@ -432,16 +432,28 @@ const Dashboard = () => {
   }, [isVoyageur]);
 
   // Smart matching
+  // Filter voyages that are still open (before cutoff)
+  const activeVoyages = useMemo(() => {
+    const now = new Date();
+    return voyages.filter((v: any) => {
+      if (v.status !== "active") return false;
+      const depStr = v.departure_date + "T" + (v.departure_time || "00:00");
+      const depTime = new Date(depStr).getTime();
+      const cutoff = (v.cutoff_hours ?? 24) * 60 * 60 * 1000;
+      return depTime - now.getTime() > cutoff;
+    });
+  }, [voyages]);
+
   const matchedShipments = useMemo(() => {
-    if (!voyages.length || !pendingShipments.length) return [];
+    if (!activeVoyages.length || !pendingShipments.length) return [];
     return pendingShipments.filter((s) =>
-      voyages.some((v) => {
+      activeVoyages.some((v: any) => {
         const countryMatch = v.arrival_country?.toLowerCase() === s.arrival_country?.toLowerCase();
         const cityMatch = v.arrival_city?.toLowerCase() === s.arrival_city?.toLowerCase();
         return countryMatch && (cityMatch || !s.arrival_city);
       })
     );
-  }, [voyages, pendingShipments]);
+  }, [activeVoyages, pendingShipments]);
 
   const unmatchedShipments = useMemo(() => {
     const matchedIds = new Set(matchedShipments.map((s) => s.id));
