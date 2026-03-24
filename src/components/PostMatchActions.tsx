@@ -662,7 +662,39 @@ const PostMatchActions = ({
         </motion.div>
       )}
 
-      {/* Live location - always show when active and not delivered */}
+      {/* ─── DELIVERED: Rating invitation for demandeur ─── */}
+      {shipmentStatus === "delivered" && isSender && !hasRated && voyageurId && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Button
+            onClick={() => setShowRating(true)}
+            variant="outline"
+            className="w-full rounded-xl border-accent/30 text-accent hover:bg-accent/10 gap-2"
+          >
+            <Star size={16} className="fill-accent" />
+            {t("postmatch.rateVoyageur")}
+          </Button>
+        </motion.div>
+      )}
+
+      {shipmentStatus === "delivered" && isSender && hasRated && (
+        <p className="text-xs text-center text-muted-foreground">✅ {t("postmatch.alreadyRated")}</p>
+      )}
+
+      {/* Rating dialog */}
+      {voyageurId && (
+        <RatingDialog
+          open={showRating}
+          onClose={() => { setShowRating(false); setHasRated(true); }}
+          shipmentId={shipmentId}
+          ratedUserId={voyageurId}
+          raterRole="demandeur"
+        />
+      )}
+
       {voyageurId && shipmentStatus !== "delivered" && shipmentStatus !== "cancelled" && !compact && (
         <LiveLocationSharing
           itemId={shipmentId}
