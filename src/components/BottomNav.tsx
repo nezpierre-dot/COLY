@@ -74,7 +74,7 @@ const BottomNav = () => {
                       className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[9px] font-bold border border-white dark:border-[#0F1115] animate-bounce"
                       style={{ backgroundColor: "#FF453A", color: "#FFFFFF" }}
                     >
-                      {unreadMessages > 99 ? "99+" : unreadMessages}
+                      {badgeCount > 99 ? "99+" : badgeCount}
                     </span>
                   )}
                 </div>
