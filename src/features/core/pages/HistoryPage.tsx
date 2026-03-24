@@ -442,7 +442,7 @@ const HistoryPage = () => {
               aria-label="Rechercher des transactions"
             />
           </div>
-          <SortSelect value={historySort} onChange={setHistorySort} t={t} keys={["dateCreated", "price"]} />
+          <SortSelect value={historySort} onChange={setHistorySort} t={t} keys={["dateCreated", "price", "destination"]} />
         </div>
 
         {/* AI filter pills */}
