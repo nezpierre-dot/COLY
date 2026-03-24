@@ -77,6 +77,7 @@ export type Database = {
           created_at: string
           dispute_id: string
           id: string
+          photo_url: string | null
           sender_id: string
           sender_role: string
         }
@@ -85,6 +86,7 @@ export type Database = {
           created_at?: string
           dispute_id: string
           id?: string
+          photo_url?: string | null
           sender_id: string
           sender_role?: string
         }
@@ -93,6 +95,7 @@ export type Database = {
           created_at?: string
           dispute_id?: string
           id?: string
+          photo_url?: string | null
           sender_id?: string
           sender_role?: string
         }
