@@ -174,6 +174,7 @@ const HistoryPage = () => {
             rawDate: new Date(m.created_at),
             category: "needit",
             icon: "needit",
+            destination: m.city || m.country || "",
           });
         }
       });
