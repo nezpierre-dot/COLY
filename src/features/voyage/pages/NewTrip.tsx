@@ -170,6 +170,7 @@ const NewTrip = () => {
   const [canPickup, setCanPickup] = useState(false);
   const [canMove, setCanMove] = useState(false);
   const [deliverToAddress, setDeliverToAddress] = useState(false);
+  const [cutoffHours, setCutoffHours] = useState("24");
 
   // Step 5 – NeedIt
   const [acceptNeedit, setAcceptNeedit] = useState(false);
