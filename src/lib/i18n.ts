@@ -1626,6 +1626,8 @@ const en: TranslationDict = {
   "postmatch.confirmDeliveryBtn": "Confirm delivery",
   "postmatch.missionComplete": "Mission complete! 🎉",
   "postmatch.missionCompleteDesc": "The parcel was delivered successfully. Payment will be released shortly.",
+  "postmatch.missionCompleteDescVoyageur": "The parcel was delivered successfully. Your payment will be released shortly.",
+  "postmatch.missionCompleteDescDemandeur": "The parcel was delivered successfully. Thank you for using our service!",
   "postmatch.otpGenerated": "Code generated successfully",
   "postmatch.wrongCode": "Wrong code. Please check with the other party.",
   "postmatch.codeCopied": "Code copied!",
