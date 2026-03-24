@@ -229,7 +229,7 @@ const PostMatchActions = ({
     }
     setLoading(true);
     try {
-      await supabase.from("shipments").update({ status: "delivered" } as any).eq("id", shipmentId);
+      await supabase.from(tableName as any).update({ status: itemType === "needit" ? "completed" : "delivered" } as any).eq("id", shipmentId);
       await addTrackingEvent("delivered", t("postmatch.trackDelivered"), t("postmatch.trackDeliveredDesc"));
 
       // Notify both parties
