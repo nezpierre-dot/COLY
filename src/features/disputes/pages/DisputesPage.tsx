@@ -333,14 +333,21 @@ const DisputesPage = () => {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground">Photo preuve (optionnel)</label>
+            <label className="text-xs font-semibold text-muted-foreground">Photo ou PDF (optionnel)</label>
             <label className="flex items-center justify-center gap-2 h-24 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 transition-colors">
               {photoPreview ? (
-                <img src={photoPreview} alt="Preuve" className="h-full object-cover rounded-lg" />
+                photoFile?.type === "application/pdf" ? (
+                  <div className="flex items-center gap-2 text-primary">
+                    <FileText size={24} />
+                    <span className="text-xs font-medium">{photoFile.name}</span>
+                  </div>
+                ) : (
+                  <img src={photoPreview} alt="Preuve" className="h-full object-cover rounded-lg" />
+                )
               ) : (
                 <div className="text-center">
                   <Camera size={20} className="text-muted-foreground mx-auto mb-1" />
-                  <span className="text-xs text-muted-foreground">Ajouter une photo</span>
+                  <span className="text-xs text-muted-foreground">Photo ou PDF</span>
                 </div>
               )}
               <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePhoto} />
