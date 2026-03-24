@@ -406,6 +406,31 @@ const AdminDashboard = () => {
                 </div>
               </div>
             )}
+            {/* Disputes over time chart */}
+            {disputes.length > 0 && (() => {
+              const byDay: Record<string, number> = {};
+              disputes.forEach(d => {
+                const day = new Date(d.created_at).toISOString().slice(0, 10);
+                byDay[day] = (byDay[day] || 0) + 1;
+              });
+              const chartData = Object.entries(byDay).sort(([a], [b]) => a.localeCompare(b)).map(([day, count]) => ({ day, count }));
+              return (
+                <div className="bg-card border border-border rounded-2xl p-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingUp size={14} className="text-warning" /> Évolution des litiges</h3>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="day" tickFormatter={(d: string) => { try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); } catch { return d; } }} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                        <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" allowDecimals={false} />
+                        <Tooltip labelFormatter={(d: string) => { try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }); } catch { return d; } }} contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} />
+                        <Bar dataKey="count" name="Litiges" fill="hsl(var(--warning))" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              );
+            })()}
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Gavel size={14} className="text-warning" /> Litiges en cours</h3>
