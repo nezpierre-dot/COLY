@@ -866,6 +866,15 @@ const Dashboard = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
+                            {v.status === "completed" && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); archivedVoyageIds.has(v.id) ? unarchiveVoyage(v.id) : archiveVoyage(v.id); }}
+                                className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-primary-foreground/30 flex items-center justify-center transition-colors"
+                                title={archivedVoyageIds.has(v.id) ? "Désarchiver" : "Archiver"}
+                              >
+                                <Archive size={12} />
+                              </button>
+                            )}
                             {v.status === "cancelled" ? (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setDeleteDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
@@ -873,14 +882,14 @@ const Dashboard = () => {
                               >
                                 <Trash2 size={12} />
                               </button>
-                            ) : (
+                            ) : v.status !== "completed" ? (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setCancelDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
                                 className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
                               >
                                 <X size={12} />
                               </button>
-                            )}
+                            ) : null}
                             <button
                               onClick={(e) => { e.stopPropagation(); handleToggleFavorite(v.departure_city, v.arrival_city); }}
                               className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
