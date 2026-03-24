@@ -140,18 +140,29 @@ const DisputesPage = () => {
         setMyDisputes(deduped);
         const disputeIds = deduped.map((x: any) => x.id);
         if (disputeIds.length > 0) {
-          const { data: msgs } = await supabase
-            .from("dispute_messages" as any)
-            .select("*")
-            .in("dispute_id", disputeIds)
-            .order("created_at", { ascending: true });
-          if (msgs) {
+          const [msgsRes, ratingsRes] = await Promise.all([
+            supabase
+              .from("dispute_messages" as any)
+              .select("*")
+              .in("dispute_id", disputeIds)
+              .order("created_at", { ascending: true }),
+            supabase
+              .from("dispute_ratings" as any)
+              .select("*")
+              .eq("user_id", user.id),
+          ]);
+          if (msgsRes.data) {
             const grouped: Record<string, DisputeMessage[]> = {};
-            (msgs as any[]).forEach((msg: any) => {
+            (msgsRes.data as any[]).forEach((msg: any) => {
               if (!grouped[msg.dispute_id]) grouped[msg.dispute_id] = [];
               grouped[msg.dispute_id].push(msg);
             });
             setDisputeMessages(grouped);
+          }
+          if (ratingsRes.data) {
+            const rMap: Record<string, number> = {};
+            (ratingsRes.data as any[]).forEach((r: any) => { rMap[r.dispute_id] = r.score; });
+            setMyRatings(rMap);
           }
         }
       }
