@@ -190,7 +190,7 @@ const VoyageDetail = () => {
     const checkAccepted = async () => {
       const { data: shipData } = await supabase
         .from("shipments")
-        .select("id, departure_city, arrival_city, arrival_country, size, tarif, status, departure_date")
+        .select("id, departure_city, arrival_city, arrival_country, size, tarif, status, departure_date, user_id")
         .eq("voyageur_id", user.id)
         .in("status", ["accepted", "picked_up", "in_transit", "delivered"])
         .eq("arrival_city", voyage.arrival_city)
