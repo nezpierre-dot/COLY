@@ -371,11 +371,29 @@ const VoyageDetail = () => {
           {/* Linked items summary */}
           {(acceptedColis.length > 0 || acceptedMissions.length > 0) && (
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
-              <div className="px-4 py-2.5 bg-muted/30 border-b border-border">
+              <div className="px-4 py-2.5 bg-muted/30 border-b border-border flex items-center justify-between">
                 <p className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <Package size={13} className="text-primary" />
                   {acceptedColis.length + acceptedMissions.length} élément{(acceptedColis.length + acceptedMissions.length) > 1 ? "s" : ""} lié{(acceptedColis.length + acceptedMissions.length) > 1 ? "s" : ""}
                 </p>
+                {(() => {
+                  const delivered = acceptedColis.filter(s => s.status === "delivered").length + acceptedMissions.filter(m => m.status === "completed").length;
+                  const enCours = (acceptedColis.length + acceptedMissions.length) - delivered;
+                  return (
+                    <div className="flex items-center gap-2">
+                      {delivered > 0 && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                          <Check size={10} /> {delivered} livré{delivered > 1 ? "s" : ""}
+                        </span>
+                      )}
+                      {enCours > 0 && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                          <Loader2 size={10} /> {enCours} en cours
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
               <div className="divide-y divide-border">
                 {acceptedColis.map((shipment) => {
