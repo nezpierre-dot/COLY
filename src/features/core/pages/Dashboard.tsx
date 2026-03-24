@@ -56,6 +56,7 @@ type Voyage = {
   status: string;
   max_weight_kg: number | null;
   max_items: number | null;
+  cutoff_hours?: number;
 };
 
 // --- Voyageur Quick Stats with mini chart ---
