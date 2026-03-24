@@ -600,6 +600,16 @@ const VoyageDetail = () => {
                       Tout passer en transit ({eligibleForBatchTransit.length})
                     </button>
                   )}
+                  {/* PDF export button */}
+                  {isOwner && (
+                    <button
+                      onClick={handleExportPDF}
+                      className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 rounded-xl bg-muted/50 text-muted-foreground hover:bg-muted transition-colors"
+                    >
+                      <Download size={14} />
+                      Exporter le récapitulatif PDF
+                    </button>
+                  )}
                 </div>
 
                 <div className="divide-y divide-border">
