@@ -102,7 +102,7 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
 
   // Computed stats
   const stats = useMemo(() => {
-    if (!user) return { totalMissions: 0, totalGains: 0, totalExpenses: 0, totalDistance: 0, deliveredCount: 0 };
+    if (!user) return { totalMissions: 0, totalGains: 0, totalExpenses: 0, totalDistance: 0, deliveredCount: 0, activeVoyages: 0, completedVoyages: 0, cancelledVoyages: 0, totalVoyages: 0 };
 
     const myShipAsVoyageur = shipments.filter(s => s.voyageur_id === user.id && s.status === "delivered");
     const myMissAsVoyageur = missions.filter(m => m.voyageur_id === user.id && (m.status === "completed"));
@@ -132,12 +132,20 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
       return sum + estimateDistance(v.departure_country, v.arrival_country);
     }, 0);
 
+    const activeVoyages = voyages.filter(v => v.status === "active").length;
+    const completedVoyages = voyages.filter(v => v.status === "completed").length;
+    const cancelledVoyages = voyages.filter(v => v.status === "cancelled").length;
+
     return {
       totalMissions: shipments.length + missions.length,
       totalGains: gains,
       totalExpenses: expenses,
       totalDistance,
       deliveredCount: myShipAsVoyageur.length + myMissAsVoyageur.length,
+      activeVoyages,
+      completedVoyages,
+      cancelledVoyages,
+      totalVoyages: voyages.length,
     };
   }, [shipments, missions, voyages, user]);
 
