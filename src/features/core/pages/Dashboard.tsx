@@ -461,15 +461,15 @@ const Dashboard = () => {
   }, [pendingShipments, matchedShipments]);
 
   const matchedNeedit = useMemo(() => {
-    if (!voyages.length || !needitMissions.length) return [];
+    if (!activeVoyages.length || !needitMissions.length) return [];
     return needitMissions.filter((m) =>
-      voyages.some((v) => {
+      activeVoyages.some((v: any) => {
         const countryMatch = v.arrival_country?.toLowerCase() === m.country?.toLowerCase();
         const cityMatch = v.arrival_city?.toLowerCase() === m.city?.toLowerCase();
         return countryMatch && (cityMatch || !m.city);
       })
     );
-  }, [voyages, needitMissions]);
+  }, [activeVoyages, needitMissions]);
 
   const unmatchedNeedit = useMemo(() => {
     const matchedIds = new Set(matchedNeedit.map((m) => m.id));
