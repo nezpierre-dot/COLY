@@ -5,7 +5,6 @@ import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
 import VoyageurOnboarding from "@/components/VoyageurOnboarding";
 import DemandeurOnboarding from "@/components/DemandeurOnboarding";
-import { toast } from "sonner";
 
 const VoyageurSettings = () => {
   const navigate = useNavigate();
@@ -64,20 +63,20 @@ const VoyageurSettings = () => {
             <div className="bg-card rounded-2xl border border-border divide-y divide-border">
               <div className="px-4 py-3">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <GraduationCap size={14} /> Didacticiels
+                  <GraduationCap size={14} /> {t("tutDem.settingsTutorials")}
                 </p>
               </div>
               <button
                 onClick={handleRelaunchVoyageur}
                 className="w-full text-center py-5 text-foreground font-semibold text-sm hover:bg-muted/50 transition-colors"
               >
-                🧳 Relancer le tutoriel Voyageur
+                {t("tutDem.relaunchVoyageur")}
               </button>
               <button
                 onClick={handleRelaunchDemandeur}
                 className="w-full text-center py-5 text-foreground font-semibold text-sm hover:bg-muted/50 transition-colors"
               >
-                📦 Relancer le tutoriel Demandeur
+                {t("tutDem.relaunchDemandeur")}
               </button>
             </div>
           </div>

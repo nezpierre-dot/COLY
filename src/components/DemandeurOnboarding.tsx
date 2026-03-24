@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, ShoppingBag, Shield, CreditCard, ArrowRight, X, Send, MapPin, Bell } from "lucide-react";
+import { Package, ShoppingBag, Shield, ArrowRight, X, Send, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface DemandeurOnboardingProps {
   onComplete: () => void;
@@ -10,6 +11,7 @@ interface DemandeurOnboardingProps {
 const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
   const [step, setStep] = useState(0);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleFinish = () => {
     localStorage.setItem("demandeur-onboarding-done", "1");
@@ -20,22 +22,20 @@ const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
     {
       icon: <Package size={36} className="text-primary-foreground" />,
       gradient: "from-primary to-primary/70",
-      title: "Bienvenue sur Nidit ! 📦",
+      title: t("tutDem.s1Title"),
       content: (
         <div className="space-y-3 text-center">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Envoyez des <strong>colis</strong> avec des voyageurs de confiance ou faites <strong>acheter des produits</strong> introuvables chez vous grâce à NeedIt.
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t("tutDem.s1Desc") }} />
           <div className="grid grid-cols-2 gap-2 mt-4">
             <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 text-center">
               <Send size={20} className="text-primary mx-auto mb-1" />
-              <p className="text-xs font-semibold text-foreground">Envoyer</p>
-              <p className="text-[10px] text-muted-foreground">Un colis via un voyageur</p>
+              <p className="text-xs font-semibold text-foreground">{t("tutDem.s1Send")}</p>
+              <p className="text-[10px] text-muted-foreground">{t("tutDem.s1SendDesc")}</p>
             </div>
             <div className="bg-secondary/5 border border-secondary/20 rounded-xl p-3 text-center">
               <ShoppingBag size={20} className="text-secondary mx-auto mb-1" />
-              <p className="text-xs font-semibold text-foreground">NeedIt</p>
-              <p className="text-[10px] text-muted-foreground">Un produit à l'étranger</p>
+              <p className="text-xs font-semibold text-foreground">{t("tutDem.s1Needit")}</p>
+              <p className="text-[10px] text-muted-foreground">{t("tutDem.s1NeeditDesc")}</p>
             </div>
           </div>
         </div>
@@ -44,24 +44,17 @@ const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
     {
       icon: <Send size={36} className="text-primary-foreground" />,
       gradient: "from-secondary to-secondary/70",
-      title: "Envoyer un colis 📬",
+      title: t("tutDem.s2Title"),
       content: (
         <div className="space-y-3 text-center">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            En <strong>4 étapes simples</strong>, confiez votre colis à un voyageur vérifié :
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t("tutDem.s2Desc") }} />
           <div className="space-y-2 mt-3">
-            {[
-              { num: "1", text: "Décrivez votre colis (taille, poids, photo)" },
-              { num: "2", text: "Indiquez la destination et le prix" },
-              { num: "3", text: "Un voyageur accepte votre demande" },
-              { num: "4", text: "Confirmez la livraison avec un code" },
-            ].map((item) => (
-              <div key={item.num} className="flex items-center gap-3 bg-card border border-border rounded-xl px-3 py-2.5">
+            {[t("tutDem.s2Step1"), t("tutDem.s2Step2"), t("tutDem.s2Step3"), t("tutDem.s2Step4")].map((text, i) => (
+              <div key={i} className="flex items-center gap-3 bg-card border border-border rounded-xl px-3 py-2.5">
                 <span className="w-7 h-7 rounded-full bg-secondary/10 text-secondary text-xs font-bold flex items-center justify-center shrink-0">
-                  {item.num}
+                  {i + 1}
                 </span>
-                <p className="text-xs font-medium text-foreground text-left">{item.text}</p>
+                <p className="text-xs font-medium text-foreground text-left">{text}</p>
               </div>
             ))}
           </div>
@@ -71,22 +64,20 @@ const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
     {
       icon: <ShoppingBag size={36} className="text-primary-foreground" />,
       gradient: "from-warning to-warning/70",
-      title: "Missions NeedIt 🛒",
+      title: t("tutDem.s3Title"),
       content: (
         <div className="space-y-3 text-center">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Besoin d'un produit introuvable ? Créez une <strong>mission NeedIt</strong> et un voyageur l'achètera pour vous :
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t("tutDem.s3Desc") }} />
           <div className="space-y-2 text-left mt-3">
             {[
-              { emoji: "🔍", text: "Décrivez le produit ou scannez son code-barres" },
-              { emoji: "🌍", text: "Indiquez le pays et la ville d'achat" },
-              { emoji: "💰", text: "Fixez un budget maximum" },
-              { emoji: "🤝", text: "Un voyageur accepte et achète pour vous" },
+              { emoji: "🔍", key: "tutDem.s3Step1" },
+              { emoji: "🌍", key: "tutDem.s3Step2" },
+              { emoji: "💰", key: "tutDem.s3Step3" },
+              { emoji: "🤝", key: "tutDem.s3Step4" },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-2.5 bg-card border border-border rounded-xl px-3 py-2.5">
                 <span className="text-base shrink-0">{item.emoji}</span>
-                <p className="text-xs text-foreground leading-relaxed">{item.text}</p>
+                <p className="text-xs text-foreground leading-relaxed">{t(item.key)}</p>
               </div>
             ))}
           </div>
@@ -96,22 +87,20 @@ const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
     {
       icon: <Shield size={36} className="text-primary-foreground" />,
       gradient: "from-accent to-accent/70",
-      title: "Sécurité & paiement 🔒",
+      title: t("tutDem.s4Title"),
       content: (
         <div className="space-y-3 text-center">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Vos transactions sont <strong>100% sécurisées</strong> grâce au paiement séquestre :
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t("tutDem.s4Desc") }} />
           <div className="space-y-2 text-left mt-3">
             {[
-              { emoji: "🔐", text: "Le paiement est bloqué jusqu'à confirmation de livraison" },
-              { emoji: "📸", text: "Preuves photo obligatoires au ramassage et à la livraison" },
-              { emoji: "🔔", text: "Notifications en temps réel à chaque étape" },
-              { emoji: "⚖️", text: "Système de litiges en cas de problème" },
+              { emoji: "🔐", key: "tutDem.s4Escrow" },
+              { emoji: "📸", key: "tutDem.s4Photo" },
+              { emoji: "🔔", key: "tutDem.s4Notif" },
+              { emoji: "⚖️", key: "tutDem.s4Dispute" },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-2.5 bg-card border border-border rounded-xl px-3 py-2.5">
                 <span className="text-base shrink-0">{item.emoji}</span>
-                <p className="text-xs text-foreground leading-relaxed">{item.text}</p>
+                <p className="text-xs text-foreground leading-relaxed">{t(item.key)}</p>
               </div>
             ))}
           </div>
@@ -121,20 +110,18 @@ const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
     {
       icon: <MapPin size={36} className="text-primary-foreground" />,
       gradient: "from-primary to-secondary/70",
-      title: "C'est parti ! 🚀",
+      title: t("tutDem.s5Title"),
       content: (
         <div className="space-y-3 text-center">
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Vous êtes prêt à utiliser Nidit. Que souhaitez-vous faire ?
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t("tutDem.s5Desc") }} />
           <div className="space-y-2 mt-3">
             {[
-              { num: "📦", text: "Envoyer un colis via un voyageur" },
-              { num: "🛒", text: "Créer une mission NeedIt" },
-              { num: "📊", text: "Explorer le dashboard" },
+              { emoji: "📦", text: t("tutDem.s5Send") },
+              { emoji: "🛒", text: t("tutDem.s5Needit") },
+              { emoji: "📊", text: t("tutDem.s5Dashboard") },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3 bg-card border border-border rounded-xl px-3 py-3">
-                <span className="text-lg shrink-0">{item.num}</span>
+                <span className="text-lg shrink-0">{item.emoji}</span>
                 <p className="text-sm font-medium text-foreground">{item.text}</p>
               </div>
             ))}
@@ -146,15 +133,22 @@ const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
 
   const currentStep = steps[step];
   const isLast = step === steps.length - 1;
+  const stepLabel = t("tutDem.step").replace("{current}", String(step + 1)).replace("{total}", String(steps.length));
 
   return (
     <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex flex-col">
-      <button
-        onClick={handleFinish}
-        className="absolute top-5 right-5 z-10 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-      >
-        Passer <X size={14} />
-      </button>
+      {/* Header: step indicator + skip */}
+      <div className="flex items-center justify-between px-5 pt-5">
+        <span className="text-xs font-semibold text-muted-foreground bg-muted/60 px-3 py-1 rounded-full">
+          {stepLabel}
+        </span>
+        <button
+          onClick={handleFinish}
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+        >
+          {t("tutDem.skip")} <X size={14} />
+        </button>
+      </div>
 
       <div className="flex-1 flex items-center justify-center overflow-hidden px-6">
         <AnimatePresence mode="wait">
@@ -179,6 +173,7 @@ const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
         </AnimatePresence>
       </div>
 
+      {/* Progress dots */}
       <div className="flex justify-center gap-2 mb-4">
         {steps.map((_, i) => (
           <button
@@ -198,19 +193,19 @@ const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
               onClick={() => { handleFinish(); navigate("/send-coly"); }}
               className="w-full py-3.5 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-base font-semibold shadow-lg flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
             >
-              <Package size={18} /> Envoyer un colis
+              <Package size={18} /> {t("tutDem.s5Send")}
             </button>
             <button
               onClick={() => { handleFinish(); navigate("/needit-mission"); }}
               className="w-full py-3.5 rounded-2xl border border-secondary/30 bg-secondary/5 text-foreground text-sm font-medium hover:bg-secondary/10 transition-colors flex items-center justify-center gap-2"
             >
-              <ShoppingBag size={16} /> Créer une mission NeedIt
+              <ShoppingBag size={16} /> {t("tutDem.s5Needit")}
             </button>
             <button
               onClick={handleFinish}
               className="w-full py-3 rounded-2xl text-muted-foreground text-sm hover:text-foreground transition-colors"
             >
-              Explorer le dashboard
+              {t("tutDem.s5Dashboard")}
             </button>
           </>
         ) : (
@@ -218,7 +213,7 @@ const DemandeurOnboarding = ({ onComplete }: DemandeurOnboardingProps) => {
             onClick={() => setStep(s => s + 1)}
             className="w-full py-3.5 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-base font-semibold shadow-lg flex items-center justify-center gap-2 active:scale-[0.97] transition-transform"
           >
-            Suivant <ArrowRight size={18} />
+            {t("tutDem.next")} <ArrowRight size={18} />
           </button>
         )}
       </div>
