@@ -48,11 +48,23 @@ const PublicProfile = () => {
         setReplies(map);
       }
       setStats({ voyages: voyagesRes.count || 0, delivered: deliveredRes.count || 0 });
+
+      // Check if current user has a conversation with this profile user
+      if (user && userId && user.id !== userId) {
+        const { data: convo } = await supabase
+          .from("conversations")
+          .select("id")
+          .or(`and(demandeur_id.eq.${user.id},voyageur_id.eq.${userId}),and(demandeur_id.eq.${userId},voyageur_id.eq.${user.id})`)
+          .limit(1)
+          .maybeSingle();
+        if (convo) setConversationId(convo.id);
+      }
+
       setLoading(false);
     };
 
     load();
-  }, [userId]);
+  }, [userId, user]);
 
   if (loading) {
     return (
