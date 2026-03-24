@@ -123,7 +123,7 @@ const PostMatchActions = ({
   const saveOtpCodes = async (pickup: string | null, delivery: string | null) => {
     const codes = JSON.stringify({ pickup, delivery });
     await supabase
-      .from("shipments")
+      .from(tableName as any)
       .update({ confirmation_code: codes } as any)
       .eq("id", shipmentId);
   };
