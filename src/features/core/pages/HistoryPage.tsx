@@ -231,7 +231,7 @@ const HistoryPage = () => {
         dateCreated: "rawDate",
         price: "amount",
         departureDate: "rawDate",
-        destination: "ref",
+        destination: "destination",
       });
     }
 
