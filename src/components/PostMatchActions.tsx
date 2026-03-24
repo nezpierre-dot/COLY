@@ -87,7 +87,7 @@ const PostMatchActions = ({
       }
     }
     setOtpLoading(false);
-  }, [shipmentId]);
+  }, [shipmentId, tableName]);
 
   useEffect(() => {
     loadOtps();
