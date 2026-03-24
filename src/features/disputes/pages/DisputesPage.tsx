@@ -343,7 +343,7 @@ const DisputesPage = () => {
                   <span className="text-xs text-muted-foreground">Ajouter une photo</span>
                 </div>
               )}
-              <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+              <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handlePhoto} />
             </label>
           </div>
 
