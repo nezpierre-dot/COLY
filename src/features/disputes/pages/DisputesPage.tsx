@@ -60,6 +60,10 @@ const DisputesPage = () => {
   const [replyPhotoPreview, setReplyPhotoPreview] = useState<string | null>(null);
   const [sendingReply, setSendingReply] = useState(false);
   const [closingDispute, setClosingDispute] = useState<string | null>(null);
+  const [myRatings, setMyRatings] = useState<Record<string, number>>({});
+  const [ratingComment, setRatingComment] = useState("");
+  const [ratingDisputeId, setRatingDisputeId] = useState<string | null>(null);
+  const [submittingRating, setSubmittingRating] = useState(false);
   const replyPhotoRef = useRef<HTMLInputElement>(null);
 
   const prefillShipment = searchParams.get("shipment");
