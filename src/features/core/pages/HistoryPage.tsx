@@ -79,6 +79,7 @@ const HistoryPage = () => {
   const [allData, setAllData] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialog, setDeleteDialog] = useState<{ id: string; realId: string; dbTable: "shipments" | "needit_missions"; ref: string } | null>(null);
+  const [historySort, setHistorySort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
 
   const handleDeleteItem = async () => {
     if (!deleteDialog) return;
