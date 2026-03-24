@@ -62,7 +62,7 @@ const MyAccount = () => {
     supabase.rpc("compute_trust_badges", { _user_id: user.id }).then(({ data }) => {
       if (data) setTrustBadges(data);
     });
-    supabase.from("ratings").select("id, score, comment, rater_role, created_at").eq("rated_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
+    supabase.from("ratings").select("id, score, comment, rater_role, rater_id, created_at").eq("rated_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
       if (data) setReviews(data);
     });
     // Fetch existing replies
