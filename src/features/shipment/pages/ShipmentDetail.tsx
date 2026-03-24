@@ -67,6 +67,13 @@ const ShipmentDetail = () => {
 
   useEffect(() => { loadShipment(); }, [loadShipment]);
 
+  // Fetch voyageur profile name
+  useEffect(() => {
+    if (!shipment?.voyageur_id) return;
+    supabase.from("profiles").select("full_name").eq("user_id", shipment.voyageur_id).maybeSingle()
+      .then(({ data }) => { if (data) setVoyageurName(data.full_name); });
+  }, [shipment?.voyageur_id]);
+
   const isOwner = shipment?.user_id === user?.id;
   const isPending = shipment?.status === "pending";
   const canEdit = isOwner && isPending;
