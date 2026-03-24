@@ -403,8 +403,35 @@ const Dashboard = () => {
   const [colisMatchOnly, setColisMatchOnly] = useState(false);
   const [needitMatchOnly, setNeeditMatchOnly] = useState(false);
 
-  // Voyage status filter
+  // Voyage status filter & sort
   const [voyageStatusFilter, setVoyageStatusFilter] = useState<"all" | "active" | "completed" | "cancelled">("all");
+  const [voyageSortDir, setVoyageSortDir] = useState<"asc" | "desc">("asc");
+  const [archivedVoyageIds, setArchivedVoyageIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem("archived-voyages");
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+
+  const archiveVoyage = (id: string) => {
+    setArchivedVoyageIds(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      localStorage.setItem("archived-voyages", JSON.stringify([...next]));
+      return next;
+    });
+    toast.success("Voyage archivé");
+  };
+
+  const unarchiveVoyage = (id: string) => {
+    setArchivedVoyageIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      localStorage.setItem("archived-voyages", JSON.stringify([...next]));
+      return next;
+    });
+    toast.success("Voyage désarchivé");
+  };
 
   // Sort state
   const [voyageurColisSort, setVoyageurColisSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
