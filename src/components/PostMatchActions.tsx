@@ -181,7 +181,7 @@ const PostMatchActions = ({
     }
     setLoading(true);
     try {
-      await supabase.from("shipments").update({ status: "picked_up" } as any).eq("id", shipmentId);
+      await supabase.from(tableName as any).update({ status: "picked_up" } as any).eq("id", shipmentId);
       await addTrackingEvent("picked_up", t("postmatch.trackPickedUp"), t("postmatch.trackPickedUpDesc"));
       
       // Notify sender
