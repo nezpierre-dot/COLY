@@ -12,6 +12,7 @@ import {
   Bell,
   Shield,
   Timer,
+  Star,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
 import LiveLocationSharing from "@/components/LiveLocationSharing";
+import RatingDialog from "@/components/RatingDialog";
 
 interface PostMatchActionsProps {
   shipmentId: string;
