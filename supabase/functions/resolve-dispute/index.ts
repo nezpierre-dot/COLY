@@ -65,6 +65,14 @@ serve(async (req) => {
         }).eq("id", dispute_id);
       }
 
+      // Save message in dispute_messages history
+      await supabaseAdmin.from("dispute_messages").insert({
+        dispute_id,
+        sender_id: user.id,
+        sender_role: "admin",
+        content: admin_response.trim(),
+      });
+
       // In-app notification to demandeur
       await supabaseAdmin.from("notifications").insert({
         user_id: dispute.user_id,
