@@ -302,6 +302,11 @@ const PostMatchActions = ({
 
   // ─── STEP 4: Confirm delivery with OTP ───
   const handleConfirmDelivery = async () => {
+    // Check expiration
+    if (deliveryOtpCreatedAt && Date.now() - deliveryOtpCreatedAt > OTP_EXPIRY_MS) {
+      toast.error(t("postmatch.codeExpired") || "Code expiré. Demandez un nouveau code au voyageur.");
+      return;
+    }
     if (enteredCode.toUpperCase() !== deliveryOtp?.toUpperCase()) {
       toast.error(t("postmatch.wrongCode"));
       return;
