@@ -131,6 +131,15 @@ const PublicProfile = () => {
       </div>
 
       <div className="px-6 -mt-4 relative z-10">
+        {/* Contact button */}
+        {conversationId && (
+          <button
+            onClick={() => navigate(`/chat/${conversationId}`)}
+            className="w-full mb-4 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 shadow-md"
+          >
+            <MessageSquare size={16} /> Contacter
+          </button>
+        )}
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-card border border-border rounded-2xl p-4 text-center shadow-sm">
