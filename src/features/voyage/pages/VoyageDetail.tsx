@@ -6,6 +6,7 @@ import PostMatchActions from "@/components/PostMatchActions";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
+import ConfettiCelebration from "@/components/ConfettiCelebration";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
