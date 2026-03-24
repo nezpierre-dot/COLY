@@ -1,8 +1,9 @@
-import { Home, LayoutGrid, MessageCircle, User } from "lucide-react";
+import { Home, LayoutGrid, MessageCircle, User, AlertTriangle } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { hapticLight } from "@/lib/haptics";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useUnreadMessages } from "@/features/chat";
+import { useUnreadDisputes } from "@/hooks/useUnreadDisputes";
 import { useAuth } from "@/hooks/useAuth";
 
 const tabsDef = [
