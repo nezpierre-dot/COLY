@@ -425,16 +425,19 @@ const HistoryPage = () => {
           </div>
         )}
 
-        {/* Search + AI filters */}
-        <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mb-3">
-          <Search size={16} className="text-muted-foreground shrink-0" />
-          <input
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-            placeholder={t("history.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Rechercher des transactions"
-          />
+        {/* Search + Sort */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex-1 flex items-center gap-2 bg-muted rounded-2xl px-4 py-3">
+            <Search size={16} className="text-muted-foreground shrink-0" />
+            <input
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              placeholder={t("history.searchPlaceholder")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Rechercher des transactions"
+            />
+          </div>
+          <SortSelect value={historySort} onChange={setHistorySort} t={t} keys={["dateCreated", "price"]} />
         </div>
 
         {/* AI filter pills */}
