@@ -406,6 +406,7 @@ const Dashboard = () => {
   // Voyage status filter & sort
   const [voyageStatusFilter, setVoyageStatusFilter] = useState<"all" | "active" | "completed" | "cancelled">("all");
   const [voyageSortDir, setVoyageSortDir] = useState<"asc" | "desc">("asc");
+  const [voyageCitySearch, setVoyageCitySearch] = useState("");
   const [archivedVoyageIds, setArchivedVoyageIds] = useState<Set<string>>(() => {
     try {
       const stored = localStorage.getItem("archived-voyages");
