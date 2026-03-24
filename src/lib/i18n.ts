@@ -2132,6 +2132,7 @@ const de: TranslationDict = {
   "nav.home": "Start",
   "nav.missions": "Missionen",
   "nav.messages": "Nachrichten",
+  "nav.disputes": "Streitigkeiten",
   "nav.profile": "Profil",
 
   "welcome.tagline": "Teile die Reise,\nvereinfache deine\nAustausche.",
