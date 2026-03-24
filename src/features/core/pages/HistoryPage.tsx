@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2 } from "lucide-react";
+import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -78,6 +79,7 @@ const HistoryPage = () => {
   const [allData, setAllData] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteDialog, setDeleteDialog] = useState<{ id: string; realId: string; dbTable: "shipments" | "needit_missions"; ref: string } | null>(null);
+  const [historySort, setHistorySort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
 
   const handleDeleteItem = async () => {
     if (!deleteDialog) return;
@@ -218,8 +220,18 @@ const HistoryPage = () => {
       items = [...items].sort((a, b) => a.amount - b.amount).filter((i) => i.amount < 0);
     }
 
+    // Apply sort (only when not using AI filter which has its own sort)
+    if (aiFilter === "all") {
+      items = applySortOption(items, historySort, {
+        dateCreated: "rawDate",
+        price: "amount",
+        departureDate: "rawDate",
+        destination: "ref",
+      });
+    }
+
     return items;
-  }, [activeTab, search, aiFilter, allData]);
+  }, [activeTab, search, aiFilter, allData, historySort]);
 
   // Stats
   const totalGains = useMemo(() => allData.filter((i) => i.amount > 0).reduce((s, i) => s + i.amount, 0), [allData]);
@@ -413,16 +425,19 @@ const HistoryPage = () => {
           </div>
         )}
 
-        {/* Search + AI filters */}
-        <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mb-3">
-          <Search size={16} className="text-muted-foreground shrink-0" />
-          <input
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-            placeholder={t("history.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Rechercher des transactions"
-          />
+        {/* Search + Sort */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex-1 flex items-center gap-2 bg-muted rounded-2xl px-4 py-3">
+            <Search size={16} className="text-muted-foreground shrink-0" />
+            <input
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              placeholder={t("history.searchPlaceholder")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              aria-label="Rechercher des transactions"
+            />
+          </div>
+          <SortSelect value={historySort} onChange={setHistorySort} t={t} keys={["dateCreated", "price"]} />
         </div>
 
         {/* AI filter pills */}
