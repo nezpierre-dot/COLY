@@ -171,6 +171,19 @@ const PostMatchActions = ({
     return () => clearInterval(interval);
   }, [pickupOtpCreatedAt, deliveryOtpCreatedAt, pickupOtp, deliveryOtp]);
 
+  // Check if demandeur already rated this shipment
+  useEffect(() => {
+    if (!user || !isSender || shipmentStatus !== "delivered") return;
+    supabase
+      .from("ratings")
+      .select("id")
+      .eq("shipment_id", shipmentId)
+      .eq("rater_id", user.id)
+      .then(({ data }) => {
+        if (data && data.length > 0) setHasRated(true);
+      });
+  }, [user, isSender, shipmentStatus, shipmentId]);
+
   const saveOtpCodes = async (
     pickup: string | null,
     delivery: string | null,
