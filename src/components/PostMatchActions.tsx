@@ -28,6 +28,7 @@ interface PostMatchActionsProps {
   voyageurId: string | null;
   onStatusChange?: (newStatus: string) => void;
   compact?: boolean; // for ChatPage embedding
+  itemType?: "shipment" | "needit"; // defaults to shipment
 }
 
 // Generate a random 6-char OTP
