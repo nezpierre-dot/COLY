@@ -360,25 +360,56 @@ const AdminDashboard = () => {
                             )}
                             <p className="text-[10px] text-muted-foreground">{formatDateTime(d.created_at)}</p>
                             {isActive && (
-                              <div className="flex items-center gap-2 pt-1">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="h-7 text-xs rounded-lg gap-1"
-                                  disabled={resolvingId === d.id}
-                                  onClick={() => handleDisputeAction(d.id, "resolve")}
-                                >
-                                  <CheckCircle size={12} /> Résoudre
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  className="h-7 text-xs rounded-lg gap-1"
-                                  disabled={resolvingId === d.id}
-                                  onClick={() => handleDisputeAction(d.id, "refund")}
-                                >
-                                  <DollarSign size={12} /> Rembourser
-                                </Button>
+                              <div className="space-y-2 pt-1">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs rounded-lg gap-1"
+                                    disabled={resolvingId === d.id}
+                                    onClick={() => handleDisputeAction(d.id, "resolve")}
+                                  >
+                                    <CheckCircle size={12} /> Résoudre
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="h-7 text-xs rounded-lg gap-1"
+                                    disabled={resolvingId === d.id}
+                                    onClick={() => handleDisputeAction(d.id, "refund")}
+                                  >
+                                    <DollarSign size={12} /> Rembourser
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    className="h-7 text-xs rounded-lg gap-1"
+                                    onClick={() => setReplyingId(replyingId === d.id ? null : d.id)}
+                                  >
+                                    <MessageSquare size={12} /> Répondre
+                                  </Button>
+                                </div>
+                                {replyingId === d.id && (
+                                  <div className="bg-muted/50 rounded-xl p-3 space-y-2">
+                                    <textarea
+                                      value={replyText}
+                                      onChange={(e) => setReplyText(e.target.value)}
+                                      placeholder="Répondre au demandeur (email + notification)..."
+                                      className="w-full bg-background border border-border rounded-lg p-2 text-xs text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                      rows={3}
+                                    />
+                                    <div className="flex justify-end">
+                                      <Button
+                                        size="sm"
+                                        className="h-7 text-xs rounded-lg gap-1"
+                                        disabled={sendingReply || !replyText.trim()}
+                                        onClick={() => handleDisputeReply(d.id)}
+                                      >
+                                        <Send size={12} /> Envoyer
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
