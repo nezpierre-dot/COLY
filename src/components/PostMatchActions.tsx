@@ -450,9 +450,24 @@ const PostMatchActions = ({
             </p>
           )}
           {pickupTimeLeft !== null && pickupTimeLeft <= 0 && (
-            <p className="text-[10px] text-center font-medium text-destructive">
-              Code expiré — générez un nouveau code
-            </p>
+            <div className="space-y-2">
+              <p className="text-[10px] text-center font-medium text-destructive">
+                Code expiré
+              </p>
+              <Button
+                onClick={handleGeneratePickupOtp}
+                disabled={loading}
+                variant="outline"
+                size="sm"
+                className="w-full rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                {loading ? (
+                  <><Loader2 size={14} className="animate-spin mr-2" /> {t("common.loading")}</>
+                ) : (
+                  <><Key size={14} className="mr-2" /> Regénérer le code</>
+                )}
+              </Button>
+            </div>
           )}
         </motion.div>
       )}
@@ -556,9 +571,24 @@ const PostMatchActions = ({
             </p>
           )}
           {deliveryTimeLeft !== null && deliveryTimeLeft <= 0 && (
-            <p className="text-[10px] text-center font-medium text-destructive">
-              Code expiré — générez un nouveau code
-            </p>
+            <div className="space-y-2">
+              <p className="text-[10px] text-center font-medium text-destructive">
+                Code expiré
+              </p>
+              <Button
+                onClick={handleGenerateDeliveryOtp}
+                disabled={loading}
+                variant="outline"
+                size="sm"
+                className="w-full rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                {loading ? (
+                  <><Loader2 size={14} className="animate-spin mr-2" /> {t("common.loading")}</>
+                ) : (
+                  <><Key size={14} className="mr-2" /> Regénérer le code</>
+                )}
+              </Button>
+            </div>
           )}
         </motion.div>
       )}
