@@ -51,6 +51,7 @@ const ShipmentDetail = lazy(() => import("./features/shipment/pages/ShipmentDeta
 const NeeditMissionDetail = lazy(() => import("./features/needit/pages/NeeditMissionDetail"));
 const FavoritesPage = lazy(() => import("./features/core/pages/FavoritesPage"));
 const DisputesPage = lazy(() => import("./features/disputes/pages/DisputesPage"));
+const PublicProfile = lazy(() => import("./features/profile/PublicProfile"));
 
 const queryClient = new QueryClient();
 
