@@ -122,7 +122,7 @@ const DisputesPage = () => {
       
       if (deduped.length > 0) {
         setMyDisputes(deduped);
-        const disputeIds = d.map((x: any) => x.id);
+        const disputeIds = deduped.map((x: any) => x.id);
         if (disputeIds.length > 0) {
           const { data: msgs } = await supabase
             .from("dispute_messages" as any)
