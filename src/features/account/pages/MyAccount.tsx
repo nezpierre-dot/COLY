@@ -49,6 +49,10 @@ const MyAccount = () => {
   const [trustBadges, setTrustBadges] = useState<string[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [replies, setReplies] = useState<Record<string, string>>({});
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
 
   useEffect(() => {
     if (!user) return;
