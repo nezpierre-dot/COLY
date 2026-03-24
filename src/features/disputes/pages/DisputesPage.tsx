@@ -147,7 +147,11 @@ const DisputesPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
+    if (file.type === "application/pdf") {
+      setPhotoPreview("pdf");
+    } else {
+      setPhotoPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleReplyPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
