@@ -76,13 +76,13 @@ const PostMatchActions = ({
       .eq("id", shipmentId)
       .maybeSingle();
     if (data) {
-      // We store OTPs as JSON in confirmation_code: { pickup: "XXX", delivery: "YYY" }
+      const row = data as any;
       try {
-        const codes = JSON.parse(data.confirmation_code || "{}");
+        const codes = JSON.parse(row.confirmation_code || "{}");
         setPickupOtp(codes.pickup || null);
         setDeliveryOtp(codes.delivery || null);
       } catch {
-        setPickupOtp(data.confirmation_code || null);
+        setPickupOtp(row.confirmation_code || null);
         setDeliveryOtp(null);
       }
     }
