@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins, Globe, Rocket, ShoppingCart, Trophy, Wallet, BarChart3, Gift } from "lucide-react";
+import { CheckCircle2, Camera, Pencil, X, Save, ChevronDown, User, Settings, Shield, CreditCard, HelpCircle, ShieldCheck, Lock, Star, Plane, Package, TrendingUp, Award, BadgeCheck, Coins, Globe, Rocket, ShoppingCart, Trophy, Wallet, BarChart3, Gift, MessageSquare, Send } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -49,6 +49,10 @@ const MyAccount = () => {
   const [trustBadges, setTrustBadges] = useState<string[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [replies, setReplies] = useState<Record<string, string>>({});
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [submittingReply, setSubmittingReply] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -60,6 +64,14 @@ const MyAccount = () => {
     });
     supabase.from("ratings").select("id, score, comment, rater_role, created_at").eq("rated_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
       if (data) setReviews(data);
+    });
+    // Fetch existing replies
+    supabase.from("rating_replies").select("rating_id, content").eq("user_id", user.id).then(({ data }) => {
+      if (data) {
+        const map: Record<string, string> = {};
+        data.forEach((r: any) => { map[r.rating_id] = r.content; });
+        setReplies(map);
+      }
     });
     supabase.from("profiles").select("bio, avatar_url, kyc_status").eq("user_id", user.id).single().then(({ data }) => {
       if (data) {
@@ -515,10 +527,77 @@ const MyAccount = () => {
                   {review.comment && (
                     <p className="text-sm text-foreground/80 italic">"{review.comment}"</p>
                   )}
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <User size={12} className="text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">{review.rater_role === "demandeur" ? "Demandeur" : "Voyageur"}</span>
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <User size={12} className="text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{review.rater_role === "demandeur" ? "Demandeur" : "Voyageur"}</span>
+                    </div>
+                    {!replies[review.id] && replyingTo !== review.id && (
+                      <button
+                        onClick={() => { setReplyingTo(review.id); setReplyText(""); }}
+                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        <MessageSquare size={12} /> Répondre
+                      </button>
+                    )}
                   </div>
+
+                  {/* Reply form */}
+                  <AnimatePresence>
+                    {replyingTo === review.id && !replies[review.id] && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-3 overflow-hidden"
+                      >
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Votre réponse..."
+                            maxLength={300}
+                            className="flex-1 text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                          />
+                          <button
+                            disabled={!replyText.trim() || submittingReply}
+                            onClick={async () => {
+                              if (!replyText.trim() || !user) return;
+                              setSubmittingReply(true);
+                              const { error } = await supabase.from("rating_replies").insert({
+                                rating_id: review.id,
+                                user_id: user.id,
+                                content: replyText.trim(),
+                              } as any);
+                              setSubmittingReply(false);
+                              if (error) { toast.error("Erreur lors de l'envoi"); return; }
+                              setReplies(prev => ({ ...prev, [review.id]: replyText.trim() }));
+                              setReplyingTo(null);
+                              setReplyText("");
+                              hapticSuccess();
+                              toast.success("Réponse publiée !");
+                            }}
+                            className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shrink-0 disabled:opacity-50"
+                          >
+                            <Send size={14} />
+                          </button>
+                        </div>
+                        <button onClick={() => setReplyingTo(null)} className="text-xs text-muted-foreground mt-1 hover:underline">Annuler</button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Existing reply */}
+                  {replies[review.id] && (
+                    <div className="mt-3 pl-3 border-l-2 border-primary/30">
+                      <div className="flex items-center gap-1 mb-1">
+                        <MessageSquare size={11} className="text-primary" />
+                        <span className="text-xs font-semibold text-primary">Votre réponse</span>
+                      </div>
+                      <p className="text-sm text-foreground/80">"{replies[review.id]}"</p>
+                    </div>
+                  )}
                 </motion.div>
               ))}
               {reviews.length > 3 && (

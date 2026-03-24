@@ -623,6 +623,38 @@ export type Database = {
         }
         Relationships: []
       }
+      rating_replies: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          rating_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          rating_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          rating_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rating_replies_rating_id_fkey"
+            columns: ["rating_id"]
+            isOneToOne: true
+            referencedRelation: "ratings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ratings: {
         Row: {
           comment: string | null
