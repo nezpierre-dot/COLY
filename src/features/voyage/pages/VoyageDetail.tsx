@@ -637,7 +637,8 @@ const VoyageDetail = () => {
                       onStatusChange={(s) => {
                         setAcceptedMissions(prev => prev.map(m => m.id === mission.id ? { ...m, status: s } : m));
                       }}
-                      compact
+                       compact
+                       itemType="needit"
                     />
                   )}
                 </div>
