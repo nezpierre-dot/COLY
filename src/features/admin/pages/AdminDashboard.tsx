@@ -53,6 +53,7 @@ const AdminDashboard = () => {
   const [replyPhoto, setReplyPhoto] = useState<File | null>(null);
   const [replyPhotoPreview, setReplyPhotoPreview] = useState<string | null>(null);
   const replyPhotoRef = useRef<HTMLInputElement>(null);
+  const [disputeStats, setDisputeStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
