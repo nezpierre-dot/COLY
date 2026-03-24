@@ -340,8 +340,8 @@ const VoyageDetail = () => {
     );
   }
 
-  const statusColor = voyage.status === "active" ? "bg-primary" : voyage.status === "cancelled" ? "bg-destructive" : "bg-muted";
-  const statusLabel = voyage.status === "active" ? t("dashboard.active") : voyage.status === "cancelled" ? t("dashboard.cancelled") : voyage.status;
+  const statusColor = voyage.status === "active" ? "bg-primary" : voyage.status === "cancelled" ? "bg-destructive" : voyage.status === "completed" ? "bg-success" : "bg-muted";
+  const statusLabel = voyage.status === "active" ? t("dashboard.active") : voyage.status === "cancelled" ? t("dashboard.cancelled") : voyage.status === "completed" ? "Terminé" : voyage.status;
 
   return (
     <div className="min-h-screen bg-background pb-24">
