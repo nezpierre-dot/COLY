@@ -403,6 +403,9 @@ const Dashboard = () => {
   const [colisMatchOnly, setColisMatchOnly] = useState(false);
   const [needitMatchOnly, setNeeditMatchOnly] = useState(false);
 
+  // Voyage status filter
+  const [voyageStatusFilter, setVoyageStatusFilter] = useState<"all" | "active" | "completed" | "cancelled">("all");
+
   // Sort state
   const [voyageurColisSort, setVoyageurColisSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
   const [voyageurNeeditSort, setVoyageurNeeditSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
@@ -707,6 +710,29 @@ const Dashboard = () => {
 
               {/* ---- Voyages tab ---- */}
               <TabsContent value="voyages" className="space-y-3 mt-0">
+                {/* Status filter */}
+                {voyages.length > 0 && (
+                  <div className="flex gap-1.5 overflow-x-auto pb-1">
+                    {([
+                      { key: "all" as const, label: `Tous (${voyages.length})` },
+                      { key: "active" as const, label: `Actifs (${voyages.filter(v => v.status === "active").length})` },
+                      { key: "completed" as const, label: `Terminés (${voyages.filter(v => v.status === "completed").length})` },
+                      { key: "cancelled" as const, label: `Annulés (${voyages.filter(v => v.status === "cancelled").length})` },
+                    ]).map(f => (
+                      <button
+                        key={f.key}
+                        onClick={() => setVoyageStatusFilter(f.key)}
+                        className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                          voyageStatusFilter === f.key
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               {voyages.length === 0 ? (
                   <EmptyState
                     icon={Plane}
@@ -719,7 +745,9 @@ const Dashboard = () => {
                     }
                   />
                 ) : (
-                  voyages.map((v) => {
+                  voyages.filter(v => voyageStatusFilter === "all" || v.status === voyageStatusFilter).length === 0 ? (
+                    <p className="text-center text-sm text-muted-foreground py-6">Aucun voyage avec ce statut</p>
+                  ) : voyages.filter(v => voyageStatusFilter === "all" || v.status === voyageStatusFilter).map((v) => {
                     const isSelected = selectedVoyage === v.id;
                     const fav = isRouteFavorite(v.departure_city, v.arrival_city);
                     return (
@@ -761,6 +789,20 @@ const Dashboard = () => {
                                     <span className="flex items-center gap-0.5 text-[10px] font-semibold bg-warning/90 text-warning-foreground px-1.5 py-0.5 rounded-full">
                                       <Clock size={9} />
                                       Bientôt fermé
+                                    </span>
+                                  );
+                                }
+                                if (v.status === "completed") {
+                                  return (
+                                    <span className="flex items-center gap-0.5 text-[10px] font-semibold bg-green-500/90 text-white px-1.5 py-0.5 rounded-full">
+                                      ✅ Terminé
+                                    </span>
+                                  );
+                                }
+                                if (v.status === "cancelled") {
+                                  return (
+                                    <span className="flex items-center gap-0.5 text-[10px] font-semibold bg-destructive/90 text-destructive-foreground px-1.5 py-0.5 rounded-full">
+                                      Annulé
                                     </span>
                                   );
                                 }

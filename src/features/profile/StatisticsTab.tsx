@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
-import { Star, Package, Plane, TrendingUp, MapPin, Coins, Award, BarChart3 } from "lucide-react";
+import { Star, Package, Plane, TrendingUp, MapPin, Coins, Award, BarChart3, CheckCircle, XCircle } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { motion } from "framer-motion";
 
@@ -102,7 +102,7 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
 
   // Computed stats
   const stats = useMemo(() => {
-    if (!user) return { totalMissions: 0, totalGains: 0, totalExpenses: 0, totalDistance: 0, deliveredCount: 0 };
+    if (!user) return { totalMissions: 0, totalGains: 0, totalExpenses: 0, totalDistance: 0, deliveredCount: 0, activeVoyages: 0, completedVoyages: 0, cancelledVoyages: 0, totalVoyages: 0 };
 
     const myShipAsVoyageur = shipments.filter(s => s.voyageur_id === user.id && s.status === "delivered");
     const myMissAsVoyageur = missions.filter(m => m.voyageur_id === user.id && (m.status === "completed"));
@@ -132,12 +132,20 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
       return sum + estimateDistance(v.departure_country, v.arrival_country);
     }, 0);
 
+    const activeVoyages = voyages.filter(v => v.status === "active").length;
+    const completedVoyages = voyages.filter(v => v.status === "completed").length;
+    const cancelledVoyages = voyages.filter(v => v.status === "cancelled").length;
+
     return {
       totalMissions: shipments.length + missions.length,
       totalGains: gains,
       totalExpenses: expenses,
       totalDistance,
       deliveredCount: myShipAsVoyageur.length + myMissAsVoyageur.length,
+      activeVoyages,
+      completedVoyages,
+      cancelledVoyages,
+      totalVoyages: voyages.length,
     };
   }, [shipments, missions, voyages, user]);
 
@@ -268,7 +276,40 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
         </div>
       )}
 
-      {/* Charts side by side */}
+      {/* Voyage status breakdown */}
+      {stats.totalVoyages > 0 && (
+        <div className="bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Plane size={16} className="text-primary" />
+            <span className="text-sm font-semibold text-foreground">Voyages</span>
+            <span className="text-xs text-muted-foreground ml-auto">{stats.totalVoyages} au total</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 text-center">
+              <Plane size={14} className="text-primary mx-auto mb-1" />
+              <p className="text-lg font-bold text-foreground">{stats.activeVoyages}</p>
+              <p className="text-xs text-muted-foreground">Actifs</p>
+            </div>
+            <div className="bg-green-500/5 border border-green-500/20 rounded-xl p-3 text-center">
+              <CheckCircle size={14} className="text-green-500 mx-auto mb-1" />
+              <p className="text-lg font-bold text-foreground">{stats.completedVoyages}</p>
+              <p className="text-xs text-muted-foreground">Terminés</p>
+            </div>
+            <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-3 text-center">
+              <XCircle size={14} className="text-destructive mx-auto mb-1" />
+              <p className="text-lg font-bold text-foreground">{stats.cancelledVoyages}</p>
+              <p className="text-xs text-muted-foreground">Annulés</p>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div className="flex rounded-full overflow-hidden h-2 mt-3">
+            {stats.activeVoyages > 0 && <div className="bg-primary" style={{ width: `${(stats.activeVoyages / stats.totalVoyages) * 100}%` }} />}
+            {stats.completedVoyages > 0 && <div className="bg-green-500" style={{ width: `${(stats.completedVoyages / stats.totalVoyages) * 100}%` }} />}
+            {stats.cancelledVoyages > 0 && <div className="bg-destructive" style={{ width: `${(stats.cancelledVoyages / stats.totalVoyages) * 100}%` }} />}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         {/* Pie chart */}
         {pieData.length > 0 && (
