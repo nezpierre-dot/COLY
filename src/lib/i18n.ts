@@ -1064,6 +1064,7 @@ const en: TranslationDict = {
   "nav.home": "Home",
   "nav.missions": "Missions",
   "nav.messages": "Messages",
+  "nav.disputes": "Disputes",
   "nav.profile": "Profile",
 
   "welcome.tagline": "Share the journey,\nsimplify your\nexchanges.",

@@ -443,7 +443,14 @@ const DisputesPage = () => {
                         <div className="space-y-2 pt-1">
                           {replyPhotoPreview && (
                             <div className="relative inline-block">
-                              <img src={replyPhotoPreview} alt="Photo à joindre" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                              {replyPhotoPreview.startsWith("pdf:") ? (
+                                <div className="flex items-center gap-1.5 text-primary text-xs bg-primary/5 rounded-lg p-2 border border-primary/20">
+                                  <FileText size={16} />
+                                  <span>{replyPhotoPreview.replace("pdf:", "")}</span>
+                                </div>
+                              ) : (
+                                <img src={replyPhotoPreview} alt="Photo à joindre" className="w-20 h-20 object-cover rounded-lg border border-border" />
+                              )}
                               <button
                                 onClick={() => { setReplyPhoto(null); setReplyPhotoPreview(null); }}
                                 className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs"
