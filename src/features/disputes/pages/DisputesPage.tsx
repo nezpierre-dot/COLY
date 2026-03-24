@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle } from "lucide-react";
+import { ArrowLeft, Camera, AlertTriangle, Send, CheckCircle, MessageSquare, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -12,6 +12,13 @@ interface UserShipment {
   id: string;
   ref: string;
   label: string;
+}
+
+interface DisputeMessage {
+  id: string;
+  sender_role: string;
+  content: string;
+  created_at: string;
 }
 
 const DISPUTE_REASONS = [
@@ -35,22 +42,23 @@ const DisputesPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [myDisputes, setMyDisputes] = useState<any[]>([]);
+  const [disputeMessages, setDisputeMessages] = useState<Record<string, DisputeMessage[]>>({});
+  const [expandedDispute, setExpandedDispute] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
 
-  // Pre-fill from URL params
   const prefillShipment = searchParams.get("shipment");
   const prefillMission = searchParams.get("mission");
 
   useEffect(() => {
     if (!user) return;
     const load = async () => {
-      // Load shipments
       const { data: s } = await supabase
         .from("shipments")
         .select("id, arrival_city, departure_city, status")
         .or(`user_id.eq.${user.id},voyageur_id.eq.${user.id}`)
         .in("status", ["delivered", "accepted", "picked_up", "in_transit"]);
 
-      // Load needit missions too
       const { data: m } = await supabase
         .from("needit_missions")
         .select("id, product_name, country, city, status")
@@ -58,7 +66,6 @@ const DisputesPage = () => {
         .in("status", ["accepted", "picked_up", "in_transit", "completed"]);
 
       const items: UserShipment[] = [];
-
       if (s) {
         items.push(...s.map((x) => ({
           id: x.id,
@@ -66,7 +73,6 @@ const DisputesPage = () => {
           label: `📦 NIDIT-${x.id.slice(0, 8).toUpperCase()} — ${x.departure_city || "—"} → ${x.arrival_city}`,
         })));
       }
-
       if (m) {
         items.push(...m.map((x) => ({
           id: x.id,
@@ -74,10 +80,8 @@ const DisputesPage = () => {
           label: `🛒 NEED-${x.id.slice(0, 8).toUpperCase()} — ${x.product_name || "Mission"} (${x.city || x.country})`,
         })));
       }
-
       setShipments(items);
 
-      // Auto-select from URL params
       const prefillId = prefillShipment || prefillMission;
       if (prefillId && items.some((i) => i.id === prefillId)) {
         setSelectedShipment(prefillId);
@@ -88,7 +92,26 @@ const DisputesPage = () => {
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      if (d) setMyDisputes(d);
+      if (d) {
+        setMyDisputes(d);
+        // Load messages for all disputes
+        const disputeIds = d.map((x: any) => x.id);
+        if (disputeIds.length > 0) {
+          const { data: msgs } = await supabase
+            .from("dispute_messages" as any)
+            .select("*")
+            .in("dispute_id", disputeIds)
+            .order("created_at", { ascending: true });
+          if (msgs) {
+            const grouped: Record<string, DisputeMessage[]> = {};
+            (msgs as any[]).forEach((msg: any) => {
+              if (!grouped[msg.dispute_id]) grouped[msg.dispute_id] = [];
+              grouped[msg.dispute_id].push(msg);
+            });
+            setDisputeMessages(grouped);
+          }
+        }
+      }
     };
     load();
   }, [user, prefillShipment, prefillMission]);
@@ -111,13 +134,9 @@ const DisputesPage = () => {
       if (photoFile) {
         const ext = photoFile.name.split(".").pop();
         const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("shipment-photos")
-          .upload(path, photoFile);
+        const { error: upErr } = await supabase.storage.from("shipment-photos").upload(path, photoFile);
         if (!upErr) {
-          const { data: urlData } = await supabase.storage
-            .from("shipment-photos")
-            .createSignedUrl(path, 60 * 60 * 24 * 365);
+          const { data: urlData } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 365);
           photoUrl = urlData?.signedUrl ?? null;
         }
       }
@@ -133,14 +152,16 @@ const DisputesPage = () => {
       });
       if (error) throw error;
 
-      // Notify voyageur + support by email (fire & forget)
+      // Save initial message in history
+      await supabase.from("dispute_messages" as any).insert({
+        dispute_id: disputeId,
+        sender_id: user.id,
+        sender_role: "user",
+        content: description.trim(),
+      } as any);
+
       supabase.functions.invoke("notify-dispute", {
-        body: {
-          dispute_id: disputeId,
-          shipment_id: selectedShipment,
-          reason,
-          description: description.trim(),
-        },
+        body: { dispute_id: disputeId, shipment_id: selectedShipment, reason, description: description.trim() },
       }).catch((e: any) => console.warn("notify-dispute error:", e));
 
       setSubmitted(true);
@@ -149,6 +170,35 @@ const DisputesPage = () => {
       toast.error(err.message || "Erreur lors de la soumission");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleUserReply = async (disputeId: string) => {
+    if (!user || !replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      await supabase.from("dispute_messages" as any).insert({
+        dispute_id: disputeId,
+        sender_id: user.id,
+        sender_role: "user",
+        content: replyText.trim(),
+      } as any);
+
+      setDisputeMessages((prev) => ({
+        ...prev,
+        [disputeId]: [...(prev[disputeId] || []), {
+          id: crypto.randomUUID(),
+          sender_role: "user",
+          content: replyText.trim(),
+          created_at: new Date().toISOString(),
+        }],
+      }));
+      setReplyText("");
+      toast.success("Message envoyé");
+    } catch (err: any) {
+      toast.error("Erreur lors de l'envoi");
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -161,6 +211,12 @@ const DisputesPage = () => {
     };
     const c = map[s] || { label: s, cls: "bg-muted text-muted-foreground" };
     return <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${c.cls}`}>{c.label}</span>;
+  };
+
+  const formatTime = (d: string) => {
+    try {
+      return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    } catch { return d; }
   };
 
   if (submitted) {
@@ -190,7 +246,6 @@ const DisputesPage = () => {
       </div>
 
       <div className="max-w-lg mx-auto px-4 pt-6 space-y-6">
-        {/* Pre-fill banner */}
         {(prefillShipment || prefillMission) && selectedShipment && (
           <div className="flex items-start gap-2 bg-primary/5 border border-primary/20 rounded-xl p-3 text-xs text-primary">
             <AlertTriangle size={14} className="shrink-0 mt-0.5" />
@@ -264,31 +319,93 @@ const DisputesPage = () => {
           </Button>
         </div>
 
-        {/* My disputes */}
+        {/* My disputes with message history */}
         {myDisputes.length > 0 && (
           <div className="space-y-3">
             <h2 className="text-base font-bold text-foreground">Mes litiges</h2>
-            {myDisputes.map((d) => (
-              <div key={d.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-medium text-foreground">
-                    NIDIT-{d.shipment_id.slice(0, 8).toUpperCase()}
-                  </span>
-                  {statusLabel(d.status)}
-                </div>
-                <p className="text-xs text-muted-foreground">{DISPUTE_REASONS.find((r) => r.value === d.reason)?.label ?? d.reason}</p>
-                <p className="text-sm text-foreground">{d.description}</p>
-                {d.resolution && (
-                  <div className="bg-muted/50 rounded-xl p-3">
-                    <p className="text-xs font-semibold text-foreground">Résolution :</p>
-                    <p className="text-xs text-muted-foreground">{d.resolution}</p>
+            {myDisputes.map((d) => {
+              const messages = disputeMessages[d.id] || [];
+              const isExpanded = expandedDispute === d.id;
+              const isActive = d.status === "open" || d.status === "investigating";
+              return (
+                <div key={d.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-medium text-foreground">
+                      LIT-{d.id.slice(0, 8).toUpperCase()}
+                    </span>
+                    {statusLabel(d.status)}
                   </div>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {new Date(d.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
-                </p>
-              </div>
-            ))}
+                  <p className="text-xs text-muted-foreground">{DISPUTE_REASONS.find((r) => r.value === d.reason)?.label ?? d.reason}</p>
+                  <p className="text-sm text-foreground">{d.description}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(d.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+
+                  {/* Toggle message history */}
+                  <button
+                    onClick={() => setExpandedDispute(isExpanded ? null : d.id)}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                  >
+                    <MessageSquare size={13} />
+                    {messages.length > 0 ? `Échanges (${messages.length})` : "Voir les échanges"}
+                  </button>
+
+                  {isExpanded && (
+                    <div className="space-y-2 pt-1">
+                      {/* Message thread */}
+                      {messages.length === 0 ? (
+                        <p className="text-xs text-muted-foreground italic">Aucun échange pour le moment.</p>
+                      ) : (
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {messages.map((msg) => (
+                            <div
+                              key={msg.id}
+                              className={`rounded-xl p-3 text-xs ${
+                                msg.sender_role === "admin"
+                                  ? "bg-primary/5 border border-primary/20 ml-4"
+                                  : "bg-muted/50 border border-border mr-4"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className={`font-semibold ${msg.sender_role === "admin" ? "text-primary" : "text-foreground"}`}>
+                                  {msg.sender_role === "admin" ? "🛡️ Support Nidit" : "Vous"}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                  <Clock size={9} /> {formatTime(msg.created_at)}
+                                </span>
+                              </div>
+                              <p className="text-foreground whitespace-pre-wrap">{msg.content}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Reply box for active disputes */}
+                      {isActive && (
+                        <div className="flex gap-2 pt-1">
+                          <input
+                            type="text"
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Répondre..."
+                            className="flex-1 h-9 rounded-xl border border-border bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleUserReply(d.id)}
+                          />
+                          <Button
+                            size="sm"
+                            className="h-9 rounded-xl gap-1"
+                            disabled={sendingReply || !replyText.trim()}
+                            onClick={() => handleUserReply(d.id)}
+                          >
+                            <Send size={12} />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

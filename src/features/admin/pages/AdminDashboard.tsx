@@ -44,6 +44,8 @@ const AdminDashboard = () => {
   const [usersOverTime, setUsersOverTime] = useState<TimeData[]>([]);
   const [fraudChecks, setFraudChecks] = useState<FraudCheck[]>([]);
   const [disputes, setDisputes] = useState<DisputeRow[]>([]);
+  const [disputeMessages, setDisputeMessages] = useState<Record<string, any[]>>({});
+  const [expandedDisputeHistory, setExpandedDisputeHistory] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [replyingId, setReplyingId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -80,7 +82,26 @@ const AdminDashboard = () => {
       if (sotRes.data) setShipmentsOverTime(sotRes.data as unknown as TimeData[]);
       if (uotRes.data) setUsersOverTime(uotRes.data as unknown as TimeData[]);
       if (fraudRes.data) setFraudChecks(fraudRes.data as unknown as FraudCheck[]);
-      if (disputesRes.data) setDisputes(disputesRes.data as unknown as DisputeRow[]);
+      if (disputesRes.data) {
+        const disputeData = disputesRes.data as unknown as DisputeRow[];
+        setDisputes(disputeData);
+        // Load all dispute messages
+        if (disputeData.length > 0) {
+          const { data: msgs } = await supabase
+            .from("dispute_messages" as any)
+            .select("*")
+            .in("dispute_id", disputeData.map(d => d.id))
+            .order("created_at", { ascending: true });
+          if (msgs) {
+            const grouped: Record<string, any[]> = {};
+            (msgs as any[]).forEach((msg: any) => {
+              if (!grouped[msg.dispute_id]) grouped[msg.dispute_id] = [];
+              grouped[msg.dispute_id].push(msg);
+            });
+            setDisputeMessages(grouped);
+          }
+        }
+      }
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
@@ -352,13 +373,42 @@ const AdminDashboard = () => {
                             <p className="text-xs font-semibold text-foreground">{d.reason}</p>
                             <p className="text-xs text-muted-foreground">Par : {d.reporter_name}</p>
                             {d.description && <p className="text-xs text-muted-foreground line-clamp-2">{d.description}</p>}
-                            {d.resolution && (
-                              <div className="bg-muted/50 rounded-lg p-2">
-                                <p className="text-[10px] font-semibold text-foreground">Résolution :</p>
-                                <p className="text-[10px] text-muted-foreground">{d.resolution}</p>
-                              </div>
-                            )}
                             <p className="text-[10px] text-muted-foreground">{formatDateTime(d.created_at)}</p>
+
+                            {/* Message history toggle */}
+                            {(() => {
+                              const msgs = disputeMessages[d.id] || [];
+                              const isHistoryOpen = expandedDisputeHistory === d.id;
+                              return (
+                                <>
+                                  <button
+                                    onClick={() => setExpandedDisputeHistory(isHistoryOpen ? null : d.id)}
+                                    className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                                  >
+                                    <MessageSquare size={12} />
+                                    {msgs.length > 0 ? `Historique (${msgs.length})` : "Historique"}
+                                  </button>
+                                  {isHistoryOpen && (
+                                    <div className="space-y-1.5 max-h-48 overflow-y-auto bg-muted/30 rounded-xl p-2">
+                                      {msgs.length === 0 ? (
+                                        <p className="text-[10px] text-muted-foreground italic">Aucun échange.</p>
+                                      ) : msgs.map((msg: any) => (
+                                        <div key={msg.id} className={`rounded-lg p-2 text-[11px] ${msg.sender_role === "admin" ? "bg-primary/5 border border-primary/20 ml-3" : "bg-background border border-border mr-3"}`}>
+                                          <div className="flex items-center justify-between mb-0.5">
+                                            <span className={`font-semibold ${msg.sender_role === "admin" ? "text-primary" : "text-foreground"}`}>
+                                              {msg.sender_role === "admin" ? "🛡️ Admin" : "👤 Demandeur"}
+                                            </span>
+                                            <span className="text-[9px] text-muted-foreground">{formatDateTime(msg.created_at)}</span>
+                                          </div>
+                                          <p className="text-foreground whitespace-pre-wrap">{msg.content}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </>
+                              );
+                            })()}
+
                             {isActive && (
                               <div className="space-y-2 pt-1">
                                 <div className="flex items-center gap-2">
