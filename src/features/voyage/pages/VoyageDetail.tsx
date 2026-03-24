@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight } from "lucide-react";
 import AcceptedItemCard from "@/components/AcceptedItemCard";
+import PostMatchActions from "@/components/PostMatchActions";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { motion } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
@@ -189,7 +190,7 @@ const VoyageDetail = () => {
     const checkAccepted = async () => {
       const { data: shipData } = await supabase
         .from("shipments")
-        .select("id, departure_city, arrival_city, arrival_country, size, tarif, status, departure_date")
+        .select("id, departure_city, arrival_city, arrival_country, size, tarif, status, departure_date, user_id")
         .eq("voyageur_id", user.id)
         .in("status", ["accepted", "picked_up", "in_transit", "delivered"])
         .eq("arrival_city", voyage.arrival_city)
@@ -198,7 +199,7 @@ const VoyageDetail = () => {
 
       let missionQuery = supabase
         .from("needit_missions")
-        .select("id, product_name, status, country, city, prix_max")
+        .select("id, product_name, status, country, city, prix_max, user_id")
         .eq("voyageur_id", user.id)
         .in("status", ["accepted", "picked_up", "in_transit", "completed"])
         .eq("country", voyage.arrival_country);
@@ -600,32 +601,47 @@ const VoyageDetail = () => {
                 Missions NeedIt acceptées
               </h2>
               {acceptedMissions.map((mission) => (
-                <AcceptedItemCard
-                  key={mission.id}
-                  id={mission.id}
-                  title={mission.product_name || "Mission NeedIt"}
-                  price={mission.prix_max}
-                  status={mission.status}
-                  steps={[
-                    { key: "accepted", label: "Acceptée" },
-                    { key: "picked_up", label: "Récupéré" },
-                    { key: "in_transit", label: "En transit" },
-                    { key: "completed", label: "Livré" },
-                  ]}
-                  onClick={() => navigate(`/needit/${mission.id}`)}
-                  blocked={!missionsWithProof.has(mission.id)}
-                  blockedMessage="En attente de la preuve d'achat dans le chat avant récupération"
-                  previewUrl={previewUrl}
-                  capturingId={capturingMissionId}
-                  uploadingProof={uploadingProof}
-                  onStartCapture={(id) => {
-                    setCapturingMissionId(id);
-                    setCapturingType("mission");
-                    setTimeout(() => cameraRef.current?.click(), 50);
-                  }}
-                  onRetake={handleRetake}
-                  onConfirm={handleConfirmCapture}
-                />
+                <div key={mission.id} className="space-y-2">
+                  <AcceptedItemCard
+                    id={mission.id}
+                    title={mission.product_name || "Mission NeedIt"}
+                    price={mission.prix_max}
+                    status={mission.status}
+                    steps={[
+                      { key: "accepted", label: "Acceptée" },
+                      { key: "picked_up", label: "Récupéré" },
+                      { key: "in_transit", label: "En transit" },
+                      { key: "completed", label: "Livré" },
+                    ]}
+                    onClick={() => navigate(`/needit/${mission.id}`)}
+                    blocked={!missionsWithProof.has(mission.id)}
+                    blockedMessage="En attente de la preuve d'achat dans le chat avant récupération"
+                    previewUrl={previewUrl}
+                    capturingId={capturingMissionId}
+                    uploadingProof={uploadingProof}
+                    onStartCapture={(id) => {
+                      setCapturingMissionId(id);
+                      setCapturingType("mission");
+                      setTimeout(() => cameraRef.current?.click(), 50);
+                    }}
+                    onRetake={handleRetake}
+                    onConfirm={handleConfirmCapture}
+                  />
+                  {/* OTP codes for this mission */}
+                  {mission.status !== "pending" && mission.status !== "cancelled" && (
+                    <PostMatchActions
+                      shipmentId={mission.id}
+                      shipmentStatus={mission.status}
+                      senderId={mission.user_id || ""}
+                      voyageurId={user?.id || null}
+                      onStatusChange={(s) => {
+                        setAcceptedMissions(prev => prev.map(m => m.id === mission.id ? { ...m, status: s } : m));
+                      }}
+                       compact
+                       itemType="needit"
+                    />
+                  )}
+                </div>
               ))}
             </div>
           )}
@@ -638,30 +654,44 @@ const VoyageDetail = () => {
                 Colis acceptés
               </h2>
               {acceptedColis.map((shipment) => (
-                <AcceptedItemCard
-                  key={shipment.id}
-                  id={shipment.id}
-                  title={`${shipment.departure_city || "—"} → ${shipment.arrival_city}`}
-                  price={shipment.tarif}
-                  status={shipment.status}
-                  steps={[
-                    { key: "accepted", label: "Accepté" },
-                    { key: "picked_up", label: "Récupéré" },
-                    { key: "in_transit", label: "En transit" },
-                    { key: "delivered", label: "Livré" },
-                  ]}
-                  onClick={() => navigate(`/shipment/${shipment.id}`)}
-                  previewUrl={previewUrl}
-                  capturingId={capturingMissionId}
-                  uploadingProof={uploadingProof}
-                  onStartCapture={(id) => {
-                    setCapturingMissionId(id);
-                    setCapturingType("shipment");
-                    setTimeout(() => cameraRef.current?.click(), 50);
-                  }}
-                  onRetake={handleRetake}
-                  onConfirm={handleConfirmCapture}
-                />
+                <div key={shipment.id} className="space-y-2">
+                  <AcceptedItemCard
+                    id={shipment.id}
+                    title={`${shipment.departure_city || "—"} → ${shipment.arrival_city}`}
+                    price={shipment.tarif}
+                    status={shipment.status}
+                    steps={[
+                      { key: "accepted", label: "Accepté" },
+                      { key: "picked_up", label: "Récupéré" },
+                      { key: "in_transit", label: "En transit" },
+                      { key: "delivered", label: "Livré" },
+                    ]}
+                    onClick={() => navigate(`/shipment/${shipment.id}`)}
+                    previewUrl={previewUrl}
+                    capturingId={capturingMissionId}
+                    uploadingProof={uploadingProof}
+                    onStartCapture={(id) => {
+                      setCapturingMissionId(id);
+                      setCapturingType("shipment");
+                      setTimeout(() => cameraRef.current?.click(), 50);
+                    }}
+                    onRetake={handleRetake}
+                    onConfirm={handleConfirmCapture}
+                  />
+                  {/* OTP codes for this shipment */}
+                  {shipment.status !== "pending" && shipment.status !== "cancelled" && (
+                    <PostMatchActions
+                      shipmentId={shipment.id}
+                      shipmentStatus={shipment.status}
+                      senderId={shipment.user_id || ""}
+                      voyageurId={user?.id || null}
+                      onStatusChange={(s) => {
+                        setAcceptedColis(prev => prev.map(c => c.id === shipment.id ? { ...c, status: s } : c));
+                      }}
+                      compact
+                    />
+                  )}
+                </div>
               ))}
             </div>
           )}

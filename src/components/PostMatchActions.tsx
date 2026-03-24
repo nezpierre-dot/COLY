@@ -28,6 +28,7 @@ interface PostMatchActionsProps {
   voyageurId: string | null;
   onStatusChange?: (newStatus: string) => void;
   compact?: boolean; // for ChatPage embedding
+  itemType?: "shipment" | "needit"; // defaults to shipment
 }
 
 // Generate a random 6-char OTP
@@ -51,9 +52,11 @@ const PostMatchActions = ({
   voyageurId,
   onStatusChange,
   compact = false,
+  itemType = "shipment",
 }: PostMatchActionsProps) => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const tableName = itemType === "needit" ? "needit_missions" : "shipments";
   const [pickupOtp, setPickupOtp] = useState<string | null>(null);
   const [deliveryOtp, setDeliveryOtp] = useState<string | null>(null);
   const [enteredCode, setEnteredCode] = useState("");
@@ -68,23 +71,23 @@ const PostMatchActions = ({
   const loadOtps = useCallback(async () => {
     setOtpLoading(true);
     const { data } = await supabase
-      .from("shipments")
+      .from(tableName as any)
       .select("confirmation_code, status")
       .eq("id", shipmentId)
       .maybeSingle();
     if (data) {
-      // We store OTPs as JSON in confirmation_code: { pickup: "XXX", delivery: "YYY" }
+      const row = data as any;
       try {
-        const codes = JSON.parse(data.confirmation_code || "{}");
+        const codes = JSON.parse(row.confirmation_code || "{}");
         setPickupOtp(codes.pickup || null);
         setDeliveryOtp(codes.delivery || null);
       } catch {
-        setPickupOtp(data.confirmation_code || null);
+        setPickupOtp(row.confirmation_code || null);
         setDeliveryOtp(null);
       }
     }
     setOtpLoading(false);
-  }, [shipmentId]);
+  }, [shipmentId, tableName]);
 
   useEffect(() => {
     loadOtps();
@@ -97,7 +100,7 @@ const PostMatchActions = ({
       .on("postgres_changes", {
         event: "UPDATE",
         schema: "public",
-        table: "shipments",
+        table: tableName,
         filter: `id=eq.${shipmentId}`,
       }, (payload: any) => {
         const row = payload.new;
@@ -120,7 +123,7 @@ const PostMatchActions = ({
   const saveOtpCodes = async (pickup: string | null, delivery: string | null) => {
     const codes = JSON.stringify({ pickup, delivery });
     await supabase
-      .from("shipments")
+      .from(tableName as any)
       .update({ confirmation_code: codes } as any)
       .eq("id", shipmentId);
   };
@@ -178,7 +181,7 @@ const PostMatchActions = ({
     }
     setLoading(true);
     try {
-      await supabase.from("shipments").update({ status: "picked_up" } as any).eq("id", shipmentId);
+      await supabase.from(tableName as any).update({ status: "picked_up" } as any).eq("id", shipmentId);
       await addTrackingEvent("picked_up", t("postmatch.trackPickedUp"), t("postmatch.trackPickedUpDesc"));
       
       // Notify sender
@@ -203,7 +206,7 @@ const PostMatchActions = ({
       setDeliveryOtp(otp);
 
       // Update status to in_transit
-      await supabase.from("shipments").update({ status: "in_transit" } as any).eq("id", shipmentId);
+      await supabase.from(tableName as any).update({ status: "in_transit" } as any).eq("id", shipmentId);
       await addTrackingEvent("in_transit", t("postmatch.trackInTransit"), t("postmatch.trackInTransitDesc"));
 
       // Notify sender
@@ -226,7 +229,7 @@ const PostMatchActions = ({
     }
     setLoading(true);
     try {
-      await supabase.from("shipments").update({ status: "delivered" } as any).eq("id", shipmentId);
+      await supabase.from(tableName as any).update({ status: itemType === "needit" ? "completed" : "delivered" } as any).eq("id", shipmentId);
       await addTrackingEvent("delivered", t("postmatch.trackDelivered"), t("postmatch.trackDeliveredDesc"));
 
       // Notify both parties
