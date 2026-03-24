@@ -615,6 +615,14 @@ const VoyageDetail = () => {
               </h2>
               {acceptedMissions.map((mission) => (
                 <div key={mission.id} className="space-y-2">
+                  {mission.user_id && (
+                    <button
+                      onClick={() => navigate(`/profile/${mission.user_id}`)}
+                      className="flex items-center gap-1.5 text-primary text-xs font-semibold hover:underline"
+                    >
+                      <User size={12} /> {demandeurNames[mission.user_id] || "Voir le profil"}
+                    </button>
+                  )}
                   <AcceptedItemCard
                     id={mission.id}
                     title={mission.product_name || "Mission NeedIt"}
