@@ -448,6 +448,9 @@ const AdminDashboard = () => {
                                             </span>
                                             <span className="text-[9px] text-muted-foreground">{formatDateTime(msg.created_at)}</span>
                                           </div>
+                                          {msg.photo_url && (
+                                            <img src={msg.photo_url} alt="Photo jointe" className="w-full max-w-[160px] rounded-lg mb-1 border border-border" />
+                                          )}
                                           <p className="text-foreground whitespace-pre-wrap">{msg.content}</p>
                                         </div>
                                       ))}
@@ -482,13 +485,22 @@ const AdminDashboard = () => {
                                     size="sm"
                                     variant="secondary"
                                     className="h-7 text-xs rounded-lg gap-1"
-                                    onClick={() => setReplyingId(replyingId === d.id ? null : d.id)}
+                                    onClick={() => { setReplyingId(replyingId === d.id ? null : d.id); setReplyPhoto(null); setReplyPhotoPreview(null); }}
                                   >
                                     <MessageSquare size={12} /> Répondre
                                   </Button>
                                 </div>
                                 {replyingId === d.id && (
                                   <div className="bg-muted/50 rounded-xl p-3 space-y-2">
+                                    {replyPhotoPreview && (
+                                      <div className="relative inline-block">
+                                        <img src={replyPhotoPreview} alt="Photo à joindre" className="w-16 h-16 object-cover rounded-lg border border-border" />
+                                        <button
+                                          onClick={() => { setReplyPhoto(null); setReplyPhotoPreview(null); }}
+                                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-[10px]"
+                                        >×</button>
+                                      </div>
+                                    )}
                                     <textarea
                                       value={replyText}
                                       onChange={(e) => setReplyText(e.target.value)}
@@ -496,11 +508,21 @@ const AdminDashboard = () => {
                                       className="w-full bg-background border border-border rounded-lg p-2 text-xs text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/50"
                                       rows={3}
                                     />
-                                    <div className="flex justify-end">
+                                    <div className="flex items-center justify-between">
+                                      <button
+                                        onClick={() => replyPhotoRef.current?.click()}
+                                        className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+                                      >
+                                        <ImagePlus size={14} className="text-muted-foreground" />
+                                      </button>
+                                      <input ref={replyPhotoRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) { setReplyPhoto(file); setReplyPhotoPreview(URL.createObjectURL(file)); }
+                                      }} />
                                       <Button
                                         size="sm"
                                         className="h-7 text-xs rounded-lg gap-1"
-                                        disabled={sendingReply || !replyText.trim()}
+                                        disabled={sendingReply || (!replyText.trim() && !replyPhoto)}
                                         onClick={() => handleDisputeReply(d.id)}
                                       >
                                         <Send size={12} /> Envoyer
