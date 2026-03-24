@@ -443,7 +443,7 @@ const DisputesPage = () => {
                             >
                               <ImagePlus size={16} className="text-muted-foreground" />
                             </button>
-                            <input ref={replyPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleReplyPhoto} />
+                            <input ref={replyPhotoRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleReplyPhoto} />
                             <input
                               type="text"
                               value={replyText}
