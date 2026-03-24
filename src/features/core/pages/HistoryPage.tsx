@@ -154,6 +154,7 @@ const HistoryPage = () => {
             rawDate: new Date(s.created_at),
             category: "voyageur",
             icon: "transport",
+            destination: s.arrival_city || "",
           });
         }
       });
