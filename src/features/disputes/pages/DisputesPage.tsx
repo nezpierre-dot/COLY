@@ -92,14 +92,37 @@ const DisputesPage = () => {
         setSelectedShipment(prefillId);
       }
 
-      const { data: d } = await supabase
+      // Fetch disputes I opened + disputes on my shipments/missions as voyageur
+      const { data: dOwned } = await supabase
         .from("disputes")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      if (d) {
-        setMyDisputes(d);
-        const disputeIds = d.map((x: any) => x.id);
+
+      // Fetch disputes where I'm the voyageur (via shipments or needit_missions)
+      const myShipmentIds = (s || []).map(x => x.id);
+      const myMissionIds = (m || []).map(x => x.id);
+      const allItemIds = [...myShipmentIds, ...myMissionIds].filter(Boolean);
+      
+      let dAsVoyageur: any[] = [];
+      if (allItemIds.length > 0) {
+        const { data: dv } = await supabase
+          .from("disputes")
+          .select("*")
+          .in("shipment_id", allItemIds)
+          .neq("user_id", user.id)
+          .order("created_at", { ascending: false });
+        if (dv) dAsVoyageur = dv;
+      }
+
+      // Merge and deduplicate
+      const allDisputes = [...(dOwned || []), ...dAsVoyageur];
+      const seen = new Set<string>();
+      const deduped = allDisputes.filter(d => { if (seen.has(d.id)) return false; seen.add(d.id); return true; });
+      
+      if (deduped.length > 0) {
+        setMyDisputes(deduped);
+        const disputeIds = deduped.map((x: any) => x.id);
         if (disputeIds.length > 0) {
           const { data: msgs } = await supabase
             .from("dispute_messages" as any)
@@ -219,9 +242,15 @@ const DisputesPage = () => {
     }
   };
 
+  const getMyRole = (dispute: any) => {
+    return dispute.user_id === user?.id ? "user" : "voyageur";
+  };
+
   const handleUserReply = async (disputeId: string) => {
     if (!user || (!replyText.trim() && !replyPhoto)) return;
     setSendingReply(true);
+    const dispute = myDisputes.find(d => d.id === disputeId);
+    const role = dispute ? getMyRole(dispute) : "user";
     try {
       let photoUrl: string | null = null;
       if (replyPhoto) {
@@ -231,7 +260,7 @@ const DisputesPage = () => {
       await supabase.from("dispute_messages" as any).insert({
         dispute_id: disputeId,
         sender_id: user.id,
-        sender_role: "user",
+        sender_role: role,
         content: replyText.trim() || (photoUrl ? "📷 Photo jointe" : ""),
         photo_url: photoUrl,
       } as any);
@@ -375,16 +404,22 @@ const DisputesPage = () => {
         {myDisputes.length > 0 && (
           <div className="space-y-3">
             <h2 className="text-base font-bold text-foreground">Mes litiges</h2>
+            <p className="text-xs text-muted-foreground">Litiges ouverts par vous ou concernant vos missions en tant que voyageur.</p>
             {myDisputes.map((d) => {
               const messages = disputeMessages[d.id] || [];
               const isExpanded = expandedDispute === d.id;
               const isActive = d.status === "open" || d.status === "investigating";
               return (
                 <div key={d.id} className="bg-card border border-border rounded-2xl p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-medium text-foreground">
-                      LIT-{d.id.slice(0, 8).toUpperCase()}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-medium text-foreground">
+                        LIT-{d.id.slice(0, 8).toUpperCase()}
+                      </span>
+                      {d.user_id !== user?.id && (
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-accent/10 text-accent-foreground">Voyageur</span>
+                      )}
+                    </div>
                     {statusLabel(d.status)}
                   </div>
                   <p className="text-xs text-muted-foreground">{DISPUTE_REASONS.find((r) => r.value === d.reason)?.label ?? d.reason}</p>
@@ -417,8 +452,8 @@ const DisputesPage = () => {
                               }`}
                             >
                               <div className="flex items-center justify-between mb-1">
-                                <span className={`font-semibold ${msg.sender_role === "admin" ? "text-primary" : "text-foreground"}`}>
-                                  {msg.sender_role === "admin" ? "🛡️ Support Nidit" : "Vous"}
+                                <span className={`font-semibold ${msg.sender_role === "admin" ? "text-primary" : msg.sender_role === "voyageur" ? "text-accent-foreground" : "text-foreground"}`}>
+                                  {msg.sender_role === "admin" ? "🛡️ Support Nidit" : msg.sender_role === "voyageur" ? "🚀 Voyageur" : (d.user_id === user?.id ? "Vous" : "Demandeur")}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                                   <Clock size={9} /> {formatTime(msg.created_at)}
