@@ -23,11 +23,19 @@ interface DisputeMessage {
   created_at: string;
 }
 
-const DISPUTE_REASONS = [
+const DEMANDEUR_REASONS = [
   { value: "damaged", label: "Colis endommagé" },
   { value: "missing", label: "Colis non reçu" },
   { value: "wrong_item", label: "Mauvais article" },
   { value: "partial", label: "Contenu incomplet" },
+  { value: "other", label: "Autre" },
+];
+
+const VOYAGEUR_REASONS = [
+  { value: "absent_recipient", label: "Destinataire absent au RDV" },
+  { value: "wrong_package", label: "Colis non conforme à la description" },
+  { value: "overweight", label: "Colis trop lourd / hors gabarit" },
+  { value: "unreachable", label: "Demandeur injoignable" },
   { value: "other", label: "Autre" },
 ];
 
