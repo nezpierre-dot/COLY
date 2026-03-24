@@ -332,6 +332,13 @@ const PostMatchActions = ({
     }
   };
 
+  const formatTimeLeft = (ms: number | null) => {
+    if (ms === null || ms <= 0) return null;
+    const mins = Math.floor(ms / 60000);
+    const secs = Math.floor((ms % 60000) / 1000);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
   const handleCopy = async (code: string) => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
