@@ -443,7 +443,9 @@ const VoyageDetail = () => {
 
               html += `<div class="summary">`;
               html += `<p>✅ <strong>${delivered}</strong> livré${delivered > 1 ? "s" : ""} sur <strong>${total}</strong> · Progression: <strong>${progressPct}%</strong></p>`;
-              html += `<p class="total" style="margin-top:8px">💰 Total estimé : ${totalTarifs.toFixed(2)} €</p>`;
+              html += `<p style="margin-top:8px">💰 Total brut : <strong>${totalTarifs.toFixed(2)} €</strong></p>`;
+              html += `<p style="margin-top:4px;color:#ef4444">Commission Nidit (15%) : -${commission.toFixed(2)} €</p>`;
+              html += `<p class="total" style="margin-top:4px">🎯 Revenu net : ${netRevenue.toFixed(2)} €</p>`;
               html += `</div>`;
               html += `<p style="margin-top:24px;font-size:11px;color:#999;text-align:center">Généré le ${new Date().toLocaleDateString("fr-FR")} — ColyTracker</p>`;
               html += `</body></html>`;
