@@ -180,6 +180,26 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
     ].filter(d => d.value > 0);
   }, [stats, shipments, missions, user]);
 
+  // 30-day activity chart
+  const activityChartData = useMemo(() => {
+    const now = new Date();
+    const days: { name: string; value: number }[] = [];
+    const allDates = [
+      ...shipments.map(s => s.created_at),
+      ...missions.map(m => m.created_at),
+      ...voyages.map(v => v.created_at),
+    ];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+      const count = allDates.filter(dt => dt?.startsWith(key)).length;
+      days.push({ name: label, value: count });
+    }
+    return days;
+  }, [shipments, missions, voyages]);
+
   const statCards = [
     { icon: Package, label: "Missions totales", value: stats.totalMissions, color: "primary" },
     { icon: MapPin, label: "Distance estimée", value: `${(stats.totalDistance / 1000).toFixed(0)}k km`, color: "secondary" },
