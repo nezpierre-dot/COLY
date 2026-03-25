@@ -127,7 +127,7 @@ const ConversationsPage = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  
 
   const deleteConversation = async (convId: string) => {
     // Delete messages first, then conversation
