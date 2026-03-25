@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight, User, ChevronRight, Truck, Download, Euro } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Plane, Train, Car, Bus, Ship, Bike, Clock, Pencil, X, Check, Loader2, AlertTriangle, Package, Users, Bell, Lock, ShoppingBag, Camera, Weight, User, ChevronRight, Truck, Download, Euro, Mail } from "lucide-react";
 import AcceptedItemCard from "@/components/AcceptedItemCard";
 import PostMatchActions from "@/components/PostMatchActions";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
@@ -92,6 +92,7 @@ const VoyageDetail = () => {
   const [demandeurNames, setDemandeurNames] = useState<Record<string, string>>({});
   const [showConfetti, setShowConfetti] = useState(false);
   const [batchTransiting, setBatchTransiting] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // Check if within 24h of departure
   const isWithin24h = useCallback(() => {
@@ -385,6 +386,9 @@ const VoyageDetail = () => {
               const val = parseFloat(m.prix_max || "0");
               return sum + (isNaN(val) ? 0 : val);
             }, 0);
+            const commissionRate = 0.15;
+            const commission = totalTarifs * commissionRate;
+            const netRevenue = totalTarifs - commission;
 
             // PDF export
             const handleExportPDF = () => {
@@ -439,7 +443,9 @@ const VoyageDetail = () => {
 
               html += `<div class="summary">`;
               html += `<p>✅ <strong>${delivered}</strong> livré${delivered > 1 ? "s" : ""} sur <strong>${total}</strong> · Progression: <strong>${progressPct}%</strong></p>`;
-              html += `<p class="total" style="margin-top:8px">💰 Total estimé : ${totalTarifs.toFixed(2)} €</p>`;
+              html += `<p style="margin-top:8px">💰 Total brut : <strong>${totalTarifs.toFixed(2)} €</strong></p>`;
+              html += `<p style="margin-top:4px;color:#ef4444">Commission Nidit (15%) : -${commission.toFixed(2)} €</p>`;
+              html += `<p class="total" style="margin-top:4px">🎯 Revenu net : ${netRevenue.toFixed(2)} €</p>`;
               html += `</div>`;
               html += `<p style="margin-top:24px;font-size:11px;color:#999;text-align:center">Généré le ${new Date().toLocaleDateString("fr-FR")} — ColyTracker</p>`;
               html += `</body></html>`;
@@ -450,6 +456,59 @@ const VoyageDetail = () => {
                 printWindow.document.close();
                 setTimeout(() => printWindow.print(), 400);
               }
+            };
+
+            // Email recap to all demandeurs
+            const handleEmailRecap = async () => {
+              setSendingEmail(true);
+              try {
+                const emailRef = `VOY-${voyage.id.slice(0, 8).toUpperCase()}`;
+                const emailDep = `${voyage.departure_city} (${voyage.departure_country})`;
+                const emailArr = `${voyage.arrival_city} (${voyage.arrival_country})`;
+                const emailStatusMap: Record<string, string> = {
+                  accepted: "Accepté", picked_up: "Récupéré", in_transit: "En transit",
+                  delivered: "Livré", completed: "Complété", pending: "En attente",
+                };
+                const allUserIds = [...new Set([
+                  ...acceptedColis.map(s => s.user_id),
+                  ...acceptedMissions.map(m => m.user_id),
+                ].filter(Boolean))];
+                if (allUserIds.length === 0) { toast.error("Aucun demandeur lié."); return; }
+
+                let emailHtml = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#222">`;
+                emailHtml += `<h1 style="font-size:20px;color:#2563eb">📦 Récapitulatif Voyage ${emailRef}</h1>`;
+                emailHtml += `<p style="font-size:13px;color:#666"><strong>Trajet:</strong> ${emailDep} → ${emailArr}</p>`;
+                emailHtml += `<p style="font-size:13px;color:#666"><strong>Date:</strong> ${voyage.departure_date}${voyage.departure_time ? ` à ${voyage.departure_time}` : ""}</p>`;
+                emailHtml += `<p style="font-size:13px;color:#666"><strong>Progression:</strong> ${delivered}/${total} (${progressPct}%)</p>`;
+                if (acceptedColis.length > 0) {
+                  emailHtml += `<h2 style="font-size:15px;margin-top:20px;border-bottom:1px solid #e5e7eb;padding-bottom:4px">📦 Colis</h2>`;
+                  acceptedColis.forEach(s => { emailHtml += `<p style="font-size:13px;margin:4px 0">• ${s.departure_city || "—"} → ${s.arrival_city} — ${s.tarif} € — <strong>${emailStatusMap[s.status] || s.status}</strong></p>`; });
+                }
+                if (acceptedMissions.length > 0) {
+                  emailHtml += `<h2 style="font-size:15px;margin-top:20px;border-bottom:1px solid #e5e7eb;padding-bottom:4px">🛒 Missions NeedIt</h2>`;
+                  acceptedMissions.forEach(m => { emailHtml += `<p style="font-size:13px;margin:4px 0">• ${m.product_name || "—"} — ${m.prix_max || "—"} € — <strong>${emailStatusMap[m.status] || m.status}</strong></p>`; });
+                }
+                emailHtml += `<div style="margin-top:20px;padding:12px;background:#f0f9ff;border-radius:8px;font-size:13px">`;
+                emailHtml += `<p>✅ ${delivered} livré${delivered > 1 ? "s" : ""} sur ${total}</p>`;
+                emailHtml += `</div>`;
+                emailHtml += `<p style="margin-top:20px;font-size:11px;color:#999;text-align:center">Envoyé depuis Nidit · ${new Date().toLocaleDateString("fr-FR")}</p></div>`;
+
+                let sentCount = 0;
+                for (const uid of allUserIds) {
+                  const shipmentWithEmail = acceptedColis.find(s => s.user_id === uid);
+                  let recipientEmail: string | null = null;
+                  if (shipmentWithEmail) {
+                    const { data: fullShipment } = await supabase.from("shipments").select("contact_email").eq("id", shipmentWithEmail.id).maybeSingle();
+                    recipientEmail = fullShipment?.contact_email || null;
+                  }
+                  if (!recipientEmail) continue;
+                  await supabase.functions.invoke("send-email", { body: { to: recipientEmail, subject: `📦 Récapitulatif voyage ${emailRef} — Nidit`, html: emailHtml } });
+                  sentCount++;
+                }
+                if (sentCount > 0) { toast.success(`Récapitulatif envoyé à ${sentCount} demandeur${sentCount > 1 ? "s" : ""} ✉️`); }
+                else { toast.error("Aucun email de contact trouvé."); }
+              } catch (err: any) { toast.error(err.message || "Erreur lors de l'envoi"); }
+              finally { setSendingEmail(false); }
             };
 
             const statusFlow = ["accepted", "picked_up", "in_transit", "delivered"];
@@ -563,9 +622,14 @@ const VoyageDetail = () => {
                     </p>
                     <div className="flex items-center gap-2 flex-wrap justify-end">
                       {totalTarifs > 0 && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
-                          <Euro size={10} /> {totalTarifs.toFixed(0)} €
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground line-through flex items-center gap-1">
+                            {totalTarifs.toFixed(0)} €
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                            <Euro size={10} /> {netRevenue.toFixed(0)} € net
+                          </span>
+                        </div>
                       )}
                       {delivered > 0 && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -579,6 +643,15 @@ const VoyageDetail = () => {
                       )}
                     </div>
                   </div>
+                  {/* Financial detail */}
+                  {totalTarifs > 0 && (
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1">
+                      <span>Brut: {totalTarifs.toFixed(2)} €</span>
+                      <span className="text-destructive">Commission (15%): -{commission.toFixed(2)} €</span>
+                      <span className="font-bold text-primary">Net: {netRevenue.toFixed(2)} €</span>
+                    </div>
+                  )}
+
                   {/* Progress bar */}
                   <div className="flex items-center gap-2">
                     <Progress value={progressPct} className={`h-2 flex-1 ${progressPct === 100 ? "[&>div]:bg-emerald-500" : ""}`} />
@@ -608,6 +681,17 @@ const VoyageDetail = () => {
                     >
                       <Download size={14} />
                       Exporter le récapitulatif PDF
+                    </button>
+                  )}
+                  {/* Email recap button */}
+                  {isOwner && (
+                    <button
+                      onClick={handleEmailRecap}
+                      disabled={sendingEmail}
+                      className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                    >
+                      {sendingEmail ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+                      Envoyer le récap par email
                     </button>
                   )}
                 </div>
