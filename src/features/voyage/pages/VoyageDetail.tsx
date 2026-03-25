@@ -683,6 +683,17 @@ const VoyageDetail = () => {
                       Exporter le récapitulatif PDF
                     </button>
                   )}
+                  {/* Email recap button */}
+                  {isOwner && (
+                    <button
+                      onClick={handleEmailRecap}
+                      disabled={sendingEmail}
+                      className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                    >
+                      {sendingEmail ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+                      Envoyer le récap par email
+                    </button>
+                  )}
                 </div>
 
                 <div className="divide-y divide-border">
