@@ -369,18 +369,34 @@ const ConversationsPage = () => {
               {/* Archived section */}
               {conversations.filter((c) => c.is_archived_by?.includes(user!.id)).length > 0 && (
                 <div className="mt-6">
-                  <button
-                    onClick={() => setShowArchived(!showArchived)}
-                    className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
-                  >
-                    <Archive size={16} />
-                    <span>
-                      Archives ({conversations.filter((c) => c.is_archived_by?.includes(user!.id)).length})
-                    </span>
-                    <motion.div animate={{ rotate: showArchived ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                      <ChevronDown size={16} />
-                    </motion.div>
-                  </button>
+                  <div className="flex items-center justify-between mb-3">
+                    <button
+                      onClick={() => setShowArchived(!showArchived)}
+                      className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Archive size={16} />
+                      <span>
+                        Archives ({conversations.filter((c) => c.is_archived_by?.includes(user!.id)).length})
+                      </span>
+                      <motion.div animate={{ rotate: showArchived ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                        <ChevronDown size={16} />
+                      </motion.div>
+                    </button>
+
+                    {showArchived && (
+                      <button
+                        onClick={() => {
+                          if (confirm("Supprimer toutes les conversations archivées ?")) {
+                            deleteAllArchived();
+                          }
+                        }}
+                        className="flex items-center gap-1.5 text-xs font-medium text-destructive hover:text-destructive/80 transition-colors"
+                      >
+                        <Trash2 size={14} />
+                        <span>Tout supprimer</span>
+                      </button>
+                    )}
+                  </div>
 
                   <AnimatePresence>
                     {showArchived && (
