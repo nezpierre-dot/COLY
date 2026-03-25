@@ -386,6 +386,9 @@ const VoyageDetail = () => {
               const val = parseFloat(m.prix_max || "0");
               return sum + (isNaN(val) ? 0 : val);
             }, 0);
+            const commissionRate = 0.15;
+            const commission = totalTarifs * commissionRate;
+            const netRevenue = totalTarifs - commission;
 
             // PDF export
             const handleExportPDF = () => {
