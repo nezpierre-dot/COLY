@@ -139,7 +139,7 @@ const ConversationsPage = () => {
       setConversations((prev) => prev.filter((c) => c.id !== convId));
       toast.success(t("conversations.deleted") || "Conversation supprimée");
     }
-    setDeletingId(null);
+    
   };
 
   const load = useCallback(async () => {
