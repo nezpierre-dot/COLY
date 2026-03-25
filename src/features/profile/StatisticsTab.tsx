@@ -180,6 +180,26 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
     ].filter(d => d.value > 0);
   }, [stats, shipments, missions, user]);
 
+  // 30-day activity chart
+  const activityChartData = useMemo(() => {
+    const now = new Date();
+    const days: { name: string; value: number }[] = [];
+    const allDates = [
+      ...shipments.map(s => s.created_at),
+      ...missions.map(m => m.created_at),
+      ...voyages.map(v => v.created_at),
+    ];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const label = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+      const count = allDates.filter(dt => dt?.startsWith(key)).length;
+      days.push({ name: label, value: count });
+    }
+    return days;
+  }, [shipments, missions, voyages]);
+
   const statCards = [
     { icon: Package, label: "Missions totales", value: stats.totalMissions, color: "primary" },
     { icon: MapPin, label: "Distance estimée", value: `${(stats.totalDistance / 1000).toFixed(0)}k km`, color: "secondary" },
@@ -360,6 +380,32 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
           </div>
         )}
       </div>
+
+      {/* 30-day activity chart */}
+      {activityChartData.some(d => d.value > 0) && (
+        <div className="bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <BarChart3 size={14} className="text-primary" />
+              <span className="text-sm font-semibold text-foreground">Activité récente</span>
+            </div>
+            <span className="text-xs text-muted-foreground">30 jours</span>
+          </div>
+          <ResponsiveContainer width="100%" height={100}>
+            <AreaChart data={activityChartData}>
+              <defs>
+                <linearGradient id="colorStatsActivity" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="name" hide />
+              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid hsl(var(--border))" }} labelStyle={{ fontWeight: 600 }} />
+              <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorStatsActivity)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Distance card */}
       <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-2xl p-4 flex items-center gap-3">
