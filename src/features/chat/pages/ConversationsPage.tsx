@@ -115,7 +115,7 @@ const SwipeableConversationItem = ({
           if (!swiped) onOpen();
           else setSwiped(false);
         }}
-        className="relative flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3.5 cursor-pointer"
+        className={`relative flex items-center gap-3 bg-card border rounded-xl px-4 py-3.5 cursor-pointer transition-colors ${confirming ? "border-destructive/60 bg-destructive/5" : "border-border"}`}
       >
         <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0 relative">
           <span className="text-sm font-bold text-primary">
