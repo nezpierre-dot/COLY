@@ -31,6 +31,20 @@ const ConversationsPage = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const deleteConversation = async (convId: string) => {
+    // Delete messages first, then conversation
+    await supabase.from("messages").delete().eq("conversation_id", convId);
+    const { error } = await supabase.from("conversations").delete().eq("id", convId);
+    if (error) {
+      toast.error(t("conversations.deleteError") || "Erreur lors de la suppression");
+    } else {
+      setConversations((prev) => prev.filter((c) => c.id !== convId));
+      toast.success(t("conversations.deleted") || "Conversation supprimée");
+    }
+    setDeletingId(null);
+  };
 
   const load = useCallback(async () => {
     if (!user) return;
