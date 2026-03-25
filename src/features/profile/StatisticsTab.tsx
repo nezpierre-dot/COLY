@@ -381,6 +381,32 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
         )}
       </div>
 
+      {/* 30-day activity chart */}
+      {activityChartData.some(d => d.value > 0) && (
+        <div className="bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5">
+              <BarChart3 size={14} className="text-primary" />
+              <span className="text-sm font-semibold text-foreground">Activité récente</span>
+            </div>
+            <span className="text-xs text-muted-foreground">30 jours</span>
+          </div>
+          <ResponsiveContainer width="100%" height={100}>
+            <AreaChart data={activityChartData}>
+              <defs>
+                <linearGradient id="colorStatsActivity" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="name" hide />
+              <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid hsl(var(--border))" }} labelStyle={{ fontWeight: 600 }} />
+              <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorStatsActivity)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       {/* Distance card */}
       <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-2xl p-4 flex items-center gap-3">
         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
