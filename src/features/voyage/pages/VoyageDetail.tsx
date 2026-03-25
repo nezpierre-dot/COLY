@@ -458,6 +458,59 @@ const VoyageDetail = () => {
               }
             };
 
+            // Email recap to all demandeurs
+            const handleEmailRecap = async () => {
+              setSendingEmail(true);
+              try {
+                const emailRef = `VOY-${voyage.id.slice(0, 8).toUpperCase()}`;
+                const emailDep = `${voyage.departure_city} (${voyage.departure_country})`;
+                const emailArr = `${voyage.arrival_city} (${voyage.arrival_country})`;
+                const emailStatusMap: Record<string, string> = {
+                  accepted: "Accepté", picked_up: "Récupéré", in_transit: "En transit",
+                  delivered: "Livré", completed: "Complété", pending: "En attente",
+                };
+                const allUserIds = [...new Set([
+                  ...acceptedColis.map(s => s.user_id),
+                  ...acceptedMissions.map(m => m.user_id),
+                ].filter(Boolean))];
+                if (allUserIds.length === 0) { toast.error("Aucun demandeur lié."); return; }
+
+                let emailHtml = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#222">`;
+                emailHtml += `<h1 style="font-size:20px;color:#2563eb">📦 Récapitulatif Voyage ${emailRef}</h1>`;
+                emailHtml += `<p style="font-size:13px;color:#666"><strong>Trajet:</strong> ${emailDep} → ${emailArr}</p>`;
+                emailHtml += `<p style="font-size:13px;color:#666"><strong>Date:</strong> ${voyage.departure_date}${voyage.departure_time ? ` à ${voyage.departure_time}` : ""}</p>`;
+                emailHtml += `<p style="font-size:13px;color:#666"><strong>Progression:</strong> ${delivered}/${total} (${progressPct}%)</p>`;
+                if (acceptedColis.length > 0) {
+                  emailHtml += `<h2 style="font-size:15px;margin-top:20px;border-bottom:1px solid #e5e7eb;padding-bottom:4px">📦 Colis</h2>`;
+                  acceptedColis.forEach(s => { emailHtml += `<p style="font-size:13px;margin:4px 0">• ${s.departure_city || "—"} → ${s.arrival_city} — ${s.tarif} € — <strong>${emailStatusMap[s.status] || s.status}</strong></p>`; });
+                }
+                if (acceptedMissions.length > 0) {
+                  emailHtml += `<h2 style="font-size:15px;margin-top:20px;border-bottom:1px solid #e5e7eb;padding-bottom:4px">🛒 Missions NeedIt</h2>`;
+                  acceptedMissions.forEach(m => { emailHtml += `<p style="font-size:13px;margin:4px 0">• ${m.product_name || "—"} — ${m.prix_max || "—"} € — <strong>${emailStatusMap[m.status] || m.status}</strong></p>`; });
+                }
+                emailHtml += `<div style="margin-top:20px;padding:12px;background:#f0f9ff;border-radius:8px;font-size:13px">`;
+                emailHtml += `<p>✅ ${delivered} livré${delivered > 1 ? "s" : ""} sur ${total}</p>`;
+                emailHtml += `</div>`;
+                emailHtml += `<p style="margin-top:20px;font-size:11px;color:#999;text-align:center">Envoyé depuis Nidit · ${new Date().toLocaleDateString("fr-FR")}</p></div>`;
+
+                let sentCount = 0;
+                for (const uid of allUserIds) {
+                  const shipmentWithEmail = acceptedColis.find(s => s.user_id === uid);
+                  let recipientEmail: string | null = null;
+                  if (shipmentWithEmail) {
+                    const { data: fullShipment } = await supabase.from("shipments").select("contact_email").eq("id", shipmentWithEmail.id).maybeSingle();
+                    recipientEmail = fullShipment?.contact_email || null;
+                  }
+                  if (!recipientEmail) continue;
+                  await supabase.functions.invoke("send-email", { body: { to: recipientEmail, subject: `📦 Récapitulatif voyage ${emailRef} — Nidit`, html: emailHtml } });
+                  sentCount++;
+                }
+                if (sentCount > 0) { toast.success(`Récapitulatif envoyé à ${sentCount} demandeur${sentCount > 1 ? "s" : ""} ✉️`); }
+                else { toast.error("Aucun email de contact trouvé."); }
+              } catch (err: any) { toast.error(err.message || "Erreur lors de l'envoi"); }
+              finally { setSendingEmail(false); }
+            };
+
             const statusFlow = ["accepted", "picked_up", "in_transit", "delivered"];
             const missionStatusFlow = ["accepted", "picked_up", "in_transit", "completed"];
 
