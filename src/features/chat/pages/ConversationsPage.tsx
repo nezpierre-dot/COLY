@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, Send as SendIcon, Search } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowLeft, MessageCircle, Send as SendIcon, Search, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
 import BottomNav from "@/components/BottomNav";
