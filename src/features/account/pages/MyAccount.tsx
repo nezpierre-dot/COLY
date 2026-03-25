@@ -356,41 +356,7 @@ const MyAccount = () => {
           </div>
         )}
 
-        {/* Recent activity chart */}
-        {activityChartData.some(d => d.value > 0) && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-card border border-border rounded-2xl p-4 mb-6 shadow-sm"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <BarChart3 size={14} className="text-primary" />
-                <span className="text-sm font-semibold text-foreground">{t("account.recentActivity") || "Activité récente"}</span>
-              </div>
-              <span className="text-xs text-muted-foreground">30j</span>
-            </div>
-            <div className="h-20">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={activityChartData}>
-                  <defs>
-                    <linearGradient id="colorProfileActivity" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" hide />
-                  <Tooltip
-                    contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid hsl(var(--border))" }}
-                    labelStyle={{ fontWeight: 600 }}
-                  />
-                  <Area type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorProfileActivity)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-        )}
+
 
         {/* Inline edit panel */}
         <AnimatePresence>
