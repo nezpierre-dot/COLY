@@ -31,24 +31,36 @@ const SwipeableConversationItem = ({
   conversation: c,
   onOpen,
   onDelete,
+  onArchive,
+  isArchived,
   formatTime,
   t,
 }: {
   conversation: Conversation;
   onOpen: () => void;
   onDelete: () => void;
+  onArchive: () => void;
+  isArchived: boolean;
   formatTime: (d: string) => string;
   t: (k: string) => string;
 }) => {
   const x = useMotionValue(0);
+  // Left swipe → delete
   const deleteOpacity = useTransform(x, [-100, -40, 0], [1, 0.6, 0]);
   const deleteScale = useTransform(x, [-100, -40, 0], [1, 0.8, 0.5]);
-  const [swiped, setSwiped] = useState(false);
+  // Right swipe → archive
+  const archiveOpacity = useTransform(x, [0, 40, 100], [0, 0.6, 1]);
+  const archiveScale = useTransform(x, [0, 40, 100], [0.5, 0.8, 1]);
+
+  const [swiped, setSwiped] = useState<"left" | "right" | false>(false);
   const [confirming, setConfirming] = useState(false);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     if (info.offset.x < SWIPE_THRESHOLD) {
-      setSwiped(true);
+      setSwiped("left");
+      hapticLight();
+    } else if (info.offset.x > -SWIPE_THRESHOLD) {
+      setSwiped("right");
       hapticLight();
     } else {
       setSwiped(false);
@@ -59,35 +71,50 @@ const SwipeableConversationItem = ({
     if (!confirming) {
       setConfirming(true);
       hapticLight();
-      // Auto-reset after 2s if not confirmed
       setTimeout(() => setConfirming(false), 2500);
       return;
     }
     onDelete();
   };
 
+  const handleArchive = () => {
+    hapticLight();
+    onArchive();
+  };
+
   return (
     <motion.div
       variants={staggerItem}
       layout
-      exit={{ opacity: 0, x: -200, height: 0, overflow: "hidden", transition: { duration: 0.3 } }}
+      exit={{ opacity: 0, x: swiped === "right" ? 200 : -200, height: 0, overflow: "hidden", transition: { duration: 0.3 } }}
       className="relative overflow-hidden rounded-xl"
     >
-      {/* Delete background revealed on swipe */}
+      {/* Archive background (left side, revealed on right swipe) */}
       <motion.div
-        className="absolute inset-y-0 right-0 flex items-center justify-end pr-4 rounded-xl"
+        className="absolute inset-y-0 left-0 flex items-center justify-start pl-4 bg-primary rounded-xl"
+        style={{ opacity: archiveOpacity, width: 90 }}
+      >
+        <motion.button
+          style={{ scale: archiveScale }}
+          onClick={handleArchive}
+          className="flex flex-col items-center gap-1 text-primary-foreground"
+        >
+          {isArchived ? <ArchiveRestore size={20} /> : <Archive size={20} />}
+          <span className="text-[10px] font-medium">
+            {isArchived ? "Restaurer" : "Archiver"}
+          </span>
+        </motion.button>
+      </motion.div>
+
+      {/* Delete background (right side, revealed on left swipe) */}
+      <motion.div
+        className="absolute inset-y-0 right-0 flex items-center justify-end pr-4 bg-destructive rounded-xl"
         style={{ opacity: deleteOpacity, width: 90 }}
-        animate={{
-          backgroundColor: confirming ? "hsl(var(--destructive))" : "hsl(var(--destructive))",
-        }}
       >
         <motion.button
           style={{ scale: deleteScale }}
           onClick={handleDelete}
-          animate={confirming ? {
-            x: [0, -4, 4, -3, 3, 0],
-            transition: { duration: 0.4 }
-          } : {}}
+          animate={confirming ? { x: [0, -4, 4, -3, 3, 0], transition: { duration: 0.4 } } : {}}
           className="flex flex-col items-center gap-1 text-destructive-foreground"
         >
           <motion.div
@@ -105,10 +132,10 @@ const SwipeableConversationItem = ({
       {/* Draggable card */}
       <motion.div
         drag="x"
-        dragConstraints={{ left: -90, right: 0 }}
+        dragConstraints={{ left: -90, right: 90 }}
         dragElastic={0.1}
         onDragEnd={handleDragEnd}
-        animate={{ x: swiped ? -90 : 0 }}
+        animate={{ x: swiped === "left" ? -90 : swiped === "right" ? 90 : 0 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
         style={{ x }}
         onClick={() => {
