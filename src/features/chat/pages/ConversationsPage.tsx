@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MessageCircle, Send as SendIcon, Search, Trash2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Send as SendIcon, Search, Trash2, Archive, ArchiveRestore, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence, useMotionValue, useTransform, PanInfo } from "framer-motion";
 import { toast } from "sonner";
 import { hapticLight } from "@/lib/haptics";
