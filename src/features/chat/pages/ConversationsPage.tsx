@@ -44,6 +44,7 @@ const SwipeableConversationItem = ({
   const deleteOpacity = useTransform(x, [-100, -40, 0], [1, 0.6, 0]);
   const deleteScale = useTransform(x, [-100, -40, 0], [1, 0.8, 0.5]);
   const [swiped, setSwiped] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     if (info.offset.x < SWIPE_THRESHOLD) {
@@ -52,6 +53,17 @@ const SwipeableConversationItem = ({
     } else {
       setSwiped(false);
     }
+  };
+
+  const handleDelete = () => {
+    if (!confirming) {
+      setConfirming(true);
+      hapticLight();
+      // Auto-reset after 2s if not confirmed
+      setTimeout(() => setConfirming(false), 2500);
+      return;
+    }
+    onDelete();
   };
 
   return (
@@ -63,19 +75,30 @@ const SwipeableConversationItem = ({
     >
       {/* Delete background revealed on swipe */}
       <motion.div
-        className="absolute inset-y-0 right-0 flex items-center justify-end pr-4 bg-destructive rounded-xl"
+        className="absolute inset-y-0 right-0 flex items-center justify-end pr-4 rounded-xl"
         style={{ opacity: deleteOpacity, width: 90 }}
+        animate={{
+          backgroundColor: confirming ? "hsl(var(--destructive))" : "hsl(var(--destructive))",
+        }}
       >
         <motion.button
           style={{ scale: deleteScale }}
-          onClick={() => {
-            hapticLight();
-            onDelete();
-          }}
+          onClick={handleDelete}
+          animate={confirming ? {
+            x: [0, -4, 4, -3, 3, 0],
+            transition: { duration: 0.4 }
+          } : {}}
           className="flex flex-col items-center gap-1 text-destructive-foreground"
         >
-          <Trash2 size={20} />
-          <span className="text-[10px] font-medium">Supprimer</span>
+          <motion.div
+            animate={confirming ? { scale: [1, 1.3, 1], rotate: [0, -10, 10, 0] } : { scale: 1, rotate: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Trash2 size={20} />
+          </motion.div>
+          <span className="text-[10px] font-medium">
+            {confirming ? "Confirmer ?" : "Supprimer"}
+          </span>
         </motion.button>
       </motion.div>
 
