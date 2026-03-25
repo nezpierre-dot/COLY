@@ -315,29 +315,87 @@ const ConversationsPage = () => {
               description={t("conversations.emptyDesc")}
             />
           ) : (
-            <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-2">
-              {conversations
-                .filter((c) => {
-                  if (!search) return true;
-                  const q = search.toLowerCase();
-                  return (
-                    (c.other_name || "").toLowerCase().includes(q) ||
-                    (c.shipment_route || "").toLowerCase().includes(q) ||
-                    (c.last_message || "").toLowerCase().includes(q) ||
-                    new Date(c.last_message_at).toLocaleDateString("fr-FR").includes(q)
-                  );
-                })
-                .map((c) => (
-                <SwipeableConversationItem
-                  key={c.id}
-                  conversation={c}
-                  onOpen={() => navigate(`/chat/${c.id}`)}
-                  onDelete={() => deleteConversation(c.id)}
-                  formatTime={formatTime}
-                  t={t}
-                />
-              ))}
-            </motion.div>
+            <>
+              {/* Active conversations */}
+              <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-2">
+                {conversations
+                  .filter((c) => !c.is_archived_by?.includes(user!.id))
+                  .filter((c) => {
+                    if (!search) return true;
+                    const q = search.toLowerCase();
+                    return (
+                      (c.other_name || "").toLowerCase().includes(q) ||
+                      (c.shipment_route || "").toLowerCase().includes(q) ||
+                      (c.last_message || "").toLowerCase().includes(q)
+                    );
+                  })
+                  .map((c) => (
+                  <SwipeableConversationItem
+                    key={c.id}
+                    conversation={c}
+                    onOpen={() => navigate(`/chat/${c.id}`)}
+                    onDelete={() => deleteConversation(c.id)}
+                    onArchive={() => archiveConversation(c.id)}
+                    isArchived={false}
+                    formatTime={formatTime}
+                    t={t}
+                  />
+                ))}
+              </motion.div>
+
+              {/* Archived section */}
+              {conversations.filter((c) => c.is_archived_by?.includes(user!.id)).length > 0 && (
+                <div className="mt-6">
+                  <button
+                    onClick={() => setShowArchived(!showArchived)}
+                    className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-3"
+                  >
+                    <Archive size={16} />
+                    <span>
+                      Archives ({conversations.filter((c) => c.is_archived_by?.includes(user!.id)).length})
+                    </span>
+                    <motion.div animate={{ rotate: showArchived ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                      <ChevronDown size={16} />
+                    </motion.div>
+                  </button>
+
+                  <AnimatePresence>
+                    {showArchived && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-2 overflow-hidden"
+                      >
+                        {conversations
+                          .filter((c) => c.is_archived_by?.includes(user!.id))
+                          .filter((c) => {
+                            if (!search) return true;
+                            const q = search.toLowerCase();
+                            return (
+                              (c.other_name || "").toLowerCase().includes(q) ||
+                              (c.shipment_route || "").toLowerCase().includes(q)
+                            );
+                          })
+                          .map((c) => (
+                          <SwipeableConversationItem
+                            key={c.id}
+                            conversation={c}
+                            onOpen={() => navigate(`/chat/${c.id}`)}
+                            onDelete={() => deleteConversation(c.id)}
+                            onArchive={() => archiveConversation(c.id)}
+                            isArchived={true}
+                            formatTime={formatTime}
+                            t={t}
+                          />
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+            </>
           )}
         </div>
         </PullToRefresh>
