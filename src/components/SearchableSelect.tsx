@@ -128,7 +128,7 @@ const SearchableSelect = ({
               className="h-8 text-sm"
             />
           </div>
-          <div className="max-h-60 overflow-y-auto">
+          <div className="max-h-80 overflow-y-auto">
             {hasSearch ? (
               filtered.length === 0 ? (
                 <div className="px-3 py-2 text-sm text-muted-foreground">Aucun résultat</div>
