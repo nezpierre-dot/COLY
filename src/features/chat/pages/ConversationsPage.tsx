@@ -25,6 +25,101 @@ interface Conversation {
   unread_count: number;
 }
 
+const SWIPE_THRESHOLD = -80;
+
+const SwipeableConversationItem = ({
+  conversation: c,
+  onOpen,
+  onDelete,
+  formatTime,
+  t,
+}: {
+  conversation: Conversation;
+  onOpen: () => void;
+  onDelete: () => void;
+  formatTime: (d: string) => string;
+  t: (k: string) => string;
+}) => {
+  const x = useMotionValue(0);
+  const deleteOpacity = useTransform(x, [-100, -40, 0], [1, 0.6, 0]);
+  const deleteScale = useTransform(x, [-100, -40, 0], [1, 0.8, 0.5]);
+  const [swiped, setSwiped] = useState(false);
+
+  const handleDragEnd = (_: any, info: PanInfo) => {
+    if (info.offset.x < SWIPE_THRESHOLD) {
+      setSwiped(true);
+      hapticLight();
+    } else {
+      setSwiped(false);
+    }
+  };
+
+  return (
+    <motion.div
+      variants={staggerItem}
+      layout
+      exit={{ opacity: 0, x: -200, height: 0, overflow: "hidden", transition: { duration: 0.3 } }}
+      className="relative overflow-hidden rounded-xl"
+    >
+      {/* Delete background revealed on swipe */}
+      <motion.div
+        className="absolute inset-y-0 right-0 flex items-center justify-end pr-4 bg-destructive rounded-xl"
+        style={{ opacity: deleteOpacity, width: 90 }}
+      >
+        <motion.button
+          style={{ scale: deleteScale }}
+          onClick={() => {
+            hapticLight();
+            onDelete();
+          }}
+          className="flex flex-col items-center gap-1 text-destructive-foreground"
+        >
+          <Trash2 size={20} />
+          <span className="text-[10px] font-medium">Supprimer</span>
+        </motion.button>
+      </motion.div>
+
+      {/* Draggable card */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -90, right: 0 }}
+        dragElastic={0.1}
+        onDragEnd={handleDragEnd}
+        animate={{ x: swiped ? -90 : 0 }}
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+        style={{ x }}
+        onClick={() => {
+          if (!swiped) onOpen();
+          else setSwiped(false);
+        }}
+        className="relative flex items-center gap-3 bg-card border border-border rounded-xl px-4 py-3.5 cursor-pointer"
+      >
+        <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0 relative">
+          <span className="text-sm font-bold text-primary">
+            {c.other_name?.charAt(0)?.toUpperCase() || "?"}
+          </span>
+          {c.unread_count > 0 && (
+            <div className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-accent text-accent-foreground text-[9px] font-bold rounded-full flex items-center justify-center min-w-[18px]">
+              {c.unread_count}
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold truncate text-foreground">{c.other_name}</p>
+            <span className="text-xs text-muted-foreground shrink-0">{formatTime(c.last_message_at)}</span>
+          </div>
+          <p className="text-xs text-muted-foreground truncate">{c.shipment_route}</p>
+          <p className={`text-xs truncate mt-0.5 ${c.unread_count > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+            {c.last_message || t("conversations.noMessage")}
+          </p>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const ConversationsPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
