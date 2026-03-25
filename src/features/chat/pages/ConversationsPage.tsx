@@ -217,6 +217,7 @@ const ConversationsPage = () => {
     }
   };
 
+  const load = useCallback(async () => {
     if (!user) return;
     const { data: convos } = await supabase
       .from("conversations")
