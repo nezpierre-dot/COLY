@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           demandeur_id: string
           id: string
+          is_archived_by: string[]
           last_message_at: string
           shipment_id: string
           voyageur_id: string
@@ -27,6 +28,7 @@ export type Database = {
           created_at?: string
           demandeur_id: string
           id?: string
+          is_archived_by?: string[]
           last_message_at?: string
           shipment_id: string
           voyageur_id: string
@@ -35,6 +37,7 @@ export type Database = {
           created_at?: string
           demandeur_id?: string
           id?: string
+          is_archived_by?: string[]
           last_message_at?: string
           shipment_id?: string
           voyageur_id?: string
