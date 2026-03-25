@@ -92,6 +92,7 @@ const VoyageDetail = () => {
   const [demandeurNames, setDemandeurNames] = useState<Record<string, string>>({});
   const [showConfetti, setShowConfetti] = useState(false);
   const [batchTransiting, setBatchTransiting] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // Check if within 24h of departure
   const isWithin24h = useCallback(() => {
