@@ -217,6 +217,20 @@ const ConversationsPage = () => {
     }
   };
 
+  const deleteAllArchived = async () => {
+    if (!user) return;
+    const archived = conversations.filter((c) => c.is_archived_by?.includes(user.id));
+    if (archived.length === 0) return;
+
+    for (const c of archived) {
+      await supabase.from("messages").delete().eq("conversation_id", c.id);
+      await supabase.from("conversations").delete().eq("id", c.id);
+    }
+    setConversations((prev) => prev.filter((c) => !c.is_archived_by?.includes(user.id)));
+    setShowArchived(false);
+    toast.success(`${archived.length} conversation(s) supprimée(s)`);
+  };
+
   const load = useCallback(async () => {
     if (!user) return;
     const { data: convos } = await supabase
