@@ -193,7 +193,30 @@ const ConversationsPage = () => {
     
   };
 
-  const load = useCallback(async () => {
+  const archiveConversation = async (convId: string) => {
+    if (!user) return;
+    const conv = conversations.find((c) => c.id === convId);
+    if (!conv) return;
+    const isArchived = conv.is_archived_by?.includes(user.id);
+    const newArchived = isArchived
+      ? conv.is_archived_by.filter((id) => id !== user.id)
+      : [...(conv.is_archived_by || []), user.id];
+
+    const { error } = await supabase
+      .from("conversations")
+      .update({ is_archived_by: newArchived } as any)
+      .eq("id", convId);
+
+    if (error) {
+      toast.error("Erreur lors de l'archivage");
+    } else {
+      setConversations((prev) =>
+        prev.map((c) => (c.id === convId ? { ...c, is_archived_by: newArchived } : c))
+      );
+      toast.success(isArchived ? "Conversation restaurée" : "Conversation archivée");
+    }
+  };
+
     if (!user) return;
     const { data: convos } = await supabase
       .from("conversations")
