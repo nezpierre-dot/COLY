@@ -291,6 +291,15 @@ const ConversationsPage = () => {
               <ArrowLeft size={24} />
             </button>
             <h1 className="text-2xl font-bold text-foreground flex-1">{t("conversations.title")}</h1>
+            {user && conversations.filter((c) => c.is_archived_by?.includes(user.id)).length > 0 && (
+              <button
+                onClick={() => setShowArchived(!showArchived)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
+              >
+                <Archive size={14} />
+                <span>{conversations.filter((c) => c.is_archived_by?.includes(user.id)).length}</span>
+              </button>
+            )}
           </div>
 
           {/* Search bar */}
