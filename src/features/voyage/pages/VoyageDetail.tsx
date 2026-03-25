@@ -622,9 +622,14 @@ const VoyageDetail = () => {
                     </p>
                     <div className="flex items-center gap-2 flex-wrap justify-end">
                       {totalTarifs > 0 && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
-                          <Euro size={10} /> {totalTarifs.toFixed(0)} €
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground line-through flex items-center gap-1">
+                            {totalTarifs.toFixed(0)} €
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                            <Euro size={10} /> {netRevenue.toFixed(0)} € net
+                          </span>
+                        </div>
                       )}
                       {delivered > 0 && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -637,6 +642,15 @@ const VoyageDetail = () => {
                         </span>
                       )}
                     </div>
+                  </div>
+                  {/* Financial detail */}
+                  {totalTarifs > 0 && (
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground px-1">
+                      <span>Brut: {totalTarifs.toFixed(2)} €</span>
+                      <span className="text-destructive">Commission (15%): -{commission.toFixed(2)} €</span>
+                      <span className="font-bold text-primary">Net: {netRevenue.toFixed(2)} €</span>
+                    </div>
+                  )
                   </div>
                   {/* Progress bar */}
                   <div className="flex items-center gap-2">
