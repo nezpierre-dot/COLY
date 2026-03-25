@@ -650,8 +650,8 @@ const VoyageDetail = () => {
                       <span className="text-destructive">Commission (15%): -{commission.toFixed(2)} €</span>
                       <span className="font-bold text-primary">Net: {netRevenue.toFixed(2)} €</span>
                     </div>
-                  )
-                  </div>
+                  )}
+
                   {/* Progress bar */}
                   <div className="flex items-center gap-2">
                     <Progress value={progressPct} className={`h-2 flex-1 ${progressPct === 100 ? "[&>div]:bg-emerald-500" : ""}`} />
