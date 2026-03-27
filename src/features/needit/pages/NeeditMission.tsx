@@ -40,7 +40,7 @@ const fetchCountries = async (): Promise<string[]> => {
   } catch { return []; }
 };
 
-const fetchCities = async (country: string): Promise<string[]> => {
+const fetchCitiesLegacy = async (country: string): Promise<string[]> => {
   try {
     const res = await fetch("https://countriesnow.space/api/v0.1/countries/cities", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ country }) });
     const json = await res.json();
