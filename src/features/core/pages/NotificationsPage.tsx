@@ -154,11 +154,27 @@ export default function NotificationsPage() {
   const handleConfirmDelete = async () => {
     if (!deleteConfirm) return;
     if (deleteConfirm.type === "single" && deleteConfirm.id) {
-      await deleteNotification(deleteConfirm.id);
+      const id = deleteConfirm.id;
+      setDeleteConfirm(null);
+      setExitingIds((prev) => new Set(prev).add(id));
+      // Wait for exit animation then actually delete
+      setTimeout(async () => {
+        await deleteNotification(id);
+        setExitingIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      }, 300);
     } else if (deleteConfirm.type === "bulk") {
-      await deleteSelected();
+      const ids = new Set(selected);
+      setDeleteConfirm(null);
+      setExitingIds(ids);
+      setTimeout(async () => {
+        for (const id of ids) await deleteNotification(id);
+        setExitingIds(new Set());
+        setSelected(new Set());
+        setSelectMode(false);
+      }, 300);
+    } else {
+      setDeleteConfirm(null);
     }
-    setDeleteConfirm(null);
   };
 
   const exitSelectMode = () => {
