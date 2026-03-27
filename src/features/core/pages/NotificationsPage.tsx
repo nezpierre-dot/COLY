@@ -5,7 +5,8 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import BottomNav from "@/components/BottomNav";
 import SwipeToDelete from "@/components/SwipeToDelete";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useMemo, useState, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
   AlertDialog,
