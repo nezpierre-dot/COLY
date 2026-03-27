@@ -7,6 +7,16 @@ import BottomNav from "@/components/BottomNav";
 import SwipeToDelete from "@/components/SwipeToDelete";
 import { ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type NotifFilter = "all" | "match" | "proof" | "status" | "reminder";
 
@@ -102,6 +112,7 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState<NotifFilter>("all");
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: "single" | "bulk"; id?: string } | null>(null);
 
   const filtered = useMemo(() => {
     if (filter === "all") return notifications;
@@ -138,6 +149,16 @@ export default function NotificationsPage() {
     setSelectMode(false);
   };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm) return;
+    if (deleteConfirm.type === "single" && deleteConfirm.id) {
+      await deleteNotification(deleteConfirm.id);
+    } else if (deleteConfirm.type === "bulk") {
+      await deleteSelected();
+    }
+    setDeleteConfirm(null);
+  };
+
   const exitSelectMode = () => {
     setSelectMode(false);
     setSelected(new Set());
@@ -159,7 +180,7 @@ export default function NotificationsPage() {
                 {selected.size === filtered.length ? "Tout désélectionner" : "Tout sélectionner"}
               </button>
               <button
-                onClick={deleteSelected}
+                onClick={() => setDeleteConfirm({ type: "bulk" })}
                 disabled={selected.size === 0}
                 className="flex items-center gap-1 text-xs text-destructive font-medium hover:underline disabled:opacity-40"
               >
@@ -266,7 +287,7 @@ export default function NotificationsPage() {
               return (
                 <SwipeToDelete
                   key={n.id}
-                  onDelete={() => deleteNotification(n.id)}
+                  onDelete={() => setDeleteConfirm({ type: "single", id: n.id })}
                   disabled={selectMode}
                 >
                   <div
@@ -298,7 +319,7 @@ export default function NotificationsPage() {
                         {!n.is_read && (
                           <button onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }} className="p-1.5 rounded-lg hover:bg-muted text-primary transition-colors" title={t("notif.markRead")}><Check size={14} /></button>
                         )}
-                        <button onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
+                        <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ type: "single", id: n.id }); }} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
                         {link && <ChevronRight size={16} className="text-muted-foreground/60 ml-0.5" />}
                       </div>
                     )}
@@ -309,6 +330,24 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
+      <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfirm?.type === "bulk"
+                ? `Supprimer ${selected.size} notification${selected.size > 1 ? "s" : ""} sélectionnée${selected.size > 1 ? "s" : ""} ? Cette action est irréversible.`
+                : "Supprimer cette notification ? Cette action est irréversible."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <BottomNav />
     </div>
   );
