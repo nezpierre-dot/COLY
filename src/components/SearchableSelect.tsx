@@ -42,11 +42,14 @@ const SearchableSelect = ({
   const display = displayFn ?? ((v: string) => v);
 
   const allOptions = useMemo(() => {
-    if (!onSearch || asyncResults.length === 0) return options;
     const set = new Set(options);
-    asyncResults.forEach((r) => set.add(r));
+    // Always include popular items so they show even before async search
+    popularItems.forEach((p) => set.add(p));
+    if (onSearch && asyncResults.length > 0) {
+      asyncResults.forEach((r) => set.add(r));
+    }
     return Array.from(set).sort();
-  }, [options, asyncResults, onSearch]);
+  }, [options, asyncResults, onSearch, popularItems]);
 
   const validPopular = useMemo(
     () => popularItems.filter((p) => allOptions.includes(p)),
