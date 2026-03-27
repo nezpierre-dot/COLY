@@ -112,6 +112,7 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState<NotifFilter>("all");
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: "single" | "bulk"; id?: string } | null>(null);
 
   const filtered = useMemo(() => {
     if (filter === "all") return notifications;
