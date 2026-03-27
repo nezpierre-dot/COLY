@@ -84,6 +84,6 @@ const ISO_MAP: Record<string, string> = {
   "Zimbabwe": "ZW",
 };
 
-function getCountryISO(country: string): string | null {
+export function getCountryISO(country: string): string | null {
   return ISO_MAP[country] || null;
 }

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { fetchCitiesByCountry } from "@/lib/citySearch";
+import { fetchCitiesByCountry, getCountryISO } from "@/lib/citySearch";
+import { getPopularCities } from "@/lib/popularCities";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin, AlertTriangle } from "lucide-react";
@@ -48,7 +49,7 @@ const fetchCitiesLegacy = async (country: string): Promise<string[]> => {
   } catch { return []; }
 };
 
-const SearchableDropdown = ({ label, placeholder, items, value, onChange, loading, disabled, error, displayFn, popularItems = [], recentItems = [], onSearch }: any) => {
+const SearchableDropdown = ({ label, placeholder, items, value, onChange, loading, disabled, error, displayFn, popularItems = [], recentItems = [], onSearch, popularLabel = "Populaires" }: any) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [asyncResults, setAsyncResults] = useState<string[]>([]);
@@ -56,11 +57,13 @@ const SearchableDropdown = ({ label, placeholder, items, value, onChange, loadin
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const display = displayFn ?? ((v: string) => v);
   const allItems = useMemo(() => {
-    if (!onSearch || asyncResults.length === 0) return items;
     const set = new Set(items);
-    asyncResults.forEach((r: string) => set.add(r));
+    popularItems.forEach((p: string) => set.add(p));
+    if (onSearch && asyncResults.length > 0) {
+      asyncResults.forEach((r: string) => set.add(r));
+    }
     return Array.from(set).sort();
-  }, [items, asyncResults, onSearch]);
+  }, [items, asyncResults, onSearch, popularItems]);
   const filtered = search ? allItems.filter((i: string) => i.toLowerCase().includes(search.toLowerCase()) || display(i).toLowerCase().includes(search.toLowerCase())) : allItems;
   const validPopular = popularItems.filter((p: string) => allItems.includes(p));
   const validRecent = recentItems.filter((r: string) => allItems.includes(r) && !validPopular.includes(r));
@@ -99,7 +102,7 @@ const SearchableDropdown = ({ label, placeholder, items, value, onChange, loadin
             ) : showSections ? (
               <>
                 {validRecent.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Récents</div>{validRecent.map(renderBtn)}</>)}
-                {validPopular.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Populaires</div>{validPopular.map(renderBtn)}</>)}
+                {validPopular.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{popularLabel}</div>{validPopular.map(renderBtn)}</>)}
                 {remaining.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">A – Z</div>{remaining.map(renderBtn)}</>)}
               </>
             ) : filtered.slice(0, 50).map(renderBtn)}
@@ -268,7 +271,7 @@ const NeeditMission = () => {
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.fromWhere")}</h3>
                 <div className="space-y-4 mb-8">
                   <SearchableDropdown label={<>{t("sendcoly.country")} <span className="text-destructive">*</span></>} placeholder={t("trip.selectCountry")} items={countries} value={pays} onChange={handleCountryChange} loading={loadingCountries} error={errors.pays} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
-                  <SearchableDropdown label={<>{t("sendcoly.city")} <span className="text-destructive">*</span></>} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => { setVille(v); if (errors.ville) setErrors((p) => { const n = { ...p }; delete n.ville; return n; }); }} loading={loadingCities} disabled={!pays} error={errors.ville} recentItems={getRecentCitiesForCountry(pays)} onSearch={pays ? async (q: string) => fetchCitiesByCountry(pays, q) : undefined} />
+                  <SearchableDropdown label={<>{t("sendcoly.city")} <span className="text-destructive">*</span></>} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => { setVille(v); if (errors.ville) setErrors((p) => { const n = { ...p }; delete n.ville; return n; }); }} loading={loadingCities} disabled={!pays} error={errors.ville} recentItems={getRecentCitiesForCountry(pays)} onSearch={pays ? async (q: string) => fetchCitiesByCountry(pays, q) : undefined} popularItems={getPopularCities(getCountryISO(pays) || "")} popularLabel="Grandes villes" />
                 </div>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.when")}</h3>
                 {errors.timing && <p className="text-xs text-destructive mb-2">{errors.timing}</p>}

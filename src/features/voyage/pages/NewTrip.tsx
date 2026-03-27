@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { fetchCitiesByCountry } from "@/lib/citySearch";
+import { fetchCitiesByCountry, getCountryISO } from "@/lib/citySearch";
+import { getPopularCities } from "@/lib/popularCities";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, Star } from "lucide-react";
@@ -412,7 +413,7 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.departCity")} <span className="text-destructive">*</span></Label>
-                  <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departureCountry} recentItems={recentCities} onSearch={departureCountry ? searchDepartureCities : undefined} />
+                  <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departureCountry} recentItems={recentCities} onSearch={departureCountry ? searchDepartureCities : undefined} popularItems={getPopularCities(getCountryISO(departureCountry) || "")} popularLabel="Grandes villes" />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.departAddress")}</Label>
@@ -441,7 +442,7 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalCity")} <span className="text-destructive">*</span></Label>
-                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} recentItems={recentCities} onSearch={arrivalCountry ? searchArrivalCities : undefined} />
+                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} recentItems={recentCities} onSearch={arrivalCountry ? searchArrivalCities : undefined} popularItems={getPopularCities(getCountryISO(arrivalCountry) || "")} popularLabel="Grandes villes" />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalAddress")}</Label>
