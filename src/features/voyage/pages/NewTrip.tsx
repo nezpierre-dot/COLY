@@ -217,8 +217,8 @@ const NewTrip = () => {
       needit_budget: needitBudget || null,
       max_weight_kg: maxWeightKg ? parseFloat(maxWeightKg) : null,
       max_items: maxItems ? parseInt(maxItems) : null,
-      capacity_volume_liters: volumeType === "liters" && volumeLiters ? parseFloat(volumeLiters) : null,
-      capacity_dimensions: volumeType === "dimensions" && capacityDimensions ? capacityDimensions.trim() : null,
+      capacity_volume_liters: null,
+      capacity_dimensions: capacityDimensions || null,
       cutoff_hours: parseInt(cutoffHours) || 24,
     } as any).select("id").single();
     setSubmitting(false);
