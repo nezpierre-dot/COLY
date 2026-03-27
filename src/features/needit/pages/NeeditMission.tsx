@@ -460,27 +460,24 @@ const NeeditMission = () => {
                         <Switch checked={autoAccept} onCheckedChange={setAutoAccept} className="data-[state=checked]:bg-[#0D84FF]" />
                       </div>
 
-                      {/* Pickup address fields */}
+                      {/* Suggestion où trouver ce produit */}
                       <div className="space-y-3 mb-4">
                         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                          <MapPin size={14} className="text-primary" /> Adresse de récupération
+                          <MapPin size={14} className="text-primary" /> Suggestion où trouver ce produit
                         </h4>
                         <div>
-                          <div className="flex items-center gap-1 mb-1">
-                            <p className="text-xs text-muted-foreground">Adresse complète <span className="text-destructive">*</span></p>
-                          </div>
+                          <p className="text-xs text-muted-foreground mb-1">Nom du magasin ou lien web (optionnel)</p>
                           <Input
-                            placeholder="Ex : 12 rue de la Paix, 75002 Paris"
+                            placeholder="Ex : Carrefour Champs-Élysées, amazon.fr/..."
                             value={pickupAddress}
-                            onChange={(e) => { setPickupAddress(e.target.value); if (errors.pickupAddress) setErrors(p => { const n = {...p}; delete n.pickupAddress; return n; }); }}
-                            className={`border-0 border-b rounded-none px-0 focus-visible:ring-0 ${errors.pickupAddress ? "border-destructive" : "border-primary/30 focus-visible:border-primary"}`}
+                            onChange={(e) => setPickupAddress(e.target.value)}
+                            className="border-0 border-b border-primary/30 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary"
                           />
-                          {errors.pickupAddress && <p className="text-xs mt-1 text-destructive">{errors.pickupAddress}</p>}
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground mb-1">Code d'accès / étage / interphone (optionnel)</p>
+                          <p className="text-xs text-muted-foreground mb-1">Précisions supplémentaires (optionnel)</p>
                           <Input
-                            placeholder="Ex : Bât. B, 3ème étage, code 1234"
+                            placeholder="Ex : Rayon cosmétique, 2ème étage"
                             value={pickupAccessCode}
                             onChange={(e) => setPickupAccessCode(e.target.value)}
                             className="border-0 border-b border-primary/30 rounded-none px-0 focus-visible:ring-0 focus-visible:border-primary"
