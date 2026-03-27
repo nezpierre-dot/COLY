@@ -577,50 +577,36 @@ const NewTrip = () => {
                   <p className="text-xs text-muted-foreground mt-1">{t("trip.maxItemsHint")}</p>
                 </div>
 
-                {/* Volume / Dimensions */}
+                {/* Dimensions visuelles */}
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground text-sm">{t("trip.volumeType")}</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setVolumeType("liters")}
-                      className={`p-2.5 rounded-xl border text-sm font-medium transition-colors ${volumeType === "liters" ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-muted/50"}`}
-                    >
-                      {t("trip.volumeLiters")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVolumeType("dimensions")}
-                      className={`p-2.5 rounded-xl border text-sm font-medium transition-colors ${volumeType === "dimensions" ? "border-primary bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-muted/50"}`}
-                    >
-                      {t("trip.volumeDimensions")}
-                    </button>
+                  <Label className="text-muted-foreground text-sm">Taille maximale d'un colis</Label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { label: "S", icon: "📦", desc: "Enveloppe", dim: "30×20×5 cm" },
+                      { label: "M", icon: "🎒", desc: "Sac à dos", dim: "40×30×20 cm" },
+                      { label: "L", icon: "🧳", desc: "Valise cabine", dim: "55×40×20 cm" },
+                      { label: "XL", icon: "📦", desc: "Grande valise", dim: "70×50×30 cm" },
+                    ].map((size) => (
+                      <button
+                        key={size.label}
+                        type="button"
+                        onClick={() => setCapacityDimensions(size.dim)}
+                        className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all ${
+                          capacityDimensions === size.dim
+                            ? "border-primary bg-primary/10 text-foreground"
+                            : "border-border text-muted-foreground hover:border-primary/30"
+                        }`}
+                      >
+                        <span className="text-2xl">{size.icon}</span>
+                        <span className="text-xs font-bold">{size.label}</span>
+                        <span className="text-[10px] leading-tight text-center">{size.desc}</span>
+                      </button>
+                    ))}
                   </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {capacityDimensions ? `Dimensions : ${capacityDimensions}` : "Sélectionnez la taille max acceptée"}
+                  </p>
                 </div>
-
-                {volumeType === "liters" ? (
-                  <div>
-                    <Label className="text-muted-foreground text-sm">{t("trip.volumeLiters")}</Label>
-                    <Input
-                      type="number"
-                      placeholder={t("trip.volumeLitersPlaceholder")}
-                      value={volumeLiters}
-                      onChange={(e) => setVolumeLiters(e.target.value)}
-                      min="0"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">{t("trip.volumeHint")}</p>
-                  </div>
-                ) : (
-                  <div>
-                    <Label className="text-muted-foreground text-sm">{t("trip.volumeDimensions")}</Label>
-                    <Input
-                      placeholder={t("trip.volumeDimensionsPlaceholder")}
-                      value={capacityDimensions}
-                      onChange={(e) => setCapacityDimensions(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">{t("trip.dimensionsHint")}</p>
-                  </div>
-                )}
               </div>
             </div>
           )}
