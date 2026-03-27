@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { fetchCitiesByCountry } from "@/lib/citySearch";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, Star } from "lucide-react";
@@ -113,29 +114,19 @@ const NewTrip = () => {
       .catch(() => {});
   }, []);
 
-  const fetchCities = (country: string, setter: (c: string[]) => void) => {
-    setter([]);
-    if (!country) return;
-    fetch("https://countriesnow.space/api/v0.1/countries/cities", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ country }),
-    })
-      .then((r) => r.json())
-      .then((res) => { if (res?.data) setter(res.data.sort()); })
-      .catch(() => {});
-  };
+  const searchDepartureCities = useCallback(async (q: string) => fetchCitiesByCountry(departureCountry, q), [departureCountry]);
+  const searchArrivalCities = useCallback(async (q: string) => fetchCitiesByCountry(arrivalCountry, q), [arrivalCountry]);
 
   const handleDepartureCountry = (v: string) => {
     setDepartureCountry(v);
     setDepartureCity("");
-    fetchCities(v, setDepartureCities);
+    setDepartureCities([]);
   };
 
   const handleArrivalCountry = (v: string) => {
     setArrivalCountry(v);
     setArrivalCity("");
-    fetchCities(v, setArrivalCities);
+    setArrivalCities([]);
   };
 
   // Pre-fill arrival from URL params (when redirected from unmatched accept)
@@ -144,10 +135,8 @@ const NewTrip = () => {
     const prefillCity = searchParams.get("arrival_city");
     if (prefillCountry) {
       setArrivalCountry(prefillCountry);
-      fetchCities(prefillCountry, setArrivalCities);
       if (prefillCity) {
-        // Small delay to let cities load
-        setTimeout(() => setArrivalCity(prefillCity), 500);
+        setArrivalCity(prefillCity);
       }
     }
   }, []);
@@ -423,7 +412,7 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.departCity")} <span className="text-destructive">*</span></Label>
-                  <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departureCountry} recentItems={recentCities} />
+                  <SearchableSelect value={departureCity} onChange={setDepartureCity} options={departureCities} placeholder={departureCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departureCountry} recentItems={recentCities} onSearch={departureCountry ? searchDepartureCities : undefined} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.departAddress")}</Label>
@@ -452,7 +441,7 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalCity")} <span className="text-destructive">*</span></Label>
-                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} recentItems={recentCities} />
+                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} recentItems={recentCities} onSearch={arrivalCountry ? searchArrivalCities : undefined} />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalAddress")}</Label>
