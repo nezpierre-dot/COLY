@@ -143,7 +143,7 @@ const NeeditMission = () => {
       setAutoAccept((data as any).auto_accept ?? false);
       setPickupAddress((data as any).pickup_address || "");
       setPickupAccessCode((data as any).pickup_access_code || "");
-      if (data.country) { setLoadingCities(true); fetchCities(data.country).then((c) => { setCities(c); setLoadingCities(false); }); }
+      if (data.country) { setLoadingCities(true); fetchCitiesLegacy(data.country).then((c) => { setCities(c); setLoadingCities(false); }); }
       setLoadingEdit(false);
     };
     loadMission();
