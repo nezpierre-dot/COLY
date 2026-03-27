@@ -135,10 +135,8 @@ const NewTrip = () => {
     const prefillCity = searchParams.get("arrival_city");
     if (prefillCountry) {
       setArrivalCountry(prefillCountry);
-      fetchCities(prefillCountry, setArrivalCities);
       if (prefillCity) {
-        // Small delay to let cities load
-        setTimeout(() => setArrivalCity(prefillCity), 500);
+        setArrivalCity(prefillCity);
       }
     }
   }, []);
