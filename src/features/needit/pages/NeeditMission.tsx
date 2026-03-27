@@ -374,6 +374,41 @@ const NeeditMission = () => {
             {step === 4 && (
               <>
                 <h3 className="text-xl text-muted-foreground mb-6">{t("needit.describeProducts")}</h3>
+
+                {/* Recap for unlisted products */}
+                {isUnlisted && (
+                  <div className="rounded-2xl border border-border bg-muted/30 p-4 mb-6">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Récapitulatif produit</p>
+                    <div className="flex gap-4">
+                      {photoPreview ? (
+                        <img src={photoPreview} alt="Produit" className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                          <Camera size={20} className="text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <p className="text-sm font-semibold text-foreground truncate">{unlistedName || "Produit non référencé"}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {dimension && (
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-background rounded-lg px-2 py-1 border border-border">
+                              📐 {dimension}
+                            </span>
+                          )}
+                          {poids && (
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-background rounded-lg px-2 py-1 border border-border">
+                              ⚖️ {poids}
+                            </span>
+                          )}
+                        </div>
+                        {!dimension && !poids && (
+                          <p className="text-xs text-muted-foreground italic">Taille et poids non renseignés</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {(() => {
                   const currency = getCurrencyForCountry(pays);
                   const units = getUnitsForCountry(pays);
