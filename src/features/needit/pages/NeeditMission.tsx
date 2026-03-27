@@ -366,8 +366,12 @@ const NeeditMission = () => {
                   return (
                     <>
                       <div className="space-y-4 mb-4">
-                        <div className="relative"><Input placeholder={units.dimensionPlaceholder} value={dimension} onChange={(e) => setDimension(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.dimension}</span></div>
-                        <div className="relative"><Input placeholder={units.weightPlaceholder} value={poids} onChange={(e) => setPoids(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.weight}</span></div>
+                        {!isUnlisted && (
+                          <>
+                            <div className="relative"><Input placeholder={units.dimensionPlaceholder} value={dimension} onChange={(e) => setDimension(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.dimension}</span></div>
+                            <div className="relative"><Input placeholder={units.weightPlaceholder} value={poids} onChange={(e) => setPoids(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.weight}</span></div>
+                          </>
+                        )}
                         <div>
                           <div className="flex items-center gap-1 mb-1">
                             <p className="text-xs text-muted-foreground">{t("needit.budgetLabel")} <span className="text-destructive">*</span></p>
