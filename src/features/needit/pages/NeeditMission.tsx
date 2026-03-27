@@ -348,13 +348,27 @@ const NeeditMission = () => {
             )}
             {step === 3 && (
               <div className="flex flex-col items-center gap-6 mb-8">
-                {photoPreview ? <img src={photoPreview} alt="Produit" className="max-h-72 rounded-2xl object-contain" /> : <><h3 className="text-xl font-semibold text-foreground text-left w-full">{t("needit.addPhoto")}</h3><label className="w-full max-w-xs flex items-center justify-center py-6 rounded-2xl bg-accent text-accent-foreground cursor-pointer hover:opacity-90 transition-opacity shadow-lg"><Camera size={48} /><input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} /></label></>}
-                {photoPreview && <label className="text-sm text-primary underline cursor-pointer">{t("needit.changePhoto")}<input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} /></label>}
-                <div className="w-full mt-2">
-                  <div className="flex items-center gap-2 mb-3"><ScanBarcode size={18} className="text-primary" /><h3 className="text-sm font-semibold text-foreground">{t("needit.eanOptional")}</h3></div>
-                  {eanCode ? <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20"><ScanBarcode size={16} className="text-primary shrink-0" /><span className="text-sm font-mono text-foreground flex-1">{eanCode}</span><button onClick={() => setEanCode("")} className="text-xs text-destructive">{t("needit.remove")}</button></div> : <EanScanner mode="scan" onProductFound={(p) => { setEanCode(p.ean_code); if (p.product_name && !selectedLeaf && !unlistedName) { setUnlistedName(p.product_name); setIsUnlisted(true); } if (p.weight && !poids) setPoids(p.weight); }} />}
-                  <p className="text-xs text-muted-foreground mt-2">{t("needit.eanHelp")}</p>
-                </div>
+                {isUnlisted ? (
+                  <>
+                    {/* For unlisted products, photo was already captured at step 2 — just show EAN scanner */}
+                    {photoPreview && <img src={photoPreview} alt="Produit" className="max-h-48 rounded-2xl object-contain" />}
+                    <div className="w-full mt-2">
+                      <div className="flex items-center gap-2 mb-3"><ScanBarcode size={18} className="text-primary" /><h3 className="text-sm font-semibold text-foreground">{t("needit.eanOptional")}</h3></div>
+                      {eanCode ? <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20"><ScanBarcode size={16} className="text-primary shrink-0" /><span className="text-sm font-mono text-foreground flex-1">{eanCode}</span><button onClick={() => setEanCode("")} className="text-xs text-destructive">{t("needit.remove")}</button></div> : <EanScanner mode="scan" onProductFound={(p) => { setEanCode(p.ean_code); if (p.product_name && !unlistedName) { setUnlistedName(p.product_name); } if (p.weight && !poids) setPoids(p.weight); }} />}
+                      <p className="text-xs text-muted-foreground mt-2">{t("needit.eanHelp")}</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {photoPreview ? <img src={photoPreview} alt="Produit" className="max-h-72 rounded-2xl object-contain" /> : <><h3 className="text-xl font-semibold text-foreground text-left w-full">{t("needit.addPhoto")}</h3><label className="w-full max-w-xs flex items-center justify-center py-6 rounded-2xl bg-accent text-accent-foreground cursor-pointer hover:opacity-90 transition-opacity shadow-lg"><Camera size={48} /><input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} /></label></>}
+                    {photoPreview && <label className="text-sm text-primary underline cursor-pointer">{t("needit.changePhoto")}<input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} /></label>}
+                    <div className="w-full mt-2">
+                      <div className="flex items-center gap-2 mb-3"><ScanBarcode size={18} className="text-primary" /><h3 className="text-sm font-semibold text-foreground">{t("needit.eanOptional")}</h3></div>
+                      {eanCode ? <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20"><ScanBarcode size={16} className="text-primary shrink-0" /><span className="text-sm font-mono text-foreground flex-1">{eanCode}</span><button onClick={() => setEanCode("")} className="text-xs text-destructive">{t("needit.remove")}</button></div> : <EanScanner mode="scan" onProductFound={(p) => { setEanCode(p.ean_code); if (p.product_name && !selectedLeaf && !unlistedName) { setUnlistedName(p.product_name); setIsUnlisted(true); } if (p.weight && !poids) setPoids(p.weight); }} />}
+                      <p className="text-xs text-muted-foreground mt-2">{t("needit.eanHelp")}</p>
+                    </div>
+                  </>
+                )}
               </div>
             )}
             {step === 4 && (
@@ -366,8 +380,12 @@ const NeeditMission = () => {
                   return (
                     <>
                       <div className="space-y-4 mb-4">
-                        <div className="relative"><Input placeholder={units.dimensionPlaceholder} value={dimension} onChange={(e) => setDimension(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.dimension}</span></div>
-                        <div className="relative"><Input placeholder={units.weightPlaceholder} value={poids} onChange={(e) => setPoids(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.weight}</span></div>
+                        {!isUnlisted && (
+                          <>
+                            <div className="relative"><Input placeholder={units.dimensionPlaceholder} value={dimension} onChange={(e) => setDimension(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.dimension}</span></div>
+                            <div className="relative"><Input placeholder={units.weightPlaceholder} value={poids} onChange={(e) => setPoids(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-12 focus-visible:ring-0 focus-visible:border-primary" /><span className="absolute right-0 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{units.weight}</span></div>
+                          </>
+                        )}
                         <div>
                           <div className="flex items-center gap-1 mb-1">
                             <p className="text-xs text-muted-foreground">{t("needit.budgetLabel")} <span className="text-destructive">*</span></p>
