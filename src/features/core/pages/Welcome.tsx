@@ -13,12 +13,12 @@ const Welcome = () => {
     () => !localStorage.getItem("onboarding-done")
   );
 
-  // If user is already authenticated (e.g. after Google OAuth redirect), go to dashboard
+  // If user is already authenticated, go to dashboard (skip onboarding)
   if (!loading && user) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (showOnboarding) {
+  if (showOnboarding && !loading && !user) {
     return <OnboardingFlow onComplete={() => setShowOnboarding(false)} />;
   }
 
