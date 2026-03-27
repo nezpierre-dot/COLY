@@ -99,6 +99,8 @@ export default function NotificationsPage() {
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 
   const [filter, setFilter] = useState<NotifFilter>("all");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
     if (filter === "all") return notifications;
@@ -111,20 +113,75 @@ export default function NotificationsPage() {
     return counts;
   }, [notifications]);
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selected.size === filtered.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(filtered.map((n) => n.id)));
+    }
+  };
+
+  const deleteSelected = async () => {
+    for (const id of selected) {
+      await deleteNotification(id);
+    }
+    setSelected(new Set());
+    setSelectMode(false);
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelected(new Set());
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="px-6 pt-12">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="text-foreground hover:text-primary transition-colors"><ArrowLeft size={24} /></button>
-          <h1 className="text-2xl font-bold text-foreground flex-1">{t("notif.title")}</h1>
-          {unreadCount > 0 && (
-            <button onClick={() => markAllAsRead()} className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
-              <Check size={14} /> {t("notif.markAllRead")}
-            </button>
+          <button onClick={() => selectMode ? exitSelectMode() : navigate(-1)} className="text-foreground hover:text-primary transition-colors">
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-2xl font-bold text-foreground flex-1">
+            {selectMode ? `${selected.size} sélectionnée${selected.size > 1 ? "s" : ""}` : t("notif.title")}
+          </h1>
+          {selectMode ? (
+            <div className="flex items-center gap-2">
+              <button onClick={selectAll} className="text-xs text-primary font-medium hover:underline">
+                {selected.size === filtered.length ? "Tout désélectionner" : "Tout sélectionner"}
+              </button>
+              <button
+                onClick={deleteSelected}
+                disabled={selected.size === 0}
+                className="flex items-center gap-1 text-xs text-destructive font-medium hover:underline disabled:opacity-40"
+              >
+                <Trash2 size={14} /> Supprimer
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              {notifications.length > 0 && (
+                <button onClick={() => setSelectMode(true)} className="text-xs text-muted-foreground font-medium hover:text-foreground transition-colors">
+                  Sélectionner
+                </button>
+              )}
+              {unreadCount > 0 && (
+                <button onClick={() => markAllAsRead()} className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
+                  <Check size={14} /> {t("notif.markAllRead")}
+                </button>
+              )}
+            </div>
           )}
         </div>
 
-        {notifications.length > 0 && (
+        {notifications.length > 0 && !selectMode && (
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
             {filterLabels.map((f) => (
               <button
@@ -196,7 +253,12 @@ export default function NotificationsPage() {
           <div className="space-y-2">
             {filtered.map((n) => {
               const link = getNotifLink(n.type);
+              const isSelected = selected.has(n.id);
               const handleClick = () => {
+                if (selectMode) {
+                  toggleSelect(n.id);
+                  return;
+                }
                 if (!n.is_read) markAsRead(n.id);
                 if (link) navigate(link);
               };
@@ -204,21 +266,37 @@ export default function NotificationsPage() {
                 <div
                   key={n.id}
                   onClick={handleClick}
-                  className={`flex items-start gap-3 rounded-xl px-4 py-3 border transition-colors ${link ? "cursor-pointer active:scale-[0.98]" : ""} ${!n.is_read ? "bg-primary/5 border-primary/20" : "bg-card border-border"}`}
+                  className={`flex items-start gap-3 rounded-xl px-4 py-3 border transition-colors cursor-pointer active:scale-[0.98] ${
+                    selectMode && isSelected
+                      ? "bg-primary/10 border-primary/40"
+                      : !n.is_read
+                      ? "bg-primary/5 border-primary/20"
+                      : "bg-card border-border"
+                  }`}
                 >
-                  <span className="mt-0.5 shrink-0">{getNotifIcon(n.type)}</span>
+                  {selectMode ? (
+                    <div className={`mt-1 shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                      isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
+                    }`}>
+                      {isSelected && <Check size={12} className="text-primary-foreground" />}
+                    </div>
+                  ) : (
+                    <span className="mt-0.5 shrink-0">{getNotifIcon(n.type)}</span>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>{n.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
                     <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}</p>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0 mt-1">
-                    {!n.is_read && (
-                      <button onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }} className="p-1.5 rounded-lg hover:bg-muted text-primary transition-colors" title={t("notif.markRead")}><Check size={14} /></button>
-                    )}
-                    <button onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
-                    {link && <ChevronRight size={16} className="text-muted-foreground/60 ml-0.5" />}
-                  </div>
+                  {!selectMode && (
+                    <div className="flex items-center gap-1 shrink-0 mt-1">
+                      {!n.is_read && (
+                        <button onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }} className="p-1.5 rounded-lg hover:bg-muted text-primary transition-colors" title={t("notif.markRead")}><Check size={14} /></button>
+                      )}
+                      <button onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
+                      {link && <ChevronRight size={16} className="text-muted-foreground/60 ml-0.5" />}
+                    </div>
+                  )}
                 </div>
               );
             })}
