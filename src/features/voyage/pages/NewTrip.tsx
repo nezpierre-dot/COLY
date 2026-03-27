@@ -442,7 +442,7 @@ const NewTrip = () => {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalCity")} <span className="text-destructive">*</span></Label>
-                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} recentItems={recentCities} onSearch={arrivalCountry ? searchArrivalCities : undefined} />
+                  <SearchableSelect value={arrivalCity} onChange={setArrivalCity} options={arrivalCities} placeholder={arrivalCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!arrivalCountry} recentItems={recentCities} onSearch={arrivalCountry ? searchArrivalCities : undefined} popularItems={getPopularCities(getCountryISO(arrivalCountry) || "")} popularLabel="Grandes villes" />
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.arrivalAddress")}</Label>
