@@ -8,6 +8,7 @@ import SwipeToDelete from "@/components/SwipeToDelete";
 import { ReactNode, useMemo, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useTranslation";
+import { hapticMedium } from "@/lib/haptics";
 import {
   AlertDialog,
   AlertDialogAction,
