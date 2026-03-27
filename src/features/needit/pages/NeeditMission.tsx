@@ -152,7 +152,7 @@ const NeeditMission = () => {
   const handleCountryChange = useCallback((country: string) => {
     setPays(country); setVille(""); setCities([]);
     if (errors.pays) setErrors((p) => { const n = { ...p }; delete n.pays; return n; });
-    if (country) { setLoadingCities(true); fetchCities(country).then((data) => { setCities(data); setLoadingCities(false); }); }
+    if (country) { setLoadingCities(true); fetchCitiesLegacy(country).then((data) => { setCities(data); setLoadingCities(false); }); }
   }, [errors.pays]);
 
   const currentCategories = () => (categoryPath.length === 0 ? PRODUCT_CATEGORIES : categoryPath[categoryPath.length - 1].children || []);
