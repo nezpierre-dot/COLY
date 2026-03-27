@@ -100,7 +100,7 @@ const SearchableDropdown = ({ label, placeholder, items, value, onChange, loadin
             ) : showSections ? (
               <>
                 {validRecent.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Récents</div>{validRecent.map(renderBtn)}</>)}
-                {validPopular.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Populaires</div>{validPopular.map(renderBtn)}</>)}
+                {validPopular.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{popularLabel}</div>{validPopular.map(renderBtn)}</>)}
                 {remaining.length > 0 && (<><div className="px-4 pt-2 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">A – Z</div>{remaining.map(renderBtn)}</>)}
               </>
             ) : filtered.slice(0, 50).map(renderBtn)}
