@@ -154,6 +154,7 @@ export default function NotificationsPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteConfirm) return;
+    hapticMedium();
     if (deleteConfirm.type === "single" && deleteConfirm.id) {
       const id = deleteConfirm.id;
       setDeleteConfirm(null);
