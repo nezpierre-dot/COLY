@@ -264,41 +264,46 @@ export default function NotificationsPage() {
                 if (link) navigate(link);
               };
               return (
-                <div
+                <SwipeToDelete
                   key={n.id}
-                  onClick={handleClick}
-                  className={`flex items-start gap-3 rounded-xl px-4 py-3 border transition-colors cursor-pointer active:scale-[0.98] ${
-                    selectMode && isSelected
-                      ? "bg-primary/10 border-primary/40"
-                      : !n.is_read
-                      ? "bg-primary/5 border-primary/20"
-                      : "bg-card border-border"
-                  }`}
+                  onDelete={() => deleteNotification(n.id)}
+                  disabled={selectMode}
                 >
-                  {selectMode ? (
-                    <div className={`mt-1 shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-                      isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
-                    }`}>
-                      {isSelected && <Check size={12} className="text-primary-foreground" />}
+                  <div
+                    onClick={handleClick}
+                    className={`flex items-start gap-3 rounded-xl px-4 py-3 border transition-colors cursor-pointer active:scale-[0.98] ${
+                      selectMode && isSelected
+                        ? "bg-primary/10 border-primary/40"
+                        : !n.is_read
+                        ? "bg-primary/5 border-primary/20"
+                        : "bg-card border-border"
+                    }`}
+                  >
+                    {selectMode ? (
+                      <div className={`mt-1 shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                        isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
+                      }`}>
+                        {isSelected && <Check size={12} className="text-primary-foreground" />}
+                      </div>
+                    ) : (
+                      <span className="mt-0.5 shrink-0">{getNotifIcon(n.type)}</span>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>{n.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}</p>
                     </div>
-                  ) : (
-                    <span className="mt-0.5 shrink-0">{getNotifIcon(n.type)}</span>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>{n.title}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}</p>
+                    {!selectMode && (
+                      <div className="flex items-center gap-1 shrink-0 mt-1">
+                        {!n.is_read && (
+                          <button onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }} className="p-1.5 rounded-lg hover:bg-muted text-primary transition-colors" title={t("notif.markRead")}><Check size={14} /></button>
+                        )}
+                        <button onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
+                        {link && <ChevronRight size={16} className="text-muted-foreground/60 ml-0.5" />}
+                      </div>
+                    )}
                   </div>
-                  {!selectMode && (
-                    <div className="flex items-center gap-1 shrink-0 mt-1">
-                      {!n.is_read && (
-                        <button onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }} className="p-1.5 rounded-lg hover:bg-muted text-primary transition-colors" title={t("notif.markRead")}><Check size={14} /></button>
-                      )}
-                      <button onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
-                      {link && <ChevronRight size={16} className="text-muted-foreground/60 ml-0.5" />}
-                    </div>
-                  )}
-                </div>
+                </SwipeToDelete>
               );
             })}
           </div>
