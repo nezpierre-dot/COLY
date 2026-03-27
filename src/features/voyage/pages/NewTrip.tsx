@@ -167,8 +167,6 @@ const NewTrip = () => {
   const [needitBudget, setNeeditBudget] = useState("");
   const [maxWeightKg, setMaxWeightKg] = useState("");
   const [maxItems, setMaxItems] = useState("");
-  const [volumeType, setVolumeType] = useState<"liters" | "dimensions">("liters");
-  const [volumeLiters, setVolumeLiters] = useState("");
   const [capacityDimensions, setCapacityDimensions] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState(() => {
     const c = getCurrencyForCountry(arrivalCountry);
