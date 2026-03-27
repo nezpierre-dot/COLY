@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight, DollarSign } from "lucide-react";
+import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight, DollarSign, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
@@ -222,6 +222,21 @@ const Settings = () => {
           <Row icon={CreditCard} label={t("settings.paymentMethods")}>
             <ArrowLeft size={16} className="text-muted-foreground rotate-180" />
           </Row>
+          <button
+            onClick={() => {
+              localStorage.removeItem("voyageur-onboarding-done");
+              localStorage.removeItem("demandeur-onboarding-done");
+              toast.success("Tutoriel réinitialisé ! Il s'affichera au prochain accès au tableau de bord.");
+              navigate("/dashboard");
+            }}
+            className="flex items-center justify-between px-4 py-3.5 w-full hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <BookOpen size={18} className="text-muted-foreground" />
+              <span className="text-foreground text-sm">Revoir le tutoriel</span>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </button>
         </Section>
         <Section title={t("settings.security")}>
           <Row icon={Shield} label={t("settings.changePassword")}>
