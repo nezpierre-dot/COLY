@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { fetchCitiesByCountry } from "@/lib/citySearch";
+import { fetchCitiesByCountry, getCountryISO } from "@/lib/citySearch";
+import { getPopularCities } from "@/lib/popularCities";
 import MatchingSuggestions from "@/features/matching/components/MatchingSuggestions";
 import { calculateSuggestedPrice, type PriceSuggestion } from "@/lib/priceSuggestion";
 import { AnimatePresence, motion } from "framer-motion";

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { fetchCitiesByCountry } from "@/lib/citySearch";
+import { fetchCitiesByCountry, getCountryISO } from "@/lib/citySearch";
+import { getPopularCities } from "@/lib/popularCities";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin, AlertTriangle } from "lucide-react";
