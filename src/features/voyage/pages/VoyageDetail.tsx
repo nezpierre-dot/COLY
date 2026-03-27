@@ -998,47 +998,6 @@ const VoyageDetail = () => {
                         </div>
                       )}
 
-                      {/* Volume - inline editable */}
-                      {voyage.capacity_volume_liters && !editingVolume && (
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground flex items-center gap-1">
-                              {t("trip.volumeLiters")}
-                              {canEditCapacity && (
-                                <button
-                                  onClick={() => { setEditVolume(String(voyage.capacity_volume_liters)); setEditingVolume(true); }}
-                                  className="text-primary hover:text-primary/80 transition-colors"
-                                >
-                                  <Pencil size={11} />
-                                </button>
-                              )}
-                            </span>
-                            <span className="font-bold text-primary">{voyage.capacity_volume_liters} L</span>
-                          </div>
-                        </div>
-                      )}
-                      {editingVolume && (
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            value={editVolume}
-                            onChange={(e) => setEditVolume(e.target.value)}
-                            className="h-8 text-sm"
-                            placeholder="litres"
-                            autoFocus
-                          />
-                          <button
-                            onClick={() => handleSaveCapacity("capacity_volume_liters")}
-                            disabled={savingCapacity}
-                            className="text-primary hover:text-primary/80 shrink-0"
-                          >
-                            {savingCapacity ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                          </button>
-                          <button onClick={() => setEditingVolume(false)} className="text-muted-foreground hover:text-foreground shrink-0">
-                            <X size={16} />
-                          </button>
-                        </div>
-                      )}
 
                       {voyage.max_items && (
                         <div className="space-y-1">
