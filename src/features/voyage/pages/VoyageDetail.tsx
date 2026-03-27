@@ -870,9 +870,66 @@ const VoyageDetail = () => {
                 {voyage.accept_needit && voyage.needit_budget && (
                   <InfoRow icon={<Package size={14} />} label={t("trip.needitBudget") || "Budget NeedIt"} value={`${voyage.needit_budget} €`} />
                 )}
-                {voyage.capacity_dimensions && (
-                  <InfoRow icon={<Weight size={14} />} label={t("trip.volumeDimensions")} value={voyage.capacity_dimensions} />
-                )}
+                {/* Dimensions visuelles - inline editable */}
+                {(() => {
+                  const SIZE_OPTIONS = [
+                    { label: "S", icon: "📦", desc: "Enveloppe", dim: "30×20×5 cm" },
+                    { label: "M", icon: "🎒", desc: "Sac à dos", dim: "40×30×20 cm" },
+                    { label: "L", icon: "🧳", desc: "Valise cabine", dim: "55×40×20 cm" },
+                    { label: "XL", icon: "📦", desc: "Grande valise", dim: "70×50×30 cm" },
+                  ];
+                  const currentSize = SIZE_OPTIONS.find(s => s.dim === voyage.capacity_dimensions);
+                  const editingDim = editingVolume; // reuse state
+                  const setEditingDim = setEditingVolume;
+
+                  if (!voyage.capacity_dimensions && !editingDim) return null;
+
+                  return editingDim ? (
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground font-semibold">Taille maximale d'un colis</p>
+                      <div className="grid grid-cols-4 gap-2">
+                        {SIZE_OPTIONS.map((size) => (
+                          <button
+                            key={size.label}
+                            type="button"
+                            onClick={async () => {
+                              setSavingCapacity(true);
+                              const { error } = await supabase.from("voyages").update({ capacity_dimensions: size.dim } as any).eq("id", id!);
+                              setSavingCapacity(false);
+                              if (error) { toast.error(t("common.error")); return; }
+                              toast.success(t("common.saved"));
+                              setEditingDim(false);
+                              loadVoyage();
+                            }}
+                            className={`flex flex-col items-center gap-1 p-2 rounded-xl border transition-all ${
+                              voyage.capacity_dimensions === size.dim
+                                ? "border-primary bg-primary/10 text-foreground"
+                                : "border-border text-muted-foreground hover:border-primary/30"
+                            }`}
+                          >
+                            <span className="text-lg">{size.icon}</span>
+                            <span className="text-xs font-bold">{size.label}</span>
+                            <span className="text-[9px] leading-tight text-center">{size.desc}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <button onClick={() => setEditingDim(false)} className="text-xs text-muted-foreground hover:text-foreground">Annuler</button>
+                    </div>
+                  ) : (
+                    <InfoRow
+                      icon={<span className="text-sm">{currentSize?.icon || "📦"}</span>}
+                      label="Taille max colis"
+                      value={
+                        <span className="flex items-center gap-1">
+                          {currentSize ? `${currentSize.label} — ${currentSize.desc}` : voyage.capacity_dimensions}
+                          {canEditCapacity && (
+                            <button onClick={() => setEditingDim(true)} className="text-primary hover:text-primary/80 ml-1"><Pencil size={11} /></button>
+                          )}
+                        </span>
+                      }
+                    />
+                  );
+                })()}
 
                 {/* Capacity progress bars */}
                 {(voyage.max_weight_kg || voyage.max_items || voyage.capacity_volume_liters) && (() => {
