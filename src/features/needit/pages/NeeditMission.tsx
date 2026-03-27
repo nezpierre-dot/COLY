@@ -289,7 +289,62 @@ const NeeditMission = () => {
               </>
             )}
             {step === 2 && isUnlisted && (
-              <div className="space-y-4 mb-6"><p className="text-muted-foreground">{t("needit.describeSearch")}</p><Input placeholder={t("needit.productName")} value={unlistedName} onChange={(e) => setUnlistedName(e.target.value)} /></div>
+              <div className="space-y-5 mb-6">
+                <p className="text-muted-foreground">{t("needit.describeSearch")}</p>
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Description du produit <span className="text-destructive">*</span></p>
+                  <textarea
+                    placeholder="Ex : 2 cartouches cigarettes Marlboro, poids 2kg, emballage renforcé"
+                    value={unlistedName}
+                    onChange={(e) => setUnlistedName(e.target.value)}
+                    rows={3}
+                    className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                  />
+                </div>
+
+                {/* Photo */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">Photo du produit</p>
+                  {photoPreview ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <img src={photoPreview} alt="Produit" className="max-h-48 rounded-2xl object-contain" />
+                      <label className="text-sm text-primary underline cursor-pointer">
+                        {t("needit.changePhoto")}
+                        <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                      </label>
+                    </div>
+                  ) : (
+                    <label className="w-full flex items-center justify-center gap-3 py-6 rounded-2xl bg-muted/50 border-2 border-dashed border-border cursor-pointer hover:border-primary/30 transition-colors">
+                      <Camera size={24} className="text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Ajouter une photo</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                    </label>
+                  )}
+                </div>
+
+                {/* Taille & Poids */}
+                {(() => {
+                  const units = getUnitsForCountry(pays);
+                  return (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Taille</p>
+                        <div className="relative">
+                          <Input placeholder={units.dimensionPlaceholder} value={dimension} onChange={(e) => setDimension(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-10 focus-visible:ring-0 focus-visible:border-primary" />
+                          <span className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{units.dimension}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Poids</p>
+                        <div className="relative">
+                          <Input placeholder={units.weightPlaceholder} value={poids} onChange={(e) => setPoids(e.target.value)} className="border-0 border-b border-primary/30 rounded-none px-0 pr-10 focus-visible:ring-0 focus-visible:border-primary" />
+                          <span className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{units.weight}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
             )}
             {step === 3 && (
               <div className="flex flex-col items-center gap-6 mb-8">
