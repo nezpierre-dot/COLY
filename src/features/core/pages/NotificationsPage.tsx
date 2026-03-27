@@ -149,6 +149,16 @@ export default function NotificationsPage() {
     setSelectMode(false);
   };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm) return;
+    if (deleteConfirm.type === "single" && deleteConfirm.id) {
+      await deleteNotification(deleteConfirm.id);
+    } else if (deleteConfirm.type === "bulk") {
+      await deleteSelected();
+    }
+    setDeleteConfirm(null);
+  };
+
   const exitSelectMode = () => {
     setSelectMode(false);
     setSelected(new Set());
