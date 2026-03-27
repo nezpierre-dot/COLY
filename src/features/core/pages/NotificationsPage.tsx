@@ -287,7 +287,7 @@ export default function NotificationsPage() {
               return (
                 <SwipeToDelete
                   key={n.id}
-                  onDelete={() => deleteNotification(n.id)}
+                  onDelete={() => setDeleteConfirm({ type: "single", id: n.id })}
                   disabled={selectMode}
                 >
                   <div
