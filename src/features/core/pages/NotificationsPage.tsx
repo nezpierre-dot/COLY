@@ -5,7 +5,8 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import BottomNav from "@/components/BottomNav";
 import SwipeToDelete from "@/components/SwipeToDelete";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useMemo, useState, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useTranslation";
 import {
   AlertDialog,
@@ -113,6 +114,7 @@ export default function NotificationsPage() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: "single" | "bulk"; id?: string } | null>(null);
+  const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
     if (filter === "all") return notifications;
@@ -152,11 +154,27 @@ export default function NotificationsPage() {
   const handleConfirmDelete = async () => {
     if (!deleteConfirm) return;
     if (deleteConfirm.type === "single" && deleteConfirm.id) {
-      await deleteNotification(deleteConfirm.id);
+      const id = deleteConfirm.id;
+      setDeleteConfirm(null);
+      setExitingIds((prev) => new Set(prev).add(id));
+      // Wait for exit animation then actually delete
+      setTimeout(async () => {
+        await deleteNotification(id);
+        setExitingIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      }, 300);
     } else if (deleteConfirm.type === "bulk") {
-      await deleteSelected();
+      const ids = new Set(selected);
+      setDeleteConfirm(null);
+      setExitingIds(ids);
+      setTimeout(async () => {
+        for (const id of ids) await deleteNotification(id);
+        setExitingIds(new Set());
+        setSelected(new Set());
+        setSelectMode(false);
+      }, 300);
+    } else {
+      setDeleteConfirm(null);
     }
-    setDeleteConfirm(null);
   };
 
   const exitSelectMode = () => {
@@ -273,9 +291,11 @@ export default function NotificationsPage() {
           </div>
         ) : (
           <div className="space-y-2">
+          <AnimatePresence initial={false}>
             {filtered.map((n) => {
               const link = getNotifLink(n.type);
               const isSelected = selected.has(n.id);
+              const isExiting = exitingIds.has(n.id);
               const handleClick = () => {
                 if (selectMode) {
                   toggleSelect(n.id);
@@ -285,48 +305,61 @@ export default function NotificationsPage() {
                 if (link) navigate(link);
               };
               return (
-                <SwipeToDelete
+                <motion.div
                   key={n.id}
-                  onDelete={() => setDeleteConfirm({ type: "single", id: n.id })}
-                  disabled={selectMode}
+                  layout
+                  initial={{ opacity: 1, height: "auto", x: 0 }}
+                  animate={isExiting
+                    ? { opacity: 0, height: 0, x: -60, marginBottom: 0 }
+                    : { opacity: 1, height: "auto", x: 0 }
+                  }
+                  exit={{ opacity: 0, height: 0, x: -60, marginBottom: 0 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="overflow-hidden mb-2"
                 >
-                  <div
-                    onClick={handleClick}
-                    className={`flex items-start gap-3 rounded-xl px-4 py-3 border transition-colors cursor-pointer active:scale-[0.98] ${
-                      selectMode && isSelected
-                        ? "bg-primary/10 border-primary/40"
-                        : !n.is_read
-                        ? "bg-primary/5 border-primary/20"
-                        : "bg-card border-border"
-                    }`}
+                  <SwipeToDelete
+                    onDelete={() => setDeleteConfirm({ type: "single", id: n.id })}
+                    disabled={selectMode}
                   >
-                    {selectMode ? (
-                      <div className={`mt-1 shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-                        isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
-                      }`}>
-                        {isSelected && <Check size={12} className="text-primary-foreground" />}
+                    <div
+                      onClick={handleClick}
+                      className={`flex items-start gap-3 rounded-xl px-4 py-3 border transition-colors cursor-pointer active:scale-[0.98] ${
+                        selectMode && isSelected
+                          ? "bg-primary/10 border-primary/40"
+                          : !n.is_read
+                          ? "bg-primary/5 border-primary/20"
+                          : "bg-card border-border"
+                      }`}
+                    >
+                      {selectMode ? (
+                        <div className={`mt-1 shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                          isSelected ? "bg-primary border-primary" : "border-muted-foreground/40"
+                        }`}>
+                          {isSelected && <Check size={12} className="text-primary-foreground" />}
+                        </div>
+                      ) : (
+                        <span className="mt-0.5 shrink-0">{getNotifIcon(n.type)}</span>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>{n.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}</p>
                       </div>
-                    ) : (
-                      <span className="mt-0.5 shrink-0">{getNotifIcon(n.type)}</span>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>{n.title}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}</p>
+                      {!selectMode && (
+                        <div className="flex items-center gap-1 shrink-0 mt-1">
+                          {!n.is_read && (
+                            <button onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }} className="p-1.5 rounded-lg hover:bg-muted text-primary transition-colors" title={t("notif.markRead")}><Check size={14} /></button>
+                          )}
+                          <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ type: "single", id: n.id }); }} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
+                          {link && <ChevronRight size={16} className="text-muted-foreground/60 ml-0.5" />}
+                        </div>
+                      )}
                     </div>
-                    {!selectMode && (
-                      <div className="flex items-center gap-1 shrink-0 mt-1">
-                        {!n.is_read && (
-                          <button onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }} className="p-1.5 rounded-lg hover:bg-muted text-primary transition-colors" title={t("notif.markRead")}><Check size={14} /></button>
-                        )}
-                        <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ type: "single", id: n.id }); }} className="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors" title={t("notif.delete")}><Trash2 size={14} /></button>
-                        {link && <ChevronRight size={16} className="text-muted-foreground/60 ml-0.5" />}
-                      </div>
-                    )}
-                  </div>
-                </SwipeToDelete>
+                  </SwipeToDelete>
+                </motion.div>
               );
             })}
+          </AnimatePresence>
           </div>
         )}
       </div>
