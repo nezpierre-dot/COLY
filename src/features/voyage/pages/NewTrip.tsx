@@ -114,29 +114,19 @@ const NewTrip = () => {
       .catch(() => {});
   }, []);
 
-  const fetchCities = (country: string, setter: (c: string[]) => void) => {
-    setter([]);
-    if (!country) return;
-    fetch("https://countriesnow.space/api/v0.1/countries/cities", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ country }),
-    })
-      .then((r) => r.json())
-      .then((res) => { if (res?.data) setter(res.data.sort()); })
-      .catch(() => {});
-  };
+  const searchDepartureCities = useCallback(async (q: string) => fetchCitiesByCountry(departureCountry, q), [departureCountry]);
+  const searchArrivalCities = useCallback(async (q: string) => fetchCitiesByCountry(arrivalCountry, q), [arrivalCountry]);
 
   const handleDepartureCountry = (v: string) => {
     setDepartureCountry(v);
     setDepartureCity("");
-    fetchCities(v, setDepartureCities);
+    setDepartureCities([]);
   };
 
   const handleArrivalCountry = (v: string) => {
     setArrivalCountry(v);
     setArrivalCity("");
-    fetchCities(v, setArrivalCities);
+    setArrivalCities([]);
   };
 
   // Pre-fill arrival from URL params (when redirected from unmatched accept)
