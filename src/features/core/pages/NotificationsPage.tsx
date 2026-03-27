@@ -180,7 +180,7 @@ export default function NotificationsPage() {
                 {selected.size === filtered.length ? "Tout désélectionner" : "Tout sélectionner"}
               </button>
               <button
-                onClick={deleteSelected}
+                onClick={() => setDeleteConfirm({ type: "bulk" })}
                 disabled={selected.size === 0}
                 className="flex items-center gap-1 text-xs text-destructive font-medium hover:underline disabled:opacity-40"
               >
