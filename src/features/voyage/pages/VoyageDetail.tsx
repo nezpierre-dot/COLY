@@ -1347,7 +1347,7 @@ const VoyageDetail = () => {
   );
 };
 
-const InfoRow = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
+const InfoRow = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) => (
   <div className="flex items-center gap-3">
     <span className="text-muted-foreground">{icon}</span>
     <span className="text-xs text-muted-foreground w-28 shrink-0">{label}</span>
