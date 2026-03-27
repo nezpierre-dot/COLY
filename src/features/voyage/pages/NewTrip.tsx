@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { fetchCitiesByCountry } from "@/lib/citySearch";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, Star } from "lucide-react";

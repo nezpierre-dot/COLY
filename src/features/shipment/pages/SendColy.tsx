@@ -112,9 +112,10 @@ const SendColy = () => {
   const { symbol: currencySymbol } = getCurrencyForCountry(arrCountry);
 
   useEffect(() => { fetch("https://countriesnow.space/api/v0.1/countries").then((r) => r.json()).then((res) => { if (res?.data) setCountries(res.data.map((c: any) => c.country).sort()); }).catch(() => {}); }, []);
-  const fetchCitiesFor = (country: string, setter: (c: string[]) => void) => { setter([]); if (!country) return; fetch("https://countriesnow.space/api/v0.1/countries/cities", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ country }) }).then((r) => r.json()).then((res) => { if (res?.data) setter(res.data.sort()); }).catch(() => {}); };
-  const handleDepartCountryChange = (v: string) => { setDepartCountry(v); setDepartCity(""); clearError("departCountry"); fetchCitiesFor(v, setDepartCities); };
-  const handleArrCountryChange = (v: string) => { setArrCountry(v); setArrCity(""); clearError("arrCountry"); fetchCitiesFor(v, setArrCities); };
+  const searchCitiesDepart = useCallback(async (q: string) => fetchCitiesByCountry(departCountry, q), [departCountry]);
+  const searchCitiesArr = useCallback(async (q: string) => fetchCitiesByCountry(arrCountry, q), [arrCountry]);
+  const handleDepartCountryChange = (v: string) => { setDepartCountry(v); setDepartCity(""); setDepartCities([]); clearError("departCountry"); };
+  const handleArrCountryChange = (v: string) => { setArrCountry(v); setArrCity(""); setArrCities([]); clearError("arrCountry"); };
   const isInternational = useMemo(() => arrCountry.toLowerCase().trim().length > 0 && !["france", "fr"].includes(arrCountry.toLowerCase().trim()), [arrCountry]);
   
 
