@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface MatchingVoyageur {
   voyageur_id: string;
@@ -35,6 +36,7 @@ export const useMatchingVoyageurs = ({
 }: UseMatchingParams) => {
   const [voyageurs, setVoyageurs] = useState<MatchingVoyageur[]>([]);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!enabled || !destinationCountry) {
@@ -53,7 +55,11 @@ export const useMatchingVoyageurs = ({
       });
 
       if (!error && data) {
-        setVoyageurs(data as MatchingVoyageur[]);
+        // Exclude self from matching results
+        const filtered = (data as MatchingVoyageur[]).filter(
+          (v) => v.voyageur_id !== user?.id
+        );
+        setVoyageurs(filtered);
       } else {
         setVoyageurs([]);
       }
@@ -62,7 +68,7 @@ export const useMatchingVoyageurs = ({
 
     const debounce = setTimeout(fetch, 400);
     return () => clearTimeout(debounce);
-  }, [destinationCountry, destinationCity, departureDate, maxWeightKg, enabled]);
+  }, [destinationCountry, destinationCity, departureDate, maxWeightKg, enabled, user?.id]);
 
   return { voyageurs, loading };
 };
