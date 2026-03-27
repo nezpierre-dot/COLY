@@ -8,6 +8,7 @@ import SwipeToDelete from "@/components/SwipeToDelete";
 import { ReactNode, useMemo, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useTranslation";
+import { hapticMedium } from "@/lib/haptics";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -153,6 +154,7 @@ export default function NotificationsPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteConfirm) return;
+    hapticMedium();
     if (deleteConfirm.type === "single" && deleteConfirm.id) {
       const id = deleteConfirm.id;
       setDeleteConfirm(null);
