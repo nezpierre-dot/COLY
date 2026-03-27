@@ -49,7 +49,7 @@ const fetchCitiesLegacy = async (country: string): Promise<string[]> => {
   } catch { return []; }
 };
 
-const SearchableDropdown = ({ label, placeholder, items, value, onChange, loading, disabled, error, displayFn, popularItems = [], recentItems = [], onSearch }: any) => {
+const SearchableDropdown = ({ label, placeholder, items, value, onChange, loading, disabled, error, displayFn, popularItems = [], recentItems = [], onSearch, popularLabel = "Populaires" }: any) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [asyncResults, setAsyncResults] = useState<string[]>([]);
