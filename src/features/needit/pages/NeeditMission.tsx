@@ -57,11 +57,13 @@ const SearchableDropdown = ({ label, placeholder, items, value, onChange, loadin
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const display = displayFn ?? ((v: string) => v);
   const allItems = useMemo(() => {
-    if (!onSearch || asyncResults.length === 0) return items;
     const set = new Set(items);
-    asyncResults.forEach((r: string) => set.add(r));
+    popularItems.forEach((p: string) => set.add(p));
+    if (onSearch && asyncResults.length > 0) {
+      asyncResults.forEach((r: string) => set.add(r));
+    }
     return Array.from(set).sort();
-  }, [items, asyncResults, onSearch]);
+  }, [items, asyncResults, onSearch, popularItems]);
   const filtered = search ? allItems.filter((i: string) => i.toLowerCase().includes(search.toLowerCase()) || display(i).toLowerCase().includes(search.toLowerCase())) : allItems;
   const validPopular = popularItems.filter((p: string) => allItems.includes(p));
   const validRecent = recentItems.filter((r: string) => allItems.includes(r) && !validPopular.includes(r));
