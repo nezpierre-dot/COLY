@@ -268,7 +268,7 @@ const NeeditMission = () => {
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.fromWhere")}</h3>
                 <div className="space-y-4 mb-8">
                   <SearchableDropdown label={<>{t("sendcoly.country")} <span className="text-destructive">*</span></>} placeholder={t("trip.selectCountry")} items={countries} value={pays} onChange={handleCountryChange} loading={loadingCountries} error={errors.pays} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />
-                  <SearchableDropdown label={<>{t("sendcoly.city")} <span className="text-destructive">*</span></>} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => { setVille(v); if (errors.ville) setErrors((p) => { const n = { ...p }; delete n.ville; return n; }); }} loading={loadingCities} disabled={!pays} error={errors.ville} recentItems={getRecentCitiesForCountry(pays)} />
+                  <SearchableDropdown label={<>{t("sendcoly.city")} <span className="text-destructive">*</span></>} placeholder={t("trip.selectCity")} items={cities} value={ville} onChange={(v: string) => { setVille(v); if (errors.ville) setErrors((p) => { const n = { ...p }; delete n.ville; return n; }); }} loading={loadingCities} disabled={!pays} error={errors.ville} recentItems={getRecentCitiesForCountry(pays)} onSearch={pays ? async (q: string) => fetchCitiesByCountry(pays, q) : undefined} />
                 </div>
                 <h3 className="text-lg text-muted-foreground mb-3">{t("needit.when")}</h3>
                 {errors.timing && <p className="text-xs text-destructive mb-2">{errors.timing}</p>}
