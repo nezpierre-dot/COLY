@@ -89,6 +89,20 @@ const PostMatchActions = ({
   const isSender = user?.id === senderId;
   const isVoyageur = user?.id === voyageurId;
 
+  // Load existing proofs from DB to determine if they've been uploaded
+  useEffect(() => {
+    if (!shipmentId) return;
+    Promise.all([
+      supabase.from("pickup_proofs").select("id").eq("shipment_id", shipmentId).limit(1),
+      supabase.from("delivery_proofs").select("id").eq("shipment_id", shipmentId).limit(1),
+    ]).then(([pickupRes, deliveryRes]) => {
+      setProofState({
+        pickupDone: (pickupRes.data?.length ?? 0) > 0,
+        deliveryDone: (deliveryRes.data?.length ?? 0) > 0,
+      });
+    });
+  }, [shipmentId, normalizedStatus]);
+
   const parseOtpCodes = (raw: string | null) => {
     try {
       const codes = JSON.parse(raw || "{}");
