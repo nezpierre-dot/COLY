@@ -1124,6 +1124,10 @@ const AdminDashboard = () => {
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="config" className="space-y-6 mt-0">
+            <AdminConfigPanel />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
