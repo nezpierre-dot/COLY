@@ -197,8 +197,6 @@ const NeeditMissionDetail = () => {
 
   const currentStepIndex = missionSteps.indexOf(mission.status);
   const isCompleted = mission.status === "completed";
-  const ratedUserId = isOwner ? mission.voyageur_id : mission.user_id;
-  const raterRole = isOwner ? "demandeur" : "voyageur";
 
   return (
     <div className="min-h-screen bg-background pb-24">
