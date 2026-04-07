@@ -38,6 +38,8 @@ const ShipmentDetail = () => {
   const [showCancel, setShowCancel] = useState(false);
   const [showReminder, setShowReminder] = useState(false);
   const [voyageurName, setVoyageurName] = useState<string | null>(null);
+  const [pickupProofs, setPickupProofs] = useState<any[]>([]);
+  const [deliveryProofs, setDeliveryProofs] = useState<any[]>([]);
 
   // Editable fields
   const [departureDate, setDepartureDate] = useState("");
