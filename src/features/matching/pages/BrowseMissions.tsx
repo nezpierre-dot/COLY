@@ -173,6 +173,7 @@ const BrowseMissions = () => {
         case "date_asc": return new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime();
         case "price_asc": return parseTarif(a.tarif) - parseTarif(b.tarif);
         case "price_desc": return parseTarif(b.tarif) - parseTarif(a.tarif);
+        case "voyageurs": return getVoyageurCount(b.arrival_country, b.arrival_city) - getVoyageurCount(a.arrival_country, a.arrival_city);
         default: return 0;
       }
     });
