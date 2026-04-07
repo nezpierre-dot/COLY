@@ -632,6 +632,17 @@ const PostMatchActions = ({
         </motion.div>
       )}
 
+      {/* ─── IN_TRANSIT: Voyageur uploads delivery proof photo ─── */}
+      {normalizedStatus === "in_transit" && isVoyageur && !proofState.deliveryDone && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <DeliveryProofUpload
+            shipmentId={shipmentId}
+            onProofUploaded={() => setProofState(p => ({ ...p, deliveryDone: true }))}
+            onDeliveryConfirmed={() => {}}
+          />
+        </motion.div>
+      )}
+
       {/* ─── IN_TRANSIT: Sender/Anyone enters delivery OTP ─── */}
       {normalizedStatus === "in_transit" && !isVoyageur && deliveryOtp && (
         <motion.div
