@@ -417,25 +417,25 @@ const NeeditMissionDetail = () => {
           )}
 
           {/* Pickup Proof — show when exists */}
-          {pickupProof?.photo_url && (
+          {pickupProofs.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <ProofGallery
-                proofs={[pickupProof]}
+                proofs={pickupProofs}
                 icon={<PackageCheck size={14} className="text-primary" />}
                 title="Preuve de récupération"
-                canDownload={isOwner}
+                canDownload={isOwner || isVoyageur}
               />
             </motion.div>
           )}
 
           {/* Delivery Proof — show photo when completed */}
-          {isCompleted && deliveryProof?.photo_url && (
+          {deliveryProofs.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <ProofGallery
-                proofs={[deliveryProof]}
-                icon={<Image size={14} className="text-emerald-600" />}
+                proofs={deliveryProofs}
+                icon={<Image size={14} className="text-accent" />}
                 title="Preuve de livraison"
-                canDownload={isOwner}
+                canDownload={isOwner || isVoyageur}
               />
             </motion.div>
           )}
