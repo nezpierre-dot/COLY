@@ -32,6 +32,8 @@ import WalletCard from "@/components/WalletCard";
 import VoyageurOnboarding from "@/components/VoyageurOnboarding";
 import DemandeurOnboarding from "@/components/DemandeurOnboarding";
 import UserLevelBadge from "@/components/UserLevelBadge";
+import ConfettiCelebration from "@/components/ConfettiCelebration";
+import { useLevelUpCelebration } from "@/hooks/useLevelUpCelebration";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -190,6 +192,7 @@ const Dashboard = () => {
   const { addRoute, isRouteFavorite } = useFavorites();
   const isVoyageur = roles.includes("voyageur");
   const { canInstall, promptInstall } = usePWAInstall();
+  const { showConfetti } = useLevelUpCelebration();
   const [dismissedBanner, setDismissedBanner] = useState(() => localStorage.getItem("pwa-banner-dismissed") === "1");
   const showInstallBanner = canInstall && !dismissedBanner;
 
@@ -1734,6 +1737,7 @@ const Dashboard = () => {
       </PullToRefresh>
 
       <BottomNav />
+      <ConfettiCelebration show={showConfetti} />
 
       {/* Cancel Confirmation Dialog */}
       <AlertDialog open={!!cancelDialog} onOpenChange={(open) => { if (!open) setCancelDialog(null); }}>

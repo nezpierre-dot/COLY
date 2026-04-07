@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import PullToRefresh from "@/components/PullToRefresh";
 import { localizeCity } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
+import UserLevelBadge from "@/components/UserLevelBadge";
 
 interface Conversation {
   id: string;
@@ -22,6 +23,7 @@ interface Conversation {
   is_archived_by: string[];
   last_message?: string;
   other_name?: string;
+  other_id?: string;
   shipment_route?: string;
   unread_count: number;
 }
@@ -158,7 +160,10 @@ const SwipeableConversationItem = ({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-semibold truncate text-foreground">{c.other_name}</p>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <p className="text-sm font-semibold truncate text-foreground">{c.other_name}</p>
+              {c.other_id && <UserLevelBadge userId={c.other_id} variant="compact" />}
+            </div>
             <span className="text-xs text-muted-foreground shrink-0">{formatTime(c.last_message_at)}</span>
           </div>
           <p className="text-xs text-muted-foreground truncate">{c.shipment_route}</p>
@@ -264,6 +269,7 @@ const ConversationsPage = () => {
           ...c,
           last_message: msgRes.data?.[0]?.content || "",
           other_name: otherRef,
+          other_id: otherId,
           shipment_route: shipRes.data ? `${shipRes.data.departure_city ? localizeCity(shipRes.data.departure_city) : "—"} → ${localizeCity(shipRes.data.arrival_city)}` : "",
           unread_count: count || 0,
         };

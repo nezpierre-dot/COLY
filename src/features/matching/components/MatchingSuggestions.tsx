@@ -5,6 +5,7 @@ import { useMatchingVoyageurs } from "../hooks/useMatchingVoyageurs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import WhatsAppShareButton from "@/components/ShareWhatsAppButton";
+import UserLevelBadge from "@/components/UserLevelBadge";
 
 interface MatchingSuggestionsProps {
   destinationCountry: string;
@@ -113,13 +114,14 @@ const MatchingSuggestions = ({
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <p
                   onClick={() => nav(`/profile/${v.voyageur_id}`)}
                   className={`font-semibold text-foreground truncate cursor-pointer hover:text-primary transition-colors ${compact ? "text-sm" : "text-base"}`}
                 >
                   {`VOY-${v.voyageur_id.substring(0, 8).toUpperCase()}`}
                 </p>
+                <UserLevelBadge userId={v.voyageur_id} variant="compact" />
                 {Number(v.total_ratings) > 0 && (
                   <div className="flex items-center gap-0.5 shrink-0">
                     <Star size={10} className="text-amber-500 fill-amber-500" />
