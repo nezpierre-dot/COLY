@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import { motion } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
+import UserLevelBadge from "@/components/UserLevelBadge";
 
 const PublicProfile = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -108,6 +109,7 @@ const PublicProfile = () => {
           <div className="flex-1 min-w-0 pt-1">
             <h1 className="text-xl font-bold text-white truncate">{profile.full_name || userRef}</h1>
             <p className="text-white/70 text-xs mt-0.5">{userRef}</p>
+            <UserLevelBadge userId={userId} variant="compact" className="mt-1" />
 
             {profile.bio && (
               <p className="text-white/70 text-xs mt-1.5 line-clamp-2 italic">"{profile.bio}"</p>
