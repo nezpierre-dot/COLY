@@ -438,7 +438,7 @@ const BrowseMissions = () => {
                   <EmptyState icon={Package} title="Aucun colis en attente" description="Revenez plus tard ou ajustez vos filtres" />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
-                    {filteredShipments.map((s) => (
+                    {paginatedShipments.map((s) => (
                       <motion.div key={s.id} variants={staggerItem} className="bg-card border border-border rounded-2xl p-4">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -463,6 +463,15 @@ const BrowseMissions = () => {
                         </Button>
                       </motion.div>
                     ))}
+                    {hasMoreShipments && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setShipmentsPage(p => p + 1)}
+                      >
+                        Voir plus ({filteredShipments.length - paginatedShipments.length} restants)
+                      </Button>
+                    )}
                   </motion.div>
                 )}
               </TabsContent>
