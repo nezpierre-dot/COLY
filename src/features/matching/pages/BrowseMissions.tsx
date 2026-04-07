@@ -356,10 +356,11 @@ const BrowseMissions = () => {
                           </div>
                           <span className="text-xs font-bold text-primary">{s.tarif}</span>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3 flex-wrap">
                           <span className="flex items-center gap-1"><Calendar size={12} /> {formatDate(s.departure_date)}</span>
                           <span className="bg-muted px-2 py-0.5 rounded-full text-[10px] font-semibold">{s.size}</span>
                           {s.insured && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] font-semibold">Assuré</span>}
+                          <VoyageurAvailability country={s.arrival_country} city={s.arrival_city} variant="compact" />
                         </div>
                         <Button size="sm" className="w-full gap-2" onClick={() => handleAcceptShipment(s)}>
                           Accepter & Créer mon trajet <ArrowRight size={14} />
