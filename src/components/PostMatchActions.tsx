@@ -36,6 +36,11 @@ interface PostMatchActionsProps {
   itemType?: "shipment" | "needit"; // defaults to shipment
 }
 
+interface ProofState {
+  pickupDone: boolean;
+  deliveryDone: boolean;
+}
+
 // OTP expiration in milliseconds (30 minutes)
 const OTP_EXPIRY_MS = 30 * 60 * 1000;
 
