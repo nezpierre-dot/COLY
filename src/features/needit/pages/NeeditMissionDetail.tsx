@@ -151,8 +151,15 @@ const NeeditMissionDetail = () => {
   };
 
   const handleCancel = async () => {
-    if (!id) return;
+    if (!id || !mission) return;
     setSaving(true);
+    const { archiveCancelledMatch } = await import("@/lib/archiveCancelledMatch");
+    await archiveCancelledMatch({
+      item_type: "needit_mission", item_id: id, user_id: mission.user_id,
+      voyageur_id: mission.voyageur_id, arrival_city: mission.city,
+      arrival_country: mission.country, tarif: mission.prix_max,
+      original_status: mission.status,
+    });
     const { error } = await supabase.from("needit_missions").update({ status: "cancelled" }).eq("id", id);
     if (error) {
       setSaving(false);
