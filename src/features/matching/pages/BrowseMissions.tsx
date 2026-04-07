@@ -394,10 +394,11 @@ const BrowseMissions = () => {
                           </div>
                           {m.prix_max && <span className="text-xs font-bold text-primary">Max {m.prix_max}</span>}
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3 flex-wrap">
                           <span className="bg-muted px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize">{m.timing}</span>
                           {m.poids && <span>{m.poids}</span>}
                           {m.is_unlisted && <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-[10px] font-semibold">Hors catalogue</span>}
+                          <VoyageurAvailability country={m.country} city={m.city} variant="compact" />
                         </div>
                         {m.unlisted_description && (
                           <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{m.unlisted_description}</p>
