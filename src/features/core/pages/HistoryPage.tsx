@@ -557,6 +557,21 @@ const HistoryPage = () => {
                         </>
                       )}
                     </div>
+                    {/* Proof badges */}
+                    {proofsMap[item.realId] && (proofsMap[item.realId].pickup > 0 || proofsMap[item.realId].delivery > 0) && (
+                      <div className="flex items-center gap-2 mt-1">
+                        {proofsMap[item.realId].pickup > 0 && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">
+                            <PackageCheck size={10} /> Récup. ({proofsMap[item.realId].pickup})
+                          </span>
+                        )}
+                        {proofsMap[item.realId].delivery > 0 && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-accent/10 text-accent rounded-full px-2 py-0.5">
+                            <Camera size={10} /> Livr. ({proofsMap[item.realId].delivery})
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right shrink-0 flex items-center gap-2">
                     <div>
