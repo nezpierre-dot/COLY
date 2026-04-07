@@ -261,10 +261,14 @@ const AdminAnalyticsExtended = () => {
 
       {/* Revenue */}
       <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <DollarSign size={14} className="text-primary" /> Revenus & Commissions
-        </h3>
-
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <DollarSign size={14} className="text-primary" /> Revenus & Commissions
+          </h3>
+          <Button size="sm" variant="outline" onClick={exportRevenue} className="text-xs h-7">
+            <Download size={10} className="mr-1" /> CSV
+          </Button>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-primary/10 rounded-xl p-4 text-center">
             <p className="text-xl font-bold text-foreground">{revenueStats?.total_revenue?.toLocaleString()} €</p>
