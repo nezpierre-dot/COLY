@@ -617,6 +617,33 @@ export type Database = {
         }
         Relationships: []
       }
+      points_history: {
+        Row: {
+          created_at: string
+          id: string
+          points: number
+          reason: string
+          reference_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          points: number
+          reason: string
+          reference_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          points?: number
+          reason?: string
+          reference_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -1033,6 +1060,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_points: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level?: string
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -1334,7 +1388,17 @@ export type Database = {
           user_ref: string
         }[]
       }
+      award_points: {
+        Args: {
+          _points: number
+          _reason: string
+          _reference_id?: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
       compute_trust_badges: { Args: { _user_id: string }; Returns: string[] }
+      compute_user_level: { Args: { _points: number }; Returns: string }
       count_voyageurs_for_destination: {
         Args: { _city?: string; _country: string }
         Returns: number
