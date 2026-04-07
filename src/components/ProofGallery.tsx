@@ -3,8 +3,6 @@ import { X, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight, Archive } from
 import { motion, AnimatePresence } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
-import useEmblaCarousel from "embla-carousel-react";
 
 interface ProofItem {
   id: string;
