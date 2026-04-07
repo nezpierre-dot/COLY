@@ -219,6 +219,7 @@ const MyAccount = () => {
       label: "Support & Litiges",
       items: [
         { label: "Ouvrir un litige / ticket", onClick: () => navigate("/litiges") },
+        { label: "Contacter le support", onClick: () => navigate("/support-contact") },
         { label: t("account.help") || "Aide & FAQ", onClick: () => navigate("/aide") },
       ],
     },

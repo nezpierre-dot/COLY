@@ -44,6 +44,7 @@ const VoyageurSearch = lazy(() => import("./features/voyage/pages/VoyageurSearch
 const InstallPage = lazy(() => import("./features/core/pages/InstallPage"));
 const FaqPage = lazy(() => import("./features/support/pages/FaqPage"));
 const AidePage = lazy(() => import("./features/support/pages/AidePage"));
+const SupportContactPage = lazy(() => import("./features/support/pages/SupportContactPage"));
 const NotFound = lazy(() => import("./features/core/pages/NotFound"));
 const VoyageDetail = lazy(() => import("./features/voyage/pages/VoyageDetail"));
 const TransporterPage = lazy(() => import("./features/voyage/pages/TransporterPage"));
@@ -122,6 +123,7 @@ const App = () => {
                     <Route path="/install" element={<ProtectedRoute><InstallPage /></ProtectedRoute>} />
                     <Route path="/faq" element={<ProtectedRoute><FaqPage /></ProtectedRoute>} />
                     <Route path="/aide" element={<ProtectedRoute><AidePage /></ProtectedRoute>} />
+                    <Route path="/support-contact" element={<ProtectedRoute><SupportContactPage /></ProtectedRoute>} />
                     <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
                     <Route path="/litiges" element={<ProtectedRoute><DisputesPage /></ProtectedRoute>} />
                     <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
