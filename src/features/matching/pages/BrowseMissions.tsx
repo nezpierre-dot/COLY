@@ -209,6 +209,18 @@ const BrowseMissions = () => {
     });
   }, [missions, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy, voyageurCounts]);
 
+  // Reset pagination when filters/search/sort change
+  useEffect(() => {
+    setShipmentsPage(1);
+    setMissionsPage(1);
+  }, [searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy]);
+
+  const paginatedShipments = useMemo(() => filteredShipments.slice(0, shipmentsPage * PAGE_SIZE), [filteredShipments, shipmentsPage]);
+  const hasMoreShipments = paginatedShipments.length < filteredShipments.length;
+
+  const paginatedMissions = useMemo(() => filteredMissions.slice(0, missionsPage * PAGE_SIZE), [filteredMissions, missionsPage]);
+  const hasMoreMissions = paginatedMissions.length < filteredMissions.length;
+
   const handleAcceptShipment = (s: PendingShipment) => {
     hapticMedium();
     navigate(`/new-trip?arrival_country=${encodeURIComponent(s.arrival_country)}&arrival_city=${encodeURIComponent(s.arrival_city)}&accept_shipment=${s.id}`);
