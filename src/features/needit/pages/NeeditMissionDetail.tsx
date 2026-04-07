@@ -89,20 +89,6 @@ const NeeditMissionDetail = () => {
 
   useEffect(() => { loadMission(); }, [loadMission]);
 
-  // Check rating
-  useEffect(() => {
-    if (!id || !user) return;
-    const checkRating = async () => {
-      const { data } = await supabase
-        .from("ratings" as any)
-        .select("id")
-        .eq("shipment_id", id)
-        .eq("rater_id", user.id)
-        .maybeSingle();
-      if (data) setHasRated(true);
-    };
-    checkRating();
-  }, [id, user]);
 
   // Realtime
   useEffect(() => {
@@ -173,26 +159,6 @@ const NeeditMissionDetail = () => {
     navigate(-1);
   };
 
-  const handlePickupConfirmed = () => {
-    setPickupProof({ confirmed: true });
-    setMission((prev: any) => ({ ...prev, status: "picked_up" }));
-  };
-
-  const handleDeliveryConfirmed = () => {
-    setMission((prev: any) => ({ ...prev, status: "in_transit" }));
-  };
-
-  const handleCodeConfirmed = () => {
-    setMission((prev: any) => ({ ...prev, status: "completed" }));
-    setTimeout(() => setShowRatingDialog(true), 1500);
-  };
-
-  const handleTransit = async () => {
-    if (!id) return;
-    await supabase.from("needit_missions").update({ status: "in_transit" } as any).eq("id", id);
-    setMission((prev: any) => ({ ...prev, status: "in_transit" }));
-    toast.success("Statut mis à jour : en transit");
-  };
 
   if (loading) {
     return (
