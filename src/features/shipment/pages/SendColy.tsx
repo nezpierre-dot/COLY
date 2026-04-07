@@ -96,6 +96,8 @@ const SendColy = () => {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupAccessCode, setPickupAccessCode] = useState("");
+  const [saveAddressFav, setSaveAddressFav] = useState(false);
+  const [favAddresses, setFavAddresses] = useState<{ id: string; label: string | null; address: string; access_code: string | null }[]>([]);
   const [size, setSize] = useState("S");
   const [tarif, setTarif] = useState<string>("");
   const [tarifFixe, setTarifFixe] = useState("");
