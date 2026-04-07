@@ -84,6 +84,7 @@ const PostMatchActions = ({
   const [deliveryTimeLeft, setDeliveryTimeLeft] = useState<number | null>(null);
   const [showRating, setShowRating] = useState(false);
   const [hasRated, setHasRated] = useState(false);
+  const [proofState, setProofState] = useState<ProofState>({ pickupDone: false, deliveryDone: false });
 
   const isSender = user?.id === senderId;
   const isVoyageur = user?.id === voyageurId;
