@@ -12,6 +12,7 @@ import ConfirmationCodeDisplay from "@/components/ConfirmationCodeDisplay";
 import ConfirmationCodeEntry from "@/components/ConfirmationCodeEntry";
 import RatingDialog from "@/components/RatingDialog";
 import StarRating from "@/components/StarRating";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
