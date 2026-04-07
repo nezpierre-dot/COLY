@@ -18,9 +18,11 @@ interface Props {
   voyageurId: string;
   /** Whether the current user is the voyageur */
   isVoyageur: boolean;
+  /** Auto-start location sharing when component mounts (voyageur only) */
+  autoStart?: boolean;
 }
 
-const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur }: Props) => {
+const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false }: Props) => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [sharing, setSharing] = useState(false);
