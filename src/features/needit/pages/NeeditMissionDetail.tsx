@@ -455,7 +455,9 @@ const NeeditMissionDetail = () => {
                 <PackageCheck size={14} className="text-[#0D84FF]" />
                 <h3 className="text-sm font-bold text-foreground">Preuve de récupération</h3>
               </div>
-              <img src={pickupProof.photo_url} alt="Preuve récupération" className="w-full rounded-xl object-cover max-h-48" />
+              <PhotoLightbox src={pickupProof.photo_url} alt="Preuve récupération">
+                <img src={pickupProof.photo_url} alt="Preuve récupération" className="w-full rounded-xl object-cover max-h-48" />
+              </PhotoLightbox>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 {pickupProof.created_at && <span>📅 {new Date(pickupProof.created_at).toLocaleString("fr-FR")}</span>}
                 {pickupProof.latitude && pickupProof.longitude && (
@@ -514,7 +516,9 @@ const NeeditMissionDetail = () => {
                 <Image size={14} className="text-green-600" />
                 <h3 className="text-sm font-bold text-foreground">Preuve de livraison</h3>
               </div>
-              <img src={deliveryProof.photo_url} alt="Preuve livraison" className="w-full rounded-xl object-cover max-h-48" />
+              <PhotoLightbox src={deliveryProof.photo_url} alt="Preuve livraison">
+                <img src={deliveryProof.photo_url} alt="Preuve livraison" className="w-full rounded-xl object-cover max-h-48" />
+              </PhotoLightbox>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 {deliveryProof.created_at && <span>📅 {new Date(deliveryProof.created_at).toLocaleString("fr-FR")}</span>}
                 {deliveryProof.latitude && deliveryProof.longitude && (
