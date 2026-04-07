@@ -299,7 +299,47 @@ const ShipmentDetail = () => {
             )}
           </div>
 
-          {/* Voyageur profile link */}
+          {/* Pickup proofs */}
+          {pickupProofs.length > 0 && (
+            <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <PackageCheck size={16} className="text-primary" />
+                <p className="text-xs font-semibold text-foreground">Preuve de récupération</p>
+              </div>
+              {pickupProofs.map((proof) => (
+                <div key={proof.id} className="space-y-2">
+                  <img src={proof.photo_url} alt="Preuve récupération" className="w-full rounded-xl object-cover" style={{ maxHeight: 220 }} />
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>📅 {new Date(proof.created_at).toLocaleString("fr-FR")}</span>
+                    {proof.latitude && proof.longitude && (
+                      <span>📍 {proof.latitude.toFixed(4)}, {proof.longitude.toFixed(4)}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Delivery proofs */}
+          {deliveryProofs.length > 0 && (
+            <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Camera size={16} className="text-emerald-600" />
+                <p className="text-xs font-semibold text-foreground">Preuve de livraison</p>
+              </div>
+              {deliveryProofs.map((proof) => (
+                <div key={proof.id} className="space-y-2">
+                  <img src={proof.photo_url} alt="Preuve livraison" className="w-full rounded-xl object-cover" style={{ maxHeight: 220 }} />
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>📅 {new Date(proof.created_at).toLocaleString("fr-FR")}</span>
+                    {proof.latitude && proof.longitude && (
+                      <span>📍 {proof.latitude.toFixed(4)}, {proof.longitude.toFixed(4)}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
           {shipment.voyageur_id && (
             <div className="bg-card border border-border rounded-2xl p-4">
               <p className="text-xs font-semibold text-muted-foreground mb-2">🚀 Voyageur assigné</p>
