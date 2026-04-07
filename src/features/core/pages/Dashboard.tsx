@@ -192,6 +192,7 @@ const Dashboard = () => {
   const { addRoute, isRouteFavorite } = useFavorites();
   const isVoyageur = roles.includes("voyageur");
   const { canInstall, promptInstall } = usePWAInstall();
+  const { showConfetti } = useLevelUpCelebration();
   const [dismissedBanner, setDismissedBanner] = useState(() => localStorage.getItem("pwa-banner-dismissed") === "1");
   const showInstallBanner = canInstall && !dismissedBanner;
 
