@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
-import { Star, Package, Plane, TrendingUp, MapPin, Coins, Award, BarChart3, CheckCircle, XCircle } from "lucide-react";
+import { Star, Package, Plane, TrendingUp, MapPin, Coins, Award, BarChart3, CheckCircle, XCircle, Target } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { motion } from "framer-motion";
 
