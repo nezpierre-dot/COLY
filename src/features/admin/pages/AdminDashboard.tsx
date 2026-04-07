@@ -370,7 +370,14 @@ const AdminDashboard = () => {
                 </span>
               )}
             </TabsTrigger>
-          </TabsList>
+            <TabsTrigger value="matching" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-accent data-[state=active]:text-accent-foreground relative">
+              <Link2 size={13} className="mr-1" /> Matching
+              {(matchPendingShipments.length + matchPendingMissions.length) > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent text-accent-foreground text-[10px] font-bold flex items-center justify-center">
+                  {matchPendingShipments.length + matchPendingMissions.length}
+                </span>
+              )}
+            </TabsTrigger>
 
           <TabsContent value="analytics" className="space-y-6 mt-0">
             <div className="bg-card border border-border rounded-2xl p-4">
