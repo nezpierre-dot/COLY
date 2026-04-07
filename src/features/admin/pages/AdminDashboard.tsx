@@ -1010,6 +1010,111 @@ const AdminDashboard = () => {
               })()}
             </div>
           </TabsContent>
+
+          {/* Admin Manual Matching Tab */}
+          <TabsContent value="matching" className="space-y-4 mt-0">
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Link2 size={14} className="text-accent" /> Matching manuel admin
+              </h3>
+              <p className="text-xs text-muted-foreground mb-4">Sélectionnez un colis ou une mission, puis assignez-le à un voyageur actif.</p>
+
+              {/* Step 1: Select item */}
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-foreground mb-2">1. Choisir un élément à matcher</p>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {matchPendingShipments.length === 0 && matchPendingMissions.length === 0 && (
+                    <p className="text-xs text-muted-foreground italic py-4 text-center">Aucun élément en attente</p>
+                  )}
+                  {matchPendingShipments.map((s: any) => (
+                    <button
+                      key={s.id}
+                      onClick={() => setMatchSelectedItem({ type: "shipment", id: s.id, label: `📦 ${s.departure_city || "?"} → ${s.arrival_city}, ${s.arrival_country} (${s.tarif})` })}
+                      className={`w-full text-left px-3 py-2 rounded-xl border text-xs transition-colors ${matchSelectedItem?.id === s.id ? "border-primary bg-primary/5 text-primary font-semibold" : "border-border hover:bg-muted"}`}
+                    >
+                      📦 {s.departure_city || "?"} → {s.arrival_city}, {s.arrival_country} — <span className="font-bold">{s.tarif}</span> — {s.size}
+                    </button>
+                  ))}
+                  {matchPendingMissions.map((m: any) => (
+                    <button
+                      key={m.id}
+                      onClick={() => setMatchSelectedItem({ type: "mission", id: m.id, label: `🛒 ${m.product_name || "Mission"} → ${m.city || m.country}` })}
+                      className={`w-full text-left px-3 py-2 rounded-xl border text-xs transition-colors ${matchSelectedItem?.id === m.id ? "border-primary bg-primary/5 text-primary font-semibold" : "border-border hover:bg-muted"}`}
+                    >
+                      🛒 {m.product_name || "Mission NeedIt"} → {m.city || m.country} {m.prix_max ? `— Max ${m.prix_max}` : ""}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step 2: Select voyageur */}
+              {matchSelectedItem && (
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-foreground mb-2">2. Assigner à un voyageur</p>
+                  <p className="text-xs text-muted-foreground mb-2">Sélectionné : <span className="font-semibold text-foreground">{matchSelectedItem.label}</span></p>
+                  <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2 mb-2">
+                    <Search size={14} className="text-muted-foreground" />
+                    <input
+                      className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
+                      placeholder="Filtrer par ville d'arrivée..."
+                      value={matchSearchQuery}
+                      onChange={(e) => setMatchSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {matchActiveVoyages
+                      .filter((v: any) => {
+                        if (!matchSearchQuery) return true;
+                        const q = matchSearchQuery.toLowerCase();
+                        return v.arrival_city?.toLowerCase().includes(q) || v.arrival_country?.toLowerCase().includes(q) || v.departure_city?.toLowerCase().includes(q);
+                      })
+                      .map((v: any) => (
+                        <div key={v.id} className="flex items-center justify-between px-3 py-2 rounded-xl border border-border hover:bg-muted transition-colors">
+                          <div className="text-xs text-foreground">
+                            ✈️ {v.departure_city} → {v.arrival_city}, {v.arrival_country} — {new Date(v.departure_date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="text-xs h-7 px-3"
+                            disabled={matchAssigning === v.id}
+                            onClick={async () => {
+                              setMatchAssigning(v.id);
+                              try {
+                                if (matchSelectedItem.type === "shipment") {
+                                  const { error } = await supabase.from("shipments").update({ voyageur_id: v.user_id, status: "accepted" }).eq("id", matchSelectedItem.id);
+                                  if (error) throw error;
+                                } else {
+                                  const { error } = await supabase.from("needit_missions").update({ voyageur_id: v.user_id, status: "accepted" }).eq("id", matchSelectedItem.id);
+                                  if (error) throw error;
+                                }
+                                // Create notification for both parties
+                                await supabase.from("notifications").insert([
+                                  { user_id: v.user_id, title: "🎯 Match admin", message: `Un admin vous a assigné une demande vers ${v.arrival_city}.`, type: "match" },
+                                ]);
+                                toast.success("Match effectué avec succès !");
+                                setMatchSelectedItem(null);
+                                setMatchSearchQuery("");
+                                await loadAll();
+                              } catch (err: any) {
+                                toast.error(err.message || "Erreur lors du match");
+                              } finally {
+                                setMatchAssigning(null);
+                              }
+                            }}
+                          >
+                            {matchAssigning === v.id ? "..." : "Assigner"}
+                          </Button>
+                        </div>
+                      ))}
+                    {matchActiveVoyages.length === 0 && (
+                      <p className="text-xs text-muted-foreground italic py-4 text-center">Aucun voyage actif</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
     </div>
