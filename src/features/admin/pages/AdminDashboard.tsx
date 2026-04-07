@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download } from "lucide-react";
+import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +16,7 @@ interface UserRow { user_ref: string; full_name: string; kyc_status: string; rol
 interface TimeData { day: string; count: number; }
 interface FraudCheck { id: string; shipment_id: string; user_id: string; photo_url: string; result: string; confidence: number | null; details: string | null; created_at: string; reporter_name: string; shipment_ref: string; }
 interface DisputeRow { id: string; shipment_id: string; user_id: string; reason: string; description: string; photo_url: string | null; status: string; resolution: string | null; created_at: string; reporter_name: string; shipment_ref: string; }
+interface SupportTicket { id: string; user_id: string; subject: string; message: string; category: string; status: string; admin_reply: string | null; replied_at: string | null; created_at: string; updated_at: string; reporter_name: string; reporter_email: string; }
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted-foreground))"];
 
 const StatCard = ({ icon: Icon, label, value, trend, color = "primary" }: { icon: any; label: string; value: number | string; trend?: number; color?: string; }) => (
@@ -55,6 +56,11 @@ const AdminDashboard = () => {
   const replyPhotoRef = useRef<HTMLInputElement>(null);
   const [disputeStats, setDisputeStats] = useState<any>(null);
   const [disputePeriod, setDisputePeriod] = useState<number>(30);
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
+  const [supportReplyingId, setSupportReplyingId] = useState<string | null>(null);
+  const [supportReplyText, setSupportReplyText] = useState("");
+  const [supportSending, setSupportSending] = useState(false);
+  const [supportClosingId, setSupportClosingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -72,7 +78,7 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes, dStatsRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes, dStatsRes, supportRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
@@ -81,8 +87,11 @@ const AdminDashboard = () => {
         supabase.rpc("admin_get_fraud_checks" as any, { _limit: 50 }),
         supabase.rpc("admin_get_disputes" as any, { _limit: 50 }),
         supabase.rpc("admin_get_dispute_stats" as any),
+        supabase.rpc("admin_get_support_tickets" as any, { _limit: 50 }),
       ]);
       if (dStatsRes.data) setDisputeStats(dStatsRes.data);
+      if (supportRes.data) setSupportTickets(supportRes.data as unknown as SupportTicket[]);
+      if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
       if (shipmentsRes.data) setRecentShipments(shipmentsRes.data as unknown as RecentShipment[]);
       if (usersRes.data) setUsers(usersRes.data as unknown as UserRow[]);
@@ -209,6 +218,35 @@ const AdminDashboard = () => {
   const roleDistribution = useMemo(() => stats ? [{ name: t("admin.demandeurs"), value: stats.total_demandeurs }, { name: t("admin.voyageurs"), value: stats.total_voyageurs }] : [], [stats, t]);
   const kycDistribution = useMemo(() => stats ? [{ name: t("admin.verified"), value: stats.kyc_verified }, { name: t("admin.pending"), value: stats.kyc_pending }] : [], [stats, t]);
 
+  const handleSupportReply = async (ticketId: string) => {
+    if (!supportReplyText.trim()) { toast.error("Veuillez saisir une réponse"); return; }
+    setSupportSending(true);
+    try {
+      const { error } = await supabase.functions.invoke("admin-support-ticket", {
+        body: { ticket_id: ticketId, action: "reply", reply: supportReplyText.trim() },
+      });
+      if (error) throw error;
+      toast.success("Réponse envoyée par email et notification");
+      setSupportReplyingId(null);
+      setSupportReplyText("");
+      await loadAll();
+    } catch (err: any) { toast.error(err.message || "Erreur"); } finally { setSupportSending(false); }
+  };
+
+  const handleSupportClose = async (ticketId: string) => {
+    setSupportClosingId(ticketId);
+    try {
+      const { error } = await supabase.functions.invoke("admin-support-ticket", {
+        body: { ticket_id: ticketId, action: "close" },
+      });
+      if (error) throw error;
+      toast.success("Ticket clôturé");
+      await loadAll();
+    } catch (err: any) { toast.error(err.message || "Erreur"); } finally { setSupportClosingId(null); }
+  };
+
+  const openSupportTickets = supportTickets.filter(t => t.status === "open" || t.status === "replied");
+
   const formatDate = (d: string) => { try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); } catch { return d; } };
   const formatDateTime = (d: string) => { try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return d; } };
 
@@ -257,6 +295,14 @@ const AdminDashboard = () => {
               {disputes.filter(d => d.status === "open" || d.status === "investigating").length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-warning text-warning-foreground text-[10px] font-bold flex items-center justify-center">
                   {disputes.filter(d => d.status === "open" || d.status === "investigating").length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="support" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative">
+              <Headphones size={13} className="mr-1" /> Support
+              {openSupportTickets.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                  {openSupportTickets.length}
                 </span>
               )}
             </TabsTrigger>
@@ -628,6 +674,104 @@ const AdminDashboard = () => {
                             )}
                           </div>
                         </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Support Tickets Tab */}
+          <TabsContent value="support" className="space-y-4 mt-0">
+            <div className="bg-card border border-border rounded-2xl p-4">
+              <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Headphones size={14} className="text-primary" /> Tickets support ({supportTickets.length})
+              </h3>
+              {supportTickets.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">Aucun ticket de support</p>
+              ) : (
+                <div className="space-y-3">
+                  {supportTickets.map((ticket) => {
+                    const statusCfg: Record<string, { label: string; cls: string }> = {
+                      open: { label: "Nouveau", cls: "bg-amber-500/10 text-amber-600" },
+                      replied: { label: "Répondu", cls: "bg-emerald-500/10 text-emerald-600" },
+                      closed: { label: "Clôturé", cls: "bg-muted text-muted-foreground" },
+                    };
+                    const cfg = statusCfg[ticket.status] || statusCfg.open;
+                    const isReplying = supportReplyingId === ticket.id;
+                    return (
+                      <div key={ticket.id} className="border border-border rounded-xl p-4 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${cfg.cls}`}>{cfg.label}</span>
+                              <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full bg-muted">{ticket.category}</span>
+                            </div>
+                            <p className="text-sm font-semibold text-foreground mt-1">{ticket.subject}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {ticket.reporter_name} · {ticket.reporter_email} · {formatDateTime(ticket.created_at)}
+                            </p>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground font-mono shrink-0">SUP-{ticket.id.slice(0, 8).toUpperCase()}</span>
+                        </div>
+
+                        <div className="bg-muted/50 rounded-lg p-3">
+                          <p className="text-sm text-foreground/80 whitespace-pre-wrap">{ticket.message}</p>
+                        </div>
+
+                        {ticket.admin_reply && (
+                          <div className="bg-primary/5 border border-primary/10 rounded-lg p-3">
+                            <p className="text-xs font-semibold text-primary mb-1">Votre réponse</p>
+                            <p className="text-sm text-foreground/80 whitespace-pre-wrap">{ticket.admin_reply}</p>
+                            {ticket.replied_at && (
+                              <p className="text-xs text-muted-foreground mt-1">{formatDateTime(ticket.replied_at)}</p>
+                            )}
+                          </div>
+                        )}
+
+                        {ticket.status !== "closed" && (
+                          <div className="flex items-center gap-2 pt-1">
+                            <Button
+                              size="sm"
+                              variant={isReplying ? "outline" : "default"}
+                              onClick={() => { setSupportReplyingId(isReplying ? null : ticket.id); setSupportReplyText(ticket.admin_reply || ""); }}
+                              className="text-xs"
+                            >
+                              <MessageSquare size={12} className="mr-1" /> {isReplying ? "Annuler" : "Répondre"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleSupportClose(ticket.id)}
+                              disabled={supportClosingId === ticket.id}
+                              className="text-xs"
+                            >
+                              <CheckCircle size={12} className="mr-1" /> {supportClosingId === ticket.id ? "..." : "Clôturer"}
+                            </Button>
+                          </div>
+                        )}
+
+                        {isReplying && (
+                          <div className="space-y-2 pt-1">
+                            <textarea
+                              value={supportReplyText}
+                              onChange={(e) => setSupportReplyText(e.target.value)}
+                              rows={3}
+                              maxLength={2000}
+                              placeholder="Votre réponse au ticket..."
+                              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => handleSupportReply(ticket.id)}
+                              disabled={supportSending || !supportReplyText.trim()}
+                              className="text-xs"
+                            >
+                              <Send size={12} className="mr-1" /> {supportSending ? "Envoi..." : "Envoyer la réponse"}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
