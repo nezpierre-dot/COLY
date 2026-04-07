@@ -127,7 +127,6 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
     }, 0);
     const expenses = demShipExpenses + demMissExpenses;
 
-    // Distance estimation from voyages
     const totalDistance = voyages.reduce((sum, v) => {
       return sum + estimateDistance(v.departure_country, v.arrival_country);
     }, 0);
@@ -136,11 +135,6 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
     const completedVoyages = voyages.filter(v => v.status === "completed").length;
     const cancelledVoyages = voyages.filter(v => v.status === "cancelled").length;
 
-    // Match rate: voyages that had at least one accepted shipment or mission
-    const allAcceptedShipVoyageurIds = new Set(
-      shipments.filter(s => s.voyageur_id === user.id && s.status !== "pending").map(s => s.voyageur_id)
-    );
-    // Check which completed/active voyages resulted in at least one match
     const matchedVoyageIds = new Set<string>();
     for (const v of voyages) {
       const hasShipMatch = shipments.some(s => s.voyageur_id === user.id && ["accepted", "picked_up", "in_transit", "delivered"].includes(s.status));
@@ -168,6 +162,45 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
       matchRate,
     };
   }, [shipments, missions, voyages, user]);
+
+  // AI contextual advice when match rate is low
+  const matchAdvice = useMemo(() => {
+    if (!user || stats.matchRate >= 50 || (stats.matchedVoyages + stats.unmatchedVoyages) < 2) return null;
+
+    const tips: { icon: typeof Lightbulb; text: string }[] = [];
+
+    // Analyze destination diversity
+    const destinations = voyages.map(v => v.arrival_country?.toLowerCase()).filter(Boolean);
+    const uniqueDestinations = new Set(destinations);
+    if (uniqueDestinations.size <= 1 && voyages.length >= 2) {
+      tips.push({ icon: Globe, text: "Diversifiez vos destinations — les trajets vers l'Afrique du Nord et l'Afrique subsaharienne ont une forte demande." });
+    }
+
+    // Analyze timing patterns
+    const departureDays = voyages.map(v => new Date(v.departure_date).getDay());
+    const weekendTrips = departureDays.filter(d => d === 0 || d === 6).length;
+    if (weekendTrips > departureDays.length * 0.6) {
+      tips.push({ icon: CalendarDays, text: "Essayez de planifier des départs en semaine — moins de concurrence et plus de demandeurs actifs." });
+    }
+
+    // Check advance notice
+    const advanceNotice = voyages.map(v => {
+      const created = new Date(v.created_at).getTime();
+      const depart = new Date(v.departure_date).getTime();
+      return (depart - created) / (1000 * 60 * 60 * 24);
+    });
+    const avgNotice = advanceNotice.length > 0 ? advanceNotice.reduce((a, b) => a + b, 0) / advanceNotice.length : 0;
+    if (avgNotice < 5) {
+      tips.push({ icon: Clock, text: "Publiez vos voyages au moins 7 jours à l'avance pour laisser le temps aux demandeurs de vous trouver." });
+    }
+
+    // Generic tip if no specific ones
+    if (tips.length === 0) {
+      tips.push({ icon: Lightbulb, text: "Activez l'option NeedIt sur vos voyages pour accepter aussi les missions d'achat et augmenter vos chances de match." });
+    }
+
+    return tips.slice(0, 3);
+  }, [stats, voyages, user]);
 
   // Monthly gains chart
   const monthlyData = useMemo(() => {
