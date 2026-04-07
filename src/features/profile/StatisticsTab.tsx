@@ -7,6 +7,8 @@ import { Star, Package, Plane, TrendingUp, MapPin, Coins, Award, BarChart3, Chec
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { motion } from "framer-motion";
 import GamifiedBadges, { type BadgeStats } from "@/components/GamifiedBadges";
+import UserLevelBadge from "@/components/UserLevelBadge";
+import PointsHistoryCard from "@/components/PointsHistoryCard";
 
 const PLATFORM_RATE = 0.18;
 const PIE_COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))"];
@@ -563,6 +565,15 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
           </ResponsiveContainer>
         </div>
       )}
+
+      {/* User Level & Points */}
+      <UserLevelBadge variant="card" />
+
+      {/* Points History */}
+      <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+        <p className="text-sm font-semibold text-foreground">Historique des points</p>
+        <PointsHistoryCard />
+      </div>
 
       {/* Gamified badges */}
       <div className="bg-card border border-border rounded-2xl p-4">
