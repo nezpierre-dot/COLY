@@ -61,6 +61,7 @@ const AdminDashboard = () => {
   const [supportReplyText, setSupportReplyText] = useState("");
   const [supportSending, setSupportSending] = useState(false);
   const [supportClosingId, setSupportClosingId] = useState<string | null>(null);
+  const [proofStats, setProofStats] = useState<{ total: number; verified: number; unverified: number }>({ total: 0, verified: 0, unverified: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -78,7 +79,7 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes, dStatsRes, supportRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes, dStatsRes, supportRes, proofTotalRes, proofVerifiedRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
@@ -88,7 +89,12 @@ const AdminDashboard = () => {
         supabase.rpc("admin_get_disputes" as any, { _limit: 50 }),
         supabase.rpc("admin_get_dispute_stats" as any),
         supabase.rpc("admin_get_support_tickets" as any, { _limit: 50 }),
+        supabase.from("proof_verifications" as any).select("id", { count: "exact", head: true }),
+        supabase.from("proof_verifications" as any).select("id", { count: "exact", head: true }).not("verified_at", "is", null),
       ]);
+      const totalProofs = proofTotalRes.count ?? 0;
+      const verifiedProofs = proofVerifiedRes.count ?? 0;
+      setProofStats({ total: totalProofs, verified: verifiedProofs, unverified: totalProofs - verifiedProofs });
       if (dStatsRes.data) setDisputeStats(dStatsRes.data);
       if (supportRes.data) setSupportTickets(supportRes.data as unknown as SupportTicket[]);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
