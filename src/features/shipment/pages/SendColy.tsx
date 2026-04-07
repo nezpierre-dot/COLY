@@ -5,7 +5,7 @@ import MatchingSuggestions from "@/features/matching/components/MatchingSuggesti
 import { calculateSuggestedPrice, type PriceSuggestion } from "@/lib/priceSuggestion";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package, Image, Ruler, CreditCard, Shield, Sparkles, Truck, AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown } from "lucide-react";
+import { ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package, Image, Ruler, CreditCard, Shield, Sparkles, Truck, AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown, Star, Heart } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -96,6 +96,8 @@ const SendColy = () => {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupAccessCode, setPickupAccessCode] = useState("");
+  const [saveAddressFav, setSaveAddressFav] = useState(false);
+  const [favAddresses, setFavAddresses] = useState<{ id: string; label: string | null; address: string; access_code: string | null }[]>([]);
   const [size, setSize] = useState("S");
   const [tarif, setTarif] = useState<string>("");
   const [tarifFixe, setTarifFixe] = useState("");
@@ -125,6 +127,28 @@ const SendColy = () => {
   useEffect(() => { if (kycChecked && !hasExistingShipments && kycStatus !== "submitted" && kycStatus !== "verified") navigate("/kyc", { state: { returnTo: "/send-coly" } }); }, [kycChecked, hasExistingShipments, kycStatus, navigate]);
   
   useEffect(() => { if (step === 2 && isInternational && !customsShown) setTimeout(() => { setShowCustomsDialog(true); setCustomsShown(true); }, 500); }, [step, isInternational, customsShown]);
+
+  // Load favorite addresses
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("favorite_addresses" as any).select("id, label, address, access_code").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
+      if (data) setFavAddresses(data as any[]);
+    });
+  }, [user]);
+
+  const selectFavAddress = (fav: typeof favAddresses[0]) => {
+    setPickupAddress(fav.address);
+    setPickupAccessCode(fav.access_code || "");
+    clearError("pickupAddress");
+  };
+
+  const saveFavoriteAddress = async () => {
+    if (!user || !pickupAddress.trim()) return;
+    const exists = favAddresses.some(f => f.address === pickupAddress.trim());
+    if (exists) return;
+    const { data } = await supabase.from("favorite_addresses" as any).insert({ user_id: user.id, address: pickupAddress.trim(), access_code: pickupAccessCode.trim() || null, label: null } as any).select("id, label, address, access_code").single();
+    if (data) setFavAddresses(prev => [data as any, ...prev]);
+  };
 
   const totalSteps = 4;
   const inputClass = (field: string) => `w-full border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none bg-background transition-all ${errors[field] ? "border-destructive ring-1 ring-destructive/30" : "border-border focus:border-primary focus:ring-1 focus:ring-primary/30"}`;
@@ -165,6 +189,8 @@ const SendColy = () => {
       const photoUrl = await uploadPhoto();
       const { data: inserted, error } = await supabase.from("shipments").insert({ user_id: user.id, departure_date: date, departure_method: departMethod, departure_city: departCity || null, relay_point: relayPoint || null, arrival_city: arrCity, arrival_country: arrCountry, contact_nom: contactNom, contact_prenom: contactPrenom, contact_tel: contactTel, contact_email: contactMail || null, photo_url: photoUrl, size, tarif: tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : "Sur devis", insured: insured || false, is_international: isInternational, status: "pending", pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null } as any).select("id").single();
       if (error) throw error;
+      // Save favorite address if toggled
+      if (saveAddressFav && pickupAddress.trim()) saveFavoriteAddress();
       supabase.functions.invoke("notify-match", { body: { type: "shipment", record_id: inserted.id } }).catch(() => {});
       successFeedback(t("sendcoly.createdSuccess"), { description: t("sendcoly.createdDesc") });
       setCreatedReminderInfo({
@@ -241,15 +267,47 @@ const SendColy = () => {
           {/* Pickup address fields */}
           <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-primary" /> Récupération du colis</h3>
+            {/* Saved favorite addresses */}
+            {favAddresses.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground block">Adresses enregistrées</label>
+                <div className="flex flex-wrap gap-2">
+                  {favAddresses.map((fav) => (
+                    <button
+                      key={fav.id}
+                      type="button"
+                      onClick={() => selectFavAddress(fav)}
+                      className={`text-left text-xs px-3 py-2 rounded-lg border transition-all flex items-center gap-1.5 max-w-full ${
+                        pickupAddress === fav.address
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border bg-background text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      <Star size={12} className="text-amber-500 shrink-0" />
+                      <span className="truncate">{fav.address}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Adresse complète de récupération <span className="text-destructive">*</span></label>
-              <input className={inputClass("pickupAddress")} placeholder="Ex : 12 rue de la Paix, 75002 Paris" value={pickupAddress} onChange={(e) => { setPickupAddress(e.target.value); clearError("pickupAddress"); }} />
+              <input className={inputClass("pickupAddress")} placeholder="Ex : 12 rue de la Paix, 75002 Paris" value={pickupAddress} onChange={(e) => { setPickupAddress(e.target.value); clearError("pickupAddress"); setSaveAddressFav(false); }} />
               {errors.pickupAddress && <ErrorHint message={errors.pickupAddress} />}
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Code d'accès / étage / interphone (optionnel)</label>
               <input className={inputClass("pickupAccessCode")} placeholder="Ex : Code 1234, 3ème étage gauche" value={pickupAccessCode} onChange={(e) => setPickupAccessCode(e.target.value)} />
             </div>
+            {/* Save as favorite toggle */}
+            {pickupAddress.trim() && !favAddresses.some(f => f.address === pickupAddress.trim()) && (
+              <label className="flex items-center gap-2 cursor-pointer py-1">
+                <Checkbox checked={saveAddressFav} onCheckedChange={(v) => setSaveAddressFav(!!v)} />
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Heart size={12} className="text-primary" /> Ajouter cette adresse aux favoris
+                </span>
+              </label>
+            )}
           </div>
           <TrustBadge variant="card" />
         </div>
