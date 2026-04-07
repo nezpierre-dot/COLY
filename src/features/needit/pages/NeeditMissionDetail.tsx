@@ -503,21 +503,13 @@ const NeeditMissionDetail = () => {
 
           {/* Delivery Proof — show photo when completed */}
           {isCompleted && deliveryProof?.photo_url && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-card border border-green-500/20 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Image size={14} className="text-green-600" />
-                <h3 className="text-sm font-bold text-foreground">Preuve de livraison</h3>
-              </div>
-              <PhotoLightbox src={deliveryProof.photo_url} alt="Preuve livraison">
-                <img src={deliveryProof.photo_url} alt="Preuve livraison" className="w-full rounded-xl object-cover max-h-48" />
-              </PhotoLightbox>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                {deliveryProof.created_at && <span>📅 {new Date(deliveryProof.created_at).toLocaleString("fr-FR")}</span>}
-                {deliveryProof.latitude && deliveryProof.longitude && (
-                  <span>📍 {Number(deliveryProof.latitude).toFixed(4)}, {Number(deliveryProof.longitude).toFixed(4)}</span>
-                )}
-              </div>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <ProofGallery
+                proofs={[deliveryProof]}
+                icon={<Image size={14} className="text-emerald-600" />}
+                title="Preuve de livraison"
+                canDownload={isOwner}
+              />
             </motion.div>
           )}
 
