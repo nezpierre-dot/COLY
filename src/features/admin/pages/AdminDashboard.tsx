@@ -136,6 +136,15 @@ const AdminDashboard = () => {
           }
         }
       }
+      // Load matching data
+      const [pendShipRes, pendMissRes, activeVoyRes] = await Promise.all([
+        supabase.rpc("get_pending_shipments"),
+        supabase.rpc("get_pending_needit_missions"),
+        supabase.from("voyages").select("id, user_id, departure_city, departure_country, arrival_city, arrival_country, departure_date, transport_method, status").eq("status", "active").order("departure_date", { ascending: true }),
+      ]);
+      if (pendShipRes.data) setMatchPendingShipments(pendShipRes.data as any[]);
+      if (pendMissRes.data) setMatchPendingMissions(pendMissRes.data as any[]);
+      if (activeVoyRes.data) setMatchActiveVoyages(activeVoyRes.data as any[]);
     } catch (err) { toast.error(t("admin.loadError")); } finally { setLoading(false); }
   };
 
