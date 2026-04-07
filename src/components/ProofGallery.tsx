@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { X, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight, Archive } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import useEmblaCarousel from "embla-carousel-react";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 
@@ -63,8 +66,34 @@ const ProofGallery = ({ proofs, icon, title, canDownload = false }: ProofGallery
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
     } catch {
-      // Fallback: open in new tab
       window.open(url, "_blank");
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    if (proofs.length === 0) return;
+    toast.info("Préparation du ZIP…");
+    try {
+      const JSZip = (await import("jszip")).default;
+      const zip = new JSZip();
+      await Promise.all(
+        proofs.map(async (proof, i) => {
+          const res = await fetch(proof.photo_url);
+          const blob = await res.blob();
+          zip.file(`preuve-${i + 1}.jpg`, blob);
+        })
+      );
+      const content = await zip.generateAsync({ type: "blob" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(content);
+      link.download = `preuves-${title.replace(/\s+/g, "-").toLowerCase()}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      toast.success("ZIP téléchargé ✅");
+    } catch {
+      toast.error("Erreur lors de la création du ZIP");
     }
   };
 
@@ -80,12 +109,22 @@ const ProofGallery = ({ proofs, icon, title, canDownload = false }: ProofGallery
             <p className="text-xs font-semibold text-foreground">{title}</p>
           </div>
           {canDownload && proofs.length > 0 && (
-            <button
-              onClick={() => handleDownload(proofs[isSingle ? 0 : selectedIndex].photo_url, isSingle ? 0 : selectedIndex)}
-              className="flex items-center gap-1 text-xs text-primary font-medium hover:underline"
-            >
-              <Download size={12} /> Télécharger
-            </button>
+            <div className="flex items-center gap-2">
+              {proofs.length > 1 && (
+                <button
+                  onClick={handleDownloadAll}
+                  className="flex items-center gap-1 text-xs text-primary font-medium hover:underline"
+                >
+                  <Archive size={12} /> ZIP
+                </button>
+              )}
+              <button
+                onClick={() => handleDownload(proofs[isSingle ? 0 : selectedIndex].photo_url, isSingle ? 0 : selectedIndex)}
+                className="flex items-center gap-1 text-xs text-primary font-medium hover:underline"
+              >
+                <Download size={12} /> Télécharger
+              </button>
+            </div>
           )}
         </div>
 
