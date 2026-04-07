@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Save, Trophy, DollarSign, Bell, ShieldAlert, Ban, RotateCcw, CheckCircle, Search, AlertTriangle } from "lucide-react";
+import { Settings, Save, Trophy, DollarSign, Bell, ShieldAlert, Ban, RotateCcw, CheckCircle, Search, AlertTriangle, Gauge } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -119,6 +119,30 @@ const AdminConfigPanel = () => {
   const pointsConfigs = configs.filter(c => c.config_key.startsWith("points_") || c.config_key === "level_thresholds");
   const commissionConfigs = configs.filter(c => c.config_key === "commission_rates");
   const notifConfigs = configs.filter(c => c.config_key === "notifications_enabled");
+  const alertThresholdConfig = configs.find(c => c.config_key === "alert_thresholds");
+
+  // Parse alert thresholds for friendly UI
+  const getAlertThresholds = () => {
+    try {
+      const raw = editValues["alert_thresholds"];
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  };
+
+  const updateAlertThreshold = (key: string, value: number) => {
+    const current = getAlertThresholds();
+    const updated = { ...current, [key]: value };
+    setEditValues(prev => ({ ...prev, alert_thresholds: JSON.stringify(updated, null, 2) }));
+  };
+
+  const alertThresholds = getAlertThresholds();
+
+  const ALERT_THRESHOLD_FIELDS = [
+    { key: "cancellation_rate_pct", label: "Taux d'annulation max (%)", default: 30, description: "Alerte critique si le taux d'annulation dépasse ce seuil sur 30 jours" },
+    { key: "unresolved_disputes_max", label: "Litiges non résolus max", default: 10, description: "Alerte critique si le nombre de litiges ouverts dépasse ce seuil" },
+    { key: "pending_shipments_stale_days", label: "Jours max sans voyageur", default: 7, description: "Alerte warning pour les colis en attente depuis plus de X jours" },
+    { key: "fraud_confidence_min", label: "Seuil fraude (confiance min)", default: 0.7, description: "Alerte à partir de ce niveau de confiance de fraude (0-1)" },
+  ];
 
   return (
     <div className="space-y-6">
@@ -197,6 +221,51 @@ const AdminConfigPanel = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Alert Thresholds */}
+      <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Gauge size={14} className="text-destructive" /> Seuils d'alerte
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Configurez les seuils qui déclenchent des alertes automatiques sur le dashboard.
+          Le cron job horaire vérifie ces valeurs et envoie un email aux admins pour les alertes critiques.
+        </p>
+        <div className="space-y-4">
+          {ALERT_THRESHOLD_FIELDS.map((field) => (
+            <div key={field.key} className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-foreground">{field.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{field.description}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="number"
+                  step={field.key === "fraud_confidence_min" ? "0.05" : "1"}
+                  min={0}
+                  value={alertThresholds[field.key] ?? field.default}
+                  onChange={(e) => updateAlertThreshold(field.key, parseFloat(e.target.value) || 0)}
+                  className="text-sm font-mono h-9 w-32"
+                />
+                <span className="text-xs text-muted-foreground">
+                  (défaut: {field.default})
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <Button
+          size="sm"
+          onClick={() => saveConfig("alert_thresholds")}
+          disabled={saving === "alert_thresholds"}
+          className="w-full"
+        >
+          <Save size={12} className="mr-1.5" />
+          {saving === "alert_thresholds" ? "Sauvegarde..." : "Sauvegarder les seuils d'alerte"}
+        </Button>
       </div>
 
       {/* User Moderation */}
