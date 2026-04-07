@@ -6,6 +6,7 @@ import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 import { Star, Package, Plane, TrendingUp, MapPin, Coins, Award, BarChart3, CheckCircle, XCircle, Target, Lightbulb, CalendarDays, Globe, Clock } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { motion } from "framer-motion";
+import GamifiedBadges, { type BadgeStats } from "@/components/GamifiedBadges";
 
 const PLATFORM_RATE = 0.18;
 const PIE_COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))"];
@@ -96,6 +97,26 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
       const { data } = await supabase.rpc("get_user_rating", { _user_id: user.id });
       if (data && data.length > 0 && data[0].total_ratings > 0) return data[0];
       return null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ["stats-profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase.from("profiles").select("kyc_status").eq("user_id", user.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: referralCount = 0 } = useQuery({
+    queryKey: ["stats-referrals", user?.id],
+    queryFn: async () => {
+      if (!user) return 0;
+      const { count } = await supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", user.id).eq("status", "completed");
+      return count || 0;
     },
     enabled: !!user,
   });
@@ -542,6 +563,22 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
           </ResponsiveContainer>
         </div>
       )}
+
+      {/* Gamified badges */}
+      <div className="bg-card border border-border rounded-2xl p-4">
+        <GamifiedBadges
+          stats={{
+            totalVoyages: stats.totalVoyages,
+            deliveredCount: stats.deliveredCount,
+            totalRatings: rating?.total_ratings || 0,
+            averageScore: rating?.average_score || 0,
+            kycVerified: profile?.kyc_status === "verified",
+            totalDistance: stats.totalDistance,
+            totalMissions: stats.totalMissions,
+            referrals: referralCount,
+          }}
+        />
+      </div>
 
       {/* Distance card */}
       <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-2xl p-4 flex items-center gap-3">
