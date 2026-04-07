@@ -916,8 +916,13 @@ const Dashboard = () => {
                   />
                 ) : (() => {
                   const searchLower = voyageCitySearch.toLowerCase().trim();
+                  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                  const isAutoArchived = (v: Voyage) =>
+                    v.status === "completed" && new Date(v.departure_date).getTime() < sevenDaysAgo;
                   const filtered = voyages
-                    .filter(v => voyageStatusFilter === "all" ? !archivedVoyageIds.has(v.id) : v.status === voyageStatusFilter)
+                    .filter(v => voyageStatusFilter === "all"
+                      ? !archivedVoyageIds.has(v.id) && !isAutoArchived(v)
+                      : v.status === voyageStatusFilter)
                     .filter(v => !searchLower || v.departure_city?.toLowerCase().includes(searchLower) || v.arrival_city?.toLowerCase().includes(searchLower))
                     .sort((a, b) => {
                       const da = new Date(a.departure_date).getTime();
