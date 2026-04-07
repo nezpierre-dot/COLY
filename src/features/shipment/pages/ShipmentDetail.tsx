@@ -315,7 +315,7 @@ const ShipmentDetail = () => {
               proofs={pickupProofs}
               icon={<PackageCheck size={16} className="text-primary" />}
               title="Preuve de récupération"
-              canDownload={isOwner}
+              canDownload={isOwner || shipment?.voyageur_id === user?.id}
             />
           )}
 
@@ -324,7 +324,7 @@ const ShipmentDetail = () => {
               proofs={deliveryProofs}
               icon={<Camera size={16} className="text-emerald-600" />}
               title="Preuve de livraison"
-              canDownload={isOwner}
+              canDownload={isOwner || shipment?.voyageur_id === user?.id}
             />
           )}
           {shipment.voyageur_id && (

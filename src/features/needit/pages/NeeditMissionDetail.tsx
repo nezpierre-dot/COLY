@@ -45,8 +45,8 @@ const NeeditMissionDetail = () => {
   const [saving, setSaving] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
   const [showReminder, setShowReminder] = useState(false);
-  const [pickupProof, setPickupProof] = useState<any>(null);
-  const [deliveryProof, setDeliveryProof] = useState<any>(null);
+  const [pickupProofs, setPickupProofs] = useState<any[]>([]);
+  const [deliveryProofs, setDeliveryProofs] = useState<any[]>([]);
   const [voyageurRating, setVoyageurRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
 
   // Editable fields
@@ -62,8 +62,8 @@ const NeeditMissionDetail = () => {
     if (!id) return;
     const [missionRes, pickupRes, deliveryRes] = await Promise.all([
       supabase.from("needit_missions").select("*").eq("id", id).maybeSingle(),
-      supabase.from("pickup_proofs" as any).select("*").eq("shipment_id", id).maybeSingle(),
-      supabase.from("delivery_proofs" as any).select("*").eq("shipment_id", id).maybeSingle(),
+      supabase.from("pickup_proofs").select("*").eq("shipment_id", id).order("created_at", { ascending: false }),
+      supabase.from("delivery_proofs").select("*").eq("shipment_id", id).order("created_at", { ascending: false }),
     ]);
 
     if (missionRes.data) {
@@ -82,8 +82,8 @@ const NeeditMissionDetail = () => {
         if (ratingData?.[0]) setVoyageurRating(ratingData[0]);
       }
     }
-    if (pickupRes.data) setPickupProof(pickupRes.data);
-    if (deliveryRes.data) setDeliveryProof(deliveryRes.data);
+    if (pickupRes.data) setPickupProofs(pickupRes.data);
+    if (deliveryRes.data) setDeliveryProofs(deliveryRes.data);
     setLoading(false);
   }, [id]);
 
@@ -417,25 +417,25 @@ const NeeditMissionDetail = () => {
           )}
 
           {/* Pickup Proof — show when exists */}
-          {pickupProof?.photo_url && (
+          {pickupProofs.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <ProofGallery
-                proofs={[pickupProof]}
+                proofs={pickupProofs}
                 icon={<PackageCheck size={14} className="text-primary" />}
                 title="Preuve de récupération"
-                canDownload={isOwner}
+                canDownload={isOwner || isVoyageur}
               />
             </motion.div>
           )}
 
           {/* Delivery Proof — show photo when completed */}
-          {isCompleted && deliveryProof?.photo_url && (
+          {deliveryProofs.length > 0 && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
               <ProofGallery
-                proofs={[deliveryProof]}
-                icon={<Image size={14} className="text-emerald-600" />}
+                proofs={deliveryProofs}
+                icon={<Image size={14} className="text-accent" />}
                 title="Preuve de livraison"
-                canDownload={isOwner}
+                canDownload={isOwner || isVoyageur}
               />
             </motion.div>
           )}

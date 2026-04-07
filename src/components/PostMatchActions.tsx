@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { Camera as CameraIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HandshakeIcon,
@@ -88,6 +89,20 @@ const PostMatchActions = ({
 
   const isSender = user?.id === senderId;
   const isVoyageur = user?.id === voyageurId;
+
+  // Load existing proofs from DB to determine if they've been uploaded
+  useEffect(() => {
+    if (!shipmentId) return;
+    Promise.all([
+      supabase.from("pickup_proofs").select("id").eq("shipment_id", shipmentId).limit(1),
+      supabase.from("delivery_proofs").select("id").eq("shipment_id", shipmentId).limit(1),
+    ]).then(([pickupRes, deliveryRes]) => {
+      setProofState({
+        pickupDone: (pickupRes.data?.length ?? 0) > 0,
+        deliveryDone: (deliveryRes.data?.length ?? 0) > 0,
+      });
+    });
+  }, [shipmentId, normalizedStatus]);
 
   const parseOtpCodes = (raw: string | null) => {
     try {
@@ -564,9 +579,17 @@ const PostMatchActions = ({
             <h3 className="text-sm font-bold text-foreground">{t("postmatch.readyToDeliver")}</h3>
           </div>
           <p className="text-xs text-muted-foreground">{t("postmatch.generateDeliveryOtpDesc")}</p>
+          {!proofState.pickupDone && (
+            <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-xl p-3">
+              <CameraIcon size={14} className="text-destructive shrink-0" />
+              <p className="text-xs text-destructive font-medium">
+                Vous devez d'abord envoyer une preuve photo de récupération avant de générer le code de livraison.
+              </p>
+            </div>
+          )}
           <Button
             onClick={handleGenerateDeliveryOtp}
-            disabled={loading}
+            disabled={loading || !proofState.pickupDone}
             className="w-full rounded-xl"
           >
             {loading ? (
