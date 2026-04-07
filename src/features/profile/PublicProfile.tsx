@@ -133,6 +133,37 @@ const PublicProfile = () => {
       </div>
 
       <div className="px-6 -mt-4 relative z-10">
+        {/* Low rating warning */}
+        {rating && rating.average_score < 3 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 rounded-2xl border border-destructive/30 bg-destructive/10 p-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-destructive/20 flex items-center justify-center shrink-0">
+                <AlertTriangle size={18} className="text-destructive" />
+              </div>
+              <div className="flex-1">
+                {user?.id === userId ? (
+                  <>
+                    <p className="text-sm font-semibold text-destructive">Votre note est basse ({rating.average_score}★)</p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      Votre moyenne est en dessous de 3★. Soignez la communication, respectez les délais et livrez avec soin pour remonter votre score et débloquer plus d'opportunités ! 💪
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-destructive">Note moyenne basse ({rating.average_score}★)</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Ce profil a une note moyenne inférieure à 3★. Vérifiez les avis avant de vous engager.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
         {/* Contact button */}
         {conversationId && (
           <button
