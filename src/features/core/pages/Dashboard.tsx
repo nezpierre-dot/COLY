@@ -963,6 +963,14 @@ const Dashboard = () => {
                                 const cutoffMs = (v.cutoff_hours ?? 24) * 60 * 60 * 1000;
                                 const remaining = depTime - Date.now();
                                 // Show badge if remaining time is less than 2x cutoff (close to closing)
+                                if (v.status === "active" && remaining <= 0) {
+                                  return (
+                                    <span className="flex items-center gap-0.5 text-[10px] font-semibold bg-destructive/80 text-destructive-foreground px-1.5 py-0.5 rounded-full">
+                                      <Clock size={9} />
+                                      Expiré
+                                    </span>
+                                  );
+                                }
                                 if (v.status === "active" && remaining > 0 && remaining < cutoffMs * 2) {
                                   return (
                                     <span className="flex items-center gap-0.5 text-[10px] font-semibold bg-warning/90 text-warning-foreground px-1.5 py-0.5 rounded-full">
