@@ -378,6 +378,7 @@ const AdminDashboard = () => {
                 </span>
               )}
             </TabsTrigger>
+          </TabsList>
 
           <TabsContent value="analytics" className="space-y-6 mt-0">
             <div className="bg-card border border-border rounded-2xl p-4">
