@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { X, ZoomIn, ZoomOut, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
@@ -29,12 +29,11 @@ const ProofGallery = ({ proofs, icon, title, canDownload = false }: ProofGallery
     setSelectedIndex(emblaApi.selectedScrollSnap());
   }, [emblaApi]);
 
-  // Subscribe to embla select events
-  useState(() => {
+  useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on("select", onSelect);
     return () => { emblaApi.off("select", onSelect); };
-  });
+  }, [emblaApi, onSelect]);
 
   const openLightbox = (index: number) => {
     setLightboxIndex(index);
