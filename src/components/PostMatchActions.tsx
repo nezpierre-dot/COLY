@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
 import LiveLocationSharing from "@/components/LiveLocationSharing";
 import RatingDialog from "@/components/RatingDialog";
+import PickupProofUpload from "@/components/PickupProofUpload";
+import DeliveryProofUpload from "@/components/DeliveryProofUpload";
 
 interface PostMatchActionsProps {
   shipmentId: string;
