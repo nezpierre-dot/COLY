@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X } from "lucide-react";
+import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X, Archive } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,6 +62,7 @@ const AdminDashboard = () => {
   const [supportSending, setSupportSending] = useState(false);
   const [supportClosingId, setSupportClosingId] = useState<string | null>(null);
   const [proofStats, setProofStats] = useState<{ total: number; verified: number; unverified: number }>({ total: 0, verified: 0, unverified: 0 });
+  const [cancelledArchive, setCancelledArchive] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -95,6 +96,9 @@ const AdminDashboard = () => {
       const totalProofs = proofTotalRes.count ?? 0;
       const verifiedProofs = proofVerifiedRes.count ?? 0;
       setProofStats({ total: totalProofs, verified: verifiedProofs, unverified: totalProofs - verifiedProofs });
+      // Load cancelled matches archive
+      const { data: archiveData } = await supabase.from("cancelled_matches_archive" as any).select("*").order("cancelled_at", { ascending: false }).limit(100);
+      if (archiveData) setCancelledArchive(archiveData as any[]);
       if (dStatsRes.data) setDisputeStats(dStatsRes.data);
       if (supportRes.data) setSupportTickets(supportRes.data as unknown as SupportTicket[]);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
@@ -338,6 +342,14 @@ const AdminDashboard = () => {
               {openSupportTickets.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
                   {openSupportTickets.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="archives" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative">
+              <Archive size={13} className="mr-1" /> Archives
+              {cancelledArchive.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted-foreground text-background text-[10px] font-bold flex items-center justify-center">
+                  {cancelledArchive.length}
                 </span>
               )}
             </TabsTrigger>
