@@ -439,6 +439,33 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
         </div>
       )}
 
+      {/* AI contextual advice for low match rate */}
+      {matchAdvice && matchAdvice.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-amber-500/5 to-accent/5 border border-amber-500/20 rounded-2xl p-4"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
+              <Lightbulb size={16} className="text-amber-500" />
+            </div>
+            <div>
+              <span className="text-sm font-semibold text-foreground">Conseils pour améliorer votre taux de match</span>
+              <p className="text-xs text-muted-foreground">Basés sur l'analyse de vos voyages</p>
+            </div>
+          </div>
+          <div className="space-y-2.5">
+            {matchAdvice.map((tip, i) => (
+              <div key={i} className="flex items-start gap-2.5 bg-card/60 rounded-xl p-3">
+                <tip.icon size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-foreground leading-relaxed">{tip.text}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         {/* Pie chart */}
         {pieData.length > 0 && (
