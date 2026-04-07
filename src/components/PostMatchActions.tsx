@@ -541,6 +541,17 @@ const PostMatchActions = ({
         </div>
       )}
 
+      {/* ─── PICKED_UP: Voyageur uploads pickup proof photo ─── */}
+      {normalizedStatus === "picked_up" && isVoyageur && !proofState.pickupDone && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <PickupProofUpload
+            itemId={shipmentId}
+            itemType={itemType === "needit" ? "needit_mission" : "shipment"}
+            onProofUploaded={() => setProofState(p => ({ ...p, pickupDone: true }))}
+          />
+        </motion.div>
+      )}
+
       {/* ─── PICKED_UP: Voyageur generates delivery OTP ─── */}
       {normalizedStatus === "picked_up" && isVoyageur && !deliveryOtp && (
         <motion.div
