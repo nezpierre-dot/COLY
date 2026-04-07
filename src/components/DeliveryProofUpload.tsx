@@ -44,7 +44,7 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
     if (!photo || !user) return;
     setUploading(true);
     try {
-      const watermarked = await addWatermark(photo, coords);
+      const { file: watermarked } = await addWatermark(photo, coords);
       const path = `delivery-proofs/${shipmentId}/${Date.now()}-${photo.name}`;
       const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, watermarked);
       if (uploadErr) throw uploadErr;
