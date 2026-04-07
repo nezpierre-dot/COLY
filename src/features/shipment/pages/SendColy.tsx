@@ -128,6 +128,28 @@ const SendColy = () => {
   
   useEffect(() => { if (step === 2 && isInternational && !customsShown) setTimeout(() => { setShowCustomsDialog(true); setCustomsShown(true); }, 500); }, [step, isInternational, customsShown]);
 
+  // Load favorite addresses
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("favorite_addresses" as any).select("id, label, address, access_code").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }) => {
+      if (data) setFavAddresses(data as any[]);
+    });
+  }, [user]);
+
+  const selectFavAddress = (fav: typeof favAddresses[0]) => {
+    setPickupAddress(fav.address);
+    setPickupAccessCode(fav.access_code || "");
+    clearError("pickupAddress");
+  };
+
+  const saveFavoriteAddress = async () => {
+    if (!user || !pickupAddress.trim()) return;
+    const exists = favAddresses.some(f => f.address === pickupAddress.trim());
+    if (exists) return;
+    const { data } = await supabase.from("favorite_addresses" as any).insert({ user_id: user.id, address: pickupAddress.trim(), access_code: pickupAccessCode.trim() || null, label: null } as any).select("id, label, address, access_code").single();
+    if (data) setFavAddresses(prev => [data as any, ...prev]);
+  };
+
   const totalSteps = 4;
   const inputClass = (field: string) => `w-full border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none bg-background transition-all ${errors[field] ? "border-destructive ring-1 ring-destructive/30" : "border-border focus:border-primary focus:ring-1 focus:ring-primary/30"}`;
   const clearError = (field: string) => { if (errors[field]) setErrors((prev) => { const n = { ...prev }; delete n[field]; return n; }); };
