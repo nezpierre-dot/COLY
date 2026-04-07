@@ -12,6 +12,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import AdminAnalyticsExtended from "@/features/admin/components/AdminAnalyticsExtended";
 import AdminConfigPanel from "@/features/admin/components/AdminConfigPanel";
 import AdminAuditLog from "@/features/admin/components/AdminAuditLog";
+import AdminRealtimeAlerts from "@/features/admin/components/AdminRealtimeAlerts";
 
 interface AdminStats { total_users: number; total_shipments: number; pending_shipments: number; active_shipments: number; total_voyages: number; active_voyages: number; total_needit: number; pending_needit: number; total_demandeurs: number; total_voyageurs: number; kyc_pending: number; kyc_verified: number; }
 interface RecentShipment { id: string; ref_number: string; departure_city: string; arrival_city: string; arrival_country: string; size: string; tarif: string; status: string; insured: boolean; created_at: string; }
@@ -386,6 +387,9 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="audit" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <History size={13} className="mr-1" /> Audit
+            </TabsTrigger>
+            <TabsTrigger value="alerts" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">
+              <AlertTriangle size={13} className="mr-1" /> Alertes
             </TabsTrigger>
           </TabsList>
 
