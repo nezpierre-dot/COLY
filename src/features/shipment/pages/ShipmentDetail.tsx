@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin, Package, Shield, Clock, Pencil, X, Check, Loader2, AlertTriangle, User, Phone, Mail, Bell } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Package, Shield, Clock, Pencil, X, Check, Loader2, AlertTriangle, User, Phone, Mail, Bell, Camera, PackageCheck } from "lucide-react";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import PostMatchActions from "@/components/PostMatchActions";
 import PageTransition from "@/components/PageTransition";
