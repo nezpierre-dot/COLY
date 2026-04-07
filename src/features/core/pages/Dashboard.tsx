@@ -1804,6 +1804,29 @@ const Dashboard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Cleanup Confirmation Dialog */}
+      <AlertDialog open={cleanupDialog} onOpenChange={setCleanupDialog}>
+        <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Nettoyer les voyages</AlertDialogTitle>
+            <AlertDialogDescription>
+              Supprimer définitivement <span className="font-semibold text-foreground">{cleanableVoyages.length} voyage{cleanableVoyages.length > 1 ? "s" : ""}</span> (expirés, terminés ou annulés) ?
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cleaning}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCleanupVoyages}
+              disabled={cleaning}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {cleaning ? "Suppression…" : `Supprimer (${cleanableVoyages.length})`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
     </>
   );
