@@ -1140,6 +1140,10 @@ const AdminDashboard = () => {
           <TabsContent value="audit" className="space-y-6 mt-0">
             <AdminAuditLog />
           </TabsContent>
+
+          <TabsContent value="alerts" className="space-y-6 mt-0">
+            <AdminRealtimeAlerts />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
