@@ -13,6 +13,7 @@ import ConfirmationCodeEntry from "@/components/ConfirmationCodeEntry";
 import RatingDialog from "@/components/RatingDialog";
 import StarRating from "@/components/StarRating";
 import PhotoLightbox from "@/components/PhotoLightbox";
+import ProofGallery from "@/components/ProofGallery";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -449,21 +450,13 @@ const NeeditMissionDetail = () => {
 
           {/* Pickup Proof — show when exists */}
           {pickupProof?.photo_url && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-card border border-[#0D84FF]/20 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <PackageCheck size={14} className="text-[#0D84FF]" />
-                <h3 className="text-sm font-bold text-foreground">Preuve de récupération</h3>
-              </div>
-              <PhotoLightbox src={pickupProof.photo_url} alt="Preuve récupération">
-                <img src={pickupProof.photo_url} alt="Preuve récupération" className="w-full rounded-xl object-cover max-h-48" />
-              </PhotoLightbox>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                {pickupProof.created_at && <span>📅 {new Date(pickupProof.created_at).toLocaleString("fr-FR")}</span>}
-                {pickupProof.latitude && pickupProof.longitude && (
-                  <span>📍 {Number(pickupProof.latitude).toFixed(4)}, {Number(pickupProof.longitude).toFixed(4)}</span>
-                )}
-              </div>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <ProofGallery
+                proofs={[pickupProof]}
+                icon={<PackageCheck size={14} className="text-primary" />}
+                title="Preuve de récupération"
+                canDownload={isOwner}
+              />
             </motion.div>
           )}
 
@@ -510,21 +503,13 @@ const NeeditMissionDetail = () => {
 
           {/* Delivery Proof — show photo when completed */}
           {isCompleted && deliveryProof?.photo_url && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-card border border-green-500/20 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Image size={14} className="text-green-600" />
-                <h3 className="text-sm font-bold text-foreground">Preuve de livraison</h3>
-              </div>
-              <PhotoLightbox src={deliveryProof.photo_url} alt="Preuve livraison">
-                <img src={deliveryProof.photo_url} alt="Preuve livraison" className="w-full rounded-xl object-cover max-h-48" />
-              </PhotoLightbox>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                {deliveryProof.created_at && <span>📅 {new Date(deliveryProof.created_at).toLocaleString("fr-FR")}</span>}
-                {deliveryProof.latitude && deliveryProof.longitude && (
-                  <span>📍 {Number(deliveryProof.latitude).toFixed(4)}, {Number(deliveryProof.longitude).toFixed(4)}</span>
-                )}
-              </div>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <ProofGallery
+                proofs={[deliveryProof]}
+                icon={<Image size={14} className="text-emerald-600" />}
+                title="Preuve de livraison"
+                canDownload={isOwner}
+              />
             </motion.div>
           )}
 
