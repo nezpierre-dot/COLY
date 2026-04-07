@@ -32,6 +32,8 @@ import WalletCard from "@/components/WalletCard";
 import VoyageurOnboarding from "@/components/VoyageurOnboarding";
 import DemandeurOnboarding from "@/components/DemandeurOnboarding";
 import UserLevelBadge from "@/components/UserLevelBadge";
+import ConfettiCelebration from "@/components/ConfettiCelebration";
+import { useLevelUpCelebration } from "@/hooks/useLevelUpCelebration";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
