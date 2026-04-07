@@ -61,6 +61,7 @@ const AdminDashboard = () => {
   const [supportReplyText, setSupportReplyText] = useState("");
   const [supportSending, setSupportSending] = useState(false);
   const [supportClosingId, setSupportClosingId] = useState<string | null>(null);
+  const [proofStats, setProofStats] = useState<{ total: number; verified: number; unverified: number }>({ total: 0, verified: 0, unverified: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -78,7 +79,7 @@ const AdminDashboard = () => {
 
   const loadAll = async () => {
     try {
-      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes, dStatsRes, supportRes] = await Promise.all([
+      const [statsRes, shipmentsRes, usersRes, sotRes, uotRes, fraudRes, disputesRes, dStatsRes, supportRes, proofTotalRes, proofVerifiedRes] = await Promise.all([
         supabase.rpc("get_admin_stats"),
         supabase.rpc("admin_get_recent_shipments", { _limit: 20 }),
         supabase.rpc("admin_list_users", { _limit: 50, _offset: 0 }),
@@ -88,7 +89,12 @@ const AdminDashboard = () => {
         supabase.rpc("admin_get_disputes" as any, { _limit: 50 }),
         supabase.rpc("admin_get_dispute_stats" as any),
         supabase.rpc("admin_get_support_tickets" as any, { _limit: 50 }),
+        supabase.from("proof_verifications" as any).select("id", { count: "exact", head: true }),
+        supabase.from("proof_verifications" as any).select("id", { count: "exact", head: true }).not("verified_at", "is", null),
       ]);
+      const totalProofs = proofTotalRes.count ?? 0;
+      const verifiedProofs = proofVerifiedRes.count ?? 0;
+      setProofStats({ total: totalProofs, verified: verifiedProofs, unverified: totalProofs - verifiedProofs });
       if (dStatsRes.data) setDisputeStats(dStatsRes.data);
       if (supportRes.data) setSupportTickets(supportRes.data as unknown as SupportTicket[]);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
@@ -217,6 +223,7 @@ const AdminDashboard = () => {
 
   const roleDistribution = useMemo(() => stats ? [{ name: t("admin.demandeurs"), value: stats.total_demandeurs }, { name: t("admin.voyageurs"), value: stats.total_voyageurs }] : [], [stats, t]);
   const kycDistribution = useMemo(() => stats ? [{ name: t("admin.verified"), value: stats.kyc_verified }, { name: t("admin.pending"), value: stats.kyc_pending }] : [], [stats, t]);
+  const proofDistribution = useMemo(() => [{ name: "Vérifiées", value: proofStats.verified }, { name: "Non vérifiées", value: proofStats.unverified }], [proofStats]);
 
   const handleSupportReply = async (ticketId: string) => {
     if (!supportReplyText.trim()) { toast.error("Veuillez saisir une réponse"); return; }
@@ -328,6 +335,52 @@ const AdminDashboard = () => {
                 <div className="h-40"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={kycDistribution} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={4} dataKey="value"><Cell fill="hsl(var(--accent))" /><Cell fill="hsl(var(--muted-foreground))" /></Pie><Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} /></PieChart></ResponsiveContainer></div>
                 <div className="flex justify-center gap-4 mt-1">{kycDistribution.map((d, i) => (<span key={d.name} className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: i === 0 ? "hsl(var(--accent))" : "hsl(var(--muted-foreground))" }} />{d.name} ({d.value})</span>))}</div>
               </div>
+            </div>
+
+            {/* Proof Verification Stats */}
+            <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Camera size={14} className="text-primary" /> Vérification des preuves QR
+              </h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-muted/50 rounded-xl p-3 text-center">
+                  <p className="text-xl font-bold text-foreground">{proofStats.total}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Total preuves</p>
+                </div>
+                <div className="bg-green-500/10 rounded-xl p-3 text-center">
+                  <p className="text-xl font-bold text-green-600">{proofStats.verified}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Vérifiées</p>
+                </div>
+                <div className="bg-yellow-500/10 rounded-xl p-3 text-center">
+                  <p className="text-xl font-bold text-yellow-600">{proofStats.unverified}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Non vérifiées</p>
+                </div>
+              </div>
+              {proofStats.total > 0 && (
+                <div className="flex items-center gap-4">
+                  <div className="h-32 flex-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={proofDistribution} cx="50%" cy="50%" innerRadius={35} outerRadius={50} paddingAngle={4} dataKey="value">
+                          <Cell fill="hsl(142, 71%, 45%)" />
+                          <Cell fill="hsl(48, 96%, 53%)" />
+                        </Pie>
+                        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
+                      Vérifiées ({proofStats.total > 0 ? Math.round((proofStats.verified / proofStats.total) * 100) : 0}%)
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(48, 96%, 53%)" }} />
+                      Non vérifiées ({proofStats.total > 0 ? Math.round((proofStats.unverified / proofStats.total) * 100) : 0}%)
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
 
