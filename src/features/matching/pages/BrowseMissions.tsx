@@ -160,7 +160,7 @@ const BrowseMissions = () => {
                     <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : filteredShipments.length === 0 ? (
-                  <EmptyState icon={Package} title="Aucun colis en attente" message="Revenez plus tard pour de nouvelles demandes" />
+                  <EmptyState icon={Package} title="Aucun colis en attente" description="Revenez plus tard pour de nouvelles demandes" />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
                     {filteredShipments.map((s) => (
@@ -201,7 +201,7 @@ const BrowseMissions = () => {
                     <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : filteredMissions.length === 0 ? (
-                  <EmptyState icon={ShoppingBag} title="Aucune mission NeedIt" message="Revenez plus tard pour de nouvelles missions" />
+                  <EmptyState icon={ShoppingBag} title="Aucune mission NeedIt" description="Revenez plus tard pour de nouvelles missions" />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
                     {filteredMissions.map((m) => (
