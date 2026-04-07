@@ -345,6 +345,28 @@ const BrowseMissions = () => {
               </div>
             )}
 
+            {/* Sort selector */}
+            <div className="flex items-center gap-1.5 mb-3 overflow-x-auto no-scrollbar">
+              <ArrowUpDown size={13} className="text-muted-foreground shrink-0" />
+              {([
+                { value: "recent", label: "Récents" },
+                { value: "date_asc", label: "Date ↑" },
+                { value: "price_asc", label: "Prix ↑" },
+                { value: "price_desc", label: "Prix ↓" },
+              ] as const).map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSortBy(opt.value)}
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors",
+                    sortBy === opt.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="w-full bg-muted/70 rounded-xl p-1 mb-4">
                 <TabsTrigger value="shipments" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
