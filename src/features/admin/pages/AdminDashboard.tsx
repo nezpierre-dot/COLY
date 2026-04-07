@@ -218,6 +218,35 @@ const AdminDashboard = () => {
   const roleDistribution = useMemo(() => stats ? [{ name: t("admin.demandeurs"), value: stats.total_demandeurs }, { name: t("admin.voyageurs"), value: stats.total_voyageurs }] : [], [stats, t]);
   const kycDistribution = useMemo(() => stats ? [{ name: t("admin.verified"), value: stats.kyc_verified }, { name: t("admin.pending"), value: stats.kyc_pending }] : [], [stats, t]);
 
+  const handleSupportReply = async (ticketId: string) => {
+    if (!supportReplyText.trim()) { toast.error("Veuillez saisir une réponse"); return; }
+    setSupportSending(true);
+    try {
+      const { error } = await supabase.functions.invoke("admin-support-ticket", {
+        body: { ticket_id: ticketId, action: "reply", reply: supportReplyText.trim() },
+      });
+      if (error) throw error;
+      toast.success("Réponse envoyée par email et notification");
+      setSupportReplyingId(null);
+      setSupportReplyText("");
+      await loadAll();
+    } catch (err: any) { toast.error(err.message || "Erreur"); } finally { setSupportSending(false); }
+  };
+
+  const handleSupportClose = async (ticketId: string) => {
+    setSupportClosingId(ticketId);
+    try {
+      const { error } = await supabase.functions.invoke("admin-support-ticket", {
+        body: { ticket_id: ticketId, action: "close" },
+      });
+      if (error) throw error;
+      toast.success("Ticket clôturé");
+      await loadAll();
+    } catch (err: any) { toast.error(err.message || "Erreur"); } finally { setSupportClosingId(null); }
+  };
+
+  const openSupportTickets = supportTickets.filter(t => t.status === "open" || t.status === "replied");
+
   const formatDate = (d: string) => { try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); } catch { return d; } };
   const formatDateTime = (d: string) => { try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return d; } };
 
