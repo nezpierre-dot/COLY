@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import appLogo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield, Trash2, Archive, ArrowUpDown } from "lucide-react";
+import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield, Trash2, Archive, ArrowUpDown, Trophy } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
@@ -1308,6 +1308,12 @@ const Dashboard = () => {
                 >
                   <BarChart3 size={14} /> Voir l'historique complet
                 </button>
+                <button
+                  onClick={() => navigate("/leaderboard")}
+                  className="w-full py-3 rounded-xl border border-amber-400/30 bg-amber-400/5 text-foreground text-sm font-semibold hover:bg-amber-400/10 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trophy size={14} className="text-amber-500" /> Classement de la semaine
+                </button>
               </TabsContent>
             </Tabs>
           </div>
@@ -1702,6 +1708,12 @@ const Dashboard = () => {
                   className="w-full py-3 rounded-xl border border-border bg-card text-foreground text-sm font-semibold hover:bg-muted transition-colors flex items-center justify-center gap-2"
                 >
                   <BarChart3 size={14} /> Voir l'historique complet
+                </button>
+                <button
+                  onClick={() => navigate("/leaderboard")}
+                  className="w-full py-3 rounded-xl border border-amber-400/30 bg-amber-400/5 text-foreground text-sm font-semibold hover:bg-amber-400/10 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trophy size={14} className="text-amber-500" /> Classement de la semaine
                 </button>
               </TabsContent>
             </Tabs>
