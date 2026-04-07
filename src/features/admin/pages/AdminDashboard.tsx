@@ -463,6 +463,9 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Extended Analytics */}
+            <AdminAnalyticsExtended />
           </TabsContent>
 
           <TabsContent value="shipments" className="space-y-3 mt-0">
