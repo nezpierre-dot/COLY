@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, MapPin, Package, ShoppingBag, Calendar, ArrowRight, X, SlidersHorizontal, Globe, ArrowUpDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -58,6 +58,8 @@ const formatDate = (d: string) => {
   catch { return d; }
 };
 
+const PAGE_SIZE = 10;
+
 const BrowseMissions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -68,6 +70,8 @@ const BrowseMissions = () => {
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<"recent" | "date_asc" | "price_asc" | "price_desc" | "voyageurs">("recent");
+  const [shipmentsPage, setShipmentsPage] = useState(1);
+  const [missionsPage, setMissionsPage] = useState(1);
 
   const { data: shipments = [], isLoading: loadingShipments, refetch: refetchShipments } = useQuery({
     queryKey: ["browse-pending-shipments"],
@@ -204,6 +208,18 @@ const BrowseMissions = () => {
       }
     });
   }, [missions, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy, voyageurCounts]);
+
+  // Reset pagination when filters/search/sort change
+  useEffect(() => {
+    setShipmentsPage(1);
+    setMissionsPage(1);
+  }, [searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy]);
+
+  const paginatedShipments = useMemo(() => filteredShipments.slice(0, shipmentsPage * PAGE_SIZE), [filteredShipments, shipmentsPage]);
+  const hasMoreShipments = paginatedShipments.length < filteredShipments.length;
+
+  const paginatedMissions = useMemo(() => filteredMissions.slice(0, missionsPage * PAGE_SIZE), [filteredMissions, missionsPage]);
+  const hasMoreMissions = paginatedMissions.length < filteredMissions.length;
 
   const handleAcceptShipment = (s: PendingShipment) => {
     hapticMedium();
@@ -422,7 +438,7 @@ const BrowseMissions = () => {
                   <EmptyState icon={Package} title="Aucun colis en attente" description="Revenez plus tard ou ajustez vos filtres" />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
-                    {filteredShipments.map((s) => (
+                    {paginatedShipments.map((s) => (
                       <motion.div key={s.id} variants={staggerItem} className="bg-card border border-border rounded-2xl p-4">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -447,6 +463,15 @@ const BrowseMissions = () => {
                         </Button>
                       </motion.div>
                     ))}
+                    {hasMoreShipments && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setShipmentsPage(p => p + 1)}
+                      >
+                        Voir plus ({filteredShipments.length - paginatedShipments.length} restants)
+                      </Button>
+                    )}
                   </motion.div>
                 )}
               </TabsContent>
@@ -460,7 +485,7 @@ const BrowseMissions = () => {
                   <EmptyState icon={ShoppingBag} title="Aucune mission NeedIt" description="Revenez plus tard ou ajustez vos filtres" />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
-                    {filteredMissions.map((m) => (
+                    {paginatedMissions.map((m) => (
                       <motion.div key={m.id} variants={staggerItem} className="bg-card border border-border rounded-2xl p-4">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -488,6 +513,15 @@ const BrowseMissions = () => {
                         </Button>
                       </motion.div>
                     ))}
+                    {hasMoreMissions && (
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setMissionsPage(p => p + 1)}
+                      >
+                        Voir plus ({filteredMissions.length - paginatedMissions.length} restants)
+                      </Button>
+                    )}
                   </motion.div>
                 )}
               </TabsContent>
