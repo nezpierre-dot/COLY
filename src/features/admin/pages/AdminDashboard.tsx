@@ -882,6 +882,59 @@ const AdminDashboard = () => {
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="archives" className="space-y-3 mt-0">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Archive size={14} className="text-muted-foreground" /> Historique des annulations matchées
+                </h3>
+                <span className="text-xs text-muted-foreground">{cancelledArchive.length} entrée(s)</span>
+              </div>
+              {cancelledArchive.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">Aucune annulation matchée enregistrée</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        <th className="px-4 py-2.5">Type</th>
+                        <th className="px-4 py-2.5">Trajet</th>
+                        <th className="px-4 py-2.5">Tarif</th>
+                        <th className="px-4 py-2.5">Statut avant</th>
+                        <th className="px-4 py-2.5">Annulé le</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cancelledArchive.map((a: any) => {
+                        const typeConfig: Record<string, { label: string; bg: string; text: string }> = {
+                          shipment: { label: "📦 Envoi", bg: "bg-primary/10", text: "text-primary" },
+                          needit_mission: { label: "🛒 NeedIt", bg: "bg-accent/10", text: "text-accent-foreground" },
+                          voyage: { label: "✈️ Voyage", bg: "bg-secondary/10", text: "text-secondary" },
+                        };
+                        const tc = typeConfig[a.item_type] || { label: a.item_type, bg: "bg-muted", text: "text-muted-foreground" };
+                        return (
+                          <tr key={a.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                            <td className="px-4 py-2.5">
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tc.bg} ${tc.text}`}>{tc.label}</span>
+                            </td>
+                            <td className="px-4 py-2.5 text-xs text-foreground">
+                              {a.departure_city ? `${a.departure_city} → ` : ""}{a.arrival_city || a.arrival_country || "—"}
+                            </td>
+                            <td className="px-4 py-2.5 text-xs font-medium text-foreground">{a.tarif || "—"}</td>
+                            <td className="px-4 py-2.5">
+                              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">{a.original_status || "—"}</span>
+                            </td>
+                            <td className="px-4 py-2.5 text-xs text-muted-foreground">{formatDateTime(a.cancelled_at)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
     </div>
