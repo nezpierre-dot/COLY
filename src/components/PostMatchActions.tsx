@@ -579,9 +579,17 @@ const PostMatchActions = ({
             <h3 className="text-sm font-bold text-foreground">{t("postmatch.readyToDeliver")}</h3>
           </div>
           <p className="text-xs text-muted-foreground">{t("postmatch.generateDeliveryOtpDesc")}</p>
+          {!proofState.pickupDone && (
+            <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-xl p-3">
+              <CameraIcon size={14} className="text-destructive shrink-0" />
+              <p className="text-xs text-destructive font-medium">
+                Vous devez d'abord envoyer une preuve photo de récupération avant de générer le code de livraison.
+              </p>
+            </div>
+          )}
           <Button
             onClick={handleGenerateDeliveryOtp}
-            disabled={loading}
+            disabled={loading || !proofState.pickupDone}
             className="w-full rounded-xl"
           >
             {loading ? (
