@@ -223,6 +223,51 @@ const AdminConfigPanel = () => {
         })}
       </div>
 
+      {/* Alert Thresholds */}
+      <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Gauge size={14} className="text-destructive" /> Seuils d'alerte
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Configurez les seuils qui déclenchent des alertes automatiques sur le dashboard.
+          Le cron job horaire vérifie ces valeurs et envoie un email aux admins pour les alertes critiques.
+        </p>
+        <div className="space-y-4">
+          {ALERT_THRESHOLD_FIELDS.map((field) => (
+            <div key={field.key} className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-foreground">{field.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{field.description}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="number"
+                  step={field.key === "fraud_confidence_min" ? "0.05" : "1"}
+                  min={0}
+                  value={alertThresholds[field.key] ?? field.default}
+                  onChange={(e) => updateAlertThreshold(field.key, parseFloat(e.target.value) || 0)}
+                  className="text-sm font-mono h-9 w-32"
+                />
+                <span className="text-xs text-muted-foreground">
+                  (défaut: {field.default})
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <Button
+          size="sm"
+          onClick={() => saveConfig("alert_thresholds")}
+          disabled={saving === "alert_thresholds"}
+          className="w-full"
+        >
+          <Save size={12} className="mr-1.5" />
+          {saving === "alert_thresholds" ? "Sauvegarde..." : "Sauvegarder les seuils d'alerte"}
+        </Button>
+      </div>
+
       {/* User Moderation */}
       <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
