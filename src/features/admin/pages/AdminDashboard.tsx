@@ -336,6 +336,52 @@ const AdminDashboard = () => {
                 <div className="flex justify-center gap-4 mt-1">{kycDistribution.map((d, i) => (<span key={d.name} className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: i === 0 ? "hsl(var(--accent))" : "hsl(var(--muted-foreground))" }} />{d.name} ({d.value})</span>))}</div>
               </div>
             </div>
+
+            {/* Proof Verification Stats */}
+            <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Camera size={14} className="text-primary" /> Vérification des preuves QR
+              </h3>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-muted/50 rounded-xl p-3 text-center">
+                  <p className="text-xl font-bold text-foreground">{proofStats.total}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Total preuves</p>
+                </div>
+                <div className="bg-green-500/10 rounded-xl p-3 text-center">
+                  <p className="text-xl font-bold text-green-600">{proofStats.verified}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Vérifiées</p>
+                </div>
+                <div className="bg-yellow-500/10 rounded-xl p-3 text-center">
+                  <p className="text-xl font-bold text-yellow-600">{proofStats.unverified}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Non vérifiées</p>
+                </div>
+              </div>
+              {proofStats.total > 0 && (
+                <div className="flex items-center gap-4">
+                  <div className="h-32 flex-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={proofDistribution} cx="50%" cy="50%" innerRadius={35} outerRadius={50} paddingAngle={4} dataKey="value">
+                          <Cell fill="hsl(142, 71%, 45%)" />
+                          <Cell fill="hsl(48, 96%, 53%)" />
+                        </Pie>
+                        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(142, 71%, 45%)" }} />
+                      Vérifiées ({proofStats.total > 0 ? Math.round((proofStats.verified / proofStats.total) * 100) : 0}%)
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "hsl(48, 96%, 53%)" }} />
+                      Non vérifiées ({proofStats.total > 0 ? Math.round((proofStats.unverified / proofStats.total) * 100) : 0}%)
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="shipments" className="space-y-3 mt-0">
