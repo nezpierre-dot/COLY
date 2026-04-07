@@ -330,7 +330,7 @@ const Dashboard = () => {
       const res = await supabase.from("voyages").update({ status: "cancelled" }).eq("id", id);
       error = res.error;
     } else if (type === "shipment") {
-      const shipment = pendingShipments.find(s => s.id === id) || myShipments.find((s: any) => s.id === id);
+      const shipment = pendingShipments.find(s => s.id === id);
       if (shipment) await archiveCancelledMatch({
         item_type: "shipment", item_id: id, user_id: user.id,
         voyageur_id: shipment.voyageur_id, departure_city: shipment.departure_city,
