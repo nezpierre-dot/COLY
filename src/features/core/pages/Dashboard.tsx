@@ -1737,6 +1737,7 @@ const Dashboard = () => {
       </PullToRefresh>
 
       <BottomNav />
+      <ConfettiCelebration show={showConfetti} />
 
       {/* Cancel Confirmation Dialog */}
       <AlertDialog open={!!cancelDialog} onOpenChange={(open) => { if (!open) setCancelDialog(null); }}>
