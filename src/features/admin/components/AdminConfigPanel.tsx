@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Save, Trophy, DollarSign, Bell, ShieldAlert, Ban, RotateCcw, CheckCircle, Search, AlertTriangle } from "lucide-react";
+import { Settings, Save, Trophy, DollarSign, Bell, ShieldAlert, Ban, RotateCcw, CheckCircle, Search, AlertTriangle, Gauge } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
