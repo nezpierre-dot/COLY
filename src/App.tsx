@@ -55,6 +55,7 @@ const DisputesPage = lazy(() => import("./features/disputes/pages/DisputesPage")
 const PublicProfile = lazy(() => import("./features/profile/PublicProfile"));
 const FavoriteAddresses = lazy(() => import("./features/account/pages/FavoriteAddresses"));
 const LeaderboardPage = lazy(() => import("./features/core/pages/LeaderboardPage"));
+const BrowseMissions = lazy(() => import("./features/matching/pages/BrowseMissions"));
 
 const queryClient = new QueryClient();
 
@@ -131,6 +132,7 @@ const App = () => {
                     <Route path="/litiges" element={<ProtectedRoute><DisputesPage /></ProtectedRoute>} />
                     <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
                     <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
+                    <Route path="/browse-missions" element={<ProtectedRoute><BrowseMissions /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
