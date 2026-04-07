@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
-import { Trophy, TrendingUp, DollarSign, Globe, ArrowUpRight, Package, ShoppingBag, Clock, CheckCircle, XCircle, MapPin } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Trophy, TrendingUp, DollarSign, Globe, ArrowUpRight, Package, ShoppingBag, Clock, CheckCircle, XCircle, MapPin, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { LEVEL_STYLES } from "@/hooks/useUserPoints";
+import { Button } from "@/components/ui/button";
 
 const LEVEL_COLORS: Record<string, string> = {
   green: "hsl(142, 71%, 45%)",
@@ -62,6 +63,38 @@ const AdminAnalyticsExtended = () => {
     };
     load();
   }, []);
+
+  const downloadCSV = useCallback((filename: string, headers: string[], rows: string[][]) => {
+    const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  }, []);
+
+  const exportLevels = () => {
+    if (!levelStats?.by_level) return;
+    downloadCSV("niveaux", ["Niveau", "Utilisateurs", "Points totaux"], levelStats.by_level.map(l => [l.level, String(l.user_count), String(l.total_points)]));
+  };
+
+  const exportConversion = () => {
+    if (!conversionStats) return;
+    const s = conversionStats.shipments;
+    const m = conversionStats.missions;
+    downloadCSV("conversion", ["Type", "Total", "En attente", "Acceptés", "Livrés/Complétés", "Annulés"], [
+      ["Colis", String(s.total), String(s.pending), String(s.accepted), String(s.delivered), String(s.cancelled)],
+      ["Missions", String(m.total), String(m.pending), String(m.accepted), String(m.completed), String(m.cancelled)],
+    ]);
+  };
+
+  const exportRevenue = () => {
+    if (!revenueStats?.monthly_revenue) return;
+    downloadCSV("revenus", ["Mois", "Revenus (€)", "Livraisons"], revenueStats.monthly_revenue.map(m => [m.month, String(m.revenue), String(m.deliveries)]));
+  };
 
   if (loading) {
     return (
