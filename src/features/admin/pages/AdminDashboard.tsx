@@ -56,6 +56,11 @@ const AdminDashboard = () => {
   const replyPhotoRef = useRef<HTMLInputElement>(null);
   const [disputeStats, setDisputeStats] = useState<any>(null);
   const [disputePeriod, setDisputePeriod] = useState<number>(30);
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
+  const [supportReplyingId, setSupportReplyingId] = useState<string | null>(null);
+  const [supportReplyText, setSupportReplyText] = useState("");
+  const [supportSending, setSupportSending] = useState(false);
+  const [supportClosingId, setSupportClosingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
