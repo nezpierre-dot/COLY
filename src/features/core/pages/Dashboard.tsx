@@ -999,14 +999,15 @@ const Dashboard = () => {
                                 <Archive size={12} />
                               </button>
                             )}
-                            {v.status === "cancelled" ? (
+                            {isVoyageExpiredOrDone(v) ? (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setDeleteDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
                                 className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                                title="Supprimer"
                               >
                                 <Trash2 size={12} />
                               </button>
-                            ) : v.status !== "completed" ? (
+                            ) : v.status === "active" ? (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setCancelDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
                                 className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
