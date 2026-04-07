@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Package, Shield, Clock, Pencil, X, Check, Loader2, AlertTriangle, User, Phone, Mail, Bell, Camera, PackageCheck } from "lucide-react";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import PostMatchActions from "@/components/PostMatchActions";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
@@ -308,7 +309,9 @@ const ShipmentDetail = () => {
               </div>
               {pickupProofs.map((proof) => (
                 <div key={proof.id} className="space-y-2">
-                  <img src={proof.photo_url} alt="Preuve récupération" className="w-full rounded-xl object-cover" style={{ maxHeight: 220 }} />
+                  <PhotoLightbox src={proof.photo_url} alt="Preuve récupération">
+                    <img src={proof.photo_url} alt="Preuve récupération" className="w-full rounded-xl object-cover" style={{ maxHeight: 220 }} />
+                  </PhotoLightbox>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>📅 {new Date(proof.created_at).toLocaleString("fr-FR")}</span>
                     {proof.latitude && proof.longitude && (
@@ -329,7 +332,9 @@ const ShipmentDetail = () => {
               </div>
               {deliveryProofs.map((proof) => (
                 <div key={proof.id} className="space-y-2">
-                  <img src={proof.photo_url} alt="Preuve livraison" className="w-full rounded-xl object-cover" style={{ maxHeight: 220 }} />
+                  <PhotoLightbox src={proof.photo_url} alt="Preuve livraison">
+                    <img src={proof.photo_url} alt="Preuve livraison" className="w-full rounded-xl object-cover" style={{ maxHeight: 220 }} />
+                  </PhotoLightbox>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>📅 {new Date(proof.created_at).toLocaleString("fr-FR")}</span>
                     {proof.latitude && proof.longitude && (
