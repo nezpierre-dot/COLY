@@ -62,8 +62,8 @@ const NeeditMissionDetail = () => {
     if (!id) return;
     const [missionRes, pickupRes, deliveryRes] = await Promise.all([
       supabase.from("needit_missions").select("*").eq("id", id).maybeSingle(),
-      supabase.from("pickup_proofs" as any).select("*").eq("shipment_id", id).maybeSingle(),
-      supabase.from("delivery_proofs" as any).select("*").eq("shipment_id", id).maybeSingle(),
+      supabase.from("pickup_proofs").select("*").eq("shipment_id", id).order("created_at", { ascending: false }),
+      supabase.from("delivery_proofs").select("*").eq("shipment_id", id).order("created_at", { ascending: false }),
     ]);
 
     if (missionRes.data) {
