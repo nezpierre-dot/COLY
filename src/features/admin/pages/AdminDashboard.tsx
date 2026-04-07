@@ -16,6 +16,7 @@ interface UserRow { user_ref: string; full_name: string; kyc_status: string; rol
 interface TimeData { day: string; count: number; }
 interface FraudCheck { id: string; shipment_id: string; user_id: string; photo_url: string; result: string; confidence: number | null; details: string | null; created_at: string; reporter_name: string; shipment_ref: string; }
 interface DisputeRow { id: string; shipment_id: string; user_id: string; reason: string; description: string; photo_url: string | null; status: string; resolution: string | null; created_at: string; reporter_name: string; shipment_ref: string; }
+interface SupportTicket { id: string; user_id: string; subject: string; message: string; category: string; status: string; admin_reply: string | null; replied_at: string | null; created_at: string; updated_at: string; reporter_name: string; reporter_email: string; }
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted-foreground))"];
 
 const StatCard = ({ icon: Icon, label, value, trend, color = "primary" }: { icon: any; label: string; value: number | string; trend?: number; color?: string; }) => (
