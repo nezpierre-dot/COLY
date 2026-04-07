@@ -780,11 +780,12 @@ const PostMatchActions = ({
         />
       )}
 
-      {voyageurId && normalizedStatus !== "delivered" && normalizedStatus !== "cancelled" && !compact && (
+      {voyageurId && normalizedStatus === "in_transit" && !compact && (
         <LiveLocationSharing
           itemId={shipmentId}
           voyageurId={voyageurId}
           isVoyageur={isVoyageur}
+          autoStart
         />
       )}
     </div>

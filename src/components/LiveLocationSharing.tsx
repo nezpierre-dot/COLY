@@ -18,9 +18,11 @@ interface Props {
   voyageurId: string;
   /** Whether the current user is the voyageur */
   isVoyageur: boolean;
+  /** Auto-start location sharing when component mounts (voyageur only) */
+  autoStart?: boolean;
 }
 
-const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur }: Props) => {
+const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false }: Props) => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [sharing, setSharing] = useState(false);
@@ -126,6 +128,14 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur }: Props) => {
       .eq("user_id", user!.id)
       .eq("shipment_id", itemId);
   }, [user, itemId]);
+
+  // Auto-start sharing for voyageur when in_transit
+  useEffect(() => {
+    if (autoStart && isVoyageur && !loading && !sharing) {
+      setSharing(true);
+      startWatching();
+    }
+  }, [autoStart, isVoyageur, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cleanup on unmount
   useEffect(() => {
