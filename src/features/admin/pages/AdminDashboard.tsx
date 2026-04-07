@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { localizeCity } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
+import AdminAnalyticsExtended from "@/features/admin/components/AdminAnalyticsExtended";
+import AdminConfigPanel from "@/features/admin/components/AdminConfigPanel";
 
 interface AdminStats { total_users: number; total_shipments: number; pending_shipments: number; active_shipments: number; total_voyages: number; active_voyages: number; total_needit: number; pending_needit: number; total_demandeurs: number; total_voyageurs: number; kyc_pending: number; kyc_verified: number; }
 interface RecentShipment { id: string; ref_number: string; departure_city: string; arrival_city: string; arrival_country: string; size: string; tarif: string; status: string; insured: boolean; created_at: string; }
