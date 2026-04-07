@@ -303,48 +303,21 @@ const ShipmentDetail = () => {
 
           {/* Pickup proofs */}
           {pickupProofs.length > 0 && (
-            <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <PackageCheck size={16} className="text-primary" />
-                <p className="text-xs font-semibold text-foreground">Preuve de récupération</p>
-              </div>
-              {pickupProofs.map((proof) => (
-                <div key={proof.id} className="space-y-2">
-                  <PhotoLightbox src={proof.photo_url} alt="Preuve récupération">
-                    <img src={proof.photo_url} alt="Preuve récupération" className="w-full rounded-xl object-cover" style={{ maxHeight: 220 }} />
-                  </PhotoLightbox>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>📅 {new Date(proof.created_at).toLocaleString("fr-FR")}</span>
-                    {proof.latitude && proof.longitude && (
-                      <span>📍 {proof.latitude.toFixed(4)}, {proof.longitude.toFixed(4)}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ProofGallery
+              proofs={pickupProofs}
+              icon={<PackageCheck size={16} className="text-primary" />}
+              title="Preuve de récupération"
+              canDownload={isOwner}
+            />
           )}
 
-          {/* Delivery proofs */}
           {deliveryProofs.length > 0 && (
-            <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Camera size={16} className="text-emerald-600" />
-                <p className="text-xs font-semibold text-foreground">Preuve de livraison</p>
-              </div>
-              {deliveryProofs.map((proof) => (
-                <div key={proof.id} className="space-y-2">
-                  <PhotoLightbox src={proof.photo_url} alt="Preuve livraison">
-                    <img src={proof.photo_url} alt="Preuve livraison" className="w-full rounded-xl object-cover" style={{ maxHeight: 220 }} />
-                  </PhotoLightbox>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>📅 {new Date(proof.created_at).toLocaleString("fr-FR")}</span>
-                    {proof.latitude && proof.longitude && (
-                      <span>📍 {proof.latitude.toFixed(4)}, {proof.longitude.toFixed(4)}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ProofGallery
+              proofs={deliveryProofs}
+              icon={<Camera size={16} className="text-emerald-600" />}
+              title="Preuve de livraison"
+              canDownload={isOwner}
+            />
           )}
           {shipment.voyageur_id && (
             <div className="bg-card border border-border rounded-2xl p-4">
