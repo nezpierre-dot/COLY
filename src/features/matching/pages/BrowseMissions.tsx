@@ -67,6 +67,7 @@ const BrowseMissions = () => {
   const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
   const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState<"recent" | "date_asc" | "price_asc" | "price_desc">("recent");
 
   const { data: shipments = [], isLoading: loadingShipments, refetch: refetchShipments } = useQuery({
     queryKey: ["browse-pending-shipments"],
