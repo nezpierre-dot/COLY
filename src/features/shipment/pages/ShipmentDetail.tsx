@@ -213,6 +213,13 @@ const ShipmentDetail = () => {
                 <InfoRow icon={<Calendar size={14} />} label={t("trip.departDate")} value={shipment.departure_date} />
                 <InfoRow icon={<Package size={14} />} label={t("coly.parcel")} value={`${shipment.size} — ${shipment.tarif}`} />
                 {shipment.insured && <InfoRow icon={<Shield size={14} />} label={t("coly.insurance")} value="AXA ✅" />}
+                {(shipment.departure_address || shipment.departure_access_code) && (
+                  <div className="border-t border-border pt-3 mt-3">
+                    <p className="text-xs font-semibold text-muted-foreground mb-2">📍 Adresse de départ</p>
+                    {shipment.departure_address && <InfoRow icon={<MapPin size={14} />} label="Adresse" value={shipment.departure_address} />}
+                    {shipment.departure_access_code && <InfoRow icon={<span className="text-xs">🔑</span>} label="Code d'accès" value={shipment.departure_access_code} />}
+                  </div>
+                )}
                 <div className="border-t border-border pt-3 mt-3">
                   <p className="text-xs font-semibold text-muted-foreground mb-2">{t("sendcoly.destinationContact")}</p>
                   <InfoRow icon={<User size={14} />} label={t("common.name")} value={`${shipment.contact_prenom} ${shipment.contact_nom}`} />
