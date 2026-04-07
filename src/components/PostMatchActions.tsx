@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
 import LiveLocationSharing from "@/components/LiveLocationSharing";
 import RatingDialog from "@/components/RatingDialog";
+import PickupProofUpload from "@/components/PickupProofUpload";
+import DeliveryProofUpload from "@/components/DeliveryProofUpload";
 
 interface PostMatchActionsProps {
   shipmentId: string;
@@ -32,6 +34,11 @@ interface PostMatchActionsProps {
   onStatusChange?: (newStatus: string) => void;
   compact?: boolean; // for ChatPage embedding
   itemType?: "shipment" | "needit"; // defaults to shipment
+}
+
+interface ProofState {
+  pickupDone: boolean;
+  deliveryDone: boolean;
 }
 
 // OTP expiration in milliseconds (30 minutes)
@@ -77,6 +84,7 @@ const PostMatchActions = ({
   const [deliveryTimeLeft, setDeliveryTimeLeft] = useState<number | null>(null);
   const [showRating, setShowRating] = useState(false);
   const [hasRated, setHasRated] = useState(false);
+  const [proofState, setProofState] = useState<ProofState>({ pickupDone: false, deliveryDone: false });
 
   const isSender = user?.id === senderId;
   const isVoyageur = user?.id === voyageurId;
@@ -533,6 +541,17 @@ const PostMatchActions = ({
         </div>
       )}
 
+      {/* ─── PICKED_UP: Voyageur uploads pickup proof photo ─── */}
+      {normalizedStatus === "picked_up" && isVoyageur && !proofState.pickupDone && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <PickupProofUpload
+            itemId={shipmentId}
+            itemType={itemType === "needit" ? "needit_mission" : "shipment"}
+            onProofUploaded={() => setProofState(p => ({ ...p, pickupDone: true }))}
+          />
+        </motion.div>
+      )}
+
       {/* ─── PICKED_UP: Voyageur generates delivery OTP ─── */}
       {normalizedStatus === "picked_up" && isVoyageur && !deliveryOtp && (
         <motion.div
@@ -610,6 +629,17 @@ const PostMatchActions = ({
               </Button>
             </div>
           )}
+        </motion.div>
+      )}
+
+      {/* ─── IN_TRANSIT: Voyageur uploads delivery proof photo ─── */}
+      {normalizedStatus === "in_transit" && isVoyageur && !proofState.deliveryDone && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <DeliveryProofUpload
+            shipmentId={shipmentId}
+            onProofUploaded={() => setProofState(p => ({ ...p, deliveryDone: true }))}
+            onDeliveryConfirmed={() => {}}
+          />
         </motion.div>
       )}
 
