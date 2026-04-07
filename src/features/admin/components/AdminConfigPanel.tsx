@@ -54,6 +54,16 @@ const AdminConfigPanel = () => {
         .eq("config_key", key);
       
       if (error) throw error;
+      
+      // Log config change to audit
+      await supabase.from("admin_audit_log" as any).insert({
+        admin_id: (await supabase.auth.getUser()).data.user?.id,
+        action: "config_update",
+        target_type: "config",
+        target_id: key,
+        details: { config_key: key },
+      });
+      
       toast.success(`Configuration "${key}" sauvegardée`);
       await loadConfigs();
     } catch (err: any) {

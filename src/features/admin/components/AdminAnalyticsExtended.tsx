@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
-import { Trophy, TrendingUp, DollarSign, Globe, ArrowUpRight, Package, ShoppingBag, Clock, CheckCircle, XCircle, MapPin } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Trophy, TrendingUp, DollarSign, Globe, ArrowUpRight, Package, ShoppingBag, Clock, CheckCircle, XCircle, MapPin, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { LEVEL_STYLES } from "@/hooks/useUserPoints";
+import { Button } from "@/components/ui/button";
 
 const LEVEL_COLORS: Record<string, string> = {
   green: "hsl(142, 71%, 45%)",
@@ -63,6 +64,38 @@ const AdminAnalyticsExtended = () => {
     load();
   }, []);
 
+  const downloadCSV = useCallback((filename: string, headers: string[], rows: string[][]) => {
+    const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${filename}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  }, []);
+
+  const exportLevels = () => {
+    if (!levelStats?.by_level) return;
+    downloadCSV("niveaux", ["Niveau", "Utilisateurs", "Points totaux"], levelStats.by_level.map(l => [l.level, String(l.user_count), String(l.total_points)]));
+  };
+
+  const exportConversion = () => {
+    if (!conversionStats) return;
+    const s = conversionStats.shipments;
+    const m = conversionStats.missions;
+    downloadCSV("conversion", ["Type", "Total", "En attente", "Acceptés", "Livrés/Complétés", "Annulés"], [
+      ["Colis", String(s.total), String(s.pending), String(s.accepted), String(s.delivered), String(s.cancelled)],
+      ["Missions", String(m.total), String(m.pending), String(m.accepted), String(m.completed), String(m.cancelled)],
+    ]);
+  };
+
+  const exportRevenue = () => {
+    if (!revenueStats?.monthly_revenue) return;
+    downloadCSV("revenus", ["Mois", "Revenus (€)", "Livraisons"], revenueStats.monthly_revenue.map(m => [m.month, String(m.revenue), String(m.deliveries)]));
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -93,9 +126,14 @@ const AdminAnalyticsExtended = () => {
     <div className="space-y-6">
       {/* Level Distribution */}
       <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <Trophy size={14} className="text-primary" /> Distribution des niveaux
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Trophy size={14} className="text-primary" /> Distribution des niveaux
+          </h3>
+          <Button size="sm" variant="outline" onClick={exportLevels} className="text-xs h-7">
+            <Download size={10} className="mr-1" /> CSV
+          </Button>
+        </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {levelData.map((l) => (
@@ -144,10 +182,14 @@ const AdminAnalyticsExtended = () => {
 
       {/* Conversion Rates */}
       <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <TrendingUp size={14} className="text-primary" /> Taux de conversion
-        </h3>
-
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <TrendingUp size={14} className="text-primary" /> Taux de conversion
+          </h3>
+          <Button size="sm" variant="outline" onClick={exportConversion} className="text-xs h-7">
+            <Download size={10} className="mr-1" /> CSV
+          </Button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Shipments */}
           <div className="space-y-3">
@@ -219,10 +261,14 @@ const AdminAnalyticsExtended = () => {
 
       {/* Revenue */}
       <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <DollarSign size={14} className="text-primary" /> Revenus & Commissions
-        </h3>
-
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <DollarSign size={14} className="text-primary" /> Revenus & Commissions
+          </h3>
+          <Button size="sm" variant="outline" onClick={exportRevenue} className="text-xs h-7">
+            <Download size={10} className="mr-1" /> CSV
+          </Button>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-primary/10 rounded-xl p-4 text-center">
             <p className="text-xl font-bold text-foreground">{revenueStats?.total_revenue?.toLocaleString()} €</p>

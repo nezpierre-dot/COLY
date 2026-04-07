@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X, Archive, Link2, Search, Settings } from "lucide-react";
+import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X, Archive, Link2, Search, Settings, History } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,7 @@ import { localizeCity } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
 import AdminAnalyticsExtended from "@/features/admin/components/AdminAnalyticsExtended";
 import AdminConfigPanel from "@/features/admin/components/AdminConfigPanel";
+import AdminAuditLog from "@/features/admin/components/AdminAuditLog";
 
 interface AdminStats { total_users: number; total_shipments: number; pending_shipments: number; active_shipments: number; total_voyages: number; active_voyages: number; total_needit: number; pending_needit: number; total_demandeurs: number; total_voyageurs: number; kyc_pending: number; kyc_verified: number; }
 interface RecentShipment { id: string; ref_number: string; departure_city: string; arrival_city: string; arrival_country: string; size: string; tarif: string; status: string; insured: boolean; created_at: string; }
@@ -382,6 +383,9 @@ const AdminDashboard = () => {
             </TabsTrigger>
             <TabsTrigger value="config" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Settings size={13} className="mr-1" /> Config
+            </TabsTrigger>
+            <TabsTrigger value="audit" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <History size={13} className="mr-1" /> Audit
             </TabsTrigger>
           </TabsList>
 
@@ -1127,6 +1131,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="config" className="space-y-6 mt-0">
             <AdminConfigPanel />
+          </TabsContent>
+
+          <TabsContent value="audit" className="space-y-6 mt-0">
+            <AdminAuditLog />
           </TabsContent>
         </Tabs>
       </main>
