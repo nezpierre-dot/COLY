@@ -60,6 +60,8 @@ const PostMatchActions = ({
   compact = false,
   itemType = "shipment",
 }: PostMatchActionsProps) => {
+  // Normalize "completed" (needit) to "delivered" for internal logic
+  const normalizedStatus = itemType === "needit" && shipmentStatus === "completed" ? "delivered" : shipmentStatus;
   const { user } = useAuth();
   const { t } = useTranslation();
   const tableName = itemType === "needit" ? "needit_missions" : "shipments";
