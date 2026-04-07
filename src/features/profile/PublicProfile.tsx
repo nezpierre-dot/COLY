@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Star, MapPin, ArrowLeft, User, MessageSquare, Plane, Package, Shield } from "lucide-react";
+import { Star, MapPin, ArrowLeft, User, MessageSquare, Plane, Package, Shield, AlertTriangle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import { motion } from "framer-motion";
