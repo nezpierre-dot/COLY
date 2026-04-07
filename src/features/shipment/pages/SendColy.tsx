@@ -83,6 +83,9 @@ const SendColy = () => {
   const [departCountry, setDepartCountry] = useState("");
   const [departCity, setDepartCity] = useState("");
   const [relayPoint, setRelayPoint] = useState("");
+  const [departAddress, setDepartAddress] = useState("");
+  const [departAccessCode, setDepartAccessCode] = useState("");
+  const [saveDepartAddressFav, setSaveDepartAddressFav] = useState(false);
   const [arrCity, setArrCity] = useState("");
   const [arrCountry, setArrCountry] = useState("");
   const [contactNom, setContactNom] = useState("");
