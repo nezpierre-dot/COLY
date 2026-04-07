@@ -350,6 +350,62 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
         </div>
       )}
 
+      {/* Match rate card */}
+      {(stats.matchedVoyages + stats.unmatchedVoyages) > 0 && (
+        <div className="bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Target size={16} className="text-accent" />
+            <span className="text-sm font-semibold text-foreground">Taux de match</span>
+            <span className="text-xs text-muted-foreground ml-auto">
+              {stats.matchedVoyages + stats.unmatchedVoyages} voyages terminés
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4 mb-4">
+            <div className="relative w-20 h-20 shrink-0">
+              <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                <circle
+                  cx="18" cy="18" r="15.9" fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="3"
+                  strokeDasharray={`${stats.matchRate} ${100 - stats.matchRate}`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-lg font-bold text-foreground">{stats.matchRate}%</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                  <span className="text-xs text-muted-foreground">Avec match</span>
+                </div>
+                <span className="text-sm font-bold text-foreground">{stats.matchedVoyages}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-muted-foreground/30" />
+                  <span className="text-xs text-muted-foreground">Sans match</span>
+                </div>
+                <span className="text-sm font-bold text-foreground">{stats.unmatchedVoyages}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex rounded-full overflow-hidden h-2">
+            {stats.matchedVoyages > 0 && (
+              <div className="bg-primary" style={{ width: `${stats.matchRate}%` }} />
+            )}
+            {stats.unmatchedVoyages > 0 && (
+              <div className="bg-muted-foreground/20" style={{ width: `${100 - stats.matchRate}%` }} />
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         {/* Pie chart */}
         {pieData.length > 0 && (
