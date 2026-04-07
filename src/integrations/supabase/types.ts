@@ -797,6 +797,8 @@ export type Database = {
           contact_prenom: string
           contact_tel: string
           created_at: string
+          departure_access_code: string | null
+          departure_address: string | null
           departure_city: string | null
           departure_date: string
           departure_method: string
@@ -825,6 +827,8 @@ export type Database = {
           contact_prenom: string
           contact_tel: string
           created_at?: string
+          departure_access_code?: string | null
+          departure_address?: string | null
           departure_city?: string | null
           departure_date: string
           departure_method: string
@@ -853,6 +857,8 @@ export type Database = {
           contact_prenom?: string
           contact_tel?: string
           created_at?: string
+          departure_access_code?: string | null
+          departure_address?: string | null
           departure_city?: string | null
           departure_date?: string
           departure_method?: string
