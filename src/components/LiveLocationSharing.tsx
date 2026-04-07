@@ -129,6 +129,14 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
       .eq("shipment_id", itemId);
   }, [user, itemId]);
 
+  // Auto-start sharing for voyageur when in_transit
+  useEffect(() => {
+    if (autoStart && isVoyageur && !loading && !sharing) {
+      setSharing(true);
+      startWatching();
+    }
+  }, [autoStart, isVoyageur, loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
