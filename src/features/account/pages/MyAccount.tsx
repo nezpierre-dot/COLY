@@ -28,6 +28,7 @@ const MyAccount = () => {
   const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const isVoyageur = roles.includes("voyageur");
+  const isAdmin = roles.includes("admin");
 
   const userId = user?.id?.slice(0, 6) || "000000";
   const meta = user?.user_metadata || {};
@@ -232,6 +233,14 @@ const MyAccount = () => {
         { label: t("account.privacy"), onClick: () => navigate("/confidentialite") },
       ],
     },
+    ...(isAdmin ? [{
+      id: "admin",
+      icon: Shield,
+      label: "Administration",
+      items: [
+        { label: "Dashboard administrateur", onClick: () => navigate("/admin") },
+      ],
+    }] : []),
   ];
 
   return (
