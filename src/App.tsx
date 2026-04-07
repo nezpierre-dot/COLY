@@ -53,6 +53,7 @@ const NeeditMissionDetail = lazy(() => import("./features/needit/pages/NeeditMis
 const FavoritesPage = lazy(() => import("./features/core/pages/FavoritesPage"));
 const DisputesPage = lazy(() => import("./features/disputes/pages/DisputesPage"));
 const PublicProfile = lazy(() => import("./features/profile/PublicProfile"));
+const FavoriteAddresses = lazy(() => import("./features/account/pages/FavoriteAddresses"));
 
 const queryClient = new QueryClient();
 
@@ -125,6 +126,7 @@ const App = () => {
                     <Route path="/aide" element={<ProtectedRoute><AidePage /></ProtectedRoute>} />
                     <Route path="/support-contact" element={<ProtectedRoute><SupportContactPage /></ProtectedRoute>} />
                     <Route path="/favorites" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
+                    <Route path="/favorite-addresses" element={<ProtectedRoute><FavoriteAddresses /></ProtectedRoute>} />
                     <Route path="/litiges" element={<ProtectedRoute><DisputesPage /></ProtectedRoute>} />
                     <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
