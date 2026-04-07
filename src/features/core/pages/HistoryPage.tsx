@@ -209,6 +209,29 @@ const HistoryPage = () => {
     load();
   }, [user]);
 
+  // Load proof counts for all items
+  useEffect(() => {
+    if (allData.length === 0) return;
+    const uniqueIds = [...new Set(allData.map(i => i.realId))];
+    Promise.all([
+      supabase.from("pickup_proofs").select("shipment_id, photo_url").in("shipment_id", uniqueIds),
+      supabase.from("delivery_proofs").select("shipment_id, photo_url").in("shipment_id", uniqueIds),
+    ]).then(([pickupRes, deliveryRes]) => {
+      const map: Record<string, { pickup: number; delivery: number; pickupUrl?: string; deliveryUrl?: string }> = {};
+      pickupRes.data?.forEach(p => {
+        if (!map[p.shipment_id]) map[p.shipment_id] = { pickup: 0, delivery: 0 };
+        map[p.shipment_id].pickup++;
+        if (!map[p.shipment_id].pickupUrl) map[p.shipment_id].pickupUrl = p.photo_url;
+      });
+      deliveryRes.data?.forEach(d => {
+        if (!map[d.shipment_id]) map[d.shipment_id] = { pickup: 0, delivery: 0 };
+        map[d.shipment_id].delivery++;
+        if (!map[d.shipment_id].deliveryUrl) map[d.shipment_id].deliveryUrl = d.photo_url;
+      });
+      setProofsMap(map);
+    });
+  }, [allData]);
+
   // Filtered data
   const filtered = useMemo(() => {
     let items = activeTab === "all" ? allData : allData.filter((i) => i.category === activeTab);
