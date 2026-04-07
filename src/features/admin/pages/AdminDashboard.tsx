@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X, Archive, Link2, Search } from "lucide-react";
+import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X, Archive, Link2, Search, Settings } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { localizeCity } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
+import AdminAnalyticsExtended from "@/features/admin/components/AdminAnalyticsExtended";
+import AdminConfigPanel from "@/features/admin/components/AdminConfigPanel";
 
 interface AdminStats { total_users: number; total_shipments: number; pending_shipments: number; active_shipments: number; total_voyages: number; active_voyages: number; total_needit: number; pending_needit: number; total_demandeurs: number; total_voyageurs: number; kyc_pending: number; kyc_verified: number; }
 interface RecentShipment { id: string; ref_number: string; departure_city: string; arrival_city: string; arrival_country: string; size: string; tarif: string; status: string; insured: boolean; created_at: string; }
@@ -378,9 +380,13 @@ const AdminDashboard = () => {
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="config" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Settings size={13} className="mr-1" /> Config
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-6 mt-0">
+            {/* Existing charts */}
             <div className="bg-card border border-border rounded-2xl p-4">
               <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2"><TrendingUp size={14} className="text-primary" /> {t("admin.shipments30")}</h3>
               <div className="h-48"><ResponsiveContainer width="100%" height="100%"><AreaChart data={shipmentsOverTime}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" /><XAxis dataKey="day" tickFormatter={formatDate} tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" /><YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" /><Tooltip labelFormatter={formatDate} contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))" }} /><Area type="monotone" dataKey="count" stroke="hsl(var(--primary))" fillOpacity={1} fill="hsl(var(--primary))" /></AreaChart></ResponsiveContainer></div>
@@ -457,6 +463,9 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+
+            {/* Extended Analytics */}
+            <AdminAnalyticsExtended />
           </TabsContent>
 
           <TabsContent value="shipments" className="space-y-3 mt-0">
@@ -1114,6 +1123,10 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="config" className="space-y-6 mt-0">
+            <AdminConfigPanel />
           </TabsContent>
         </Tabs>
       </main>

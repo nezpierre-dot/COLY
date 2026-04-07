@@ -617,6 +617,33 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          description: string | null
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value?: Json
+          description?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          description?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       points_history: {
         Row: {
           created_at: string
@@ -658,6 +685,8 @@ export type Database = {
           referral_code: string | null
           referred_by: string | null
           stripe_customer_id: string | null
+          suspended_at: string | null
+          suspension_reason: string | null
           trust_badges: string[]
           updated_at: string
           user_id: string
@@ -675,6 +704,8 @@ export type Database = {
           referral_code?: string | null
           referred_by?: string | null
           stripe_customer_id?: string | null
+          suspended_at?: string | null
+          suspension_reason?: string | null
           trust_badges?: string[]
           updated_at?: string
           user_id: string
@@ -692,6 +723,8 @@ export type Database = {
           referral_code?: string | null
           referred_by?: string | null
           stripe_customer_id?: string | null
+          suspended_at?: string | null
+          suspension_reason?: string | null
           trust_badges?: string[]
           updated_at?: string
           user_id?: string
@@ -1300,6 +1333,7 @@ export type Database = {
     Functions: {
       accept_needit_mission: { Args: { _mission_id: string }; Returns: string }
       accept_shipment: { Args: { _shipment_id: string }; Returns: string }
+      admin_get_conversion_stats: { Args: never; Returns: Json }
       admin_get_dispute_stats: { Args: never; Returns: Json }
       admin_get_disputes: {
         Args: { _limit?: number }
@@ -1332,6 +1366,8 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_get_geo_stats: { Args: never; Returns: Json }
+      admin_get_level_stats: { Args: never; Returns: Json }
       admin_get_recent_shipments: {
         Args: { _limit?: number }
         Returns: {
@@ -1347,6 +1383,7 @@ export type Database = {
           tarif: string
         }[]
       }
+      admin_get_revenue_stats: { Args: never; Returns: Json }
       admin_get_shipments_over_time: {
         Args: never
         Returns: {
@@ -1387,6 +1424,10 @@ export type Database = {
           role: string
           user_ref: string
         }[]
+      }
+      admin_moderate_user: {
+        Args: { _action: string; _reason?: string; _target_user_id: string }
+        Returns: string
       }
       award_points: {
         Args: {
