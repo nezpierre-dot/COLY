@@ -1180,6 +1180,23 @@ export type Database = {
           day: string
         }[]
       }
+      admin_get_support_tickets: {
+        Args: { _limit?: number }
+        Returns: {
+          admin_reply: string
+          category: string
+          created_at: string
+          id: string
+          message: string
+          replied_at: string
+          reporter_email: string
+          reporter_name: string
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       admin_get_users_over_time: {
         Args: never
         Returns: {
