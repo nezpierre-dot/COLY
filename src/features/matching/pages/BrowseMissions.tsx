@@ -1,8 +1,11 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, MapPin, Package, ShoppingBag, Calendar, ArrowRight, X } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Package, ShoppingBag, Calendar, ArrowRight, X, SlidersHorizontal, Globe } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -11,7 +14,8 @@ import BottomNav from "@/components/BottomNav";
 import PullToRefresh from "@/components/PullToRefresh";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { hapticMedium } from "@/lib/haptics";
 
 interface PendingShipment {
@@ -58,6 +62,10 @@ const BrowseMissions = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [tab, setTab] = useState("shipments");
+  const [filterCountry, setFilterCountry] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
+  const [showFilters, setShowFilters] = useState(false);
 
   const { data: shipments = [], isLoading: loadingShipments, refetch: refetchShipments } = useQuery({
     queryKey: ["browse-pending-shipments"],
@@ -81,25 +89,63 @@ const BrowseMissions = () => {
     await Promise.all([refetchShipments(), refetchMissions()]);
   }, [refetchShipments, refetchMissions]);
 
+  // Extract unique countries for filter chips
+  const shipmentCountries = useMemo(() => {
+    const set = new Set(shipments.map(s => s.arrival_country).filter(Boolean));
+    return Array.from(set).sort();
+  }, [shipments]);
+
+  const missionCountries = useMemo(() => {
+    const set = new Set(missions.map(m => m.country).filter(Boolean));
+    return Array.from(set).sort();
+  }, [missions]);
+
+  const allCountries = useMemo(() => {
+    const set = new Set([...shipmentCountries, ...missionCountries]);
+    return Array.from(set).sort();
+  }, [shipmentCountries, missionCountries]);
+
+  const activeFiltersCount = [!!filterCountry, !!filterDateFrom, !!filterDateTo].filter(Boolean).length;
+
+  const resetFilters = () => {
+    setFilterCountry("");
+    setFilterDateFrom(undefined);
+    setFilterDateTo(undefined);
+  };
+
   const filteredShipments = useMemo(() => {
-    if (!searchQuery) return shipments;
-    const q = searchQuery.toLowerCase();
-    return shipments.filter(s =>
-      s.arrival_city?.toLowerCase().includes(q) ||
-      s.arrival_country?.toLowerCase().includes(q) ||
-      s.departure_city?.toLowerCase().includes(q)
-    );
-  }, [shipments, searchQuery]);
+    return shipments.filter(s => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (
+          !s.arrival_city?.toLowerCase().includes(q) &&
+          !s.arrival_country?.toLowerCase().includes(q) &&
+          !s.departure_city?.toLowerCase().includes(q)
+        ) return false;
+      }
+      if (filterCountry && s.arrival_country?.toLowerCase() !== filterCountry.toLowerCase()) return false;
+      if (filterDateFrom && new Date(s.departure_date) < filterDateFrom) return false;
+      if (filterDateTo && new Date(s.departure_date) > filterDateTo) return false;
+      return true;
+    });
+  }, [shipments, searchQuery, filterCountry, filterDateFrom, filterDateTo]);
 
   const filteredMissions = useMemo(() => {
-    if (!searchQuery) return missions;
-    const q = searchQuery.toLowerCase();
-    return missions.filter(m =>
-      m.city?.toLowerCase().includes(q) ||
-      m.country?.toLowerCase().includes(q) ||
-      m.product_name?.toLowerCase().includes(q)
-    );
-  }, [missions, searchQuery]);
+    return missions.filter(m => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (
+          !m.city?.toLowerCase().includes(q) &&
+          !m.country?.toLowerCase().includes(q) &&
+          !m.product_name?.toLowerCase().includes(q)
+        ) return false;
+      }
+      if (filterCountry && m.country?.toLowerCase() !== filterCountry.toLowerCase()) return false;
+      if (filterDateFrom && new Date(m.created_at) < filterDateFrom) return false;
+      if (filterDateTo && new Date(m.created_at) > filterDateTo) return false;
+      return true;
+    });
+  }, [missions, searchQuery, filterCountry, filterDateFrom, filterDateTo]);
 
   const handleAcceptShipment = (s: PendingShipment) => {
     hapticMedium();
@@ -122,27 +168,159 @@ const BrowseMissions = () => {
               <button onClick={() => navigate(-1)} className="text-muted-foreground">
                 <ArrowLeft size={24} />
               </button>
-              <div>
+              <div className="flex-1">
                 <h1 className="text-2xl font-bold text-foreground">Missions disponibles</h1>
                 <p className="text-xs text-muted-foreground mt-0.5">Acceptez une demande et créez votre trajet</p>
               </div>
             </div>
 
-            {/* Search */}
-            <div className="flex items-center gap-2 bg-muted rounded-xl px-4 py-3 mb-4">
-              <Search size={16} className="text-muted-foreground shrink-0" />
-              <input
-                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                placeholder="Rechercher par ville, pays ou produit..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="text-muted-foreground">
-                  <X size={14} />
-                </button>
-              )}
+            {/* Search + Filter toggle */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 flex items-center gap-2 bg-muted rounded-xl px-4 py-3">
+                <Search size={16} className="text-muted-foreground shrink-0" />
+                <input
+                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  placeholder="Ville, pays ou produit..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} className="text-muted-foreground">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={cn(
+                  "relative w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+                  showFilters ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                )}
+              >
+                <SlidersHorizontal size={18} />
+                {activeFiltersCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
             </div>
+
+            {/* Filters panel */}
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-foreground">Filtres avancés</p>
+                  {activeFiltersCount > 0 && (
+                    <button onClick={resetFilters} className="text-xs text-primary font-medium">
+                      Réinitialiser
+                    </button>
+                  )}
+                </div>
+
+                {/* Country filter */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                    <Globe size={12} /> Pays de destination
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      onClick={() => setFilterCountry("")}
+                      className={cn(
+                        "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                        !filterCountry ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                    >
+                      Tous
+                    </button>
+                    {allCountries.map(c => (
+                      <button
+                        key={c}
+                        onClick={() => setFilterCountry(filterCountry === c ? "" : c)}
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                          filterCountry === c ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        )}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Date range filter */}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                    <Calendar size={12} /> Période
+                  </p>
+                  <div className="flex gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className={cn("flex-1 justify-start text-xs gap-1.5", !filterDateFrom && "text-muted-foreground")}>
+                          <Calendar size={12} />
+                          {filterDateFrom ? format(filterDateFrom, "d MMM", { locale: fr }) : "Du"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarUI
+                          mode="single"
+                          selected={filterDateFrom}
+                          onSelect={setFilterDateFrom}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className={cn("flex-1 justify-start text-xs gap-1.5", !filterDateTo && "text-muted-foreground")}>
+                          <Calendar size={12} />
+                          {filterDateTo ? format(filterDateTo, "d MMM", { locale: fr }) : "Au"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarUI
+                          mode="single"
+                          selected={filterDateTo}
+                          onSelect={setFilterDateTo}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Active filter pills */}
+            {activeFiltersCount > 0 && !showFilters && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {filterCountry && (
+                  <span className="flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full">
+                    <Globe size={10} /> {filterCountry}
+                    <button onClick={() => setFilterCountry("")}><X size={10} /></button>
+                  </span>
+                )}
+                {filterDateFrom && (
+                  <span className="flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full">
+                    Dès {format(filterDateFrom, "d MMM", { locale: fr })}
+                    <button onClick={() => setFilterDateFrom(undefined)}><X size={10} /></button>
+                  </span>
+                )}
+                {filterDateTo && (
+                  <span className="flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full">
+                    Jusqu'au {format(filterDateTo, "d MMM", { locale: fr })}
+                    <button onClick={() => setFilterDateTo(undefined)}><X size={10} /></button>
+                  </span>
+                )}
+              </div>
+            )}
 
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="w-full bg-muted/70 rounded-xl p-1 mb-4">
@@ -160,7 +338,7 @@ const BrowseMissions = () => {
                     <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : filteredShipments.length === 0 ? (
-                  <EmptyState icon={Package} title="Aucun colis en attente" description="Revenez plus tard pour de nouvelles demandes" />
+                  <EmptyState icon={Package} title="Aucun colis en attente" description="Revenez plus tard ou ajustez vos filtres" />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
                     {filteredShipments.map((s) => (
@@ -182,11 +360,7 @@ const BrowseMissions = () => {
                           <span className="bg-muted px-2 py-0.5 rounded-full text-[10px] font-semibold">{s.size}</span>
                           {s.insured && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] font-semibold">Assuré</span>}
                         </div>
-                        <Button
-                          size="sm"
-                          className="w-full gap-2"
-                          onClick={() => handleAcceptShipment(s)}
-                        >
+                        <Button size="sm" className="w-full gap-2" onClick={() => handleAcceptShipment(s)}>
                           Accepter & Créer mon trajet <ArrowRight size={14} />
                         </Button>
                       </motion.div>
@@ -201,7 +375,7 @@ const BrowseMissions = () => {
                     <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : filteredMissions.length === 0 ? (
-                  <EmptyState icon={ShoppingBag} title="Aucune mission NeedIt" description="Revenez plus tard pour de nouvelles missions" />
+                  <EmptyState icon={ShoppingBag} title="Aucune mission NeedIt" description="Revenez plus tard ou ajustez vos filtres" />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
                     {filteredMissions.map((m) => (
@@ -226,11 +400,7 @@ const BrowseMissions = () => {
                         {m.unlisted_description && (
                           <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{m.unlisted_description}</p>
                         )}
-                        <Button
-                          size="sm"
-                          className="w-full gap-2"
-                          onClick={() => handleAcceptMission(m)}
-                        >
+                        <Button size="sm" className="w-full gap-2" onClick={() => handleAcceptMission(m)}>
                           Accepter & Créer mon trajet <ArrowRight size={14} />
                         </Button>
                       </motion.div>
