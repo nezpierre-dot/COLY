@@ -388,6 +388,7 @@ const BrowseMissions = () => {
                 { value: "date_asc", label: "Date ↑" },
                 { value: "price_asc", label: "Prix ↑" },
                 { value: "price_desc", label: "Prix ↓" },
+                { value: "voyageurs", label: "Voyageurs ↓" },
               ] as const).map(opt => (
                 <button
                   key={opt.value}
