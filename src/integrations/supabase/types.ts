@@ -228,6 +228,33 @@ export type Database = {
         }
         Relationships: []
       }
+      favorite_addresses: {
+        Row: {
+          access_code: string | null
+          address: string
+          created_at: string
+          id: string
+          label: string | null
+          user_id: string
+        }
+        Insert: {
+          access_code?: string | null
+          address: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          user_id: string
+        }
+        Update: {
+          access_code?: string | null
+          address?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorite_products: {
         Row: {
           category_path: string[]
