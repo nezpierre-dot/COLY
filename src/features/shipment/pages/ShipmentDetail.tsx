@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Package, Shield, Clock, Pencil, X, Check, Loader2, AlertTriangle, User, Phone, Mail, Bell, Camera, PackageCheck } from "lucide-react";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import PhotoLightbox from "@/components/PhotoLightbox";
+import ProofGallery from "@/components/ProofGallery";
 import PostMatchActions from "@/components/PostMatchActions";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
