@@ -67,7 +67,7 @@ const BrowseMissions = () => {
   const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>();
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
   const [showFilters, setShowFilters] = useState(false);
-  const [sortBy, setSortBy] = useState<"recent" | "date_asc" | "price_asc" | "price_desc">("recent");
+  const [sortBy, setSortBy] = useState<"recent" | "date_asc" | "price_asc" | "price_desc" | "voyageurs">("recent");
 
   const { data: shipments = [], isLoading: loadingShipments, refetch: refetchShipments } = useQuery({
     queryKey: ["browse-pending-shipments"],
@@ -86,6 +86,39 @@ const BrowseMissions = () => {
     },
     staleTime: 30_000,
   });
+
+  // Fetch voyageur counts per unique destination for sorting
+  const destinations = useMemo(() => {
+    const keys = new Set<string>();
+    shipments.forEach(s => keys.add(`${s.arrival_country}||${s.arrival_city || ""}`));
+    missions.forEach(m => keys.add(`${m.country}||${m.city || ""}`));
+    return Array.from(keys).map(k => {
+      const [country, city] = k.split("||");
+      return { country, city: city || null };
+    });
+  }, [shipments, missions]);
+
+  const { data: voyageurCounts = {} } = useQuery({
+    queryKey: ["voyageur-counts-browse", destinations],
+    queryFn: async () => {
+      const counts: Record<string, number> = {};
+      await Promise.all(
+        destinations.map(async ({ country, city }) => {
+          const { data } = await supabase.rpc("count_voyageurs_for_destination", {
+            _country: country,
+            _city: city,
+          });
+          counts[`${country}||${city || ""}`] = typeof data === "number" ? data : 0;
+        })
+      );
+      return counts;
+    },
+    enabled: destinations.length > 0,
+    staleTime: 60_000,
+  });
+
+  const getVoyageurCount = (country: string, city?: string | null) =>
+    voyageurCounts[`${country}||${city || ""}`] ?? 0;
 
   const handleRefresh = useCallback(async () => {
     await Promise.all([refetchShipments(), refetchMissions()]);
@@ -140,10 +173,11 @@ const BrowseMissions = () => {
         case "date_asc": return new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime();
         case "price_asc": return parseTarif(a.tarif) - parseTarif(b.tarif);
         case "price_desc": return parseTarif(b.tarif) - parseTarif(a.tarif);
+        case "voyageurs": return getVoyageurCount(b.arrival_country, b.arrival_city) - getVoyageurCount(a.arrival_country, a.arrival_city);
         default: return 0;
       }
     });
-  }, [shipments, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy]);
+  }, [shipments, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy, voyageurCounts]);
 
   const filteredMissions = useMemo(() => {
     const filtered = missions.filter(m => {
@@ -165,10 +199,11 @@ const BrowseMissions = () => {
         case "date_asc": return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case "price_asc": return parseTarif(a.prix_max) - parseTarif(b.prix_max);
         case "price_desc": return parseTarif(b.prix_max) - parseTarif(a.prix_max);
+        case "voyageurs": return getVoyageurCount(b.country, b.city) - getVoyageurCount(a.country, a.city);
         default: return 0;
       }
     });
-  }, [missions, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy]);
+  }, [missions, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy, voyageurCounts]);
 
   const handleAcceptShipment = (s: PendingShipment) => {
     hapticMedium();
@@ -353,6 +388,7 @@ const BrowseMissions = () => {
                 { value: "date_asc", label: "Date ↑" },
                 { value: "price_asc", label: "Prix ↑" },
                 { value: "price_desc", label: "Prix ↓" },
+                { value: "voyageurs", label: "Voyageurs ↓" },
               ] as const).map(opt => (
                 <button
                   key={opt.value}
