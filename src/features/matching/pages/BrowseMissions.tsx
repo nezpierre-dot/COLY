@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { hapticMedium } from "@/lib/haptics";
+import VoyageurAvailability from "@/components/VoyageurAvailability";
 
 interface PendingShipment {
   id: string;
