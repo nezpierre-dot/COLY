@@ -31,6 +31,7 @@ import StatisticsTab from "@/features/profile/StatisticsTab";
 import WalletCard from "@/components/WalletCard";
 import VoyageurOnboarding from "@/components/VoyageurOnboarding";
 import DemandeurOnboarding from "@/components/DemandeurOnboarding";
+import UserLevelBadge from "@/components/UserLevelBadge";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -717,6 +718,7 @@ const Dashboard = () => {
                 <p className="text-[15px] mt-0.5" style={{ color: "#64748B" }}>
                   {isVoyageur ? t("dashboard.voyageurSubtitle") : t("dashboard.demandeurSubtitle")}
                 </p>
+                <UserLevelBadge variant="full" className="mt-1.5" />
               </div>
             </div>
           </div>
