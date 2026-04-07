@@ -182,10 +182,14 @@ const AdminAnalyticsExtended = () => {
 
       {/* Conversion Rates */}
       <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <TrendingUp size={14} className="text-primary" /> Taux de conversion
-        </h3>
-
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <TrendingUp size={14} className="text-primary" /> Taux de conversion
+          </h3>
+          <Button size="sm" variant="outline" onClick={exportConversion} className="text-xs h-7">
+            <Download size={10} className="mr-1" /> CSV
+          </Button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Shipments */}
           <div className="space-y-3">
