@@ -439,15 +439,19 @@ const NeeditMissionDetail = () => {
             )}
           </div>
 
-          {/* Pickup Proof — voyageur uploads when accepted */}
-          {isVoyageur && mission.status === "accepted" && !pickupProof && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <PickupProofUpload
-                itemId={mission.id}
-                itemType="needit_mission"
-                onProofUploaded={handlePickupConfirmed}
-              />
-            </motion.div>
+          {/* Post-match actions (OTP handover, location, notifications) */}
+          {mission.voyageur_id && mission.status !== "pending" && mission.status !== "cancelled" && (
+            <PostMatchActions
+              shipmentId={mission.id}
+              shipmentStatus={mission.status}
+              senderId={mission.user_id}
+              voyageurId={mission.voyageur_id}
+              itemType="needit"
+              onStatusChange={(s) => {
+                setMission((prev: any) => ({ ...prev, status: s === "delivered" ? "completed" : s }));
+                loadMission();
+              }}
+            />
           )}
 
           {/* Pickup Proof — show when exists */}
@@ -462,47 +466,6 @@ const NeeditMissionDetail = () => {
             </motion.div>
           )}
 
-          {/* Voyageur: mark as in transit after pickup */}
-          {isVoyageur && mission.status === "picked_up" && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <button
-                onClick={handleTransit}
-                className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2"
-              >
-                <Send size={16} /> Passer en transit
-              </button>
-            </motion.div>
-          )}
-
-          {/* Delivery Proof — voyageur uploads when in_transit */}
-          {isVoyageur && mission.status === "in_transit" && !deliveryProof && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <DeliveryProofUpload
-                shipmentId={mission.id}
-                onProofUploaded={(url) => setDeliveryProof({ photo_url: url })}
-                onDeliveryConfirmed={handleDeliveryConfirmed}
-              />
-            </motion.div>
-          )}
-
-          {/* Confirmation Code — demandeur sees when in_transit and delivery proof exists */}
-          {isOwner && mission.status === "in_transit" && deliveryProof && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <ConfirmationCodeDisplay itemId={mission.id} itemType="needit_mission" />
-            </motion.div>
-          )}
-
-          {/* Confirmation Code Entry — voyageur enters code to finalize */}
-          {isVoyageur && mission.status === "in_transit" && deliveryProof && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <ConfirmationCodeEntry
-                itemId={mission.id}
-                itemType="needit_mission"
-                onConfirmed={handleCodeConfirmed}
-              />
-            </motion.div>
-          )}
-
           {/* Delivery Proof — show photo when completed */}
           {isCompleted && deliveryProof?.photo_url && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
@@ -513,32 +476,6 @@ const NeeditMissionDetail = () => {
                 canDownload={isOwner}
               />
             </motion.div>
-          )}
-
-          {/* Rating CTA */}
-          {isCompleted && !hasRated && ratedUserId && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-foreground">Notez cette mission</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Votre avis aide la communauté</p>
-              </div>
-              <button
-                onClick={() => setShowRatingDialog(true)}
-                className="shrink-0 px-4 py-2 rounded-xl bg-accent text-accent-foreground text-xs font-bold hover:opacity-90 transition-opacity"
-              >
-                ⭐ Noter
-              </button>
-            </motion.div>
-          )}
-
-          {/* Live location sharing */}
-          {mission.voyageur_id && (mission.status === "accepted" || mission.status === "picked_up" || mission.status === "in_transit") && (
-            <LiveLocationSharing
-              itemId={mission.id}
-              voyageurId={mission.voyageur_id}
-              isVoyageur={user?.id === mission.voyageur_id}
-            />
           )}
 
           {/* Reminder button */}
@@ -653,16 +590,6 @@ const NeeditMissionDetail = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Rating dialog */}
-      {showRatingDialog && ratedUserId && (
-        <RatingDialog
-          open={showRatingDialog}
-          onClose={() => { setShowRatingDialog(false); setHasRated(true); }}
-          shipmentId={mission.id}
-          ratedUserId={ratedUserId}
-          raterRole={raterRole as "demandeur" | "voyageur"}
-        />
-      )}
 
       {/* Reminder dialog */}
       {mission && (
