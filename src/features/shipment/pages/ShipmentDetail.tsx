@@ -315,7 +315,7 @@ const ShipmentDetail = () => {
               proofs={pickupProofs}
               icon={<PackageCheck size={16} className="text-primary" />}
               title="Preuve de récupération"
-              canDownload={isOwner}
+              canDownload={isOwner || shipment?.voyageur_id === user?.id}
             />
           )}
 
