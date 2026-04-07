@@ -129,18 +129,85 @@ Deno.serve(async (req) => {
       ).getTime();
 
       if (Date.now() > depTime) {
+        // Check if voyage had any matches (accepted shipments or needit missions)
+        const [{ count: shipmentCount }, { count: missionCount }] = await Promise.all([
+          supabase.from("shipments").select("id", { count: "exact", head: true }).eq("voyageur_id", v.user_id).in("status", ["accepted", "picked_up", "in_transit", "delivered"]),
+          supabase.from("needit_missions").select("id", { count: "exact", head: true }).eq("voyageur_id", v.user_id).in("status", ["accepted", "picked_up", "in_transit", "completed"]),
+        ]);
+
+        const hasMatches = ((shipmentCount ?? 0) + (missionCount ?? 0)) > 0;
+
         await supabase
           .from("voyages")
           .update({ status: "completed" })
           .eq("id", v.id);
 
-        // Notify the voyageur
-        await supabase.from("notifications").insert({
-          user_id: v.user_id,
-          title: "✅ Voyage terminé",
-          message: `Votre voyage ${v.departure_city} → ${v.arrival_city} est maintenant terminé.`,
-          type: `voyage_completed:${v.id}`,
-        });
+        const route = `${v.departure_city} → ${v.arrival_city}`;
+
+        if (!hasMatches) {
+          // Notify: expired without any match
+          const notifType = `voyage_expired_no_match:${v.id}`;
+          await supabase.from("notifications").insert({
+            user_id: v.user_id,
+            title: "😕 Voyage expiré sans match",
+            message: `Votre voyage ${route} a expiré sans aucun colis ou mission accepté. Créez un nouveau voyage pour recevoir des demandes !`,
+            type: notifType,
+          });
+
+          // Send email
+          if (resendApiKey) {
+            const { data: userData } = await supabase.auth.admin.getUserById(v.user_id);
+            const email = userData?.user?.email;
+            if (email) {
+              try {
+                await fetch("https://api.resend.com/emails", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${resendApiKey}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    from: "Nidit <noreply@nidit.app>",
+                    to: [email],
+                    subject: `😕 Votre voyage ${route} a expiré sans match`,
+                    html: `
+                      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h2 style="color: #1a1a2e;">😕 Voyage expiré sans match</h2>
+                        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                          Bonjour,
+                        </p>
+                        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                          Votre voyage <strong>${route}</strong> du <strong>${v.departure_date}</strong> a expiré sans qu'aucun colis ou mission n'ait été matché.
+                        </p>
+                        <p style="color: #555; font-size: 16px; line-height: 1.6;">
+                          Pas de souci ! Vous pouvez créer un nouveau voyage pour recevoir de nouvelles demandes.
+                        </p>
+                        <div style="text-align: center; margin: 30px 0;">
+                          <a href="https://we-app-you.lovable.app/new-trip" style="background-color: #6366f1; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                            Créer un nouveau voyage
+                          </a>
+                        </div>
+                        <p style="color: #999; font-size: 12px;">
+                          — L'équipe Nidit
+                        </p>
+                      </div>
+                    `,
+                  }),
+                });
+              } catch (emailErr) {
+                console.error("Email send error (expired no match):", emailErr);
+              }
+            }
+          }
+        } else {
+          // Standard completion notification
+          await supabase.from("notifications").insert({
+            user_id: v.user_id,
+            title: "✅ Voyage terminé",
+            message: `Votre voyage ${route} est maintenant terminé.`,
+            type: `voyage_completed:${v.id}`,
+          });
+        }
 
         completed++;
       }
