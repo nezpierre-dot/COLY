@@ -803,10 +803,16 @@ const Dashboard = () => {
                   <Plus size={14} /> {t("dashboard.addTrip")}
                 </button>
                 <button
+                  onClick={() => navigate("/browse-missions")}
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary/30 bg-primary/5 text-primary text-xs font-bold hover:bg-primary/10 transition-colors"
+                >
+                  <Zap size={14} /> Accepter une mission
+                </button>
+                <button
                   onClick={() => navigate("/transporter")}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border bg-card text-foreground text-xs font-bold hover:bg-muted transition-colors"
                 >
-                  <Calendar size={14} /> Mes disponibilités
+                  <Calendar size={14} /> Dispo
                 </button>
               </div>
 
