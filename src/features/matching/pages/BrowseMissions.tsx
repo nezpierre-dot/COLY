@@ -58,6 +58,8 @@ const formatDate = (d: string) => {
   catch { return d; }
 };
 
+const PAGE_SIZE = 10;
+
 const BrowseMissions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -68,6 +70,8 @@ const BrowseMissions = () => {
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>();
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<"recent" | "date_asc" | "price_asc" | "price_desc" | "voyageurs">("recent");
+  const [shipmentsPage, setShipmentsPage] = useState(1);
+  const [missionsPage, setMissionsPage] = useState(1);
 
   const { data: shipments = [], isLoading: loadingShipments, refetch: refetchShipments } = useQuery({
     queryKey: ["browse-pending-shipments"],
