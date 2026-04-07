@@ -892,6 +892,15 @@ const Dashboard = () => {
                         {archivedVoyageIds.size} archivé{archivedVoyageIds.size > 1 ? "s" : ""}
                       </button>
                     )}
+                    {cleanableVoyages.length > 0 && (
+                      <button
+                        onClick={() => setCleanupDialog(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 text-xs font-semibold transition-all shrink-0"
+                      >
+                        <Trash2 size={12} />
+                        Nettoyer ({cleanableVoyages.length})
+                      </button>
+                    )}
                   </div>
                 )}
               {voyages.length === 0 ? (
