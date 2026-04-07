@@ -66,6 +66,13 @@ const AdminDashboard = () => {
   const [archiveTypeFilter, setArchiveTypeFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // Admin manual matching state
+  const [matchPendingShipments, setMatchPendingShipments] = useState<any[]>([]);
+  const [matchPendingMissions, setMatchPendingMissions] = useState<any[]>([]);
+  const [matchActiveVoyages, setMatchActiveVoyages] = useState<any[]>([]);
+  const [matchSelectedItem, setMatchSelectedItem] = useState<{ type: "shipment" | "mission"; id: string; label: string } | null>(null);
+  const [matchSearchQuery, setMatchSearchQuery] = useState("");
+  const [matchAssigning, setMatchAssigning] = useState<string | null>(null);
 
   const StatusBadge = ({ status }: { status: string }) => {
     const config: Record<string, { bg: string; text: string; label: string }> = {
