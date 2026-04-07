@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin } from "lucide-react";
+import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin, Camera, PackageCheck } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
