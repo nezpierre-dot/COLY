@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, MapPin, Package, ShoppingBag, Calendar, ArrowRight, X, SlidersHorizontal, Globe } from "lucide-react";
+import { ArrowLeft, Search, MapPin, Package, ShoppingBag, Calendar, ArrowRight, X, SlidersHorizontal, Globe, ArrowUpDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
