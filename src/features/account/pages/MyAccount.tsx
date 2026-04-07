@@ -214,6 +214,15 @@ const MyAccount = () => {
       ],
     },
     {
+      id: "support",
+      icon: MessageSquare,
+      label: "Support & Litiges",
+      items: [
+        { label: "Ouvrir un litige / ticket", onClick: () => navigate("/litiges") },
+        { label: t("account.help") || "Aide & FAQ", onClick: () => navigate("/aide") },
+      ],
+    },
+    {
       id: "security",
       icon: Lock,
       label: t("account.securitySection"),
