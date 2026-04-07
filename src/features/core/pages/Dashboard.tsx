@@ -468,6 +468,39 @@ const Dashboard = () => {
     toast.success("Voyage désarchivé");
   };
 
+  // Bulk cleanup: delete expired/completed/cancelled voyages that have no active matches
+  const [cleanupDialog, setCleanupDialog] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
+
+  const cleanableVoyages = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return voyages.filter(v =>
+      v.status === "cancelled" ||
+      v.status === "completed" ||
+      (v.status === "active" && v.departure_date < today)
+    );
+  }, [voyages]);
+
+  const handleCleanupVoyages = async () => {
+    if (!user || cleanableVoyages.length === 0) return;
+    setCleaning(true);
+    const ids = cleanableVoyages.map(v => v.id);
+    const { error } = await supabase.from("voyages").delete().in("id", ids);
+    if (error) {
+      toast.error("Erreur lors du nettoyage");
+    } else {
+      toast.success(`${ids.length} voyage${ids.length > 1 ? "s" : ""} supprimé${ids.length > 1 ? "s" : ""}`);
+      setVoyages(prev => prev.filter(v => !ids.includes(v.id)));
+    }
+    setCleaning(false);
+    setCleanupDialog(false);
+  };
+
+  const isVoyageExpiredOrDone = (v: Voyage) => {
+    const today = new Date().toISOString().slice(0, 10);
+    return v.status === "cancelled" || v.status === "completed" || (v.status === "active" && v.departure_date < today);
+  };
+
   // Sort state
   const [voyageurColisSort, setVoyageurColisSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
   const [voyageurNeeditSort, setVoyageurNeeditSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
