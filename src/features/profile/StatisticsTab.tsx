@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
-import { Star, Package, Plane, TrendingUp, MapPin, Coins, Award, BarChart3, CheckCircle, XCircle } from "lucide-react";
+import { Star, Package, Plane, TrendingUp, MapPin, Coins, Award, BarChart3, CheckCircle, XCircle, Target } from "lucide-react";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, PieChart, Pie, Cell } from "recharts";
 import { motion } from "framer-motion";
 
@@ -102,7 +102,7 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
 
   // Computed stats
   const stats = useMemo(() => {
-    if (!user) return { totalMissions: 0, totalGains: 0, totalExpenses: 0, totalDistance: 0, deliveredCount: 0, activeVoyages: 0, completedVoyages: 0, cancelledVoyages: 0, totalVoyages: 0 };
+    if (!user) return { totalMissions: 0, totalGains: 0, totalExpenses: 0, totalDistance: 0, deliveredCount: 0, activeVoyages: 0, completedVoyages: 0, cancelledVoyages: 0, totalVoyages: 0, matchedVoyages: 0, unmatchedVoyages: 0, matchRate: 0 };
 
     const myShipAsVoyageur = shipments.filter(s => s.voyageur_id === user.id && s.status === "delivered");
     const myMissAsVoyageur = missions.filter(m => m.voyageur_id === user.id && (m.status === "completed"));
@@ -136,6 +136,23 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
     const completedVoyages = voyages.filter(v => v.status === "completed").length;
     const cancelledVoyages = voyages.filter(v => v.status === "cancelled").length;
 
+    // Match rate: voyages that had at least one accepted shipment or mission
+    const allAcceptedShipVoyageurIds = new Set(
+      shipments.filter(s => s.voyageur_id === user.id && s.status !== "pending").map(s => s.voyageur_id)
+    );
+    // Check which completed/active voyages resulted in at least one match
+    const matchedVoyageIds = new Set<string>();
+    for (const v of voyages) {
+      const hasShipMatch = shipments.some(s => s.voyageur_id === user.id && ["accepted", "picked_up", "in_transit", "delivered"].includes(s.status));
+      const hasMissMatch = missions.some(m => m.voyageur_id === user.id && ["accepted", "picked_up", "in_transit", "completed"].includes(m.status));
+      if (hasShipMatch || hasMissMatch) matchedVoyageIds.add(v.id);
+    }
+
+    const finishedVoyages = voyages.filter(v => v.status === "completed" || v.status === "cancelled");
+    const matchedFinished = finishedVoyages.filter(v => matchedVoyageIds.has(v.id)).length;
+    const unmatchedFinished = finishedVoyages.length - matchedFinished;
+    const matchRate = finishedVoyages.length > 0 ? Math.round((matchedFinished / finishedVoyages.length) * 100) : 0;
+
     return {
       totalMissions: shipments.length + missions.length,
       totalGains: gains,
@@ -146,6 +163,9 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
       completedVoyages,
       cancelledVoyages,
       totalVoyages: voyages.length,
+      matchedVoyages: matchedFinished,
+      unmatchedVoyages: unmatchedFinished,
+      matchRate,
     };
   }, [shipments, missions, voyages, user]);
 
@@ -326,6 +346,62 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
             {stats.activeVoyages > 0 && <div className="bg-primary" style={{ width: `${(stats.activeVoyages / stats.totalVoyages) * 100}%` }} />}
             {stats.completedVoyages > 0 && <div className="bg-green-500" style={{ width: `${(stats.completedVoyages / stats.totalVoyages) * 100}%` }} />}
             {stats.cancelledVoyages > 0 && <div className="bg-destructive" style={{ width: `${(stats.cancelledVoyages / stats.totalVoyages) * 100}%` }} />}
+          </div>
+        </div>
+      )}
+
+      {/* Match rate card */}
+      {(stats.matchedVoyages + stats.unmatchedVoyages) > 0 && (
+        <div className="bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Target size={16} className="text-accent" />
+            <span className="text-sm font-semibold text-foreground">Taux de match</span>
+            <span className="text-xs text-muted-foreground ml-auto">
+              {stats.matchedVoyages + stats.unmatchedVoyages} voyages terminés
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4 mb-4">
+            <div className="relative w-20 h-20 shrink-0">
+              <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                <circle
+                  cx="18" cy="18" r="15.9" fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="3"
+                  strokeDasharray={`${stats.matchRate} ${100 - stats.matchRate}`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-lg font-bold text-foreground">{stats.matchRate}%</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                  <span className="text-xs text-muted-foreground">Avec match</span>
+                </div>
+                <span className="text-sm font-bold text-foreground">{stats.matchedVoyages}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-muted-foreground/30" />
+                  <span className="text-xs text-muted-foreground">Sans match</span>
+                </div>
+                <span className="text-sm font-bold text-foreground">{stats.unmatchedVoyages}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex rounded-full overflow-hidden h-2">
+            {stats.matchedVoyages > 0 && (
+              <div className="bg-primary" style={{ width: `${stats.matchRate}%` }} />
+            )}
+            {stats.unmatchedVoyages > 0 && (
+              <div className="bg-muted-foreground/20" style={{ width: `${100 - stats.matchRate}%` }} />
+            )}
           </div>
         </div>
       )}
