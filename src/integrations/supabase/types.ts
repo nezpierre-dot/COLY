@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      cancelled_matches_archive: {
+        Row: {
+          arrival_city: string | null
+          arrival_country: string | null
+          cancelled_at: string
+          created_at: string
+          departure_city: string | null
+          id: string
+          item_id: string
+          item_type: string
+          original_status: string | null
+          reason: string | null
+          tarif: string | null
+          user_id: string
+          voyageur_id: string | null
+        }
+        Insert: {
+          arrival_city?: string | null
+          arrival_country?: string | null
+          cancelled_at?: string
+          created_at?: string
+          departure_city?: string | null
+          id?: string
+          item_id: string
+          item_type: string
+          original_status?: string | null
+          reason?: string | null
+          tarif?: string | null
+          user_id: string
+          voyageur_id?: string | null
+        }
+        Update: {
+          arrival_city?: string | null
+          arrival_country?: string | null
+          cancelled_at?: string
+          created_at?: string
+          departure_city?: string | null
+          id?: string
+          item_id?: string
+          item_type?: string
+          original_status?: string | null
+          reason?: string | null
+          tarif?: string | null
+          user_id?: string
+          voyageur_id?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string

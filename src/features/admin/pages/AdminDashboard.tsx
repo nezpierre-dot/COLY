@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X } from "lucide-react";
+import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X, Archive } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,6 +62,7 @@ const AdminDashboard = () => {
   const [supportSending, setSupportSending] = useState(false);
   const [supportClosingId, setSupportClosingId] = useState<string | null>(null);
   const [proofStats, setProofStats] = useState<{ total: number; verified: number; unverified: number }>({ total: 0, verified: 0, unverified: 0 });
+  const [cancelledArchive, setCancelledArchive] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -95,6 +96,9 @@ const AdminDashboard = () => {
       const totalProofs = proofTotalRes.count ?? 0;
       const verifiedProofs = proofVerifiedRes.count ?? 0;
       setProofStats({ total: totalProofs, verified: verifiedProofs, unverified: totalProofs - verifiedProofs });
+      // Load cancelled matches archive
+      const { data: archiveData } = await supabase.from("cancelled_matches_archive" as any).select("*").order("cancelled_at", { ascending: false }).limit(100);
+      if (archiveData) setCancelledArchive(archiveData as any[]);
       if (dStatsRes.data) setDisputeStats(dStatsRes.data);
       if (supportRes.data) setSupportTickets(supportRes.data as unknown as SupportTicket[]);
       if (statsRes.data) setStats(statsRes.data as unknown as AdminStats);
@@ -338,6 +342,14 @@ const AdminDashboard = () => {
               {openSupportTickets.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
                   {openSupportTickets.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="archives" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground relative">
+              <Archive size={13} className="mr-1" /> Archives
+              {cancelledArchive.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted-foreground text-background text-[10px] font-bold flex items-center justify-center">
+                  {cancelledArchive.length}
                 </span>
               )}
             </TabsTrigger>
@@ -866,6 +878,59 @@ const AdminDashboard = () => {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="archives" className="space-y-3 mt-0">
+            <div className="bg-card border border-border rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Archive size={14} className="text-muted-foreground" /> Historique des annulations matchées
+                </h3>
+                <span className="text-xs text-muted-foreground">{cancelledArchive.length} entrée(s)</span>
+              </div>
+              {cancelledArchive.length === 0 ? (
+                <div className="px-4 py-8 text-center text-sm text-muted-foreground">Aucune annulation matchée enregistrée</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        <th className="px-4 py-2.5">Type</th>
+                        <th className="px-4 py-2.5">Trajet</th>
+                        <th className="px-4 py-2.5">Tarif</th>
+                        <th className="px-4 py-2.5">Statut avant</th>
+                        <th className="px-4 py-2.5">Annulé le</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cancelledArchive.map((a: any) => {
+                        const typeConfig: Record<string, { label: string; bg: string; text: string }> = {
+                          shipment: { label: "📦 Envoi", bg: "bg-primary/10", text: "text-primary" },
+                          needit_mission: { label: "🛒 NeedIt", bg: "bg-accent/10", text: "text-accent-foreground" },
+                          voyage: { label: "✈️ Voyage", bg: "bg-secondary/10", text: "text-secondary" },
+                        };
+                        const tc = typeConfig[a.item_type] || { label: a.item_type, bg: "bg-muted", text: "text-muted-foreground" };
+                        return (
+                          <tr key={a.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                            <td className="px-4 py-2.5">
+                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tc.bg} ${tc.text}`}>{tc.label}</span>
+                            </td>
+                            <td className="px-4 py-2.5 text-xs text-foreground">
+                              {a.departure_city ? `${a.departure_city} → ` : ""}{a.arrival_city || a.arrival_country || "—"}
+                            </td>
+                            <td className="px-4 py-2.5 text-xs font-medium text-foreground">{a.tarif || "—"}</td>
+                            <td className="px-4 py-2.5">
+                              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">{a.original_status || "—"}</span>
+                            </td>
+                            <td className="px-4 py-2.5 text-xs text-muted-foreground">{formatDateTime(a.cancelled_at)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

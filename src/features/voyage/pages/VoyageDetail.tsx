@@ -315,8 +315,14 @@ const VoyageDetail = () => {
   };
 
   const handleCancel = async () => {
-    if (!id) return;
+    if (!id || !voyage) return;
     setSaving(true);
+    const { archiveCancelledMatch } = await import("@/lib/archiveCancelledMatch");
+    await archiveCancelledMatch({
+      item_type: "voyage", item_id: id, user_id: voyage.user_id,
+      departure_city: voyage.departure_city, arrival_city: voyage.arrival_city,
+      arrival_country: voyage.arrival_country, original_status: voyage.status,
+    });
     const { error } = await supabase.from("voyages").update({ status: "cancelled" }).eq("id", id);
     setSaving(false);
     if (error) {

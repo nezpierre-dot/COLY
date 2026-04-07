@@ -116,8 +116,16 @@ const ShipmentDetail = () => {
   const isAccepted = shipment?.voyageur_id != null && shipment?.status !== "pending";
 
   const handleCancel = async () => {
-    if (!id) return;
+    if (!id || !shipment) return;
     setSaving(true);
+    // Archive if matched
+    const { archiveCancelledMatch } = await import("@/lib/archiveCancelledMatch");
+    await archiveCancelledMatch({
+      item_type: "shipment", item_id: id, user_id: shipment.user_id,
+      voyageur_id: shipment.voyageur_id, departure_city: shipment.departure_city,
+      arrival_city: shipment.arrival_city, arrival_country: shipment.arrival_country,
+      tarif: shipment.tarif, original_status: shipment.status,
+    });
     const { error } = await supabase.from("shipments").update({ status: "cancelled" }).eq("id", id);
     if (error) {
       setSaving(false);

@@ -314,17 +314,39 @@ const Dashboard = () => {
   };
 
   const handleCancelItem = async () => {
-    if (!cancelDialog) return;
+    if (!cancelDialog || !user) return;
     const { type, id } = cancelDialog;
     let error: any = null;
 
+    const { archiveCancelledMatch } = await import("@/lib/archiveCancelledMatch");
+
     if (type === "voyage") {
+      const voyage = voyages.find(v => v.id === id);
+      if (voyage) await archiveCancelledMatch({
+        item_type: "voyage", item_id: id, user_id: user.id,
+        departure_city: voyage.departure_city, arrival_city: voyage.arrival_city,
+        arrival_country: voyage.arrival_country, original_status: voyage.status,
+      });
       const res = await supabase.from("voyages").update({ status: "cancelled" }).eq("id", id);
       error = res.error;
     } else if (type === "shipment") {
+      const shipment = pendingShipments.find(s => s.id === id);
+      if (shipment) await archiveCancelledMatch({
+        item_type: "shipment", item_id: id, user_id: user.id,
+        voyageur_id: shipment.voyageur_id, departure_city: shipment.departure_city,
+        arrival_city: shipment.arrival_city, arrival_country: shipment.arrival_country,
+        tarif: shipment.tarif, original_status: shipment.status,
+      });
       const res = await supabase.from("shipments").update({ status: "cancelled" } as any).eq("id", id);
       error = res.error;
     } else if (type === "mission") {
+      const mission = needitMissions.find(m => m.id === id);
+      if (mission) await archiveCancelledMatch({
+        item_type: "needit_mission", item_id: id, user_id: user.id,
+        voyageur_id: mission.voyageur_id, arrival_city: mission.city,
+        arrival_country: mission.country, tarif: mission.prix_max,
+        original_status: mission.status,
+      });
       const res = await supabase.from("needit_missions").update({ status: "cancelled" }).eq("id", id);
       error = res.error;
     }
