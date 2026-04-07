@@ -47,8 +47,6 @@ const NeeditMissionDetail = () => {
   const [showReminder, setShowReminder] = useState(false);
   const [pickupProof, setPickupProof] = useState<any>(null);
   const [deliveryProof, setDeliveryProof] = useState<any>(null);
-  const [hasRated, setHasRated] = useState(false);
-  const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [voyageurRating, setVoyageurRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
 
   // Editable fields
