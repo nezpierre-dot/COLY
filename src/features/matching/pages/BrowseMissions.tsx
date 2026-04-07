@@ -87,6 +87,39 @@ const BrowseMissions = () => {
     staleTime: 30_000,
   });
 
+  // Fetch voyageur counts per unique destination for sorting
+  const destinations = useMemo(() => {
+    const keys = new Set<string>();
+    shipments.forEach(s => keys.add(`${s.arrival_country}||${s.arrival_city || ""}`));
+    missions.forEach(m => keys.add(`${m.country}||${m.city || ""}`));
+    return Array.from(keys).map(k => {
+      const [country, city] = k.split("||");
+      return { country, city: city || null };
+    });
+  }, [shipments, missions]);
+
+  const { data: voyageurCounts = {} } = useQuery({
+    queryKey: ["voyageur-counts-browse", destinations],
+    queryFn: async () => {
+      const counts: Record<string, number> = {};
+      await Promise.all(
+        destinations.map(async ({ country, city }) => {
+          const { data } = await supabase.rpc("count_voyageurs_for_destination", {
+            _country: country,
+            _city: city,
+          });
+          counts[`${country}||${city || ""}`] = typeof data === "number" ? data : 0;
+        })
+      );
+      return counts;
+    },
+    enabled: destinations.length > 0,
+    staleTime: 60_000,
+  });
+
+  const getVoyageurCount = (country: string, city?: string | null) =>
+    voyageurCounts[`${country}||${city || ""}`] ?? 0;
+
   const handleRefresh = useCallback(async () => {
     await Promise.all([refetchShipments(), refetchMissions()]);
   }, [refetchShipments, refetchMissions]);
