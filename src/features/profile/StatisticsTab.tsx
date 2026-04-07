@@ -102,7 +102,7 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
 
   // Computed stats
   const stats = useMemo(() => {
-    if (!user) return { totalMissions: 0, totalGains: 0, totalExpenses: 0, totalDistance: 0, deliveredCount: 0, activeVoyages: 0, completedVoyages: 0, cancelledVoyages: 0, totalVoyages: 0 };
+    if (!user) return { totalMissions: 0, totalGains: 0, totalExpenses: 0, totalDistance: 0, deliveredCount: 0, activeVoyages: 0, completedVoyages: 0, cancelledVoyages: 0, totalVoyages: 0, matchedVoyages: 0, unmatchedVoyages: 0, matchRate: 0 };
 
     const myShipAsVoyageur = shipments.filter(s => s.voyageur_id === user.id && s.status === "delivered");
     const myMissAsVoyageur = missions.filter(m => m.voyageur_id === user.id && (m.status === "completed"));
@@ -136,6 +136,23 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
     const completedVoyages = voyages.filter(v => v.status === "completed").length;
     const cancelledVoyages = voyages.filter(v => v.status === "cancelled").length;
 
+    // Match rate: voyages that had at least one accepted shipment or mission
+    const allAcceptedShipVoyageurIds = new Set(
+      shipments.filter(s => s.voyageur_id === user.id && s.status !== "pending").map(s => s.voyageur_id)
+    );
+    // Check which completed/active voyages resulted in at least one match
+    const matchedVoyageIds = new Set<string>();
+    for (const v of voyages) {
+      const hasShipMatch = shipments.some(s => s.voyageur_id === user.id && ["accepted", "picked_up", "in_transit", "delivered"].includes(s.status));
+      const hasMissMatch = missions.some(m => m.voyageur_id === user.id && ["accepted", "picked_up", "in_transit", "completed"].includes(m.status));
+      if (hasShipMatch || hasMissMatch) matchedVoyageIds.add(v.id);
+    }
+
+    const finishedVoyages = voyages.filter(v => v.status === "completed" || v.status === "cancelled");
+    const matchedFinished = finishedVoyages.filter(v => matchedVoyageIds.has(v.id)).length;
+    const unmatchedFinished = finishedVoyages.length - matchedFinished;
+    const matchRate = finishedVoyages.length > 0 ? Math.round((matchedFinished / finishedVoyages.length) * 100) : 0;
+
     return {
       totalMissions: shipments.length + missions.length,
       totalGains: gains,
@@ -146,6 +163,9 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
       completedVoyages,
       cancelledVoyages,
       totalVoyages: voyages.length,
+      matchedVoyages: matchedFinished,
+      unmatchedVoyages: unmatchedFinished,
+      matchRate,
     };
   }, [shipments, missions, voyages, user]);
 
