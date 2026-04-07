@@ -82,8 +82,8 @@ const NeeditMissionDetail = () => {
         if (ratingData?.[0]) setVoyageurRating(ratingData[0]);
       }
     }
-    if (pickupRes.data) setPickupProof(pickupRes.data);
-    if (deliveryRes.data) setDeliveryProof(deliveryRes.data);
+    if (pickupRes.data) setPickupProofs(pickupRes.data);
+    if (deliveryRes.data) setDeliveryProofs(deliveryRes.data);
     setLoading(false);
   }, [id]);
 
