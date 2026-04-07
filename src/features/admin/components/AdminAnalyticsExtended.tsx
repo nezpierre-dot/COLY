@@ -126,9 +126,14 @@ const AdminAnalyticsExtended = () => {
     <div className="space-y-6">
       {/* Level Distribution */}
       <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-          <Trophy size={14} className="text-primary" /> Distribution des niveaux
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Trophy size={14} className="text-primary" /> Distribution des niveaux
+          </h3>
+          <Button size="sm" variant="outline" onClick={exportLevels} className="text-xs h-7">
+            <Download size={10} className="mr-1" /> CSV
+          </Button>
+        </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {levelData.map((l) => (
