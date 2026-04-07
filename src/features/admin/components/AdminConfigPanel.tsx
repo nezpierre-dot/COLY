@@ -119,6 +119,30 @@ const AdminConfigPanel = () => {
   const pointsConfigs = configs.filter(c => c.config_key.startsWith("points_") || c.config_key === "level_thresholds");
   const commissionConfigs = configs.filter(c => c.config_key === "commission_rates");
   const notifConfigs = configs.filter(c => c.config_key === "notifications_enabled");
+  const alertThresholdConfig = configs.find(c => c.config_key === "alert_thresholds");
+
+  // Parse alert thresholds for friendly UI
+  const getAlertThresholds = () => {
+    try {
+      const raw = editValues["alert_thresholds"];
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  };
+
+  const updateAlertThreshold = (key: string, value: number) => {
+    const current = getAlertThresholds();
+    const updated = { ...current, [key]: value };
+    setEditValues(prev => ({ ...prev, alert_thresholds: JSON.stringify(updated, null, 2) }));
+  };
+
+  const alertThresholds = getAlertThresholds();
+
+  const ALERT_THRESHOLD_FIELDS = [
+    { key: "cancellation_rate_pct", label: "Taux d'annulation max (%)", default: 30, description: "Alerte critique si le taux d'annulation dépasse ce seuil sur 30 jours" },
+    { key: "unresolved_disputes_max", label: "Litiges non résolus max", default: 10, description: "Alerte critique si le nombre de litiges ouverts dépasse ce seuil" },
+    { key: "pending_shipments_stale_days", label: "Jours max sans voyageur", default: 7, description: "Alerte warning pour les colis en attente depuis plus de X jours" },
+    { key: "fraud_confidence_min", label: "Seuil fraude (confiance min)", default: 0.7, description: "Alerte à partir de ce niveau de confiance de fraude (0-1)" },
+  ];
 
   return (
     <div className="space-y-6">
