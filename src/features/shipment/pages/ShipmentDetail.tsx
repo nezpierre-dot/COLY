@@ -76,6 +76,15 @@ const ShipmentDetail = () => {
       .then(({ data }) => { if (data) setVoyageurName(data.full_name); });
   }, [shipment?.voyageur_id]);
 
+  // Fetch pickup & delivery proofs
+  useEffect(() => {
+    if (!id) return;
+    supabase.from("pickup_proofs").select("*").eq("shipment_id", id).order("created_at", { ascending: false })
+      .then(({ data }) => { if (data) setPickupProofs(data); });
+    supabase.from("delivery_proofs").select("*").eq("shipment_id", id).order("created_at", { ascending: false })
+      .then(({ data }) => { if (data) setDeliveryProofs(data); });
+  }, [id, shipment?.status]);
+
   const isOwner = shipment?.user_id === user?.id;
   const isPending = shipment?.status === "pending";
   const canEdit = isOwner && isPending;
