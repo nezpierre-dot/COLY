@@ -63,6 +63,7 @@ const AdminDashboard = () => {
   const [supportClosingId, setSupportClosingId] = useState<string | null>(null);
   const [proofStats, setProofStats] = useState<{ total: number; verified: number; unverified: number }>({ total: 0, verified: 0, unverified: 0 });
   const [cancelledArchive, setCancelledArchive] = useState<any[]>([]);
+  const [archiveTypeFilter, setArchiveTypeFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -885,54 +886,104 @@ const AdminDashboard = () => {
 
           <TabsContent value="archives" className="space-y-3 mt-0">
             <div className="bg-card border border-border rounded-2xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Archive size={14} className="text-muted-foreground" /> Historique des annulations matchées
-                </h3>
-                <span className="text-xs text-muted-foreground">{cancelledArchive.length} entrée(s)</span>
-              </div>
-              {cancelledArchive.length === 0 ? (
-                <div className="px-4 py-8 text-center text-sm text-muted-foreground">Aucune annulation matchée enregistrée</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        <th className="px-4 py-2.5">Type</th>
-                        <th className="px-4 py-2.5">Trajet</th>
-                        <th className="px-4 py-2.5">Tarif</th>
-                        <th className="px-4 py-2.5">Statut avant</th>
-                        <th className="px-4 py-2.5">Annulé le</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cancelledArchive.map((a: any) => {
-                        const typeConfig: Record<string, { label: string; bg: string; text: string }> = {
-                          shipment: { label: "📦 Envoi", bg: "bg-primary/10", text: "text-primary" },
-                          needit_mission: { label: "🛒 NeedIt", bg: "bg-accent/10", text: "text-accent-foreground" },
-                          voyage: { label: "✈️ Voyage", bg: "bg-secondary/10", text: "text-secondary" },
-                        };
-                        const tc = typeConfig[a.item_type] || { label: a.item_type, bg: "bg-muted", text: "text-muted-foreground" };
-                        return (
-                          <tr key={a.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                            <td className="px-4 py-2.5">
-                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tc.bg} ${tc.text}`}>{tc.label}</span>
-                            </td>
-                            <td className="px-4 py-2.5 text-xs text-foreground">
-                              {a.departure_city ? `${a.departure_city} → ` : ""}{a.arrival_city || a.arrival_country || "—"}
-                            </td>
-                            <td className="px-4 py-2.5 text-xs font-medium text-foreground">{a.tarif || "—"}</td>
-                            <td className="px-4 py-2.5">
-                              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">{a.original_status || "—"}</span>
-                            </td>
-                            <td className="px-4 py-2.5 text-xs text-muted-foreground">{formatDateTime(a.cancelled_at)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+              <div className="px-4 py-3 border-b border-border space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Archive size={14} className="text-muted-foreground" /> Historique des annulations matchées
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {cancelledArchive.filter(a => archiveTypeFilter === "all" || a.item_type === archiveTypeFilter).length} entrée(s)
+                    </span>
+                    <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={() => {
+                      const filtered = cancelledArchive.filter(a => archiveTypeFilter === "all" || a.item_type === archiveTypeFilter);
+                      if (filtered.length === 0) { toast.error("Aucune donnée à exporter"); return; }
+                      const headers = ["Type", "Départ", "Arrivée", "Pays arrivée", "Tarif", "Statut avant", "Raison", "Annulé le"];
+                      const typeLabels: Record<string, string> = { shipment: "Envoi", needit_mission: "NeedIt", voyage: "Voyage" };
+                      const rows = filtered.map((a: any) => [
+                        typeLabels[a.item_type] || a.item_type,
+                        a.departure_city || "",
+                        a.arrival_city || "",
+                        a.arrival_country || "",
+                        a.tarif || "",
+                        a.original_status || "",
+                        a.reason || "",
+                        a.cancelled_at ? new Date(a.cancelled_at).toLocaleString("fr-FR") : "",
+                      ]);
+                      const csv = [headers.join(","), ...rows.map((r: string[]) => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))].join("\n");
+                      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+                      const link = document.createElement("a");
+                      link.href = URL.createObjectURL(blob);
+                      link.download = `archives-annulations${archiveTypeFilter !== "all" ? `-${archiveTypeFilter}` : ""}-${new Date().toISOString().slice(0, 10)}.csv`;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(link.href);
+                      toast.success("CSV exporté ✅");
+                    }}>
+                      <Download size={12} /> CSV
+                    </Button>
+                  </div>
                 </div>
-              )}
+                <div className="flex gap-1.5">
+                  {[
+                    { key: "all", label: "Tous" },
+                    { key: "shipment", label: "📦 Envoi" },
+                    { key: "needit_mission", label: "🛒 NeedIt" },
+                    { key: "voyage", label: "✈️ Voyage" },
+                  ].map(f => (
+                    <button key={f.key} onClick={() => setArchiveTypeFilter(f.key)}
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${archiveTypeFilter === f.key ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {(() => {
+                const filtered = cancelledArchive.filter(a => archiveTypeFilter === "all" || a.item_type === archiveTypeFilter);
+                return filtered.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-sm text-muted-foreground">Aucune annulation matchée enregistrée</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          <th className="px-4 py-2.5">Type</th>
+                          <th className="px-4 py-2.5">Trajet</th>
+                          <th className="px-4 py-2.5">Tarif</th>
+                          <th className="px-4 py-2.5">Statut avant</th>
+                          <th className="px-4 py-2.5">Annulé le</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map((a: any) => {
+                          const typeConfig: Record<string, { label: string; bg: string; text: string }> = {
+                            shipment: { label: "📦 Envoi", bg: "bg-primary/10", text: "text-primary" },
+                            needit_mission: { label: "🛒 NeedIt", bg: "bg-accent/10", text: "text-accent-foreground" },
+                            voyage: { label: "✈️ Voyage", bg: "bg-secondary/10", text: "text-secondary" },
+                          };
+                          const tc = typeConfig[a.item_type] || { label: a.item_type, bg: "bg-muted", text: "text-muted-foreground" };
+                          return (
+                            <tr key={a.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                              <td className="px-4 py-2.5">
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${tc.bg} ${tc.text}`}>{tc.label}</span>
+                              </td>
+                              <td className="px-4 py-2.5 text-xs text-foreground">
+                                {a.departure_city ? `${a.departure_city} → ` : ""}{a.arrival_city || a.arrival_country || "—"}
+                              </td>
+                              <td className="px-4 py-2.5 text-xs font-medium text-foreground">{a.tarif || "—"}</td>
+                              <td className="px-4 py-2.5">
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive">{a.original_status || "—"}</span>
+                              </td>
+                              <td className="px-4 py-2.5 text-xs text-muted-foreground">{formatDateTime(a.cancelled_at)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
             </div>
           </TabsContent>
         </Tabs>
