@@ -1607,6 +1607,7 @@ const Dashboard = () => {
                 <div className="space-y-2 mt-2">
                   {[
                     { label: t("dashboard.findTraveler"), icon: Search, path: "/voyageur-search", color: "primary" },
+                    { label: "Missions disponibles", icon: Zap, path: "/browse-missions", color: "warning" },
                     { label: t("dashboard.myNeeditMissions"), count: demandeurMissions.length, icon: ShoppingBag, path: "/mes-missions-needit", color: "secondary" },
                     { label: t("dashboard.history"), icon: Receipt, path: "/history/coly", color: "primary" },
                     { label: t("dashboard.myBalance"), icon: Wallet, path: "/solde", color: "accent" },
