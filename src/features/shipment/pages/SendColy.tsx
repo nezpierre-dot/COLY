@@ -83,6 +83,9 @@ const SendColy = () => {
   const [departCountry, setDepartCountry] = useState("");
   const [departCity, setDepartCity] = useState("");
   const [relayPoint, setRelayPoint] = useState("");
+  const [departAddress, setDepartAddress] = useState("");
+  const [departAccessCode, setDepartAccessCode] = useState("");
+  const [saveDepartAddressFav, setSaveDepartAddressFav] = useState(false);
   const [arrCity, setArrCity] = useState("");
   const [arrCountry, setArrCountry] = useState("");
   const [contactNom, setContactNom] = useState("");
@@ -166,6 +169,7 @@ const SendColy = () => {
         if (!contactTel.trim()) e.contactTel = t("coly.phoneReq"); else if (!/^[\d\s+()-]{6,20}$/.test(contactTel.trim())) e.contactTel = t("sendcoly.invalidNumber");
         if (contactMail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactMail.trim())) e.contactMail = t("sendcoly.invalidEmail");
         if (!pickupAddress.trim()) e.pickupAddress = "Adresse de récupération obligatoire";
+        if (departMethod === "address" && !departAddress.trim()) e.departAddress = "Adresse de départ obligatoire";
         break;
       case 2: if (!photo) e.photo = t("sendcoly.takePhoto"); break;
       case 3: if (!tarif) e.tarif = t("sendcoly.chooseTariffReq"); if (tarif === "fixe" && !tarifFixe.trim()) e.tarifFixe = "Montant obligatoire"; if (insured === null) e.insured = t("sendcoly.chooseInsurance"); break;
@@ -189,8 +193,15 @@ const SendColy = () => {
       const photoUrl = await uploadPhoto();
       const { data: inserted, error } = await supabase.from("shipments").insert({ user_id: user.id, departure_date: date, departure_method: departMethod, departure_city: departCity || null, relay_point: relayPoint || null, arrival_city: arrCity, arrival_country: arrCountry, contact_nom: contactNom, contact_prenom: contactPrenom, contact_tel: contactTel, contact_email: contactMail || null, photo_url: photoUrl, size, tarif: tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : "Sur devis", insured: insured || false, is_international: isInternational, status: "pending", pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null } as any).select("id").single();
       if (error) throw error;
-      // Save favorite address if toggled
+      // Save favorite addresses if toggled
       if (saveAddressFav && pickupAddress.trim()) saveFavoriteAddress();
+      if (saveDepartAddressFav && departAddress.trim()) {
+        const exists = favAddresses.some(f => f.address === departAddress.trim());
+        if (!exists) {
+          const { data: newFav } = await supabase.from("favorite_addresses" as any).insert({ user_id: user.id, address: departAddress.trim(), access_code: departAccessCode.trim() || null, label: null } as any).select("id, label, address, access_code").single();
+          if (newFav) setFavAddresses(prev => [newFav as any, ...prev]);
+        }
+      }
       supabase.functions.invoke("notify-match", { body: { type: "shipment", record_id: inserted.id } }).catch(() => {});
       successFeedback(t("sendcoly.createdSuccess"), { description: t("sendcoly.createdDesc") });
       setCreatedReminderInfo({
@@ -262,7 +273,51 @@ const SendColy = () => {
       case 1: return (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
           <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Calendar size={16} className="text-primary" /> {t("sendcoly.shippingDate")} <span className="text-destructive">*</span></h3><input className={inputClass("date")} type="date" value={date} onChange={(e) => { setDate(e.target.value); clearError("date"); }} />{errors.date && <ErrorHint message={errors.date} />}</div>
-          <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-primary" /> {t("sendcoly.departurePoint")}</h3><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.departureCountry")} <span className="text-destructive">*</span></label><SearchableSelect value={departCountry} onChange={handleDepartCountryChange} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />{errors.departCountry && <ErrorHint message={errors.departCountry} />}</div><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.departureCity")} <span className="text-destructive">*</span></label><SearchableSelect value={departCity} onChange={(v: string) => { setDepartCity(v); clearError("departCity"); }} options={departCities} placeholder={departCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departCountry} recentItems={recentCities} onSearch={departCountry ? searchCitiesDepart : undefined} popularItems={getPopularCities(getCountryISO(departCountry) || "")} popularLabel="Grandes villes" />{errors.departCity && <ErrorHint message={errors.departCity} />}</div>{errors.departMethod && <ErrorHint message={errors.departMethod} />}<div className="grid grid-cols-1 gap-2">{(["main", "address"] as const).map((m) => (<button key={m} onClick={() => { setDepartMethod(m); clearError("departMethod"); }} className={`text-left px-4 py-3 rounded-xl border transition-all text-sm ${departMethod === m ? "border-primary bg-primary/5 text-foreground" : "border-border bg-background text-muted-foreground hover:border-primary/40"}`}>{DEPART_LABELS[m]}</button>))}</div>{departMethod === "address" && (<div><input className={inputClass("departAddress")} placeholder={t("trip.departAddress")} value={departCity} onChange={(e) => { setDepartCity(e.target.value); clearError("departCity"); }} /></div>)}</div>
+          <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-primary" /> {t("sendcoly.departurePoint")}</h3><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.departureCountry")} <span className="text-destructive">*</span></label><SearchableSelect value={departCountry} onChange={handleDepartCountryChange} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />{errors.departCountry && <ErrorHint message={errors.departCountry} />}</div><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.departureCity")} <span className="text-destructive">*</span></label><SearchableSelect value={departCity} onChange={(v: string) => { setDepartCity(v); clearError("departCity"); }} options={departCities} placeholder={departCountry ? t("trip.selectCity") : t("trip.chooseCountryFirst")} disabled={!departCountry} recentItems={recentCities} onSearch={departCountry ? searchCitiesDepart : undefined} popularItems={getPopularCities(getCountryISO(departCountry) || "")} popularLabel="Grandes villes" />{errors.departCity && <ErrorHint message={errors.departCity} />}</div>{errors.departMethod && <ErrorHint message={errors.departMethod} />}<div className="grid grid-cols-1 gap-2">{(["main", "address"] as const).map((m) => (<button key={m} onClick={() => { setDepartMethod(m); clearError("departMethod"); }} className={`text-left px-4 py-3 rounded-xl border transition-all text-sm ${departMethod === m ? "border-primary bg-primary/5 text-foreground" : "border-border bg-background text-muted-foreground hover:border-primary/40"}`}>{DEPART_LABELS[m]}</button>))}</div>
+            {departMethod === "address" && (
+              <div className="space-y-3 mt-2 pl-1 border-l-2 border-primary/20 ml-2 py-2 pl-4">
+                {/* Favorite addresses for departure */}
+                {favAddresses.length > 0 && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-muted-foreground block">Adresses enregistrées</label>
+                    <div className="flex flex-wrap gap-2">
+                      {favAddresses.map((fav) => (
+                        <button
+                          key={fav.id}
+                          type="button"
+                          onClick={() => { setDepartAddress(fav.address); setDepartAccessCode(fav.access_code || ""); clearError("departAddress"); }}
+                          className={`text-left text-xs px-3 py-2 rounded-lg border transition-all flex items-center gap-1.5 max-w-full ${
+                            departAddress === fav.address
+                              ? "border-primary bg-primary/10 text-foreground"
+                              : "border-border bg-background text-muted-foreground hover:border-primary/40"
+                          }`}
+                        >
+                          <Star size={12} className="text-amber-500 shrink-0" />
+                          <span className="truncate">{fav.label || fav.address}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Adresse de départ <span className="text-destructive">*</span></label>
+                  <input className={inputClass("departAddress")} placeholder="Ex : 12 rue de la Paix, 75002 Paris" value={departAddress} onChange={(e) => { setDepartAddress(e.target.value); clearError("departAddress"); setSaveDepartAddressFav(false); }} />
+                  {errors.departAddress && <ErrorHint message={errors.departAddress} />}
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Code d'accès / étage (optionnel)</label>
+                  <input className={inputClass("departAccessCode")} placeholder="Ex : Code 1234, 3ème étage" value={departAccessCode} onChange={(e) => setDepartAccessCode(e.target.value)} />
+                </div>
+                {departAddress.trim() && !favAddresses.some(f => f.address === departAddress.trim()) && (
+                  <label className="flex items-center gap-2 cursor-pointer py-1">
+                    <Checkbox checked={saveDepartAddressFav} onCheckedChange={(v) => setSaveDepartAddressFav(!!v)} />
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Heart size={12} className="text-primary" /> Ajouter aux favoris
+                    </span>
+                  </label>
+                )}
+              </div>
+            )}</div>
           <div className="bg-muted/50 rounded-2xl p-4 space-y-3"><h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-accent" /> {t("sendcoly.destinationContact")}</h3><div className="space-y-2"><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.country")} <span className="text-destructive">*</span></label><SearchableSelect value={arrCountry} onChange={handleArrCountryChange} options={countries} placeholder={t("trip.selectCountry")} displayFn={countryDisplay} popularItems={POPULAR_COUNTRIES} recentItems={recentCountries} />{errors.arrCountry && <ErrorHint message={errors.arrCountry} />}</div><div><label className="text-xs text-muted-foreground mb-1 block">{t("sendcoly.city")} <span className="text-destructive">*</span></label><SearchableSelect value={arrCity} onChange={(v: string) => { setArrCity(v); clearError("arrCity"); }} options={arrCities} placeholder={t("trip.selectCity")} disabled={!arrCountry} recentItems={recentCities} onSearch={arrCountry ? searchCitiesArr : undefined} popularItems={getPopularCities(getCountryISO(arrCountry) || "")} popularLabel="Grandes villes" />{errors.arrCity && <ErrorHint message={errors.arrCity} />}</div></div>{isInternational && (<div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-lg p-3 animate-in fade-in duration-300"><Globe size={14} className="text-primary shrink-0 mt-0.5" /><div className="flex-1"><p className="text-xs text-foreground font-medium">{t("sendcoly.internationalDetected")}</p><p className="text-xs text-muted-foreground mt-0.5">{t("sendcoly.customsMayApply")}</p></div><TrustBadge /></div>)}<div className="grid grid-cols-2 gap-2"><div><label className="text-xs text-muted-foreground mb-1 block">{t("common.name")} <span className="text-destructive">*</span></label><input className={inputClass("contactNom")} placeholder={t("common.name")} value={contactNom} onChange={(e) => { setContactNom(e.target.value); clearError("contactNom"); }} />{errors.contactNom && <ErrorHint message={errors.contactNom} />}</div><div><label className="text-xs text-muted-foreground mb-1 block">{t("common.firstName")} <span className="text-destructive">*</span></label><input className={inputClass("contactPrenom")} placeholder={t("common.firstName")} value={contactPrenom} onChange={(e) => { setContactPrenom(e.target.value); clearError("contactPrenom"); }} />{errors.contactPrenom && <ErrorHint message={errors.contactPrenom} />}</div></div><div><label className="text-xs text-muted-foreground mb-1 block">{t("common.phone")} <span className="text-destructive">*</span></label><input className={inputClass("contactTel")} placeholder={t("common.phone")} value={contactTel} onChange={(e) => { setContactTel(e.target.value); clearError("contactTel"); }} />{errors.contactTel && <ErrorHint message={errors.contactTel} />}</div><div><input className={inputClass("contactMail")} placeholder={t("sendcoly.emailOptional")} value={contactMail} onChange={(e) => { setContactMail(e.target.value); clearError("contactMail"); }} />{errors.contactMail && <ErrorHint message={errors.contactMail} />}</div></div>
           {/* Pickup address fields */}
           <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
