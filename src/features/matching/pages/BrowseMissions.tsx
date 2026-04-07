@@ -115,8 +115,13 @@ const BrowseMissions = () => {
     setFilterDateTo(undefined);
   };
 
+  const parseTarif = (t: string) => {
+    const n = parseFloat(t?.replace(/[^0-9.,]/g, "").replace(",", "."));
+    return isNaN(n) ? 0 : n;
+  };
+
   const filteredShipments = useMemo(() => {
-    return shipments.filter(s => {
+    const filtered = shipments.filter(s => {
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         if (
@@ -130,10 +135,18 @@ const BrowseMissions = () => {
       if (filterDateTo && new Date(s.departure_date) > filterDateTo) return false;
       return true;
     });
-  }, [shipments, searchQuery, filterCountry, filterDateFrom, filterDateTo]);
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "date_asc": return new Date(a.departure_date).getTime() - new Date(b.departure_date).getTime();
+        case "price_asc": return parseTarif(a.tarif) - parseTarif(b.tarif);
+        case "price_desc": return parseTarif(b.tarif) - parseTarif(a.tarif);
+        default: return 0;
+      }
+    });
+  }, [shipments, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy]);
 
   const filteredMissions = useMemo(() => {
-    return missions.filter(m => {
+    const filtered = missions.filter(m => {
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         if (
@@ -147,7 +160,15 @@ const BrowseMissions = () => {
       if (filterDateTo && new Date(m.created_at) > filterDateTo) return false;
       return true;
     });
-  }, [missions, searchQuery, filterCountry, filterDateFrom, filterDateTo]);
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "date_asc": return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "price_asc": return parseTarif(a.prix_max) - parseTarif(b.prix_max);
+        case "price_desc": return parseTarif(b.prix_max) - parseTarif(a.prix_max);
+        default: return 0;
+      }
+    });
+  }, [missions, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy]);
 
   const handleAcceptShipment = (s: PendingShipment) => {
     hapticMedium();
