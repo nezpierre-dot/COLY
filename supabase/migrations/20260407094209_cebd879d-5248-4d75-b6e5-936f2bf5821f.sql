@@ -1,0 +1,1 @@
+DROP POLICY "Service role can update verification" ON public.proof_verifications;
