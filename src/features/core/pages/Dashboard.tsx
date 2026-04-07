@@ -468,6 +468,39 @@ const Dashboard = () => {
     toast.success("Voyage désarchivé");
   };
 
+  // Bulk cleanup: delete expired/completed/cancelled voyages that have no active matches
+  const [cleanupDialog, setCleanupDialog] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
+
+  const cleanableVoyages = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return voyages.filter(v =>
+      v.status === "cancelled" ||
+      v.status === "completed" ||
+      (v.status === "active" && v.departure_date < today)
+    );
+  }, [voyages]);
+
+  const handleCleanupVoyages = async () => {
+    if (!user || cleanableVoyages.length === 0) return;
+    setCleaning(true);
+    const ids = cleanableVoyages.map(v => v.id);
+    const { error } = await supabase.from("voyages").delete().in("id", ids);
+    if (error) {
+      toast.error("Erreur lors du nettoyage");
+    } else {
+      toast.success(`${ids.length} voyage${ids.length > 1 ? "s" : ""} supprimé${ids.length > 1 ? "s" : ""}`);
+      setVoyages(prev => prev.filter(v => !ids.includes(v.id)));
+    }
+    setCleaning(false);
+    setCleanupDialog(false);
+  };
+
+  const isVoyageExpiredOrDone = (v: Voyage) => {
+    const today = new Date().toISOString().slice(0, 10);
+    return v.status === "cancelled" || v.status === "completed" || (v.status === "active" && v.departure_date < today);
+  };
+
   // Sort state
   const [voyageurColisSort, setVoyageurColisSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
   const [voyageurNeeditSort, setVoyageurNeeditSort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
@@ -859,6 +892,15 @@ const Dashboard = () => {
                         {archivedVoyageIds.size} archivé{archivedVoyageIds.size > 1 ? "s" : ""}
                       </button>
                     )}
+                    {cleanableVoyages.length > 0 && (
+                      <button
+                        onClick={() => setCleanupDialog(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 text-xs font-semibold transition-all shrink-0"
+                      >
+                        <Trash2 size={12} />
+                        Nettoyer ({cleanableVoyages.length})
+                      </button>
+                    )}
                   </div>
                 )}
               {voyages.length === 0 ? (
@@ -957,14 +999,15 @@ const Dashboard = () => {
                                 <Archive size={12} />
                               </button>
                             )}
-                            {v.status === "cancelled" ? (
+                            {isVoyageExpiredOrDone(v) ? (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setDeleteDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
                                 className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                                title="Supprimer"
                               >
                                 <Trash2 size={12} />
                               </button>
-                            ) : v.status !== "completed" ? (
+                            ) : v.status === "active" ? (
                               <button
                                 onClick={(e) => { e.stopPropagation(); setCancelDialog({ type: "voyage", id: v.id, label: `${v.departure_city} → ${v.arrival_city}` }); }}
                                 className="w-7 h-7 rounded-full bg-primary-foreground/15 text-primary-foreground/60 hover:bg-destructive/80 hover:text-destructive-foreground flex items-center justify-center transition-colors"
@@ -1757,6 +1800,29 @@ const Dashboard = () => {
             >
               <Plane size={16} className="mr-1.5" />
               {t("dashboard.createVoyageBtn") || "Créer un voyage"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cleanup Confirmation Dialog */}
+      <AlertDialog open={cleanupDialog} onOpenChange={setCleanupDialog}>
+        <AlertDialogContent className="max-w-sm mx-auto rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Nettoyer les voyages</AlertDialogTitle>
+            <AlertDialogDescription>
+              Supprimer définitivement <span className="font-semibold text-foreground">{cleanableVoyages.length} voyage{cleanableVoyages.length > 1 ? "s" : ""}</span> (expirés, terminés ou annulés) ?
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={cleaning}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCleanupVoyages}
+              disabled={cleaning}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {cleaning ? "Suppression…" : `Supprimer (${cleanableVoyages.length})`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
