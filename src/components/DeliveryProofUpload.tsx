@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
+import { addWatermark } from "@/lib/watermark";
 
 interface DeliveryProofUploadProps {
   shipmentId: string;
@@ -43,8 +44,9 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
     if (!photo || !user) return;
     setUploading(true);
     try {
+      const watermarked = await addWatermark(photo, coords);
       const path = `delivery-proofs/${shipmentId}/${Date.now()}-${photo.name}`;
-      const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, photo);
+      const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, watermarked);
       if (uploadErr) throw uploadErr;
       const { data: signed } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
       const photoUrl = signed?.signedUrl ?? "";
