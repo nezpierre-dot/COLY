@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin } from "lucide-react";
+import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin, Camera, PackageCheck } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -81,6 +81,7 @@ const HistoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [deleteDialog, setDeleteDialog] = useState<{ id: string; realId: string; dbTable: "shipments" | "needit_missions"; ref: string } | null>(null);
   const [historySort, setHistorySort] = useState<SortOption>({ key: "dateCreated", dir: "desc" });
+  const [proofsMap, setProofsMap] = useState<Record<string, { pickup: number; delivery: number; pickupUrl?: string; deliveryUrl?: string }>>({});
 
   const handleDeleteItem = async () => {
     if (!deleteDialog) return;
@@ -207,6 +208,29 @@ const HistoryPage = () => {
 
     load();
   }, [user]);
+
+  // Load proof counts for all items
+  useEffect(() => {
+    if (allData.length === 0) return;
+    const uniqueIds = [...new Set(allData.map(i => i.realId))];
+    Promise.all([
+      supabase.from("pickup_proofs").select("shipment_id, photo_url").in("shipment_id", uniqueIds),
+      supabase.from("delivery_proofs").select("shipment_id, photo_url").in("shipment_id", uniqueIds),
+    ]).then(([pickupRes, deliveryRes]) => {
+      const map: Record<string, { pickup: number; delivery: number; pickupUrl?: string; deliveryUrl?: string }> = {};
+      pickupRes.data?.forEach(p => {
+        if (!map[p.shipment_id]) map[p.shipment_id] = { pickup: 0, delivery: 0 };
+        map[p.shipment_id].pickup++;
+        if (!map[p.shipment_id].pickupUrl) map[p.shipment_id].pickupUrl = p.photo_url;
+      });
+      deliveryRes.data?.forEach(d => {
+        if (!map[d.shipment_id]) map[d.shipment_id] = { pickup: 0, delivery: 0 };
+        map[d.shipment_id].delivery++;
+        if (!map[d.shipment_id].deliveryUrl) map[d.shipment_id].deliveryUrl = d.photo_url;
+      });
+      setProofsMap(map);
+    });
+  }, [allData]);
 
   // Filtered data
   const filtered = useMemo(() => {
@@ -533,6 +557,21 @@ const HistoryPage = () => {
                         </>
                       )}
                     </div>
+                    {/* Proof badges */}
+                    {proofsMap[item.realId] && (proofsMap[item.realId].pickup > 0 || proofsMap[item.realId].delivery > 0) && (
+                      <div className="flex items-center gap-2 mt-1">
+                        {proofsMap[item.realId].pickup > 0 && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">
+                            <PackageCheck size={10} /> Récup. ({proofsMap[item.realId].pickup})
+                          </span>
+                        )}
+                        {proofsMap[item.realId].delivery > 0 && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-accent/10 text-accent rounded-full px-2 py-0.5">
+                            <Camera size={10} /> Livr. ({proofsMap[item.realId].delivery})
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right shrink-0 flex items-center gap-2">
                     <div>
