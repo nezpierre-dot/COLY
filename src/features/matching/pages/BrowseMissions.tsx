@@ -177,7 +177,7 @@ const BrowseMissions = () => {
         default: return 0;
       }
     });
-  }, [shipments, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy]);
+  }, [shipments, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy, voyageurCounts]);
 
   const filteredMissions = useMemo(() => {
     const filtered = missions.filter(m => {
