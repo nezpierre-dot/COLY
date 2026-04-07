@@ -6,6 +6,7 @@ const REASON_LABELS: Record<string, { label: string; emoji: string }> = {
   needit_completed: { label: "Mission NeedIt", emoji: "🛒" },
   good_rating: { label: "Bonne note reçue", emoji: "⭐" },
   referral_validated: { label: "Parrainage validé", emoji: "🤝" },
+  bad_rating: { label: "Note basse reçue", emoji: "⚠️" },
 };
 
 const PointsHistoryCard = () => {
@@ -39,7 +40,7 @@ const PointsHistoryCard = () => {
               "text-xs font-bold",
               h.points > 0 ? "text-emerald-600" : "text-destructive"
             )}>
-              +{h.points} pts
+              {h.points > 0 ? "+" : ""}{h.points} pts
             </span>
           </div>
         );
