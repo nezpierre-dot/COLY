@@ -5,15 +5,10 @@ import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
-import LiveLocationSharing from "@/components/LiveLocationSharing";
-import PickupProofUpload from "@/components/PickupProofUpload";
-import DeliveryProofUpload from "@/components/DeliveryProofUpload";
-import ConfirmationCodeDisplay from "@/components/ConfirmationCodeDisplay";
-import ConfirmationCodeEntry from "@/components/ConfirmationCodeEntry";
-import RatingDialog from "@/components/RatingDialog";
-import StarRating from "@/components/StarRating";
-import PhotoLightbox from "@/components/PhotoLightbox";
+import PostMatchActions from "@/components/PostMatchActions";
 import ProofGallery from "@/components/ProofGallery";
+import PhotoLightbox from "@/components/PhotoLightbox";
+import StarRating from "@/components/StarRating";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,8 +47,6 @@ const NeeditMissionDetail = () => {
   const [showReminder, setShowReminder] = useState(false);
   const [pickupProof, setPickupProof] = useState<any>(null);
   const [deliveryProof, setDeliveryProof] = useState<any>(null);
-  const [hasRated, setHasRated] = useState(false);
-  const [showRatingDialog, setShowRatingDialog] = useState(false);
   const [voyageurRating, setVoyageurRating] = useState<{ average_score: number; total_ratings: number } | null>(null);
 
   // Editable fields
@@ -96,20 +89,6 @@ const NeeditMissionDetail = () => {
 
   useEffect(() => { loadMission(); }, [loadMission]);
 
-  // Check rating
-  useEffect(() => {
-    if (!id || !user) return;
-    const checkRating = async () => {
-      const { data } = await supabase
-        .from("ratings" as any)
-        .select("id")
-        .eq("shipment_id", id)
-        .eq("rater_id", user.id)
-        .maybeSingle();
-      if (data) setHasRated(true);
-    };
-    checkRating();
-  }, [id, user]);
 
   // Realtime
   useEffect(() => {
@@ -180,26 +159,6 @@ const NeeditMissionDetail = () => {
     navigate(-1);
   };
 
-  const handlePickupConfirmed = () => {
-    setPickupProof({ confirmed: true });
-    setMission((prev: any) => ({ ...prev, status: "picked_up" }));
-  };
-
-  const handleDeliveryConfirmed = () => {
-    setMission((prev: any) => ({ ...prev, status: "in_transit" }));
-  };
-
-  const handleCodeConfirmed = () => {
-    setMission((prev: any) => ({ ...prev, status: "completed" }));
-    setTimeout(() => setShowRatingDialog(true), 1500);
-  };
-
-  const handleTransit = async () => {
-    if (!id) return;
-    await supabase.from("needit_missions").update({ status: "in_transit" } as any).eq("id", id);
-    setMission((prev: any) => ({ ...prev, status: "in_transit" }));
-    toast.success("Statut mis à jour : en transit");
-  };
 
   if (loading) {
     return (
@@ -238,8 +197,6 @@ const NeeditMissionDetail = () => {
 
   const currentStepIndex = missionSteps.indexOf(mission.status);
   const isCompleted = mission.status === "completed";
-  const ratedUserId = isOwner ? mission.voyageur_id : mission.user_id;
-  const raterRole = isOwner ? "demandeur" : "voyageur";
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -444,15 +401,19 @@ const NeeditMissionDetail = () => {
             )}
           </div>
 
-          {/* Pickup Proof — voyageur uploads when accepted */}
-          {isVoyageur && mission.status === "accepted" && !pickupProof && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <PickupProofUpload
-                itemId={mission.id}
-                itemType="needit_mission"
-                onProofUploaded={handlePickupConfirmed}
-              />
-            </motion.div>
+          {/* Post-match actions (OTP handover, location, notifications) */}
+          {mission.voyageur_id && mission.status !== "pending" && mission.status !== "cancelled" && (
+            <PostMatchActions
+              shipmentId={mission.id}
+              shipmentStatus={mission.status}
+              senderId={mission.user_id}
+              voyageurId={mission.voyageur_id}
+              itemType="needit"
+              onStatusChange={(s) => {
+                setMission((prev: any) => ({ ...prev, status: s === "delivered" ? "completed" : s }));
+                loadMission();
+              }}
+            />
           )}
 
           {/* Pickup Proof — show when exists */}
@@ -467,47 +428,6 @@ const NeeditMissionDetail = () => {
             </motion.div>
           )}
 
-          {/* Voyageur: mark as in transit after pickup */}
-          {isVoyageur && mission.status === "picked_up" && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <button
-                onClick={handleTransit}
-                className="w-full py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2"
-              >
-                <Send size={16} /> Passer en transit
-              </button>
-            </motion.div>
-          )}
-
-          {/* Delivery Proof — voyageur uploads when in_transit */}
-          {isVoyageur && mission.status === "in_transit" && !deliveryProof && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <DeliveryProofUpload
-                shipmentId={mission.id}
-                onProofUploaded={(url) => setDeliveryProof({ photo_url: url })}
-                onDeliveryConfirmed={handleDeliveryConfirmed}
-              />
-            </motion.div>
-          )}
-
-          {/* Confirmation Code — demandeur sees when in_transit and delivery proof exists */}
-          {isOwner && mission.status === "in_transit" && deliveryProof && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <ConfirmationCodeDisplay itemId={mission.id} itemType="needit_mission" />
-            </motion.div>
-          )}
-
-          {/* Confirmation Code Entry — voyageur enters code to finalize */}
-          {isVoyageur && mission.status === "in_transit" && deliveryProof && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <ConfirmationCodeEntry
-                itemId={mission.id}
-                itemType="needit_mission"
-                onConfirmed={handleCodeConfirmed}
-              />
-            </motion.div>
-          )}
-
           {/* Delivery Proof — show photo when completed */}
           {isCompleted && deliveryProof?.photo_url && (
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
@@ -518,32 +438,6 @@ const NeeditMissionDetail = () => {
                 canDownload={isOwner}
               />
             </motion.div>
-          )}
-
-          {/* Rating CTA */}
-          {isCompleted && !hasRated && ratedUserId && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-accent/5 border border-accent/20 rounded-2xl p-4 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-foreground">Notez cette mission</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Votre avis aide la communauté</p>
-              </div>
-              <button
-                onClick={() => setShowRatingDialog(true)}
-                className="shrink-0 px-4 py-2 rounded-xl bg-accent text-accent-foreground text-xs font-bold hover:opacity-90 transition-opacity"
-              >
-                ⭐ Noter
-              </button>
-            </motion.div>
-          )}
-
-          {/* Live location sharing */}
-          {mission.voyageur_id && (mission.status === "accepted" || mission.status === "picked_up" || mission.status === "in_transit") && (
-            <LiveLocationSharing
-              itemId={mission.id}
-              voyageurId={mission.voyageur_id}
-              isVoyageur={user?.id === mission.voyageur_id}
-            />
           )}
 
           {/* Reminder button */}
@@ -658,16 +552,6 @@ const NeeditMissionDetail = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Rating dialog */}
-      {showRatingDialog && ratedUserId && (
-        <RatingDialog
-          open={showRatingDialog}
-          onClose={() => { setShowRatingDialog(false); setHasRated(true); }}
-          shipmentId={mission.id}
-          ratedUserId={ratedUserId}
-          raterRole={raterRole as "demandeur" | "voyageur"}
-        />
-      )}
 
       {/* Reminder dialog */}
       {mission && (

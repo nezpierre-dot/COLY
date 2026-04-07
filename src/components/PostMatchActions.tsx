@@ -60,6 +60,8 @@ const PostMatchActions = ({
   compact = false,
   itemType = "shipment",
 }: PostMatchActionsProps) => {
+  // Normalize "completed" (needit) to "delivered" for internal logic
+  const normalizedStatus = itemType === "needit" && shipmentStatus === "completed" ? "delivered" : shipmentStatus;
   const { user } = useAuth();
   const { t } = useTranslation();
   const tableName = itemType === "needit" ? "needit_missions" : "shipments";
@@ -110,7 +112,7 @@ const PostMatchActions = ({
 
   useEffect(() => {
     loadOtps();
-  }, [loadOtps, shipmentStatus]);
+  }, [loadOtps, normalizedStatus]);
 
   // Subscribe to realtime shipment changes
   useEffect(() => {
@@ -173,7 +175,7 @@ const PostMatchActions = ({
 
   // Check if current user already rated this shipment
   useEffect(() => {
-    if (!user || shipmentStatus !== "delivered") return;
+    if (!user || normalizedStatus !== "delivered") return;
     if (!isSender && !isVoyageur) return;
     supabase
       .from("ratings")
@@ -183,7 +185,7 @@ const PostMatchActions = ({
       .then(({ data }) => {
         if (data && data.length > 0) setHasRated(true);
       });
-  }, [user, isSender, isVoyageur, shipmentStatus, shipmentId]);
+  }, [user, isSender, isVoyageur, normalizedStatus, shipmentId]);
 
   const saveOtpCodes = async (
     pickup: string | null,
@@ -373,11 +375,11 @@ const PostMatchActions = ({
   }
 
   // Don't show for pending or cancelled/delivered
-  if (shipmentStatus === "pending" || shipmentStatus === "cancelled") return null;
+  if (normalizedStatus === "pending" || normalizedStatus === "cancelled") return null;
   if (!voyageurId) return null;
 
   // Progress indicator
-  const currentStepIdx = STEPS.findIndex((s) => s.status === shipmentStatus);
+  const currentStepIdx = STEPS.findIndex((s) => s.status === normalizedStatus);
 
   return (
     <div className={`space-y-3 ${compact ? "" : "mt-2"}`}>
@@ -411,7 +413,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── ACCEPTED: Expéditeur generates pickup OTP ─── */}
-      {shipmentStatus === "accepted" && isSender && !pickupOtp && (
+      {normalizedStatus === "accepted" && isSender && !pickupOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -437,7 +439,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── ACCEPTED: Expéditeur shows pickup OTP ─── */}
-      {shipmentStatus === "accepted" && isSender && pickupOtp && (
+      {normalizedStatus === "accepted" && isSender && pickupOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -491,7 +493,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── ACCEPTED: Voyageur enters pickup OTP ─── */}
-      {shipmentStatus === "accepted" && isVoyageur && pickupOtp && (
+      {normalizedStatus === "accepted" && isVoyageur && pickupOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -524,7 +526,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── ACCEPTED: Voyageur waiting for OTP ─── */}
-      {shipmentStatus === "accepted" && isVoyageur && !pickupOtp && (
+      {normalizedStatus === "accepted" && isVoyageur && !pickupOtp && (
         <div className="bg-muted/50 border border-border rounded-2xl p-4 flex items-center gap-3">
           <Bell size={16} className="text-muted-foreground shrink-0" />
           <p className="text-xs text-muted-foreground">{t("postmatch.waitingForSender")}</p>
@@ -532,7 +534,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── PICKED_UP: Voyageur generates delivery OTP ─── */}
-      {shipmentStatus === "picked_up" && isVoyageur && !deliveryOtp && (
+      {normalizedStatus === "picked_up" && isVoyageur && !deliveryOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -558,7 +560,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── IN_TRANSIT: Voyageur shows delivery OTP ─── */}
-      {(shipmentStatus === "picked_up" || shipmentStatus === "in_transit") && isVoyageur && deliveryOtp && (
+      {(normalizedStatus === "picked_up" || normalizedStatus === "in_transit") && isVoyageur && deliveryOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -612,7 +614,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── IN_TRANSIT: Sender/Anyone enters delivery OTP ─── */}
-      {shipmentStatus === "in_transit" && !isVoyageur && deliveryOtp && (
+      {normalizedStatus === "in_transit" && !isVoyageur && deliveryOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -645,7 +647,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── DELIVERED: Success ─── */}
-      {shipmentStatus === "delivered" && (
+      {normalizedStatus === "delivered" && (
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -664,7 +666,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── DELIVERED: Rating invitation for demandeur ─── */}
-      {shipmentStatus === "delivered" && isSender && !hasRated && voyageurId && (
+      {normalizedStatus === "delivered" && isSender && !hasRated && voyageurId && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -682,7 +684,7 @@ const PostMatchActions = ({
       )}
 
       {/* ─── DELIVERED: Rating invitation for voyageur ─── */}
-      {shipmentStatus === "delivered" && isVoyageur && !hasRated && (
+      {normalizedStatus === "delivered" && isVoyageur && !hasRated && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -699,7 +701,7 @@ const PostMatchActions = ({
         </motion.div>
       )}
 
-      {shipmentStatus === "delivered" && (isSender || isVoyageur) && hasRated && (
+      {normalizedStatus === "delivered" && (isSender || isVoyageur) && hasRated && (
         <p className="text-xs text-center text-muted-foreground">✅ {t("postmatch.alreadyRated")}</p>
       )}
 
@@ -725,7 +727,7 @@ const PostMatchActions = ({
         />
       )}
 
-      {voyageurId && shipmentStatus !== "delivered" && shipmentStatus !== "cancelled" && !compact && (
+      {voyageurId && normalizedStatus !== "delivered" && normalizedStatus !== "cancelled" && !compact && (
         <LiveLocationSharing
           itemId={shipmentId}
           voyageurId={voyageurId}
