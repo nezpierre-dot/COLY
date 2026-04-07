@@ -254,6 +254,34 @@ const AdminDashboard = () => {
 
   const openSupportTickets = supportTickets.filter(t => t.status === "open" || t.status === "replied");
 
+  const handleExportProofsCSV = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("proof_verifications" as any)
+        .select("proof_id, shipment_id, proof_type, latitude, longitude, created_at, verified_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      if (!data || data.length === 0) { toast.error("Aucune preuve à exporter"); return; }
+      const headers = ["proof_id", "shipment_id", "proof_type", "latitude", "longitude", "created_at", "verified_at", "status"];
+      const rows = (data as any[]).map((r: any) => [
+        r.proof_id, r.shipment_id, r.proof_type,
+        r.latitude ?? "", r.longitude ?? "",
+        r.created_at, r.verified_at ?? "",
+        r.verified_at ? "verified" : "pending",
+      ]);
+      const csv = [headers.join(","), ...rows.map(r => r.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(","))].join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `preuves-verification-${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      toast.success("CSV exporté ✅");
+    } catch { toast.error("Erreur lors de l'export"); }
+  };
+
   const formatDate = (d: string) => { try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); } catch { return d; } };
   const formatDateTime = (d: string) => { try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return d; } };
 
