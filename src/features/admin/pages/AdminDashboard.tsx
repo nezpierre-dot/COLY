@@ -339,9 +339,19 @@ const AdminDashboard = () => {
 
             {/* Proof Verification Stats */}
             <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Camera size={14} className="text-primary" /> Vérification des preuves QR
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Camera size={14} className="text-primary" /> Vérification des preuves QR
+                </h3>
+                {proofStats.total > 0 && (
+                  <button
+                    onClick={handleExportProofsCSV}
+                    className="flex items-center gap-1 text-xs text-primary font-medium hover:underline"
+                  >
+                    <Download size={12} /> Export CSV
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-3 gap-3">
                 <div className="bg-muted/50 rounded-xl p-3 text-center">
                   <p className="text-xl font-bold text-foreground">{proofStats.total}</p>
