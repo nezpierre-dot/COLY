@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          resolved_at: string | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          title: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          title?: string
+        }
+        Relationships: []
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -1363,6 +1399,7 @@ export type Database = {
     Functions: {
       accept_needit_mission: { Args: { _mission_id: string }; Returns: string }
       accept_shipment: { Args: { _shipment_id: string }; Returns: string }
+      admin_check_thresholds: { Args: never; Returns: Json }
       admin_get_audit_log: {
         Args: { _limit?: number }
         Returns: {
