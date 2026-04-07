@@ -203,7 +203,7 @@ const BrowseMissions = () => {
         default: return 0;
       }
     });
-  }, [missions, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy]);
+  }, [missions, searchQuery, filterCountry, filterDateFrom, filterDateTo, sortBy, voyageurCounts]);
 
   const handleAcceptShipment = (s: PendingShipment) => {
     hapticMedium();
