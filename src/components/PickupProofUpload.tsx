@@ -44,7 +44,7 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
     if (!photo || !user) return;
     setUploading(true);
     try {
-      const { file: watermarked } = await addWatermark(photo, coords);
+      const { file: watermarked, proofId } = await addWatermark(photo, coords);
       const path = `pickup-proofs/${itemId}/${Date.now()}-${photo.name}`;
       const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, watermarked);
       if (uploadErr) throw uploadErr;
@@ -60,6 +60,17 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
         uploaded_by: user.id,
       });
       if (proofErr) throw proofErr;
+
+      // Store proof verification record
+      await supabase.from("proof_verifications" as any).insert({
+        proof_id: proofId,
+        shipment_id: itemId,
+        proof_type: "pickup",
+        photo_url: photoUrl,
+        latitude: coords?.lat ?? null,
+        longitude: coords?.lng ?? null,
+        uploaded_by: user.id,
+      });
 
       // Update status to picked_up
       if (itemType === "shipment") {
