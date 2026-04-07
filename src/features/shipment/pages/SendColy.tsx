@@ -193,8 +193,15 @@ const SendColy = () => {
       const photoUrl = await uploadPhoto();
       const { data: inserted, error } = await supabase.from("shipments").insert({ user_id: user.id, departure_date: date, departure_method: departMethod, departure_city: departCity || null, relay_point: relayPoint || null, arrival_city: arrCity, arrival_country: arrCountry, contact_nom: contactNom, contact_prenom: contactPrenom, contact_tel: contactTel, contact_email: contactMail || null, photo_url: photoUrl, size, tarif: tarif === "fixe" ? `${tarifFixe} ${currencySymbol}` : "Sur devis", insured: insured || false, is_international: isInternational, status: "pending", pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null } as any).select("id").single();
       if (error) throw error;
-      // Save favorite address if toggled
+      // Save favorite addresses if toggled
       if (saveAddressFav && pickupAddress.trim()) saveFavoriteAddress();
+      if (saveDepartAddressFav && departAddress.trim()) {
+        const exists = favAddresses.some(f => f.address === departAddress.trim());
+        if (!exists) {
+          const { data: newFav } = await supabase.from("favorite_addresses" as any).insert({ user_id: user.id, address: departAddress.trim(), access_code: departAccessCode.trim() || null, label: null } as any).select("id, label, address, access_code").single();
+          if (newFav) setFavAddresses(prev => [newFav as any, ...prev]);
+        }
+      }
       supabase.functions.invoke("notify-match", { body: { type: "shipment", record_id: inserted.id } }).catch(() => {});
       successFeedback(t("sendcoly.createdSuccess"), { description: t("sendcoly.createdDesc") });
       setCreatedReminderInfo({
