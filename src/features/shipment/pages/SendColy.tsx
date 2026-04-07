@@ -265,15 +265,47 @@ const SendColy = () => {
           {/* Pickup address fields */}
           <div className="bg-muted/50 rounded-2xl p-4 space-y-3">
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><MapPin size={16} className="text-primary" /> Récupération du colis</h3>
+            {/* Saved favorite addresses */}
+            {favAddresses.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground block">Adresses enregistrées</label>
+                <div className="flex flex-wrap gap-2">
+                  {favAddresses.map((fav) => (
+                    <button
+                      key={fav.id}
+                      type="button"
+                      onClick={() => selectFavAddress(fav)}
+                      className={`text-left text-xs px-3 py-2 rounded-lg border transition-all flex items-center gap-1.5 max-w-full ${
+                        pickupAddress === fav.address
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border bg-background text-muted-foreground hover:border-primary/40"
+                      }`}
+                    >
+                      <Star size={12} className="text-amber-500 shrink-0" />
+                      <span className="truncate">{fav.address}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Adresse complète de récupération <span className="text-destructive">*</span></label>
-              <input className={inputClass("pickupAddress")} placeholder="Ex : 12 rue de la Paix, 75002 Paris" value={pickupAddress} onChange={(e) => { setPickupAddress(e.target.value); clearError("pickupAddress"); }} />
+              <input className={inputClass("pickupAddress")} placeholder="Ex : 12 rue de la Paix, 75002 Paris" value={pickupAddress} onChange={(e) => { setPickupAddress(e.target.value); clearError("pickupAddress"); setSaveAddressFav(false); }} />
               {errors.pickupAddress && <ErrorHint message={errors.pickupAddress} />}
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Code d'accès / étage / interphone (optionnel)</label>
               <input className={inputClass("pickupAccessCode")} placeholder="Ex : Code 1234, 3ème étage gauche" value={pickupAccessCode} onChange={(e) => setPickupAccessCode(e.target.value)} />
             </div>
+            {/* Save as favorite toggle */}
+            {pickupAddress.trim() && !favAddresses.some(f => f.address === pickupAddress.trim()) && (
+              <label className="flex items-center gap-2 cursor-pointer py-1">
+                <Checkbox checked={saveAddressFav} onCheckedChange={(v) => setSaveAddressFav(!!v)} />
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Heart size={12} className="text-primary" /> Ajouter cette adresse aux favoris
+                </span>
+              </label>
+            )}
           </div>
           <TrustBadge variant="card" />
         </div>
