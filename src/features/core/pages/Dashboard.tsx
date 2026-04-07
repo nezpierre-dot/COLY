@@ -330,10 +330,10 @@ const Dashboard = () => {
       const res = await supabase.from("voyages").update({ status: "cancelled" }).eq("id", id);
       error = res.error;
     } else if (type === "shipment") {
-      const shipment = shipments.find(s => s.id === id);
+      const shipment = pendingShipments.find(s => s.id === id) || myShipments.find((s: any) => s.id === id);
       if (shipment) await archiveCancelledMatch({
         item_type: "shipment", item_id: id, user_id: user.id,
-        voyageur_id: (shipment as any).voyageur_id, departure_city: (shipment as any).departure_city,
+        voyageur_id: shipment.voyageur_id, departure_city: shipment.departure_city,
         arrival_city: shipment.arrival_city, arrival_country: shipment.arrival_country,
         tarif: shipment.tarif, original_status: shipment.status,
       });
@@ -343,8 +343,8 @@ const Dashboard = () => {
       const mission = needitMissions.find(m => m.id === id);
       if (mission) await archiveCancelledMatch({
         item_type: "needit_mission", item_id: id, user_id: user.id,
-        voyageur_id: (mission as any).voyageur_id, arrival_city: (mission as any).city,
-        arrival_country: mission.country, tarif: (mission as any).prix_max,
+        voyageur_id: mission.voyageur_id, arrival_city: mission.city,
+        arrival_country: mission.country, tarif: mission.prix_max,
         original_status: mission.status,
       });
       const res = await supabase.from("needit_missions").update({ status: "cancelled" }).eq("id", id);
