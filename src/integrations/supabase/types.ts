@@ -623,6 +623,45 @@ export type Database = {
         }
         Relationships: []
       }
+      proof_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          photo_url: string | null
+          proof_id: string
+          proof_type: string
+          shipment_id: string
+          uploaded_by: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          photo_url?: string | null
+          proof_id: string
+          proof_type?: string
+          shipment_id: string
+          uploaded_by: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          photo_url?: string | null
+          proof_id?: string
+          proof_type?: string
+          shipment_id?: string
+          uploaded_by?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string | null

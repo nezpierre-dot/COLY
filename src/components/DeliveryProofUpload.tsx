@@ -44,7 +44,7 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
     if (!photo || !user) return;
     setUploading(true);
     try {
-      const { file: watermarked } = await addWatermark(photo, coords);
+      const { file: watermarked, proofId } = await addWatermark(photo, coords);
       const path = `delivery-proofs/${shipmentId}/${Date.now()}-${photo.name}`;
       const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, watermarked);
       if (uploadErr) throw uploadErr;
@@ -52,6 +52,16 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
       const photoUrl = signed?.signedUrl ?? "";
       const { error: proofErr } = await supabase.from("delivery_proofs" as any).insert({ shipment_id: shipmentId, photo_url: photoUrl, latitude: coords?.lat ?? null, longitude: coords?.lng ?? null, uploaded_by: user.id });
       if (proofErr) throw proofErr;
+      // Store proof verification record
+      await supabase.from("proof_verifications" as any).insert({
+        proof_id: proofId,
+        shipment_id: shipmentId,
+        proof_type: "delivery",
+        photo_url: photoUrl,
+        latitude: coords?.lat ?? null,
+        longitude: coords?.lng ?? null,
+        uploaded_by: user.id,
+      });
       // Fraud detection via AI
       try {
         const { data: fraudResult } = await supabase.functions.invoke("fraud-check", {
