@@ -384,6 +384,9 @@ const AdminDashboard = () => {
             <TabsTrigger value="config" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Settings size={13} className="mr-1" /> Config
             </TabsTrigger>
+            <TabsTrigger value="audit" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <History size={13} className="mr-1" /> Audit
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="analytics" className="space-y-6 mt-0">
@@ -1128,6 +1131,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="config" className="space-y-6 mt-0">
             <AdminConfigPanel />
+          </TabsContent>
+
+          <TabsContent value="audit" className="space-y-6 mt-0">
+            <AdminAuditLog />
           </TabsContent>
         </Tabs>
       </main>
