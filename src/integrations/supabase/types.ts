@@ -1426,6 +1426,17 @@ export type Database = {
           total_ratings: number
         }[]
       }
+      get_weekly_leaderboard: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string
+          average_score: number
+          full_name: string
+          total_ratings: number
+          voyageur_id: string
+          weekly_deliveries: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
