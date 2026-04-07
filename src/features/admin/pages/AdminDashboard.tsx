@@ -223,6 +223,7 @@ const AdminDashboard = () => {
 
   const roleDistribution = useMemo(() => stats ? [{ name: t("admin.demandeurs"), value: stats.total_demandeurs }, { name: t("admin.voyageurs"), value: stats.total_voyageurs }] : [], [stats, t]);
   const kycDistribution = useMemo(() => stats ? [{ name: t("admin.verified"), value: stats.kyc_verified }, { name: t("admin.pending"), value: stats.kyc_pending }] : [], [stats, t]);
+  const proofDistribution = useMemo(() => [{ name: "Vérifiées", value: proofStats.verified }, { name: "Non vérifiées", value: proofStats.unverified }], [proofStats]);
 
   const handleSupportReply = async (ticketId: string) => {
     if (!supportReplyText.trim()) { toast.error("Veuillez saisir une réponse"); return; }
