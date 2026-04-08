@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight, DollarSign, BookOpen } from "lucide-react";
+import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight, DollarSign, BookOpen, Mail, ScanBarcode } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
@@ -193,6 +193,16 @@ const Settings = () => {
           <Row icon={Bell} label={t("settings.emailNotif")}>
             <Switch checked={emailNotifs} onCheckedChange={setEmailNotifs} />
           </Row>
+          <button
+            onClick={() => navigate("/email-preferences")}
+            className="flex items-center justify-between px-4 py-3.5 w-full hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Mail size={18} className="text-muted-foreground" />
+              <span className="text-foreground text-sm">Préférences email</span>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </button>
           {(canInstall || !isInstalled) && (
             <button
               onClick={() => navigate("/install")}
