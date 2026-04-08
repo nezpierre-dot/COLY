@@ -17,6 +17,8 @@ interface MatchingVoyageur {
   average_score: number;
   total_ratings: number;
   voyage_id: string;
+  kyc_status: string | null;
+  trust_badges: string[] | null;
 }
 
 interface UseMatchingParams {
