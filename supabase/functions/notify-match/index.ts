@@ -10,18 +10,31 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_CALLS = 5;
 const MAX_EMAILS_PER_CALL = 10;
 
-/** Send a match email to a demandeur via the send-email edge function */
-async function sendMatchEmail(
-  supabaseUrl: string,
-  serviceRoleKey: string,
-  to: string,
+/** Build unsubscribe URL for a user */
+function getUnsubscribeUrl(supabaseUrl: string, userId: string): string {
+  return `${supabaseUrl}/functions/v1/email-unsubscribe?user_id=${userId}`;
+}
+
+/** Build match email HTML */
+function buildMatchEmailHtml(
   userName: string,
   destination: string,
-  matchType: "shipment" | "needit",
-) {
-  const subject = matchType === "shipment"
-    ? "🎯 Un voyageur peut transporter votre colis !"
-    : "🎯 Un voyageur peut réaliser votre mission NeedIt !";
+  matchType: "shipment" | "needit" | "voyage",
+  unsubscribeUrl: string,
+): { subject: string; html: string } {
+  let subject: string;
+  let bodyText: string;
+
+  if (matchType === "shipment") {
+    subject = "🎯 Un voyageur peut transporter votre colis !";
+    bodyText = `Un voyageur se rend à <strong>${destination}</strong> et peut transporter votre colis.`;
+  } else if (matchType === "needit") {
+    subject = "🎯 Un voyageur peut réaliser votre mission NeedIt !";
+    bodyText = `Un voyageur se rend à <strong>${destination}</strong> et peut réaliser votre mission.`;
+  } else {
+    subject = "🎯 Un nouveau colis correspond à votre trajet !";
+    bodyText = `Un nouveau colis à destination de <strong>${destination}</strong> correspond à votre trajet.`;
+  }
 
   const html = `
     <!DOCTYPE html>
@@ -34,10 +47,7 @@ async function sendMatchEmail(
           Bonjour${userName ? ` ${userName}` : ""},
         </p>
         <p style="font-size:14px;color:#374151;line-height:1.6;">
-          ${matchType === "shipment"
-            ? `Un voyageur se rend à <strong>${destination}</strong> et peut transporter votre colis.`
-            : `Un voyageur se rend à <strong>${destination}</strong> et peut réaliser votre mission.`
-          }
+          ${bodyText}
         </p>
         <p style="font-size:14px;color:#374151;line-height:1.6;">
           Connectez-vous pour voir les détails et accepter le match.
@@ -47,11 +57,31 @@ async function sendMatchEmail(
             Voir le match
           </a>
         </div>
-        <p style="font-size:12px;color:#9ca3af;margin-top:24px;">— L'équipe Nidit</p>
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+        <p style="font-size:11px;color:#9ca3af;text-align:center;margin:0;">
+          Vous recevez cet email car vous utilisez Nidit.<br/>
+          <a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Se désinscrire des emails de matching</a>
+        </p>
       </div>
     </body>
     </html>
   `;
+
+  return { subject, html };
+}
+
+/** Send a match email via the send-email edge function */
+async function sendMatchEmail(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  to: string,
+  userName: string,
+  destination: string,
+  matchType: "shipment" | "needit" | "voyage",
+  userId: string,
+) {
+  const unsubscribeUrl = getUnsubscribeUrl(supabaseUrl, userId);
+  const { subject, html } = buildMatchEmailHtml(userName, destination, matchType, unsubscribeUrl);
 
   try {
     const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
@@ -74,11 +104,11 @@ async function sendMatchEmail(
 /** Collect unique user IDs that should receive match emails */
 function collectEmailRecipients(
   items: { user_id: string }[],
-  matchType: "shipment" | "needit",
+  matchType: "shipment" | "needit" | "voyage",
   destination: string,
-): { userId: string; matchType: "shipment" | "needit"; destination: string }[] {
+): { userId: string; matchType: "shipment" | "needit" | "voyage"; destination: string }[] {
   const seen = new Set<string>();
-  const recipients: { userId: string; matchType: "shipment" | "needit"; destination: string }[] = [];
+  const recipients: { userId: string; matchType: "shipment" | "needit" | "voyage"; destination: string }[] = [];
   for (const item of items) {
     if (!seen.has(item.user_id)) {
       seen.add(item.user_id);
@@ -88,12 +118,24 @@ function collectEmailRecipients(
   return recipients;
 }
 
-/** Look up emails for user IDs via auth.users (service role) */
+/** Look up emails for user IDs via auth.users (service role) and check opt-out */
 async function getUserEmails(
   supabase: ReturnType<typeof createClient>,
   userIds: string[],
 ): Promise<Map<string, { email: string; name: string }>> {
   const map = new Map<string, { email: string; name: string }>();
+
+  // Check email preferences (opt-outs)
+  const { data: prefs } = await supabase
+    .from("email_preferences")
+    .select("user_id, match_emails")
+    .in("user_id", userIds);
+
+  const optedOut = new Set<string>();
+  for (const p of prefs || []) {
+    if (!p.match_emails) optedOut.add(p.user_id);
+  }
+
   // Get profiles for names
   const { data: profiles } = await supabase
     .from("profiles")
@@ -102,6 +144,7 @@ async function getUserEmails(
 
   // Get emails from auth.users via admin API
   for (const uid of userIds) {
+    if (optedOut.has(uid)) continue; // Skip opted-out users
     try {
       const { data } = await supabase.auth.admin.getUserById(uid);
       if (data?.user?.email) {
@@ -287,7 +330,7 @@ Deno.serve(async (req) => {
         const emailPromises = emailRecipients.map((r) => {
           const info = emailMap.get(r.userId);
           if (!info?.email) return Promise.resolve();
-          return sendMatchEmail(supabaseUrl, serviceRoleKey, info.email, info.name, r.destination, r.matchType);
+          return sendMatchEmail(supabaseUrl, serviceRoleKey, info.email, info.name, r.destination, r.matchType, r.userId);
         });
         await Promise.allSettled(emailPromises);
       }
@@ -298,7 +341,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── SHIPMENT / MISSION type: notify matching voyageurs ──
+    // ── SHIPMENT / MISSION type: notify matching voyageurs + send emails ──
     if (type === "shipment" || type === "mission") {
       let destination_country = "";
       let destination_city = "";
@@ -376,8 +419,32 @@ Deno.serve(async (req) => {
         await supabase.from("notifications").insert(notifications);
       }
 
+      // ── Send emails to matched voyageurs ──
+      let emailsSent = 0;
+      if (matchedVoyages.length > 0) {
+        const destination = `${destination_city || destination_country}`;
+        const emailRecipients = collectEmailRecipients(
+          matchedVoyages.map((v) => ({ user_id: v.user_id })),
+          "voyage",
+          destination,
+        ).slice(0, MAX_EMAILS_PER_CALL);
+
+        if (emailRecipients.length > 0) {
+          const userIds = emailRecipients.map((r) => r.userId);
+          const emailMap = await getUserEmails(supabase, userIds);
+
+          const emailPromises = emailRecipients.map((r) => {
+            const info = emailMap.get(r.userId);
+            if (!info?.email) return Promise.resolve();
+            return sendMatchEmail(supabaseUrl, serviceRoleKey, info.email, info.name, r.destination, "voyage", r.userId);
+          });
+          await Promise.allSettled(emailPromises);
+          emailsSent = emailRecipients.length;
+        }
+      }
+
       return new Response(
-        JSON.stringify({ matched: notifications.length }),
+        JSON.stringify({ matched: notifications.length, emails_sent: emailsSent }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
