@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Star, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Loader2, Users, Sparkles, ChevronRight, ShieldCheck, Award } from "lucide-react";
+import { Star, MapPin, Calendar, Plane, Train, Car, Bus, Ship, Bike, Loader2, Users, Sparkles, ChevronRight, ShieldCheck, Award, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMatchingVoyageurs } from "../hooks/useMatchingVoyageurs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
-import WhatsAppShareButton from "@/components/ShareWhatsAppButton";
 import UserLevelBadge from "@/components/UserLevelBadge";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface MatchingSuggestionsProps {
   destinationCountry: string;
@@ -42,7 +44,6 @@ const formatDate = (dateStr: string) => {
   }
 };
 
-/** Compute a trust score label from voyageur data */
 const getTrustLevel = (v: {
   kyc_status: string | null;
   trust_badges: string[] | null;
@@ -68,6 +69,7 @@ const MatchingSuggestions = ({
   onSelectVoyageur,
   compact = false,
 }: MatchingSuggestionsProps) => {
+  const [kycOnly, setKycOnly] = useState(false);
   const { voyageurs, loading } = useMatchingVoyageurs({
     destinationCountry,
     destinationCity,
@@ -76,6 +78,8 @@ const MatchingSuggestions = ({
     enabled: !!destinationCountry,
   });
   const nav = useNavigate();
+
+  const filtered = kycOnly ? voyageurs.filter((v) => v.kyc_status === "verified") : voyageurs;
 
   if (!destinationCountry) return null;
 
@@ -101,16 +105,40 @@ const MatchingSuggestions = ({
 
   return (
     <div className={compact ? "space-y-2" : "space-y-3"}>
-      {/* Header */}
-      <div className="flex items-center gap-2 px-1">
-        <Sparkles size={14} className="text-accent" />
-        <h3 className="text-xs font-semibold text-accent uppercase tracking-wider">
-          {voyageurs.length} voyageur{voyageurs.length > 1 ? "s" : ""} disponible{voyageurs.length > 1 ? "s" : ""}
-        </h3>
+      {/* Header + filter */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2">
+          <Sparkles size={14} className="text-accent" />
+          <h3 className="text-xs font-semibold text-accent uppercase tracking-wider">
+            {filtered.length} voyageur{filtered.length > 1 ? "s" : ""} disponible{filtered.length > 1 ? "s" : ""}
+          </h3>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck size={12} className="text-emerald-600" />
+          <Label htmlFor="kyc-filter" className="text-[10px] text-muted-foreground cursor-pointer">
+            Vérifiés uniquement
+          </Label>
+          <Switch
+            id="kyc-filter"
+            checked={kycOnly}
+            onCheckedChange={setKycOnly}
+            className="scale-75"
+          />
+        </div>
       </div>
 
+      {/* Empty after filter */}
+      {filtered.length === 0 && kycOnly && (
+        <div className="text-center py-3 px-3">
+          <ShieldCheck size={18} className="mx-auto text-muted-foreground/50 mb-1.5" />
+          <p className="text-xs text-muted-foreground">
+            Aucun voyageur vérifié disponible. Désactivez le filtre pour voir tous les résultats.
+          </p>
+        </div>
+      )}
+
       {/* Cards */}
-      {voyageurs.map((v, i) => {
+      {filtered.map((v, i) => {
         const trust = getTrustLevel(v);
         return (
           <motion.div
@@ -152,12 +180,10 @@ const MatchingSuggestions = ({
 
                 {/* Trust score row */}
                 <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                  {/* Trust level badge */}
                   <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-4 font-medium ${trust.color}`}>
                     <Award size={8} className="mr-0.5" />
                     Confiance : {trust.label}
                   </Badge>
-                  {/* KYC verified */}
                   {v.kyc_status === "verified" && (
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 font-medium bg-emerald-500/15 text-emerald-700 border-emerald-500/30">
                       <ShieldCheck size={8} className="mr-0.5" />
