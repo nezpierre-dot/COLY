@@ -75,6 +75,48 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Bulk add action (CSV import)
+    if (action === 'bulk_add') {
+      const { products } = body;
+      if (!Array.isArray(products) || products.length === 0) {
+        return new Response(JSON.stringify({ error: 'Liste de produits vide' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const rows = products.slice(0, 500).map((p: any) => ({
+        ean_code: String(p.ean_code || '').trim(),
+        product_name: p.product_name || null,
+        brand: p.brand || null,
+        weight: p.weight || null,
+        category: p.category || null,
+        image_url: p.image_url || null,
+        source: 'csv_import',
+      })).filter((r: any) => /^\d{8,14}$/.test(r.ean_code) && r.product_name);
+
+      if (rows.length === 0) {
+        return new Response(JSON.stringify({ error: 'Aucun produit valide trouvé' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { error } = await supabase.from('ean_products').upsert(rows, { onConflict: 'ean_code' });
+
+      if (error) {
+        console.error('Bulk add error:', error);
+        return new Response(JSON.stringify({ error: 'Erreur lors de l\'import' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, imported: rows.length }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     if (!ean_code || typeof ean_code !== 'string' || !/^\d{8,13}$/.test(ean_code)) {
       return new Response(JSON.stringify({ error: 'Code EAN invalide' }), {
         status: 400,
