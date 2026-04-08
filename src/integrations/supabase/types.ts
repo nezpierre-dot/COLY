@@ -1546,10 +1546,12 @@ export type Database = {
           departure_country: string
           departure_date: string
           full_name: string
+          kyc_status: string
           max_items: number
           max_weight_kg: number
           total_ratings: number
           transport_method: string
+          trust_badges: string[]
           voyage_id: string
           voyageur_id: string
         }[]
