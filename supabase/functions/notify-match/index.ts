@@ -6,8 +6,117 @@ const corsHeaders = {
 };
 
 const MAX_NOTIFICATIONS_PER_CALL = 50;
-const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_CALLS = 5;
+const MAX_EMAILS_PER_CALL = 10;
+
+/** Send a match email to a demandeur via the send-email edge function */
+async function sendMatchEmail(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  to: string,
+  userName: string,
+  destination: string,
+  matchType: "shipment" | "needit",
+) {
+  const subject = matchType === "shipment"
+    ? "🎯 Un voyageur peut transporter votre colis !"
+    : "🎯 Un voyageur peut réaliser votre mission NeedIt !";
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head><meta charset="utf-8"></head>
+    <body style="font-family:Arial,sans-serif;background:#f9fafb;padding:20px;">
+      <div style="max-width:500px;margin:0 auto;background:#fff;border-radius:12px;padding:32px;border:1px solid #e5e7eb;">
+        <h1 style="font-size:20px;color:#111827;margin:0 0 16px;">🎯 Match trouvé !</h1>
+        <p style="font-size:14px;color:#374151;line-height:1.6;">
+          Bonjour${userName ? ` ${userName}` : ""},
+        </p>
+        <p style="font-size:14px;color:#374151;line-height:1.6;">
+          ${matchType === "shipment"
+            ? `Un voyageur se rend à <strong>${destination}</strong> et peut transporter votre colis.`
+            : `Un voyageur se rend à <strong>${destination}</strong> et peut réaliser votre mission.`
+          }
+        </p>
+        <p style="font-size:14px;color:#374151;line-height:1.6;">
+          Connectez-vous pour voir les détails et accepter le match.
+        </p>
+        <div style="text-align:center;margin:24px 0;">
+          <a href="https://we-app-you.lovable.app/dashboard" style="display:inline-block;background:#7c3aed;color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:bold;font-size:14px;">
+            Voir le match
+          </a>
+        </div>
+        <p style="font-size:12px;color:#9ca3af;margin-top:24px;">— L'équipe Nidit</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    const res = await fetch(`${supabaseUrl}/functions/v1/send-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceRoleKey}`,
+      },
+      body: JSON.stringify({ to, subject, html }),
+    });
+    const body = await res.text();
+    if (!res.ok) {
+      console.error(`Email send failed for ${to}:`, body);
+    }
+  } catch (err) {
+    console.error(`Email send error for ${to}:`, err);
+  }
+}
+
+/** Collect unique user IDs that should receive match emails */
+function collectEmailRecipients(
+  items: { user_id: string }[],
+  matchType: "shipment" | "needit",
+  destination: string,
+): { userId: string; matchType: "shipment" | "needit"; destination: string }[] {
+  const seen = new Set<string>();
+  const recipients: { userId: string; matchType: "shipment" | "needit"; destination: string }[] = [];
+  for (const item of items) {
+    if (!seen.has(item.user_id)) {
+      seen.add(item.user_id);
+      recipients.push({ userId: item.user_id, matchType, destination });
+    }
+  }
+  return recipients;
+}
+
+/** Look up emails for user IDs via auth.users (service role) */
+async function getUserEmails(
+  supabase: ReturnType<typeof createClient>,
+  userIds: string[],
+): Promise<Map<string, { email: string; name: string }>> {
+  const map = new Map<string, { email: string; name: string }>();
+  // Get profiles for names
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id, full_name")
+    .in("user_id", userIds);
+
+  // Get emails from auth.users via admin API
+  for (const uid of userIds) {
+    try {
+      const { data } = await supabase.auth.admin.getUserById(uid);
+      if (data?.user?.email) {
+        const profile = profiles?.find((p: any) => p.user_id === uid);
+        map.set(uid, {
+          email: data.user.email,
+          name: profile?.full_name || "",
+        });
+      }
+    } catch {
+      // Skip if user not found
+    }
+  }
+  return map;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -42,20 +151,10 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
-
-    // Use service role client for data operations
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Rate limiting: check recent notifications created by this user
+    // Rate limiting
     const rateLimitCutoff = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
-    const { count: recentNotifCount } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("type", "match")
-      .gte("created_at", rateLimitCutoff);
-
-    // Simple rate limit based on recent match notifications globally from this endpoint
-    // A more precise approach would use a dedicated log table, but this is a reasonable heuristic
     const { data: recentUserNotifs } = await supabase
       .from("notifications")
       .select("created_at")
@@ -72,7 +171,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse and validate input
+    // Parse input
     let body: any;
     try {
       body = await req.json();
@@ -84,7 +183,6 @@ Deno.serve(async (req) => {
     }
 
     const { type, record_id } = body;
-
     const VALID_TYPES = ["voyage", "shipment", "mission"];
     if (!type || !VALID_TYPES.includes(type)) {
       return new Response(
@@ -101,6 +199,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ── VOYAGE type: notify matching demandeurs ──
     if (type === "voyage") {
       const { data: voyage } = await supabase
         .from("voyages")
@@ -109,8 +208,6 @@ Deno.serve(async (req) => {
         .single();
 
       if (!voyage) throw new Error("Voyage not found");
-
-      // Verify the caller owns this voyage
       if (voyage.user_id !== userId) {
         return new Response(
           JSON.stringify({ error: "Forbidden" }),
@@ -125,10 +222,7 @@ Deno.serve(async (req) => {
         .ilike("arrival_country", voyage.arrival_country);
 
       const matchedShipments = (shipments || []).filter((s) => {
-        const cityMatch =
-          !s.arrival_city ||
-          s.arrival_city.toLowerCase() === voyage.arrival_city.toLowerCase();
-        return cityMatch;
+        return !s.arrival_city || s.arrival_city.toLowerCase() === voyage.arrival_city.toLowerCase();
       });
 
       const { data: missions } = await supabase
@@ -138,10 +232,7 @@ Deno.serve(async (req) => {
         .ilike("country", voyage.arrival_country);
 
       const matchedMissions = (missions || []).filter((m) => {
-        const cityMatch =
-          !m.city ||
-          m.city.toLowerCase() === voyage.arrival_city.toLowerCase();
-        return cityMatch;
+        return !m.city || m.city.toLowerCase() === voyage.arrival_city.toLowerCase();
       });
 
       let notifications: any[] = [];
@@ -174,7 +265,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Cap notifications to prevent abuse
       if (notifications.length > MAX_NOTIFICATIONS_PER_CALL) {
         notifications = notifications.slice(0, MAX_NOTIFICATIONS_PER_CALL);
       }
@@ -183,12 +273,32 @@ Deno.serve(async (req) => {
         await supabase.from("notifications").insert(notifications);
       }
 
+      // ── Send emails to matched demandeurs ──
+      const destination = `${voyage.arrival_city}, ${voyage.arrival_country}`;
+      const emailRecipients = [
+        ...collectEmailRecipients(matchedShipments, "shipment", destination),
+        ...collectEmailRecipients(matchedMissions, "needit", destination),
+      ].slice(0, MAX_EMAILS_PER_CALL);
+
+      if (emailRecipients.length > 0) {
+        const userIds = emailRecipients.map((r) => r.userId);
+        const emailMap = await getUserEmails(supabase, userIds);
+
+        const emailPromises = emailRecipients.map((r) => {
+          const info = emailMap.get(r.userId);
+          if (!info?.email) return Promise.resolve();
+          return sendMatchEmail(supabaseUrl, serviceRoleKey, info.email, info.name, r.destination, r.matchType);
+        });
+        await Promise.allSettled(emailPromises);
+      }
+
       return new Response(
-        JSON.stringify({ matched: notifications.length }),
+        JSON.stringify({ matched: notifications.length, emails_sent: emailRecipients.length }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // ── SHIPMENT / MISSION type: notify matching voyageurs ──
     if (type === "shipment" || type === "mission") {
       let destination_country = "";
       let destination_city = "";
@@ -201,7 +311,6 @@ Deno.serve(async (req) => {
           .eq("id", record_id)
           .single();
         if (!shipment) throw new Error("Shipment not found");
-        // Verify caller owns this shipment
         if (shipment.user_id !== userId) {
           return new Response(
             JSON.stringify({ error: "Forbidden" }),
@@ -218,7 +327,6 @@ Deno.serve(async (req) => {
           .eq("id", record_id)
           .single();
         if (!mission) throw new Error("Mission not found");
-        // Verify caller owns this mission
         if (mission.user_id !== userId) {
           return new Response(
             JSON.stringify({ error: "Forbidden" }),
@@ -237,10 +345,7 @@ Deno.serve(async (req) => {
         .ilike("arrival_country", destination_country);
 
       const matchedVoyages = (voyages || []).filter((v) => {
-        const cityMatch =
-          !destination_city ||
-          v.arrival_city.toLowerCase() === destination_city.toLowerCase();
-        return cityMatch;
+        return !destination_city || v.arrival_city.toLowerCase() === destination_city.toLowerCase();
       });
 
       let notifications: any[] = [];
@@ -263,7 +368,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Cap notifications to prevent abuse
       if (notifications.length > MAX_NOTIFICATIONS_PER_CALL) {
         notifications = notifications.slice(0, MAX_NOTIFICATIONS_PER_CALL);
       }
