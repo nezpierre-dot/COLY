@@ -36,7 +36,44 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { ean_code } = await req.json();
+    const body = await req.json();
+    const { action, ean_code } = body;
+
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    // Manual add action
+    if (action === 'manual_add') {
+      const { product_name, brand, weight, category, image_url } = body;
+      if (!ean_code || !/^\d{8,14}$/.test(ean_code) || !product_name) {
+        return new Response(JSON.stringify({ error: 'Code EAN et nom requis' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { error } = await supabase.from('ean_products').upsert({
+        ean_code,
+        product_name,
+        brand: brand || null,
+        weight: weight || null,
+        category: category || null,
+        image_url: image_url || null,
+        source: 'manual',
+      }, { onConflict: 'ean_code' });
+
+      if (error) {
+        console.error('Manual add error:', error);
+        return new Response(JSON.stringify({ error: 'Erreur lors de l\'ajout' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!ean_code || typeof ean_code !== 'string' || !/^\d{8,13}$/.test(ean_code)) {
       return new Response(JSON.stringify({ error: 'Code EAN invalide' }), {
@@ -45,8 +82,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    // serviceRoleKey and supabase already defined above
 
     // 1. Check local cache first
     const { data: cached } = await supabase
