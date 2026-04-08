@@ -232,6 +232,43 @@ const Signup = () => {
     if (error) {
       toast.error(error.message);
     } else {
+      // Send welcome email
+      try {
+        await supabase.functions.invoke("send-email", {
+          body: {
+            to: form.email,
+            subject: "🎉 Bienvenue sur Nidit !",
+            html: `
+              <!DOCTYPE html>
+              <html lang="fr">
+              <head><meta charset="utf-8"></head>
+              <body style="font-family:Arial,sans-serif;background:#f9fafb;padding:20px;">
+                <div style="max-width:500px;margin:0 auto;background:#fff;border-radius:12px;padding:32px;border:1px solid #e5e7eb;">
+                  <h1 style="font-size:22px;color:#111827;margin:0 0 16px;">🎉 Bienvenue sur Nidit !</h1>
+                  <p style="font-size:14px;color:#374151;line-height:1.6;">
+                    Bonjour ${form.prenom},
+                  </p>
+                  <p style="font-size:14px;color:#374151;line-height:1.6;">
+                    Merci de rejoindre la communauté Nidit ! Vous pouvez maintenant envoyer des colis, créer des missions NeedIt ou devenir voyageur.
+                  </p>
+                  <p style="font-size:14px;color:#374151;line-height:1.6;">
+                    Vérifiez votre email pour activer votre compte, puis connectez-vous pour commencer.
+                  </p>
+                  <div style="text-align:center;margin:24px 0;">
+                    <a href="https://we-app-you.lovable.app/login" style="display:inline-block;background:#007AFF;color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:bold;font-size:14px;">
+                      Se connecter
+                    </a>
+                  </div>
+                  <p style="font-size:12px;color:#9ca3af;margin-top:24px;">— L'équipe Nidit</p>
+                </div>
+              </body>
+              </html>
+            `,
+          },
+        });
+      } catch {
+        // Silently fail — welcome email is non-critical
+      }
       toast.success(t("signup.checkEmail"));
       navigate("/login");
     }
