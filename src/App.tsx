@@ -56,6 +56,8 @@ const PublicProfile = lazy(() => import("./features/profile/PublicProfile"));
 const FavoriteAddresses = lazy(() => import("./features/account/pages/FavoriteAddresses"));
 const LeaderboardPage = lazy(() => import("./features/core/pages/LeaderboardPage"));
 const BrowseMissions = lazy(() => import("./features/matching/pages/BrowseMissions"));
+const EmailPreferences = lazy(() => import("./features/account/pages/EmailPreferences"));
+const ManageEanProducts = lazy(() => import("./features/account/pages/ManageEanProducts"));
 
 const queryClient = new QueryClient();
 
@@ -133,6 +135,8 @@ const App = () => {
                     <Route path="/profile/:userId" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
                     <Route path="/leaderboard" element={<ProtectedRoute><LeaderboardPage /></ProtectedRoute>} />
                     <Route path="/browse-missions" element={<ProtectedRoute><BrowseMissions /></ProtectedRoute>} />
+                    <Route path="/email-preferences" element={<ProtectedRoute><EmailPreferences /></ProtectedRoute>} />
+                    <Route path="/manage-ean" element={<ProtectedRoute><ManageEanProducts /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
