@@ -75,6 +75,31 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Delete action
+    if (action === 'delete') {
+      const { id } = body;
+      if (!id) {
+        return new Response(JSON.stringify({ error: 'ID requis' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const { error } = await supabase.from('ean_products').delete().eq('id', id);
+
+      if (error) {
+        console.error('Delete error:', error);
+        return new Response(JSON.stringify({ error: 'Erreur lors de la suppression' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Bulk add action (CSV import)
     if (action === 'bulk_add') {
       const { products } = body;
