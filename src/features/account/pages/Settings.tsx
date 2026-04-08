@@ -247,6 +247,16 @@ const Settings = () => {
             </div>
             <ChevronRight size={16} className="text-muted-foreground" />
           </button>
+          <button
+            onClick={() => navigate("/manage-ean")}
+            className="flex items-center justify-between px-4 py-3.5 w-full hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <ScanBarcode size={18} className="text-muted-foreground" />
+              <span className="text-foreground text-sm">Gérer les produits EAN</span>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </button>
         </Section>
         <Section title={t("settings.security")}>
           <Row icon={Shield} label={t("settings.changePassword")}>
