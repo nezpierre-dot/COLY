@@ -86,9 +86,43 @@ const PostMatchActions = ({
   const [showRating, setShowRating] = useState(false);
   const [hasRated, setHasRated] = useState(false);
   const [proofState, setProofState] = useState<ProofState>({ pickupDone: false, deliveryDone: false });
+  const [destinationCoords, setDestinationCoords] = useState<{ lat: number; lng: number; label?: string } | null>(null);
 
   const isSender = user?.id === senderId;
   const isVoyageur = user?.id === voyageurId;
+
+  // Fetch arrival city and geocode for destination marker
+  useEffect(() => {
+    const fetchDestination = async () => {
+      const table = itemType === "needit" ? "needit_missions" : "shipments";
+      const { data } = await supabase
+        .from(table as any)
+        .select(itemType === "needit" ? "city, country" : "arrival_city, arrival_country")
+        .eq("id", shipmentId)
+        .maybeSingle();
+
+      if (!data) return;
+
+      const city = itemType === "needit" ? (data as any).city : (data as any).arrival_city;
+      const country = itemType === "needit" ? (data as any).country : (data as any).arrival_country;
+      if (!city) return;
+
+      try {
+        const query = encodeURIComponent(`${city}, ${country}`);
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN || "pk.eyJ1IjoibG92YWJsZS1kZXYiLCJhIjoiY20yazV0OHRtMGF3aDJtczhheXM3c3E2eiJ9.a3GEdBIt8b9S8JnhaRj1jA"}&limit=1`
+        );
+        const geo = await res.json();
+        if (geo.features?.length > 0) {
+          const [lng, lat] = geo.features[0].center;
+          setDestinationCoords({ lat, lng, label: city });
+        }
+      } catch (err) {
+        console.error("Geocoding error:", err);
+      }
+    };
+    fetchDestination();
+  }, [shipmentId, itemType]);
 
   // Load existing proofs from DB to determine if they've been uploaded
   useEffect(() => {
