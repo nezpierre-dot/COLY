@@ -4,7 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
-import { MapPin, Navigation, Loader2 } from "lucide-react";
+import { MapPin, Navigation, Loader2, Clock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -234,6 +234,16 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Last updated timestamp */}
+      {sharing && lastUpdated && (
+        <div className="flex items-center gap-1.5 px-4 py-2 border-t border-border">
+          <Clock size={12} className="text-muted-foreground" />
+          <span className="text-[11px] text-muted-foreground">
+            {t("location.lastUpdate")} {new Date(lastUpdated).toLocaleTimeString()}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
