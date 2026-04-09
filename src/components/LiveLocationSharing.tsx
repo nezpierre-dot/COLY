@@ -95,7 +95,28 @@ const LiveLocationSharing = ({
     };
   }, [location, destination]);
 
-  // Load existing location record
+  // Auto-fit bounds when both voyageur location and destination are available
+  const hasFittedRef = useRef(false);
+  useEffect(() => {
+    if (!location || !destination || !mapRef.current || hasFittedRef.current) return;
+    const map = mapRef.current;
+    const sw: [number, number] = [
+      Math.min(location.lng, destination.lng),
+      Math.min(location.lat, destination.lat),
+    ];
+    const ne: [number, number] = [
+      Math.max(location.lng, destination.lng),
+      Math.max(location.lat, destination.lat),
+    ];
+    map.fitBounds([sw, ne], { padding: 40, maxZoom: 15, duration: 800 });
+    hasFittedRef.current = true;
+  }, [location, destination]);
+
+  // Reset fit flag when destination changes
+  useEffect(() => {
+    hasFittedRef.current = false;
+  }, [destination]);
+
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
@@ -264,6 +285,7 @@ const LiveLocationSharing = ({
             transition={{ duration: 0.3 }}
           >
             <Map
+              ref={mapRef}
               mapboxAccessToken={MAPBOX_TOKEN}
               initialViewState={{
                 longitude: location.lng,
