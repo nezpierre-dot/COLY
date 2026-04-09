@@ -1,15 +1,31 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import Map, { Marker } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
-import { MapPin, Navigation, Loader2, Clock } from "lucide-react";
+import { MapPin, Navigation, Loader2, Clock, Flag } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { MAPBOX_TOKEN } from "@/lib/mapbox";
+
+/** Haversine distance in km between two lat/lng points */
+function haversineKm(
+  lat1: number, lng1: number,
+  lat2: number, lng2: number
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 interface Props {
   /** The shipment or mission ID */
@@ -20,16 +36,46 @@ interface Props {
   isVoyageur: boolean;
   /** Auto-start location sharing when component mounts (voyageur only) */
   autoStart?: boolean;
+  /** Destination coordinates for distance estimation */
+  destination?: { lat: number; lng: number; label?: string } | null;
 }
 
-const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false }: Props) => {
+const LiveLocationSharing = ({
+  itemId,
+  voyageurId,
+  isVoyageur,
+  autoStart = false,
+  destination = null,
+}: Props) => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [sharing, setSharing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [isRecent, setIsRecent] = useState(false);
+  const recentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const watchIdRef = useRef<number | null>(null);
+
+  // Mark timestamp as "recent" for 10s after each update
+  const markRecent = useCallback(() => {
+    setIsRecent(true);
+    if (recentTimerRef.current) clearTimeout(recentTimerRef.current);
+    recentTimerRef.current = setTimeout(() => setIsRecent(false), 10000);
+  }, []);
+
+  // Cleanup recent timer
+  useEffect(() => {
+    return () => {
+      if (recentTimerRef.current) clearTimeout(recentTimerRef.current);
+    };
+  }, []);
+
+  // Estimated distance to destination
+  const distanceKm = useMemo(() => {
+    if (!location || !destination) return null;
+    return haversineKm(location.lat, location.lng, destination.lat, destination.lng);
+  }, [location, destination]);
 
   // Load existing location record
   useEffect(() => {
@@ -71,6 +117,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
             setLocation({ lat: row.latitude, lng: row.longitude });
             setSharing(row.is_sharing);
             setLastUpdated(row.updated_at);
+            markRecent();
           }
           if (payload.eventType === "DELETE") {
             setSharing(false);
@@ -83,7 +130,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [itemId, isVoyageur]);
+  }, [itemId, isVoyageur, markRecent]);
 
   // GPS watch for voyageur
   const startWatching = useCallback(() => {
@@ -99,6 +146,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
         setLocation({ lat, lng });
         const now = new Date().toISOString();
         setLastUpdated(now);
+        markRecent();
 
         // Upsert position
         await supabase.from("live_locations").upsert(
@@ -119,14 +167,13 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
       },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
-  }, [user, itemId, t]);
+  }, [user, itemId, t, markRecent]);
 
   const stopWatching = useCallback(async () => {
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
-    // Update sharing status
     await supabase
       .from("live_locations")
       .update({ is_sharing: false })
@@ -134,7 +181,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
       .eq("shipment_id", itemId);
   }, [user, itemId]);
 
-  // Auto-start sharing for voyageur when in_transit
+  // Auto-start sharing for voyageur
   useEffect(() => {
     if (autoStart && isVoyageur && !loading && !sharing) {
       setSharing(true);
@@ -210,6 +257,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
               attributionControl={false}
               interactive={!isVoyageur}
             >
+              {/* Voyageur marker */}
               <Marker longitude={location.lng} latitude={location.lat} anchor="bottom">
                 <div className="relative">
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg border-2 border-white">
@@ -218,6 +266,17 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-primary animate-ping" />
                 </div>
               </Marker>
+
+              {/* Destination marker */}
+              {destination && (
+                <Marker longitude={destination.lng} latitude={destination.lat} anchor="bottom">
+                  <div className="relative">
+                    <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md border-2 border-white">
+                      <Flag size={14} className="text-accent-foreground" />
+                    </div>
+                  </div>
+                </Marker>
+              )}
             </Map>
           </motion.div>
         ) : (
@@ -235,13 +294,44 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
         )}
       </AnimatePresence>
 
-      {/* Last updated timestamp */}
-      {sharing && lastUpdated && (
-        <div className="flex items-center gap-1.5 px-4 py-2 border-t border-border">
-          <Clock size={12} className="text-muted-foreground" />
-          <span className="text-[11px] text-muted-foreground">
-            {t("location.lastUpdate")} {new Date(lastUpdated).toLocaleTimeString()}
-          </span>
+      {/* Footer: timestamp + distance */}
+      {sharing && (lastUpdated || distanceKm !== null) && (
+        <div className="flex items-center justify-between px-4 py-2 border-t border-border">
+          {/* Timestamp with pulse animation when recent */}
+          {lastUpdated && (
+            <motion.div
+              className="flex items-center gap-1.5"
+              animate={isRecent ? { scale: [1, 1.05, 1] } : {}}
+              transition={{ duration: 0.6, repeat: isRecent ? Infinity : 0, repeatType: "loop" }}
+            >
+              <div className="relative">
+                <Clock size={12} className="text-muted-foreground" />
+                {isRecent && (
+                  <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                )}
+              </div>
+              <span className={`text-[11px] ${isRecent ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                {new Date(lastUpdated).toLocaleTimeString()}
+              </span>
+            </motion.div>
+          )}
+
+          {/* Distance estimation */}
+          {distanceKm !== null && (
+            <div className="flex items-center gap-1.5">
+              <Flag size={12} className="text-muted-foreground" />
+              <span className="text-[11px] font-medium text-foreground">
+                {distanceKm < 1
+                  ? `${Math.round(distanceKm * 1000)} m`
+                  : `${distanceKm.toFixed(1)} km`}
+              </span>
+              {destination?.label && (
+                <span className="text-[11px] text-muted-foreground truncate max-w-[100px]">
+                  — {destination.label}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
