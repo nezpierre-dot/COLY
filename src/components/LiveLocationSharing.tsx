@@ -339,6 +339,18 @@ const LiveLocationSharing = ({
                   />
                 </Source>
               )}
+
+              {/* Recenter button */}
+              {destination && (
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="absolute top-2 right-2 z-10 h-8 w-8 rounded-lg shadow-md"
+                  onClick={fitMapBounds}
+                >
+                  <Maximize2 size={14} />
+                </Button>
+              )}
             </Map>
           </motion.div>
         ) : (
