@@ -5,7 +5,8 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
-import { MapPin, Navigation, Loader2, Clock, Flag } from "lucide-react";
+import { MapPin, Navigation, Loader2, Clock, Flag, Maximize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -95,11 +96,9 @@ const LiveLocationSharing = ({
     };
   }, [location, destination]);
 
-  // Auto-fit bounds when both voyageur location and destination are available
-  const hasFittedRef = useRef(false);
-  useEffect(() => {
-    if (!location || !destination || !mapRef.current || hasFittedRef.current) return;
-    const map = mapRef.current;
+  // Fit map to show both voyageur and destination
+  const fitMapBounds = useCallback(() => {
+    if (!location || !destination || !mapRef.current) return;
     const sw: [number, number] = [
       Math.min(location.lng, destination.lng),
       Math.min(location.lat, destination.lat),
@@ -108,9 +107,16 @@ const LiveLocationSharing = ({
       Math.max(location.lng, destination.lng),
       Math.max(location.lat, destination.lat),
     ];
-    map.fitBounds([sw, ne], { padding: 40, maxZoom: 15, duration: 800 });
-    hasFittedRef.current = true;
+    mapRef.current.fitBounds([sw, ne], { padding: 40, maxZoom: 15, duration: 800 });
   }, [location, destination]);
+
+  // Auto-fit bounds on first load
+  const hasFittedRef = useRef(false);
+  useEffect(() => {
+    if (!location || !destination || hasFittedRef.current) return;
+    fitMapBounds();
+    hasFittedRef.current = true;
+  }, [location, destination, fitMapBounds]);
 
   // Reset fit flag when destination changes
   useEffect(() => {
@@ -332,6 +338,18 @@ const LiveLocationSharing = ({
                     }}
                   />
                 </Source>
+              )}
+
+              {/* Recenter button */}
+              {destination && (
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="absolute top-2 right-2 z-10 h-8 w-8 rounded-lg shadow-md"
+                  onClick={fitMapBounds}
+                >
+                  <Maximize2 size={14} />
+                </Button>
               )}
             </Map>
           </motion.div>
