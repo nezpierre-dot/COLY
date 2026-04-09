@@ -283,6 +283,17 @@ const LiveLocationSharing = ({
                 </div>
               </Marker>
 
+              {/* Destination marker */}
+              {destination && (
+                <Marker longitude={destination.lng} latitude={destination.lat} anchor="bottom">
+                  <div className="relative">
+                    <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center shadow-md border-2 border-white">
+                      <Flag size={14} className="text-accent-foreground" />
+                    </div>
+                  </div>
+                </Marker>
+              )}
+
               {/* Route line between voyageur and destination */}
               {routeLineGeoJson && (
                 <Source id="route-line" type="geojson" data={routeLineGeoJson}>
