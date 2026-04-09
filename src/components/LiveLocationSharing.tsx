@@ -4,7 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
-import { MapPin, Navigation, Loader2 } from "lucide-react";
+import { MapPin, Navigation, Loader2, Clock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +28,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
   const [sharing, setSharing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
   // Load existing location record
@@ -43,6 +44,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
       if (data) {
         setSharing(data.is_sharing);
         setLocation({ lat: data.latitude, lng: data.longitude });
+        setLastUpdated(data.updated_at);
       }
       setLoading(false);
     };
@@ -68,6 +70,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
           if (row) {
             setLocation({ lat: row.latitude, lng: row.longitude });
             setSharing(row.is_sharing);
+            setLastUpdated(row.updated_at);
           }
           if (payload.eventType === "DELETE") {
             setSharing(false);
@@ -94,6 +97,8 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setLocation({ lat, lng });
+        const now = new Date().toISOString();
+        setLastUpdated(now);
 
         // Upsert position
         await supabase.from("live_locations").upsert(
@@ -229,6 +234,16 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Last updated timestamp */}
+      {sharing && lastUpdated && (
+        <div className="flex items-center gap-1.5 px-4 py-2 border-t border-border">
+          <Clock size={12} className="text-muted-foreground" />
+          <span className="text-[11px] text-muted-foreground">
+            {t("location.lastUpdate")} {new Date(lastUpdated).toLocaleTimeString()}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

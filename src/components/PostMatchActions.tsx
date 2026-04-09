@@ -780,7 +780,7 @@ const PostMatchActions = ({
         />
       )}
 
-      {voyageurId && normalizedStatus === "in_transit" && !compact && (
+      {voyageurId && ["accepted", "picked_up", "in_transit"].includes(normalizedStatus) && !compact && (
         <LiveLocationSharing
           itemId={shipmentId}
           voyageurId={voyageurId}
