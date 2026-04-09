@@ -59,6 +59,8 @@ const LiveLocationSharing = ({
   const recentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const mapRef = useRef<MapRef>(null);
+  const demandeurIdRef = useRef<string | null>(null);
+  const notifiedThresholdsRef = useRef<Set<number>>(new Set());
 
   // Mark timestamp as "recent" for 10s after each update
   const markRecent = useCallback(() => {
