@@ -44,6 +44,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
       if (data) {
         setSharing(data.is_sharing);
         setLocation({ lat: data.latitude, lng: data.longitude });
+        setLastUpdated(data.updated_at);
       }
       setLoading(false);
     };
@@ -69,6 +70,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
           if (row) {
             setLocation({ lat: row.latitude, lng: row.longitude });
             setSharing(row.is_sharing);
+            setLastUpdated(row.updated_at);
           }
           if (payload.eventType === "DELETE") {
             setSharing(false);
@@ -95,6 +97,8 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setLocation({ lat, lng });
+        const now = new Date().toISOString();
+        setLastUpdated(now);
 
         // Upsert position
         await supabase.from("live_locations").upsert(
