@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import Map, { Marker, Source, Layer } from "react-map-gl";
+import Map, { Marker, Source, Layer, useMap } from "react-map-gl";
+import type { MapRef } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -56,6 +57,7 @@ const LiveLocationSharing = ({
   const [isRecent, setIsRecent] = useState(false);
   const recentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const mapRef = useRef<MapRef>(null);
 
   // Mark timestamp as "recent" for 10s after each update
   const markRecent = useCallback(() => {
