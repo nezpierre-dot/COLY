@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import Map, { Marker } from "react-map-gl";
+import Map, { Marker, Source, Layer } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -75,6 +75,22 @@ const LiveLocationSharing = ({
   const distanceKm = useMemo(() => {
     if (!location || !destination) return null;
     return haversineKm(location.lat, location.lng, destination.lat, destination.lng);
+  }, [location, destination]);
+
+  // GeoJSON line between voyageur and destination
+  const routeLineGeoJson = useMemo(() => {
+    if (!location || !destination) return null;
+    return {
+      type: "Feature" as const,
+      properties: {},
+      geometry: {
+        type: "LineString" as const,
+        coordinates: [
+          [location.lng, location.lat],
+          [destination.lng, destination.lat],
+        ],
+      },
+    };
   }, [location, destination]);
 
   // Load existing location record
@@ -276,6 +292,22 @@ const LiveLocationSharing = ({
                     </div>
                   </div>
                 </Marker>
+              )}
+
+              {/* Route line between voyageur and destination */}
+              {routeLineGeoJson && (
+                <Source id="route-line" type="geojson" data={routeLineGeoJson}>
+                  <Layer
+                    id="route-line-layer"
+                    type="line"
+                    paint={{
+                      "line-color": "#6366f1",
+                      "line-width": 2.5,
+                      "line-dasharray": [3, 2],
+                      "line-opacity": 0.7,
+                    }}
+                  />
+                </Source>
               )}
             </Map>
           </motion.div>
