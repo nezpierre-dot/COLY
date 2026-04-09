@@ -125,6 +125,53 @@ const LiveLocationSharing = ({
     hasFittedRef.current = false;
   }, [destination]);
 
+  // Fetch demandeur ID for proximity notifications
+  useEffect(() => {
+    const fetchDemandeur = async () => {
+      const { data: shipment } = await supabase
+        .from("shipments")
+        .select("user_id")
+        .eq("id", itemId)
+        .maybeSingle();
+      if (shipment) {
+        demandeurIdRef.current = shipment.user_id;
+      } else {
+        const { data: mission } = await supabase
+          .from("needit_missions")
+          .select("user_id")
+          .eq("id", itemId)
+          .maybeSingle();
+        if (mission) demandeurIdRef.current = mission.user_id;
+      }
+    };
+    if (isVoyageur) fetchDemandeur();
+  }, [itemId, isVoyageur]);
+
+  // Proximity notification thresholds in km
+  const PROXIMITY_THRESHOLDS = [
+    { km: 5, title: "📍 Voyageur à proximité", message: "Le voyageur est à moins de 5 km de la destination !" },
+    { km: 1, title: "🏁 Arrivée imminente", message: "Le voyageur est à moins de 1 km — préparez-vous !" },
+  ];
+
+  const checkProximityNotifications = useCallback(
+    async (lat: number, lng: number) => {
+      if (!destination || !demandeurIdRef.current) return;
+      const dist = haversineKm(lat, lng, destination.lat, destination.lng);
+      for (const threshold of PROXIMITY_THRESHOLDS) {
+        if (dist <= threshold.km && !notifiedThresholdsRef.current.has(threshold.km)) {
+          notifiedThresholdsRef.current.add(threshold.km);
+          await supabase.from("notifications").insert({
+            user_id: demandeurIdRef.current,
+            title: threshold.title,
+            message: threshold.message,
+            type: `proximity:${threshold.km}km:${itemId}`,
+          });
+        }
+      }
+    },
+    [destination, itemId]
+  );
+
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
