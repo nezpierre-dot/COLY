@@ -820,6 +820,7 @@ const PostMatchActions = ({
           voyageurId={voyageurId}
           isVoyageur={isVoyageur}
           autoStart
+          destination={destinationCoords}
         />
       )}
     </div>
