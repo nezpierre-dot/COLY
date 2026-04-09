@@ -254,6 +254,9 @@ const LiveLocationSharing = ({
           },
           { onConflict: "user_id,shipment_id" }
         );
+
+        // Check proximity and notify demandeur
+        await checkProximityNotifications(lat, lng);
       },
       (err) => {
         console.error("Geolocation error:", err);
@@ -261,7 +264,7 @@ const LiveLocationSharing = ({
       },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
-  }, [user, itemId, t, markRecent]);
+  }, [user, itemId, t, markRecent, checkProximityNotifications]);
 
   const stopWatching = useCallback(async () => {
     if (watchIdRef.current !== null) {
