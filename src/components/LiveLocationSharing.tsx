@@ -77,6 +77,22 @@ const LiveLocationSharing = ({
     return haversineKm(location.lat, location.lng, destination.lat, destination.lng);
   }, [location, destination]);
 
+  // GeoJSON line between voyageur and destination
+  const routeLineGeoJson = useMemo(() => {
+    if (!location || !destination) return null;
+    return {
+      type: "Feature" as const,
+      properties: {},
+      geometry: {
+        type: "LineString" as const,
+        coordinates: [
+          [location.lng, location.lat],
+          [destination.lng, destination.lat],
+        ],
+      },
+    };
+  }, [location, destination]);
+
   // Load existing location record
   useEffect(() => {
     const load = async () => {
