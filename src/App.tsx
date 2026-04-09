@@ -58,6 +58,7 @@ const LeaderboardPage = lazy(() => import("./features/core/pages/LeaderboardPage
 const BrowseMissions = lazy(() => import("./features/matching/pages/BrowseMissions"));
 const EmailPreferences = lazy(() => import("./features/account/pages/EmailPreferences"));
 const ManageEanProducts = lazy(() => import("./features/account/pages/ManageEanProducts"));
+const TestLiveLocation = lazy(() => import("./pages/TestLiveLocation"));
 
 const queryClient = new QueryClient();
 
@@ -137,6 +138,7 @@ const App = () => {
                     <Route path="/browse-missions" element={<ProtectedRoute><BrowseMissions /></ProtectedRoute>} />
                     <Route path="/email-preferences" element={<ProtectedRoute><EmailPreferences /></ProtectedRoute>} />
                     <Route path="/manage-ean" element={<ProtectedRoute><ManageEanProducts /></ProtectedRoute>} />
+                    <Route path="/test-live-location" element={<ProtectedRoute><TestLiveLocation /></ProtectedRoute>} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
