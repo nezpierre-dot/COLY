@@ -301,7 +301,7 @@ const LiveLocationSharing = ({
                     id="route-line-layer"
                     type="line"
                     paint={{
-                      "line-color": "hsl(var(--primary))",
+                      "line-color": "#6366f1",
                       "line-width": 2.5,
                       "line-dasharray": [3, 2],
                       "line-opacity": 0.7,
