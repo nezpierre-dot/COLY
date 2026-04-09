@@ -28,6 +28,7 @@ const LiveLocationSharing = ({ itemId, voyageurId, isVoyageur, autoStart = false
   const [sharing, setSharing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
   // Load existing location record
