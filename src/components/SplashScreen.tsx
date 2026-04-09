@@ -65,7 +65,7 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
           >
             <button
               onClick={handleStart}
-              className="w-full py-4 rounded-2xl bg-[#0D84FF] text-white font-semibold text-base shadow-lg shadow-[#0D84FF]/30 active:scale-[0.97] transition-transform"
+              className="w-full py-4 rounded-2xl bg-[#0060CC] text-white font-semibold text-base shadow-lg shadow-[#0060CC]/30 active:scale-[0.97] transition-transform"
             >
               Commencer
             </button>

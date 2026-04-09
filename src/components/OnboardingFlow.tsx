@@ -50,20 +50,20 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col bg-background">
       {!isLast && (
-        <button onClick={() => finish("/")} className="absolute top-6 right-6 z-10 text-sm text-muted-foreground hover:text-foreground transition-colors">{t("onboarding.skip")}</button>
+        <button onClick={() => finish("/")} className="absolute top-6 right-6 z-10 text-sm text-foreground/60 hover:text-foreground transition-colors">{t("onboarding.skip")}</button>
       )}
       <div className="flex-1 flex items-center justify-center overflow-hidden px-6">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div key={current} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ type: "spring", stiffness: 300, damping: 30 }} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.2} onDragEnd={handleDragEnd} className="flex flex-col items-center text-center max-w-sm w-full select-none">
             <div className={`w-24 h-24 rounded-3xl bg-gradient-to-br ${slide.accent} flex items-center justify-center text-primary-foreground mb-8 shadow-lg`}>{slide.icon}</div>
             <h2 className="text-2xl font-bold text-foreground whitespace-pre-line leading-tight mb-4">{slide.title}</h2>
-            <p className="text-base text-muted-foreground whitespace-pre-line leading-relaxed">{slide.description}</p>
+            <p className="text-base text-foreground/60 whitespace-pre-line leading-relaxed">{slide.description}</p>
           </motion.div>
         </AnimatePresence>
       </div>
       <div className="flex justify-center gap-2 mb-6">
         {slides.map((_, i) => (
-          <button key={i} onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i); }} className={`h-2 rounded-full transition-all duration-300 ${i === current ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"}`} />
+          <button key={i} onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i); }} aria-label={`Slide ${i + 1}`} className={`h-2 rounded-full transition-all duration-300 ${i === current ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"}`} />
         ))}
       </div>
       <div className="px-6 pb-10 space-y-3">
