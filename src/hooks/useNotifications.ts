@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -15,6 +15,7 @@ export function useNotifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const deletedIdsRef = useRef(new Set<string>());
 
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
@@ -24,7 +25,11 @@ export function useNotifications() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(50);
-    if (data) setNotifications(data);
+    if (data) {
+      // Filter out any notifications that were locally deleted but not yet gone from DB
+      const filtered = data.filter((n) => !deletedIdsRef.current.has(n.id));
+      setNotifications(filtered);
+    }
     setLoading(false);
   }, [user]);
 
@@ -76,8 +81,14 @@ export function useNotifications() {
   };
 
   const deleteNotification = async (id: string) => {
-    await supabase.from("notifications").delete().eq("id", id);
+    deletedIdsRef.current.add(id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    const { error } = await supabase.from("notifications").delete().eq("id", id);
+    if (error) {
+      // Rollback if delete failed
+      deletedIdsRef.current.delete(id);
+      fetchNotifications();
+    }
   };
 
   return {
