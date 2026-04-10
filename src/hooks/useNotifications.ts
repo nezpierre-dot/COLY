@@ -81,8 +81,14 @@ export function useNotifications() {
   };
 
   const deleteNotification = async (id: string) => {
-    await supabase.from("notifications").delete().eq("id", id);
+    deletedIdsRef.current.add(id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    const { error } = await supabase.from("notifications").delete().eq("id", id);
+    if (error) {
+      // Rollback if delete failed
+      deletedIdsRef.current.delete(id);
+      fetchNotifications();
+    }
   };
 
   return {
