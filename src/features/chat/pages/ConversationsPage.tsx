@@ -257,8 +257,11 @@ const ConversationsPage = () => {
 
     if (!convos) { setLoading(false); return; }
 
+    // Filter out locally deleted conversations
+    const filtered = convos.filter((c) => !deletedIdsRef.current.has(c.id));
+
     const enriched = await Promise.all(
-      convos.map(async (c) => {
+      filtered.map(async (c) => {
         const otherId = c.demandeur_id === user.id ? c.voyageur_id : c.demandeur_id;
         const isOtherVoyageur = c.voyageur_id === otherId;
         const otherRef = (isOtherVoyageur ? "VOY-" : "EXP-") + otherId.substring(0, 8).toUpperCase();
@@ -276,8 +279,14 @@ const ConversationsPage = () => {
           .eq("is_read", false)
           .neq("sender_id", user.id);
 
+        // Apply locally tracked archive state if pending
+        const archivedBy = archivedIdsRef.current.has(c.id)
+          ? archivedIdsRef.current.get(c.id)!
+          : (c.is_archived_by as string[]);
+
         return {
           ...c,
+          is_archived_by: archivedBy,
           last_message: msgRes.data?.[0]?.content || "",
           other_name: otherRef,
           other_id: otherId,
