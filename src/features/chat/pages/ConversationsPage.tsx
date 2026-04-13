@@ -188,16 +188,18 @@ const ConversationsPage = () => {
   const archivedIdsRef = useRef(new Map<string, string[]>());
 
   const deleteConversation = async (convId: string) => {
+    deletedIdsRef.current.add(convId);
+    setConversations((prev) => prev.filter((c) => c.id !== convId));
     // Delete messages first, then conversation
     await supabase.from("messages").delete().eq("conversation_id", convId);
     const { error } = await supabase.from("conversations").delete().eq("id", convId);
     if (error) {
+      deletedIdsRef.current.delete(convId);
       toast.error(t("conversations.deleteError") || "Erreur lors de la suppression");
+      load();
     } else {
-      setConversations((prev) => prev.filter((c) => c.id !== convId));
       toast.success(t("conversations.deleted") || "Conversation supprimée");
     }
-    
   };
 
   const archiveConversation = async (convId: string) => {
