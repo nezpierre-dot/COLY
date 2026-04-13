@@ -184,6 +184,8 @@ const ConversationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const deletedIdsRef = useRef(new Set<string>());
+  const archivedIdsRef = useRef(new Map<string, string[]>());
 
   const deleteConversation = async (convId: string) => {
     // Delete messages first, then conversation
