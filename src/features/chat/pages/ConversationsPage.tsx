@@ -184,18 +184,22 @@ const ConversationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const deletedIdsRef = useRef(new Set<string>());
+  const archivedIdsRef = useRef(new Map<string, string[]>());
 
   const deleteConversation = async (convId: string) => {
+    deletedIdsRef.current.add(convId);
+    setConversations((prev) => prev.filter((c) => c.id !== convId));
     // Delete messages first, then conversation
     await supabase.from("messages").delete().eq("conversation_id", convId);
     const { error } = await supabase.from("conversations").delete().eq("id", convId);
     if (error) {
+      deletedIdsRef.current.delete(convId);
       toast.error(t("conversations.deleteError") || "Erreur lors de la suppression");
+      load();
     } else {
-      setConversations((prev) => prev.filter((c) => c.id !== convId));
       toast.success(t("conversations.deleted") || "Conversation supprimée");
     }
-    
   };
 
   const archiveConversation = async (convId: string) => {
@@ -207,18 +211,22 @@ const ConversationsPage = () => {
       ? conv.is_archived_by.filter((id) => id !== user.id)
       : [...(conv.is_archived_by || []), user.id];
 
+    // Optimistic update + track
+    archivedIdsRef.current.set(convId, newArchived);
+    setConversations((prev) =>
+      prev.map((c) => (c.id === convId ? { ...c, is_archived_by: newArchived } : c))
+    );
+    toast.success(isArchived ? "Conversation restaurée" : "Conversation archivée");
+
     const { error } = await supabase
       .from("conversations")
       .update({ is_archived_by: newArchived } as any)
       .eq("id", convId);
 
     if (error) {
+      archivedIdsRef.current.delete(convId);
       toast.error("Erreur lors de l'archivage");
-    } else {
-      setConversations((prev) =>
-        prev.map((c) => (c.id === convId ? { ...c, is_archived_by: newArchived } : c))
-      );
-      toast.success(isArchived ? "Conversation restaurée" : "Conversation archivée");
+      load();
     }
   };
 
@@ -227,13 +235,16 @@ const ConversationsPage = () => {
     const archived = conversations.filter((c) => c.is_archived_by?.includes(user.id));
     if (archived.length === 0) return;
 
+    // Optimistic: track all as deleted
+    archived.forEach((c) => deletedIdsRef.current.add(c.id));
+    setConversations((prev) => prev.filter((c) => !c.is_archived_by?.includes(user.id)));
+    setShowArchived(false);
+    toast.success(`${archived.length} conversation(s) supprimée(s)`);
+
     for (const c of archived) {
       await supabase.from("messages").delete().eq("conversation_id", c.id);
       await supabase.from("conversations").delete().eq("id", c.id);
     }
-    setConversations((prev) => prev.filter((c) => !c.is_archived_by?.includes(user.id)));
-    setShowArchived(false);
-    toast.success(`${archived.length} conversation(s) supprimée(s)`);
   };
 
   const load = useCallback(async () => {
@@ -246,8 +257,11 @@ const ConversationsPage = () => {
 
     if (!convos) { setLoading(false); return; }
 
+    // Filter out locally deleted conversations
+    const filtered = convos.filter((c) => !deletedIdsRef.current.has(c.id));
+
     const enriched = await Promise.all(
-      convos.map(async (c) => {
+      filtered.map(async (c) => {
         const otherId = c.demandeur_id === user.id ? c.voyageur_id : c.demandeur_id;
         const isOtherVoyageur = c.voyageur_id === otherId;
         const otherRef = (isOtherVoyageur ? "VOY-" : "EXP-") + otherId.substring(0, 8).toUpperCase();
@@ -265,8 +279,14 @@ const ConversationsPage = () => {
           .eq("is_read", false)
           .neq("sender_id", user.id);
 
+        // Apply locally tracked archive state if pending
+        const archivedBy = archivedIdsRef.current.has(c.id)
+          ? archivedIdsRef.current.get(c.id)!
+          : (c.is_archived_by as string[]);
+
         return {
           ...c,
+          is_archived_by: archivedBy,
           last_message: msgRes.data?.[0]?.content || "",
           other_name: otherRef,
           other_id: otherId,
