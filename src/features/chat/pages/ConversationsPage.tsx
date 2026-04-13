@@ -235,13 +235,16 @@ const ConversationsPage = () => {
     const archived = conversations.filter((c) => c.is_archived_by?.includes(user.id));
     if (archived.length === 0) return;
 
+    // Optimistic: track all as deleted
+    archived.forEach((c) => deletedIdsRef.current.add(c.id));
+    setConversations((prev) => prev.filter((c) => !c.is_archived_by?.includes(user.id)));
+    setShowArchived(false);
+    toast.success(`${archived.length} conversation(s) supprimée(s)`);
+
     for (const c of archived) {
       await supabase.from("messages").delete().eq("conversation_id", c.id);
       await supabase.from("conversations").delete().eq("id", c.id);
     }
-    setConversations((prev) => prev.filter((c) => !c.is_archived_by?.includes(user.id)));
-    setShowArchived(false);
-    toast.success(`${archived.length} conversation(s) supprimée(s)`);
   };
 
   const load = useCallback(async () => {
