@@ -211,18 +211,22 @@ const ConversationsPage = () => {
       ? conv.is_archived_by.filter((id) => id !== user.id)
       : [...(conv.is_archived_by || []), user.id];
 
+    // Optimistic update + track
+    archivedIdsRef.current.set(convId, newArchived);
+    setConversations((prev) =>
+      prev.map((c) => (c.id === convId ? { ...c, is_archived_by: newArchived } : c))
+    );
+    toast.success(isArchived ? "Conversation restaurée" : "Conversation archivée");
+
     const { error } = await supabase
       .from("conversations")
       .update({ is_archived_by: newArchived } as any)
       .eq("id", convId);
 
     if (error) {
+      archivedIdsRef.current.delete(convId);
       toast.error("Erreur lors de l'archivage");
-    } else {
-      setConversations((prev) =>
-        prev.map((c) => (c.id === convId ? { ...c, is_archived_by: newArchived } : c))
-      );
-      toast.success(isArchived ? "Conversation restaurée" : "Conversation archivée");
+      load();
     }
   };
 
