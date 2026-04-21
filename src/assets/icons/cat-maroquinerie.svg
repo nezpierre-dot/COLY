@@ -1,26 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
-  <!-- Watch (behind, top-right) -->
-  <!-- Watch strap top -->
-  <path d="M138 30 L130 52" stroke="#00BFA5" stroke-width="5"/>
-  <path d="M168 30 L160 52" stroke="#00BFA5" stroke-width="5"/>
+  <!-- LUXURY WATCH (top-right, clearly visible) -->
+  <!-- Top strap -->
+  <path d="M132 18 L132 38 L168 38 L168 18 Z" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.10"/>
+  <line x1="140" y1="22" x2="160" y2="22" stroke="#00BFA5" stroke-width="2"/>
+  <line x1="140" y1="30" x2="160" y2="30" stroke="#00BFA5" stroke-width="2"/>
   <!-- Watch case -->
-  <rect x="128" y="50" width="42" height="42" rx="6" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.12"/>
-  <!-- Watch dial -->
-  <circle cx="149" cy="71" r="13" stroke="#00BFA5"/>
-  <line x1="149" y1="71" x2="149" y2="63" stroke="#00BFA5" stroke-width="2"/>
-  <line x1="149" y1="71" x2="156" y2="71" stroke="#00BFA5" stroke-width="2"/>
-  <!-- Watch strap bottom -->
-  <path d="M130 90 L138 112" stroke="#00BFA5" stroke-width="5"/>
-  <path d="M160 90 L168 112" stroke="#00BFA5" stroke-width="5"/>
+  <rect x="126" y="38" width="48" height="48" rx="8" stroke="#00BFA5" fill="hsl(var(--background))"/>
+  <!-- Crown -->
+  <rect x="174" y="56" width="6" height="12" rx="1" stroke="#00BFA5"/>
+  <!-- Dial -->
+  <circle cx="150" cy="62" r="16" stroke="#00BFA5"/>
+  <!-- Hour markers -->
+  <line x1="150" y1="48" x2="150" y2="51" stroke="#00BFA5" stroke-width="2"/>
+  <line x1="150" y1="73" x2="150" y2="76" stroke="#00BFA5" stroke-width="2"/>
+  <line x1="136" y1="62" x2="139" y2="62" stroke="#00BFA5" stroke-width="2"/>
+  <line x1="161" y1="62" x2="164" y2="62" stroke="#00BFA5" stroke-width="2"/>
+  <!-- Hands -->
+  <line x1="150" y1="62" x2="150" y2="53" stroke="#00BFA5" stroke-width="2.5"/>
+  <line x1="150" y1="62" x2="158" y2="62" stroke="#00BFA5" stroke-width="2.5"/>
+  <circle cx="150" cy="62" r="2" fill="#00BFA5"/>
+  <!-- Bottom strap -->
+  <path d="M132 86 L132 106 L168 106 L168 86" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.10"/>
+  <line x1="140" y1="94" x2="160" y2="94" stroke="#00BFA5" stroke-width="2"/>
+  <line x1="140" y1="102" x2="160" y2="102" stroke="#00BFA5" stroke-width="2"/>
 
-  <!-- Handbag (front, overlapping watch) -->
+  <!-- LUXURY HANDBAG (front, overlapping the watch lower-left) -->
   <!-- Handle -->
-  <path d="M55 92 V72 Q55 46 88 46 Q121 46 121 72 V92" stroke="#007AFF"/>
-  <!-- Bag body -->
-  <path d="M28 92 L148 92 L140 184 Q140 190 134 190 L42 190 Q36 190 36 184 Z" stroke="#007AFF" fill="hsl(var(--background))"/>
-  <!-- Top stitch -->
-  <line x1="36" y1="106" x2="140" y2="106" stroke="#00BFA5"/>
-  <!-- Clasp plate -->
-  <rect x="70" y="125" width="36" height="14" rx="2" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.18"/>
-  <circle cx="88" cy="132" r="3" fill="#00BFA5"/>
+  <path d="M50 96 V76 Q50 48 85 48 Q120 48 120 76 V96" stroke="#007AFF"/>
+  <!-- Bag body with structured base -->
+  <path d="M22 96 L148 96 L142 188 Q142 192 138 192 L32 192 Q28 192 28 188 Z" stroke="#007AFF" fill="hsl(var(--background))"/>
+  <!-- Top trim line -->
+  <line x1="28" y1="110" x2="142" y2="110" stroke="#007AFF" stroke-width="2"/>
+  <!-- Clasp / lock plate -->
+  <rect x="68" y="128" width="34" height="20" rx="2" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.18"/>
+  <circle cx="85" cy="138" r="4" stroke="#00BFA5" fill="hsl(var(--background))"/>
+  <line x1="85" y1="148" x2="85" y2="156" stroke="#00BFA5" stroke-width="3"/>
 </svg>

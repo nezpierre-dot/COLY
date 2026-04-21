@@ -1,14 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
-  <!-- Chocolate bar wrapper -->
-  <rect x="35" y="40" width="130" height="120" rx="6" stroke="#007AFF"/>
-  <!-- Foil opening -->
-  <path d="M35 40 L60 25 L165 25 L165 40" stroke="#007AFF"/>
-  <!-- Brand band -->
-  <rect x="35" y="70" width="130" height="22" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.12"/>
-  <line x1="55" y1="81" x2="145" y2="81" stroke="#00BFA5" stroke-width="2"/>
-  <!-- Squares grid -->
-  <line x1="35" y1="120" x2="165" y2="120" stroke="#007AFF"/>
-  <line x1="68" y1="92" x2="68" y2="160" stroke="#007AFF"/>
-  <line x1="100" y1="92" x2="100" y2="160" stroke="#007AFF"/>
-  <line x1="132" y1="92" x2="132" y2="160" stroke="#007AFF"/>
+  <!-- Foil wrapper peeled back at top -->
+  <path d="M30 55 L50 35 L170 35 L170 55" stroke="#007AFF"/>
+  <line x1="50" y1="35" x2="50" y2="55" stroke="#007AFF" stroke-width="2"/>
+  <line x1="80" y1="35" x2="80" y2="55" stroke="#007AFF" stroke-width="2" stroke-dasharray="3 3"/>
+  <line x1="110" y1="35" x2="110" y2="55" stroke="#007AFF" stroke-width="2" stroke-dasharray="3 3"/>
+  <line x1="140" y1="35" x2="140" y2="55" stroke="#007AFF" stroke-width="2" stroke-dasharray="3 3"/>
+
+  <!-- Chocolate bar outer shape -->
+  <rect x="30" y="55" width="140" height="115" rx="4" stroke="#007AFF"/>
+
+  <!-- Inner chocolate area (3x4 grid of squares) -->
+  <rect x="42" y="67" width="116" height="91" rx="2" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.10"/>
+
+  <!-- Vertical grid lines (3 columns => 2 inner lines) -->
+  <line x1="80.6" y1="67" x2="80.6" y2="158" stroke="#00BFA5" stroke-width="3"/>
+  <line x1="119.3" y1="67" x2="119.3" y2="158" stroke="#00BFA5" stroke-width="3"/>
+
+  <!-- Horizontal grid lines (4 rows => 3 inner lines) -->
+  <line x1="42" y1="89.75" x2="158" y2="89.75" stroke="#00BFA5" stroke-width="3"/>
+  <line x1="42" y1="112.5" x2="158" y2="112.5" stroke="#00BFA5" stroke-width="3"/>
+  <line x1="42" y1="135.25" x2="158" y2="135.25" stroke="#00BFA5" stroke-width="3"/>
+
+  <!-- Subtle bevel highlight on each square (top-left corner accent) -->
+  <path d="M46 71 L52 71 M46 71 L46 77" stroke="#00BFA5" stroke-width="2" opacity="0.7"/>
+  <path d="M84.6 71 L90.6 71 M84.6 71 L84.6 77" stroke="#00BFA5" stroke-width="2" opacity="0.7"/>
+  <path d="M123.3 71 L129.3 71 M123.3 71 L123.3 77" stroke="#00BFA5" stroke-width="2" opacity="0.7"/>
 </svg>
