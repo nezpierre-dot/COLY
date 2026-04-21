@@ -1,11 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
-  <!-- Cream jar body -->
-  <path d="M45 85 L155 85 L150 165 Q150 175 140 175 L60 175 Q50 175 50 165 Z" stroke="#007AFF"/>
-  <!-- Lid -->
-  <rect x="40" y="60" width="120" height="28" rx="4" stroke="#007AFF"/>
-  <!-- Lid accent line -->
-  <line x1="50" y1="74" x2="150" y2="74" stroke="#00BFA5"/>
-  <!-- Logo circle -->
-  <circle cx="100" cy="125" r="20" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.12"/>
-  <path d="M92 125 Q100 117 108 125 Q100 133 92 125 Z" stroke="#00BFA5"/>
+  <!-- Lipstick base (lower tube) -->
+  <rect x="72" y="115" width="56" height="65" rx="3" stroke="#007AFF"/>
+  <!-- Decorative band on base -->
+  <line x1="72" y1="135" x2="128" y2="135" stroke="#00BFA5"/>
+  <line x1="72" y1="160" x2="128" y2="160" stroke="#00BFA5"/>
+  <!-- Middle ring (where cap meets) -->
+  <rect x="76" y="100" width="48" height="15" stroke="#007AFF"/>
+  <!-- Lipstick holder cylinder (open, cap removed) -->
+  <rect x="80" y="70" width="40" height="30" stroke="#007AFF"/>
+  <!-- Bullet of lipstick (angled tip) -->
+  <path d="M82 70 L82 38 Q82 30 90 28 L118 22 Q120 22 120 24 L120 70 Z" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.25"/>
 </svg>
