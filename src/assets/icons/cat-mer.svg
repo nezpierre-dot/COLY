@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+  <!-- Caviar tin -->
+  <ellipse cx="100" cy="110" rx="65" ry="20" stroke="#007AFF"/>
+  <path d="M35 110 L35 150 Q35 170 100 170 Q165 170 165 150 L165 110" stroke="#007AFF"/>
+  <!-- Caviar pearls on top -->
+  <circle cx="80" cy="105" r="4" fill="#00BFA5"/>
+  <circle cx="100" cy="100" r="4" fill="#00BFA5"/>
+  <circle cx="120" cy="105" r="4" fill="#00BFA5"/>
+  <circle cx="90" cy="110" r="3" fill="#00BFA5"/>
+  <circle cx="110" cy="110" r="3" fill="#00BFA5"/>
+  <!-- Fish silhouette accent -->
+  <path d="M60 50 Q90 35 130 50 L140 45 L140 60 L130 55 Q90 70 60 55 Z" stroke="#00BFA5"/>
+  <circle cx="70" cy="52" r="1.5" fill="#00BFA5"/>
+</svg>
