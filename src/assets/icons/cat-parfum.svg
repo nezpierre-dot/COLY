@@ -1,10 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
   <!-- Perfume bottle body -->
-  <rect x="55" y="80" width="90" height="100" rx="10" stroke="#007AFF"/>
-  <rect x="85" y="55" width="30" height="25" stroke="#007AFF"/>
-  <rect x="80" y="35" width="40" height="22" rx="3" stroke="#00BFA5"/>
-  <line x1="120" y1="46" x2="145" y2="46" stroke="#00BFA5"/>
-  <path d="M150 40 L165 35 M150 46 L168 46 M150 52 L165 57" stroke="#00BFA5"/>
-  <rect x="75" y="115" width="50" height="35" stroke="#007AFF"/>
-  <line x1="75" y1="130" x2="125" y2="130" stroke="#007AFF"/>
+  <path d="M65 90 Q60 80 65 75 L135 75 Q140 80 135 90 L138 170 Q138 178 130 178 L70 178 Q62 178 62 170 Z" stroke="#007AFF"/>
+  <!-- Neck -->
+  <rect x="88" y="50" width="24" height="25" stroke="#007AFF"/>
+  <!-- Cap -->
+  <rect x="83" y="32" width="34" height="20" rx="3" stroke="#007AFF"/>
+  <!-- Label -->
+  <rect x="78" y="115" width="44" height="40" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.12"/>
+  <line x1="86" y1="130" x2="114" y2="130" stroke="#00BFA5" stroke-width="2"/>
+  <line x1="92" y1="142" x2="108" y2="142" stroke="#00BFA5" stroke-width="2"/>
+  <!-- Sprayer tube -->
+  <line x1="117" y1="42" x2="138" y2="42" stroke="#00BFA5"/>
+  <!-- Sprayer bulb -->
+  <circle cx="148" cy="42" r="8" stroke="#00BFA5"/>
+  <!-- Mist -->
+  <circle cx="162" cy="32" r="1.5" fill="#00BFA5"/>
+  <circle cx="168" cy="42" r="1.5" fill="#00BFA5"/>
+  <circle cx="162" cy="52" r="1.5" fill="#00BFA5"/>
 </svg>

@@ -1,9 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-  <!-- T-shirt silhouette -->
-  <path d="M60 50 L80 35 Q100 50 120 35 L140 50 L170 75 L150 95 L140 85 V165 Q140 170 135 170 H65 Q60 170 60 165 V85 L50 95 L30 75 Z" stroke="#007AFF"/>
-  <!-- Collar accent -->
-  <path d="M80 35 Q100 60 120 35" stroke="#00BFA5"/>
-  <!-- Hanger tag -->
-  <line x1="100" y1="105" x2="100" y2="125" stroke="#00BFA5"/>
-  <rect x="92" y="125" width="16" height="20" stroke="#00BFA5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+  <!-- T-shirt -->
+  <path d="M62 48 L82 32 Q100 50 118 32 L138 48 L168 72 L150 92 L140 84 V168 Q140 174 134 174 L66 174 Q60 174 60 168 V84 L50 92 L32 72 Z" stroke="#007AFF"/>
+  <!-- Collar -->
+  <path d="M82 32 Q100 56 118 32" stroke="#00BFA5"/>
+  <!-- Pocket detail -->
+  <rect x="82" y="100" width="22" height="24" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.1"/>
 </svg>
