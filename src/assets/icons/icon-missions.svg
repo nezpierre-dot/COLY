@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+  <!-- Box -->
+  <path d="M40 90 L100 70 L160 90 L160 160 L100 180 L40 160 Z" stroke="#007AFF"/>
+  <path d="M40 90 L100 110 L160 90" stroke="#007AFF"/>
+  <path d="M100 110 V180" stroke="#007AFF"/>
+  <!-- Hand reaching down -->
+  <path d="M85 50 V85 M100 40 V80 M115 45 V85 M130 55 V90" stroke="#00BFA5"/>
+  <path d="M80 80 Q80 95 100 95 Q135 95 135 80" stroke="#00BFA5"/>
+</svg>

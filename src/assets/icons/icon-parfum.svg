@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+  <!-- Bottle body -->
+  <rect x="55" y="80" width="90" height="100" rx="10" stroke="#007AFF"/>
+  <!-- Neck -->
+  <rect x="85" y="55" width="30" height="25" stroke="#007AFF"/>
+  <!-- Cap -->
+  <rect x="80" y="35" width="40" height="22" rx="3" stroke="#00BFA5"/>
+  <!-- Spray nozzle -->
+  <line x1="120" y1="46" x2="145" y2="46" stroke="#00BFA5"/>
+  <!-- Spray mist -->
+  <path d="M150 40 L165 35 M150 46 L168 46 M150 52 L165 57" stroke="#00BFA5"/>
+  <!-- Label -->
+  <rect x="75" y="115" width="50" height="35" stroke="#007AFF"/>
+</svg>

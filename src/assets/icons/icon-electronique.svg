@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+  <!-- Laptop -->
+  <path d="M40 75 H140 V145 H40 Z" stroke="#007AFF"/>
+  <path d="M25 145 H180 L170 165 H35 Z" stroke="#007AFF"/>
+  <!-- Phone overlapping -->
+  <rect x="115" y="55" width="55" height="95" rx="8" stroke="#007AFF" fill="white"/>
+  <!-- Phone screen accent -->
+  <rect x="123" y="68" width="39" height="65" rx="2" stroke="#00BFA5"/>
+  <circle cx="142.5" cy="143" r="2.5" fill="#00BFA5"/>
+</svg>

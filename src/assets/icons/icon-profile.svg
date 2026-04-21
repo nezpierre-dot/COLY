@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+  <!-- Head -->
+  <circle cx="100" cy="75" r="32" stroke="#007AFF"/>
+  <!-- Shoulders -->
+  <path d="M35 175 Q35 125 100 125 Q165 125 165 175" stroke="#007AFF"/>
+  <!-- Accent collar -->
+  <path d="M75 130 Q100 145 125 130" stroke="#00BFA5"/>
+</svg>

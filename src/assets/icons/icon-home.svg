@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+  <!-- House -->
+  <path d="M40 100 L100 55 L160 100" stroke="#007AFF"/>
+  <path d="M55 92 V160 H145 V92" stroke="#007AFF"/>
+  <path d="M88 160 V120 H112 V160" stroke="#007AFF"/>
+  <!-- Paper plane -->
+  <path d="M120 30 L170 50 L140 65 L132 85 L125 65 L100 55 Z" stroke="#00BFA5"/>
+  <path d="M125 65 L140 65" stroke="#00BFA5"/>
+</svg>
