@@ -1,9 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
   <!-- Box -->
-  <path d="M40 90 L100 70 L160 90 L160 160 L100 180 L40 160 Z" stroke="#007AFF"/>
-  <path d="M40 90 L100 110 L160 90" stroke="#007AFF"/>
-  <path d="M100 110 V180" stroke="#007AFF"/>
-  <!-- Hand reaching down -->
-  <path d="M85 50 V85 M100 40 V80 M115 45 V85 M130 55 V90" stroke="#00BFA5"/>
-  <path d="M80 80 Q80 95 100 95 Q135 95 135 80" stroke="#00BFA5"/>
+  <path d="M35 105 L100 85 L165 105 L165 170 L100 190 L35 170 Z" stroke="#007AFF"/>
+  <path d="M35 105 L100 125 L165 105" stroke="#007AFF"/>
+  <path d="M100 125 V190" stroke="#007AFF"/>
+  <line x1="80" y1="93" x2="120" y2="93" stroke="#007AFF"/>
+  <!-- Hand (palm + fingers) -->
+  <path d="M70 55 Q70 35 85 35 Q92 35 92 45 L92 70" stroke="#00BFA5"/>
+  <path d="M92 45 Q92 30 102 30 Q112 30 112 45 L112 72" stroke="#00BFA5"/>
+  <path d="M112 45 Q112 32 122 32 Q132 32 132 47 L132 75" stroke="#00BFA5"/>
+  <path d="M132 50 Q132 40 140 40 Q148 40 148 52 L148 80 Q148 95 132 95 L85 95 Q70 95 70 80 V55" stroke="#00BFA5"/>
 </svg>
