@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+  <!-- Stack of books -->
+  <rect x="35" y="50" width="120" height="22" rx="2" stroke="#007AFF"/>
+  <rect x="45" y="72" width="120" height="22" rx="2" stroke="#007AFF"/>
+  <rect x="30" y="94" width="120" height="22" rx="2" stroke="#007AFF"/>
+  <!-- Open book on top -->
+  <path d="M50 130 Q70 122 100 130 Q130 122 150 130 V172 Q130 165 100 172 Q70 165 50 172 Z" stroke="#007AFF"/>
+  <line x1="100" y1="130" x2="100" y2="172" stroke="#00BFA5"/>
+  <!-- Bookmark accent -->
+  <path d="M55 50 L55 75 L65 68 L75 75 V50" stroke="#00BFA5"/>
+</svg>

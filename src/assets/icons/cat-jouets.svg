@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+  <!-- Teddy bear -->
+  <!-- Ears -->
+  <circle cx="65" cy="60" r="18" stroke="#007AFF"/>
+  <circle cx="135" cy="60" r="18" stroke="#007AFF"/>
+  <circle cx="65" cy="60" r="8" stroke="#00BFA5"/>
+  <circle cx="135" cy="60" r="8" stroke="#00BFA5"/>
+  <!-- Head -->
+  <circle cx="100" cy="95" r="42" stroke="#007AFF"/>
+  <!-- Eyes -->
+  <circle cx="85" cy="90" r="3.5" fill="#007AFF"/>
+  <circle cx="115" cy="90" r="3.5" fill="#007AFF"/>
+  <!-- Snout -->
+  <ellipse cx="100" cy="110" rx="14" ry="10" stroke="#00BFA5"/>
+  <circle cx="100" cy="106" r="3" fill="#00BFA5"/>
+  <!-- Body -->
+  <path d="M65 130 Q60 175 100 175 Q140 175 135 130" stroke="#007AFF"/>
+</svg>
