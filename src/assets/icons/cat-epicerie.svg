@@ -1,28 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
-  <!-- Foil wrapper peeled back at top -->
-  <path d="M30 55 L50 35 L170 35 L170 55" stroke="#007AFF"/>
-  <line x1="50" y1="35" x2="50" y2="55" stroke="#007AFF" stroke-width="2"/>
-  <line x1="80" y1="35" x2="80" y2="55" stroke="#007AFF" stroke-width="2" stroke-dasharray="3 3"/>
-  <line x1="110" y1="35" x2="110" y2="55" stroke="#007AFF" stroke-width="2" stroke-dasharray="3 3"/>
-  <line x1="140" y1="35" x2="140" y2="55" stroke="#007AFF" stroke-width="2" stroke-dasharray="3 3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+  <!-- Chocolate bar outline (squarish) -->
+  <rect x="40" y="22" width="120" height="156" rx="4" stroke="#007AFF"/>
 
-  <!-- Chocolate bar outer shape -->
-  <rect x="30" y="55" width="140" height="115" rx="4" stroke="#007AFF"/>
+  <!-- Top portion: 3x3 grid of chocolate squares (each with inner L-shape detail) -->
+  <!-- Vertical grid dividers -->
+  <line x1="80" y1="30" x2="80" y2="125" stroke="#007AFF"/>
+  <line x1="120" y1="30" x2="120" y2="125" stroke="#007AFF"/>
+  <!-- Horizontal grid dividers -->
+  <line x1="48" y1="62" x2="152" y2="62" stroke="#007AFF"/>
+  <line x1="48" y1="94" x2="152" y2="94" stroke="#007AFF"/>
+  <line x1="48" y1="125" x2="152" y2="125" stroke="#007AFF"/>
 
-  <!-- Inner chocolate area (3x4 grid of squares) -->
-  <rect x="42" y="67" width="116" height="91" rx="2" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.10"/>
+  <!-- Inner L-shape highlights inside each square (top-left bevel) -->
+  <!-- Row 1 -->
+  <path d="M52 58 L52 38 L72 38" stroke="#00BFA5" stroke-width="3"/>
+  <path d="M88 58 L88 38 L112 38" stroke="#00BFA5" stroke-width="3"/>
+  <path d="M128 58 L128 38 L148 38" stroke="#00BFA5" stroke-width="3"/>
+  <!-- Row 2 -->
+  <path d="M52 90 L52 70 L72 70" stroke="#00BFA5" stroke-width="3"/>
+  <path d="M88 90 L88 70 L112 70" stroke="#00BFA5" stroke-width="3"/>
+  <path d="M128 90 L128 70 L148 70" stroke="#00BFA5" stroke-width="3"/>
+  <!-- Row 3 -->
+  <path d="M52 121 L52 101 L72 101" stroke="#00BFA5" stroke-width="3"/>
+  <path d="M88 121 L88 101 L112 101" stroke="#00BFA5" stroke-width="3"/>
+  <path d="M128 121 L128 101 L148 101" stroke="#00BFA5" stroke-width="3"/>
 
-  <!-- Vertical grid lines (3 columns => 2 inner lines) -->
-  <line x1="80.6" y1="67" x2="80.6" y2="158" stroke="#00BFA5" stroke-width="3"/>
-  <line x1="119.3" y1="67" x2="119.3" y2="158" stroke="#00BFA5" stroke-width="3"/>
-
-  <!-- Horizontal grid lines (4 rows => 3 inner lines) -->
-  <line x1="42" y1="89.75" x2="158" y2="89.75" stroke="#00BFA5" stroke-width="3"/>
-  <line x1="42" y1="112.5" x2="158" y2="112.5" stroke="#00BFA5" stroke-width="3"/>
-  <line x1="42" y1="135.25" x2="158" y2="135.25" stroke="#00BFA5" stroke-width="3"/>
-
-  <!-- Subtle bevel highlight on each square (top-left corner accent) -->
-  <path d="M46 71 L52 71 M46 71 L46 77" stroke="#00BFA5" stroke-width="2" opacity="0.7"/>
-  <path d="M84.6 71 L90.6 71 M84.6 71 L84.6 77" stroke="#00BFA5" stroke-width="2" opacity="0.7"/>
-  <path d="M123.3 71 L129.3 71 M123.3 71 L123.3 77" stroke="#00BFA5" stroke-width="2" opacity="0.7"/>
+  <!-- Wrapper foil peeled at the bottom (diagonal fold) -->
+  <!-- Diagonal line from upper-right of wrapper to lower-left across the bottom area -->
+  <path d="M40 138 L160 125 L160 178 L40 178 Z" stroke="#007AFF" fill="hsl(var(--background))"/>
+  <!-- Folded triangle highlight on the right -->
+  <path d="M160 125 L160 148 L138 138 Z" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.18" stroke-width="3"/>
 </svg>
