@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+  <!-- Speech bubble -->
+  <path d="M40 90 Q40 50 100 50 Q160 50 160 90 Q160 130 100 130 L70 130 L50 155 L55 130 Q40 122 40 90 Z" stroke="#007AFF"/>
+  <!-- Three dots -->
+  <circle cx="75" cy="90" r="6" fill="#00BFA5"/>
+  <circle cx="100" cy="90" r="6" fill="#00BFA5"/>
+  <circle cx="125" cy="90" r="6" fill="#00BFA5"/>
+</svg>

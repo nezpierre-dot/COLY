@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+  <!-- Cap -->
+  <rect x="88" y="20" width="24" height="22" stroke="#007AFF"/>
+  <!-- Neck -->
+  <line x1="92" y1="42" x2="92" y2="75" stroke="#007AFF"/>
+  <line x1="108" y1="42" x2="108" y2="75" stroke="#007AFF"/>
+  <!-- Shoulders + body -->
+  <path d="M92 75 Q70 85 65 110 L65 175 Q65 182 72 182 H128 Q135 182 135 175 L135 110 Q130 85 108 75" stroke="#007AFF"/>
+  <!-- Label -->
+  <rect x="70" y="120" width="60" height="45" stroke="#00BFA5"/>
+  <line x1="70" y1="138" x2="130" y2="138" stroke="#00BFA5"/>
+  <line x1="70" y1="150" x2="130" y2="150" stroke="#00BFA5"/>
+</svg>

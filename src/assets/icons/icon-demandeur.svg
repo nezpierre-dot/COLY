@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+  <!-- Box -->
+  <path d="M30 70 L90 50 L150 70 L150 140 L90 160 L30 140 Z" stroke="#007AFF"/>
+  <path d="M30 70 L90 90 L150 70" stroke="#007AFF"/>
+  <path d="M90 90 V160" stroke="#007AFF"/>
+  <!-- Magnifying glass -->
+  <circle cx="135" cy="130" r="28" stroke="#00BFA5"/>
+  <line x1="156" y1="151" x2="178" y2="173" stroke="#00BFA5"/>
+</svg>
