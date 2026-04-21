@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+  <!-- Lipstick tube -->
+  <rect x="70" y="90" width="35" height="80" rx="3" stroke="#007AFF"/>
+  <rect x="73" y="60" width="29" height="32" stroke="#007AFF"/>
+  <path d="M73 60 L102 60 L97 35 L85 25 L78 35 Z" stroke="#00BFA5"/>
+  <line x1="70" y1="125" x2="105" y2="125" stroke="#007AFF"/>
+  <!-- Compact mirror -->
+  <circle cx="140" cy="135" r="28" stroke="#007AFF"/>
+  <circle cx="140" cy="135" r="18" stroke="#00BFA5"/>
+  <line x1="120" y1="155" x2="115" y2="165" stroke="#007AFF"/>
+</svg>

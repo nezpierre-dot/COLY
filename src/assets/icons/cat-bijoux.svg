@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+  <!-- Diamond -->
+  <path d="M70 70 L130 70 L160 100 L100 175 L40 100 Z" stroke="#007AFF"/>
+  <path d="M40 100 L160 100" stroke="#007AFF"/>
+  <path d="M70 70 L85 100 L100 175" stroke="#00BFA5"/>
+  <path d="M130 70 L115 100 L100 175" stroke="#00BFA5"/>
+  <path d="M85 100 L115 100" stroke="#00BFA5"/>
+  <!-- Sparkle -->
+  <path d="M155 35 L160 45 L170 50 L160 55 L155 65 L150 55 L140 50 L150 45 Z" stroke="#00BFA5"/>
+</svg>

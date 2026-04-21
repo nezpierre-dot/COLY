@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+  <!-- Cigarette pack open -->
+  <rect x="55" y="70" width="90" height="110" rx="5" stroke="#007AFF"/>
+  <path d="M55 80 L55 50 L145 50 L145 80" stroke="#007AFF"/>
+  <line x1="55" y1="65" x2="145" y2="65" stroke="#007AFF"/>
+  <!-- Brand strip -->
+  <rect x="55" y="100" width="90" height="14" stroke="#00BFA5"/>
+  <!-- Cigarettes sticking up -->
+  <line x1="75" y1="50" x2="75" y2="28" stroke="#007AFF"/>
+  <line x1="100" y1="50" x2="100" y2="22" stroke="#007AFF"/>
+  <line x1="125" y1="50" x2="125" y2="30" stroke="#007AFF"/>
+  <line x1="75" y1="36" x2="75" y2="28" stroke="#00BFA5" stroke-width="9"/>
+  <line x1="100" y1="30" x2="100" y2="22" stroke="#00BFA5" stroke-width="9"/>
+  <line x1="125" y1="38" x2="125" y2="30" stroke="#00BFA5" stroke-width="9"/>
+</svg>
