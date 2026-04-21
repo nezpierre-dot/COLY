@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+  <!-- Game controller -->
+  <path d="M50 75 Q25 75 25 110 L25 145 Q25 165 45 165 Q60 165 65 150 L75 130 L125 130 L135 150 Q140 165 155 165 Q175 165 175 145 L175 110 Q175 75 150 75 Z" stroke="#007AFF"/>
+  <!-- D-pad -->
+  <line x1="55" y1="105" x2="75" y2="105" stroke="#00BFA5"/>
+  <line x1="65" y1="95" x2="65" y2="115" stroke="#00BFA5"/>
+  <!-- Buttons -->
+  <circle cx="135" cy="100" r="4" fill="#00BFA5"/>
+  <circle cx="150" cy="110" r="4" fill="#00BFA5"/>
+  <circle cx="120" cy="110" r="4" fill="#00BFA5"/>
+  <circle cx="135" cy="120" r="4" fill="#00BFA5"/>
+</svg>
