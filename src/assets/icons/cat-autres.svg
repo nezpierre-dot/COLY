@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-  <!-- Gift box -->
-  <rect x="35" y="80" width="130" height="90" rx="4" stroke="#007AFF"/>
-  <line x1="100" y1="80" x2="100" y2="170" stroke="#00BFA5"/>
-  <line x1="35" y1="110" x2="165" y2="110" stroke="#00BFA5"/>
-  <!-- Bow -->
-  <path d="M100 80 Q70 60 70 45 Q70 30 85 30 Q100 30 100 55" stroke="#00BFA5"/>
-  <path d="M100 80 Q130 60 130 45 Q130 30 115 30 Q100 30 100 55" stroke="#00BFA5"/>
-  <!-- Question mark accent -->
-  <circle cx="100" cy="140" r="3" fill="#007AFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+  <!-- Shopping bag body -->
+  <path d="M42 70 L158 70 L150 175 Q150 182 143 182 L57 182 Q50 182 50 175 Z" stroke="#007AFF"/>
+  <!-- Handles -->
+  <path d="M72 70 V52 Q72 30 100 30 Q128 30 128 52 V70" stroke="#007AFF"/>
+  <!-- Top stitch -->
+  <line x1="50" y1="84" x2="150" y2="84" stroke="#00BFA5"/>
+  <!-- Question mark -->
+  <path d="M88 115 Q88 100 100 100 Q112 100 112 112 Q112 122 100 128 V138" stroke="#00BFA5" stroke-width="5"/>
+  <circle cx="100" cy="155" r="3.5" fill="#00BFA5"/>
 </svg>

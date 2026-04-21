@@ -1,10 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-  <!-- Coffee cup -->
-  <path d="M40 80 L140 80 L130 160 Q130 170 120 170 L60 170 Q50 170 50 160 Z" stroke="#007AFF"/>
-  <!-- Handle -->
-  <path d="M140 95 Q165 95 165 120 Q165 145 135 145" stroke="#007AFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
   <!-- Steam -->
-  <path d="M70 60 Q65 45 75 35 Q85 25 75 15" stroke="#00BFA5"/>
-  <path d="M100 60 Q95 45 105 35 Q115 25 105 15" stroke="#00BFA5"/>
-  <path d="M130 60 Q125 45 135 35 Q145 25 135 15" stroke="#00BFA5"/>
+  <path d="M75 55 Q70 42 80 32 Q90 22 80 12" stroke="#00BFA5"/>
+  <path d="M100 55 Q95 42 105 32 Q115 22 105 12" stroke="#00BFA5"/>
+  <path d="M125 55 Q120 42 130 32 Q140 22 130 12" stroke="#00BFA5"/>
+  <!-- Cup -->
+  <path d="M40 70 L140 70 L132 158 Q131 168 121 168 L59 168 Q49 168 48 158 Z" stroke="#007AFF"/>
+  <!-- Saucer -->
+  <ellipse cx="90" cy="180" rx="78" ry="6" stroke="#007AFF"/>
+  <!-- Handle -->
+  <path d="M140 88 Q170 88 170 115 Q170 142 138 142" stroke="#007AFF"/>
+  <!-- Coffee surface -->
+  <ellipse cx="90" cy="78" rx="48" ry="6" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.18"/>
 </svg>

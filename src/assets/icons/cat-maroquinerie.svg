@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
   <!-- Handbag body -->
-  <path d="M40 80 L160 80 L150 175 Q150 180 145 180 L55 180 Q50 180 50 175 Z" stroke="#007AFF"/>
+  <path d="M40 78 L160 78 L152 172 Q152 178 146 178 L54 178 Q48 178 48 172 Z" stroke="#007AFF"/>
   <!-- Handle -->
-  <path d="M70 80 V60 Q70 35 100 35 Q130 35 130 60 V80" stroke="#007AFF"/>
-  <!-- Clasp / jewel accent -->
-  <rect x="85" y="105" width="30" height="14" rx="2" stroke="#00BFA5"/>
-  <circle cx="100" cy="112" r="3" fill="#00BFA5"/>
-  <!-- Stitch line -->
-  <line x1="50" y1="95" x2="150" y2="95" stroke="#00BFA5"/>
+  <path d="M68 78 V58 Q68 30 100 30 Q132 30 132 58 V78" stroke="#007AFF"/>
+  <!-- Top stitch -->
+  <line x1="48" y1="92" x2="152" y2="92" stroke="#00BFA5"/>
+  <!-- Clasp / logo plate -->
+  <rect x="82" y="108" width="36" height="16" rx="2" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.15"/>
+  <circle cx="100" cy="116" r="3" fill="#00BFA5"/>
 </svg>

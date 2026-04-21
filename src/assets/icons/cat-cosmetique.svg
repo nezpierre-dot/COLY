@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-  <!-- Lipstick tube -->
-  <rect x="70" y="90" width="35" height="80" rx="3" stroke="#007AFF"/>
-  <rect x="73" y="60" width="29" height="32" stroke="#007AFF"/>
-  <path d="M73 60 L102 60 L97 35 L85 25 L78 35 Z" stroke="#00BFA5"/>
-  <line x1="70" y1="125" x2="105" y2="125" stroke="#007AFF"/>
-  <!-- Compact mirror -->
-  <circle cx="140" cy="135" r="28" stroke="#007AFF"/>
-  <circle cx="140" cy="135" r="18" stroke="#00BFA5"/>
-  <line x1="120" y1="155" x2="115" y2="165" stroke="#007AFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+  <!-- Cream jar body -->
+  <path d="M45 85 L155 85 L150 165 Q150 175 140 175 L60 175 Q50 175 50 165 Z" stroke="#007AFF"/>
+  <!-- Lid -->
+  <rect x="40" y="60" width="120" height="28" rx="4" stroke="#007AFF"/>
+  <!-- Lid accent line -->
+  <line x1="50" y1="74" x2="150" y2="74" stroke="#00BFA5"/>
+  <!-- Logo circle -->
+  <circle cx="100" cy="125" r="20" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.12"/>
+  <path d="M92 125 Q100 117 108 125 Q100 133 92 125 Z" stroke="#00BFA5"/>
 </svg>

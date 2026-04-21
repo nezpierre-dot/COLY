@@ -1,11 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-  <!-- Chocolate bar -->
-  <rect x="35" y="55" width="80" height="110" rx="6" stroke="#007AFF"/>
-  <line x1="35" y1="90" x2="115" y2="90" stroke="#00BFA5"/>
-  <line x1="35" y1="125" x2="115" y2="125" stroke="#00BFA5"/>
-  <line x1="75" y1="55" x2="75" y2="165" stroke="#00BFA5"/>
-  <!-- Gourmet jar -->
-  <rect x="130" y="80" width="40" height="70" rx="4" stroke="#007AFF"/>
-  <rect x="135" y="65" width="30" height="15" stroke="#007AFF"/>
-  <rect x="135" y="100" width="30" height="20" stroke="#00BFA5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4">
+  <!-- Chocolate bar wrapper -->
+  <rect x="35" y="40" width="130" height="120" rx="6" stroke="#007AFF"/>
+  <!-- Foil opening -->
+  <path d="M35 40 L60 25 L165 25 L165 40" stroke="#007AFF"/>
+  <!-- Brand band -->
+  <rect x="35" y="70" width="130" height="22" stroke="#00BFA5" fill="#00BFA5" fill-opacity="0.12"/>
+  <line x1="55" y1="81" x2="145" y2="81" stroke="#00BFA5" stroke-width="2"/>
+  <!-- Squares grid -->
+  <line x1="35" y1="120" x2="165" y2="120" stroke="#007AFF"/>
+  <line x1="68" y1="92" x2="68" y2="160" stroke="#007AFF"/>
+  <line x1="100" y1="92" x2="100" y2="160" stroke="#007AFF"/>
+  <line x1="132" y1="92" x2="132" y2="160" stroke="#007AFF"/>
 </svg>
