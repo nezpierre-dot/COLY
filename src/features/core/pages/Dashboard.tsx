@@ -1562,18 +1562,29 @@ const Dashboard = () => {
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, delay: 0.05 * idx }}
+                        whileHover={{ y: -3, transition: { type: "spring", stiffness: 280, damping: 22 } }}
                         whileTap={{ scale: 0.99 }}
                         onClick={() => navigate(`/shipment/${s.id}`)}
-                        className="card-future cursor-pointer hover:shadow-elevated transition-all relative overflow-hidden"
+                        className="card-future cursor-pointer hover:shadow-elevated transition-shadow relative overflow-hidden group"
                       >
                         {/* Subtle gradient accent */}
-                        <div aria-hidden className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-primary/15 to-secondary/10 blur-2xl pointer-events-none" />
+                        <motion.div
+                          aria-hidden
+                          initial={{ opacity: 0.6 }}
+                          whileHover={{ opacity: 1, scale: 1.15 }}
+                          transition={{ duration: 0.4 }}
+                          className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-primary/15 to-secondary/10 blur-2xl pointer-events-none"
+                        />
 
                         <div className="relative flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="w-11 h-11 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0 shadow-soft">
+                            <motion.div
+                              whileHover={{ rotate: -6, scale: 1.05 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                              className="w-11 h-11 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0 shadow-soft"
+                            >
                               <Package size={20} className="text-primary-foreground" />
-                            </div>
+                            </motion.div>
                             <div className="min-w-0 flex-1">
                               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{formatDate(s.created_at)}</p>
                               <h3 className="font-bold text-sm text-foreground truncate">
@@ -1600,13 +1611,25 @@ const Dashboard = () => {
                               const isCurrent = i === reachedIndex - 1;
                               return (
                                 <div key={stage.key} className="flex flex-col items-center gap-1.5 z-10 flex-1">
-                                  <div
-                                    className={`w-3 h-3 rounded-full border-2 transition-all ${
+                                  <motion.div
+                                    initial={{ scale: 0.6, opacity: 0 }}
+                                    animate={{ scale: isCurrent ? 1.25 : 1, opacity: 1 }}
+                                    transition={{ type: "spring", stiffness: 320, damping: 18, delay: 0.05 * i }}
+                                    className={`relative w-3 h-3 rounded-full border-2 ${
                                       reached
                                         ? "bg-gradient-primary border-transparent shadow-glow"
                                         : "bg-card border-border"
-                                    } ${isCurrent ? "ring-4 ring-primary/20 scale-125" : ""}`}
-                                  />
+                                    }`}
+                                  >
+                                    {isCurrent && (
+                                      <motion.span
+                                        aria-hidden
+                                        animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
+                                        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                                        className="absolute inset-0 rounded-full bg-primary"
+                                      />
+                                    )}
+                                  </motion.div>
                                   <span className={`text-[9px] font-semibold tracking-wide ${reached ? "text-foreground" : "text-muted-foreground"}`}>
                                     {stage.label}
                                   </span>
@@ -1616,9 +1639,11 @@ const Dashboard = () => {
                             {/* Dotted line behind dots */}
                             <div aria-hidden className="absolute top-[5px] left-3 right-3 h-[2px] -z-0">
                               <div className="w-full h-full" style={{ backgroundImage: "repeating-linear-gradient(to right, hsl(var(--border)) 0 4px, transparent 4px 8px)" }} />
-                              <div
-                                className="absolute top-0 left-0 h-full bg-gradient-primary rounded-full transition-all"
-                                style={{ width: `${Math.max(0, ((reachedIndex - 1) / 3) * 100)}%` }}
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.max(0, ((reachedIndex - 1) / 3) * 100)}%` }}
+                                transition={{ duration: 0.9, ease: "easeOut", delay: 0.15 + 0.05 * idx }}
+                                className="absolute top-0 left-0 h-full bg-gradient-primary rounded-full"
                               />
                             </div>
                           </div>
