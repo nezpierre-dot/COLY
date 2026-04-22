@@ -97,19 +97,22 @@ const TransporterPage = () => {
   const monthLabel = currentMonth.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
+    <div className="page-shell">
+      <div className="page-header-soft flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-soft">
           <ArrowLeft size={18} className="text-foreground" />
         </button>
-        <h1 className="text-lg font-bold text-foreground flex items-center gap-2">
-          <Calendar size={18} className="text-primary" /> Je transporte
-        </h1>
+        <div>
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2">
+            <Calendar size={20} className="text-primary" /> Je transporte
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Indique tes journées de voyage 🌍</p>
+        </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 pt-6 space-y-6">
+      <div className="page-content pt-6 space-y-5">
         {/* Calendar */}
-        <div className="bg-card border border-border rounded-2xl p-4">
+        <div className="card-future">
           <div className="flex items-center justify-between mb-4">
             <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
               className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">

@@ -272,6 +272,47 @@
   .shadow-card { box-shadow: var(--shadow-card); }
   .shadow-elevated { box-shadow: var(--shadow-elevated); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
+
+  /* ---- "Future" page primitives — used across all screens for consistency ---- */
+  .page-shell {
+    @apply min-h-screen pb-28;
+    background: var(--gradient-soft);
+  }
+
+  .page-header-soft {
+    @apply px-5 sm:px-8 pt-12 pb-6 rounded-b-[2.5rem] border-b border-border/40;
+    background: var(--gradient-hero);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .page-content {
+    @apply px-5 sm:px-8 max-w-3xl mx-auto w-full;
+  }
+
+  .card-future {
+    @apply bg-card rounded-3xl border border-border/60 p-5;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-future-soft {
+    @apply rounded-3xl border border-border/40 p-5;
+    background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(240 40% 99%) 100%);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .chip-future {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+  }
+
+  .greeting-bubble {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold;
+    background: hsl(0 0% 100%);
+    color: hsl(var(--foreground));
+    box-shadow: var(--shadow-soft);
+    border: 1px solid hsl(var(--border));
+  }
 }
 
 /* Foldable & small mobile */

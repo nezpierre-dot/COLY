@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin, Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck, Clock, Truck, PackageCheck, HandshakeIcon, CircleDot, ShieldCheck, Navigation, Camera, Phone, ThumbsUp, CalendarDays, MapPinned, Receipt, Loader2, Pencil, Check, XCircle } from "lucide-react";
+import { ArrowLeft, Send as SendIcon, Package, ShoppingBag, MapPin, Calendar, Ruler, Weight, DollarSign, Image as ImageIcon, X, CheckCheck, Clock, Truck, PackageCheck, HandshakeIcon, CircleDot, ShieldCheck, Navigation, Camera, Phone, ThumbsUp, CalendarDays, MapPinned, Receipt, Loader2, Pencil, Check, XCircle, Sparkles, RefreshCw } from "lucide-react";
 import PostMatchActions from "@/components/PostMatchActions";
 import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
@@ -65,6 +65,11 @@ const ChatPage = () => {
   const [uploadingProof, setUploadingProof] = useState(false);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [proofFile, setProofFile] = useState<File | null>(null);
+  // AI suggestions
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [loadingAi, setLoadingAi] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const aiAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!conversationId || !user) return;
@@ -238,6 +243,67 @@ const ChatPage = () => {
     // Update local state
     setItemDetail(prev => prev?.type === "mission" ? { ...prev, country: editFields.country, city: editFields.city || null, prix_max: editFields.prix_max || null, timing: editFields.timing } : prev);
   };
+
+  const fetchAiSuggestions = async () => {
+    if (!conversationId || !user || !itemDetail) return;
+    aiAbortRef.current?.abort();
+    const controller = new AbortController();
+    aiAbortRef.current = controller;
+    setLoadingAi(true);
+    setAiError(null);
+    try {
+      const lastMessages = messages.slice(-10).map((m) => ({
+        role: "user" as const,
+        content: m.content.startsWith("__IMG__:") || m.content.startsWith("__PROOF__:")
+          ? "[photo envoyée]"
+          : m.content,
+        isMe: m.sender_id === user.id,
+      }));
+      const productName = itemDetail.type === "mission"
+        ? (itemDetail.product_name ?? itemDetail.category_path?.join(" > ") ?? null)
+        : null;
+      const { data, error } = await supabase.functions.invoke("ai-chat-suggestions", {
+        body: {
+          messages: lastMessages,
+          role: isVoyageur ? "voyageur" : "demandeur",
+          itemType: itemDetail.type,
+          status: shipmentStatus,
+          route: shipmentRoute,
+          productName,
+        },
+      });
+      if (controller.signal.aborted) return;
+      if (error) throw error;
+      const suggestions: unknown = data?.suggestions;
+      if (Array.isArray(suggestions)) {
+        setAiSuggestions(suggestions.filter((s): s is string => typeof s === "string").slice(0, 3));
+      } else {
+        setAiSuggestions([]);
+      }
+    } catch (e) {
+      if (controller.signal.aborted) return;
+      console.error("AI suggestions failed", e);
+      setAiError("Suggestions indisponibles");
+      setAiSuggestions([]);
+    } finally {
+      if (!controller.signal.aborted) setLoadingAi(false);
+    }
+  };
+
+  // Auto-fetch suggestions when conversation or status changes (debounced)
+  useEffect(() => {
+    if (!itemDetail || !conversationId) return;
+    const lastMsg = messages[messages.length - 1];
+    // Trigger fetch only when the OTHER person sent the last message OR when convo is empty
+    const shouldFetch = !lastMsg || (lastMsg && lastMsg.sender_id !== user?.id);
+    if (!shouldFetch) {
+      setAiSuggestions([]);
+      return;
+    }
+    const timer = setTimeout(() => { fetchAiSuggestions(); }, 600);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, itemDetail?.type, shipmentStatus, messages.length, user?.id]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -466,6 +532,50 @@ const ChatPage = () => {
         className="hidden"
         onChange={handleProofCapture}
       />
+
+      {/* AI suggestions row */}
+      {(loadingAi || aiSuggestions.length > 0 || aiError) && (
+        <div className="px-4 pt-2 pb-1 shrink-0">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Sparkles size={11} className="text-primary" />
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Suggestions IA</span>
+            <button
+              onClick={fetchAiSuggestions}
+              disabled={loadingAi}
+              className="ml-auto text-muted-foreground hover:text-primary disabled:opacity-40 transition-colors p-0.5"
+              aria-label="Régénérer les suggestions"
+            >
+              <RefreshCw size={11} className={loadingAi ? "animate-spin" : ""} />
+            </button>
+          </div>
+          {aiError && !loadingAi && aiSuggestions.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground italic">{aiError}</p>
+          ) : (
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {loadingAi && aiSuggestions.length === 0 && (
+                <>
+                  <div className="shrink-0 h-8 w-32 rounded-2xl bg-gradient-to-r from-muted via-muted/60 to-muted animate-pulse" />
+                  <div className="shrink-0 h-8 w-40 rounded-2xl bg-gradient-to-r from-muted via-muted/60 to-muted animate-pulse" />
+                  <div className="shrink-0 h-8 w-28 rounded-2xl bg-gradient-to-r from-muted via-muted/60 to-muted animate-pulse" />
+                </>
+              )}
+              {aiSuggestions.map((s, idx) => (
+                <motion.button
+                  key={`${idx}-${s}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  onClick={() => { setNewMessage(s); setAiSuggestions([]); }}
+                  className="shrink-0 px-3.5 py-2 rounded-2xl bg-gradient-primary text-primary-foreground text-xs font-medium shadow-soft hover:shadow-glow active:scale-95 transition-all whitespace-nowrap max-w-[260px] truncate"
+                  title={s}
+                >
+                  {s}
+                </motion.button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="px-4 pb-1 shrink-0">
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">

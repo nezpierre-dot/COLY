@@ -244,16 +244,16 @@ const MyAccount = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px) + 16px)" }}>
-      {/* Profile Hero Banner */}
+    <div className="page-shell" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px) + 16px)" }}>
+      {/* Profile Hero Banner — Future style */}
       <div
-        className="relative overflow-hidden px-6 pt-12 pb-8"
+        className="relative overflow-hidden px-6 pt-12 pb-8 rounded-b-[2.5rem]"
         style={{
-          background: "linear-gradient(to bottom, #005BB5, #007AFF, rgba(52, 199, 89, 0.12))"
+          background: "var(--gradient-hero)"
         }}
       >
-        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
-        <div className="absolute bottom-0 -left-6 w-24 h-24 rounded-full bg-white/5" />
+        <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-primary/10 blur-2xl" />
+        <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-secondary/15 blur-2xl" />
 
         <div className="relative z-10 flex items-start gap-4">
           {/* Avatar */}

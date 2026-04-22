@@ -44,3 +44,9 @@ verify_jwt = false
 
 [functions.ai-chat]
 verify_jwt = false
+
+[functions.ai-chat-suggestions]
+verify_jwt = false
+
+[functions.ai-mission-description]
+verify_jwt = false
