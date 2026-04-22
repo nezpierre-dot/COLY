@@ -261,8 +261,16 @@ const NeeditMission = () => {
           const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, photoFile);
           if (!uploadErr) { const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90); photo_url = data?.signedUrl ?? null; }
         }
-        const pathLabels = categoryPath.map((n) => n.label); if (selectedLeaf) pathLabels.push(selectedLeaf);
-        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: finalPrixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
+        const pathLabels = categoryPath.map((n) => n.label);
+        // Inject brand into the path so DB has full hierarchy: Category > Brand > Product
+        if (selectedBrand) pathLabels.push(selectedBrand.name);
+        if (selectedLeaf) pathLabels.push(selectedLeaf);
+        const finalProductName = isUnlisted
+          ? unlistedName
+          : selectedBrand
+            ? `${selectedBrand.name} ${selectedLeaf}`.trim()
+            : selectedLeaf;
+        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: finalProductName, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview ?? selectedBrandProduct?.product.photo_url ?? null, dimension: dimension || null, poids: poids || null, prix_max: finalPrixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
         if (editId) {
           await supabase.from("needit_missions").update(missionData as any).eq("id", editId).eq("user_id", user.id);
           successFeedback(t("needit.missionUpdated"), { description: t("needit.missionUpdatedDesc") });
