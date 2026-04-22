@@ -345,3 +345,5 @@ const TopupPicker = ({ loading, currency, onPick }: TopupPickerProps) => {
   );
 };
 
+
+export default WalletCard;
