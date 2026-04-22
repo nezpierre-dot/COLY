@@ -109,7 +109,7 @@ const ShipmentTracking = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-soft flex items-center justify-center">
         <Loader2 size={32} className="animate-spin text-primary" />
       </div>
     );
@@ -117,7 +117,7 @@ const ShipmentTracking = () => {
 
   if (!shipment) {
     return (
-      <div className="min-h-screen bg-background pb-24">
+      <div className="page-shell">
         <div className="px-6 pt-12">
           <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground mb-4">
             <ArrowLeft size={24} />
@@ -143,7 +143,7 @@ const ShipmentTracking = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <PageTransition>
         <div className="px-6 pt-12 space-y-5">
           {/* Header */}

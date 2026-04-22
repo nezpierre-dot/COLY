@@ -50,7 +50,7 @@ const EmailPreferences = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <div className="px-6 pt-12">
         <div className="flex items-center gap-3 mb-2">
           <button onClick={() => navigate("/settings")} className="text-foreground">

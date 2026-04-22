@@ -162,7 +162,7 @@ const NeeditMissionDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-soft flex items-center justify-center">
         <Loader2 size={32} className="animate-spin text-primary" />
       </div>
     );
@@ -170,7 +170,7 @@ const NeeditMissionDetail = () => {
 
   if (!mission) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-6">
+      <div className="min-h-screen bg-gradient-soft flex flex-col items-center justify-center gap-4 px-6">
         <p className="text-muted-foreground">{t("common.notFound")}</p>
         <button onClick={() => navigate(-1)} className="text-primary font-semibold">{t("common.back")}</button>
       </div>
@@ -199,7 +199,7 @@ const NeeditMissionDetail = () => {
   const isCompleted = mission.status === "completed";
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <PageTransition>
         {/* Header */}
         <div className="px-6 pt-12 pb-6 rounded-b-3xl" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}>

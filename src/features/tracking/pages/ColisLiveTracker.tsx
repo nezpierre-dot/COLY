@@ -291,7 +291,7 @@ const ColisLiveTracker = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-soft flex items-center justify-center">
         <Loader2 size={32} className="animate-spin text-primary" />
       </div>
     );
@@ -299,7 +299,7 @@ const ColisLiveTracker = () => {
 
   if (!item) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 px-6">
+      <div className="min-h-screen bg-gradient-soft flex flex-col items-center justify-center gap-4 px-6">
         <Package size={48} className="text-muted-foreground" />
         <p className="text-muted-foreground text-center">Colis introuvable</p>
         <Button variant="outline" onClick={() => navigate(-1)}>
@@ -314,7 +314,7 @@ const ColisLiveTracker = () => {
     : { longitude: 2.3522, latitude: 48.8566 };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-soft relative">
       {/* Full-screen map */}
       <div className="absolute inset-0">
         <Map

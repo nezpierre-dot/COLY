@@ -68,7 +68,7 @@ export default function AidePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border px-5 pt-12 pb-4">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-primary"><ArrowLeft size={28} /></button>

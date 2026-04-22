@@ -39,7 +39,7 @@ const LeaderboardPage = () => {
   return (
     <PageTransition>
       <div
-        className="min-h-screen bg-background"
+        className="min-h-screen bg-gradient-soft"
         style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px) + 16px)" }}
       >
         {/* Header */}

@@ -141,7 +141,7 @@ const ManageEanProducts = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <div className="px-6 pt-12">
         <div className="flex items-center gap-3 mb-2">
           <button onClick={() => navigate(-1)} className="text-foreground"><ArrowLeft size={24} /></button>

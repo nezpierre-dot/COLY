@@ -40,7 +40,7 @@ export default function ConfidentialitePage() {
   const toggleService = (name: string) => setServices((prev) => prev.map((s) => (s.name === name ? { ...s, enabled: !s.enabled } : s)));
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <div className="bg-primary px-6 pt-10 pb-6 relative overflow-hidden">
         <div className="absolute top-8 right-0 w-28 h-28 rounded-full bg-primary-foreground/5" />
         <div className="relative z-10">

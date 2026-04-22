@@ -235,7 +235,7 @@ const BrowseMissions = () => {
   const loading = loadingShipments || loadingMissions;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <PullToRefresh onRefresh={handleRefresh}>
         <PageTransition>
           <main className="px-5 pt-10">

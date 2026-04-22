@@ -14,7 +14,7 @@ const TestLiveLocation = () => {
   const voyageurId = user?.id || "demo-voyageur";
 
   return (
-    <div className="min-h-screen bg-background p-4 max-w-md mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-soft p-4 max-w-md mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

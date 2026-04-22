@@ -323,7 +323,7 @@ const ConversationsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <PageTransition>
         <PullToRefresh onRefresh={load}>
         <div className="px-6 pt-12">
