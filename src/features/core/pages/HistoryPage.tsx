@@ -141,6 +141,11 @@ const HistoryPage = () => {
           category: "coly",
           icon: "envoi",
           destination: s.arrival_city || "",
+          status: s.status || "pending",
+          recipient: `${s.contact_prenom || ""} ${s.contact_nom || ""}`.trim(),
+          productCategory: s.size || "",
+          departureDate: s.departure_date ? new Date(s.departure_date) : null,
+          failureReason: null,
         });
       });
 
@@ -161,6 +166,11 @@ const HistoryPage = () => {
             category: "voyageur",
             icon: "transport",
             destination: s.arrival_city || "",
+            status: s.status || "pending",
+            recipient: `${s.contact_prenom || ""} ${s.contact_nom || ""}`.trim(),
+            productCategory: s.size || "",
+            departureDate: s.departure_date ? new Date(s.departure_date) : null,
+            failureReason: null,
           });
         }
       });
@@ -181,6 +191,11 @@ const HistoryPage = () => {
             category: "needit",
             icon: "needit",
             destination: m.city || m.country || "",
+            status: m.status || "pending",
+            recipient: m.product_name || "",
+            productCategory: (m.category_path && m.category_path[0]) || "",
+            departureDate: null,
+            failureReason: null,
           });
         }
       });
@@ -202,6 +217,11 @@ const HistoryPage = () => {
             category: "voyageur",
             icon: "transport",
             destination: m.city || m.country || "",
+            status: m.status || "pending",
+            recipient: m.product_name || "",
+            productCategory: (m.category_path && m.category_path[0]) || "",
+            departureDate: null,
+            failureReason: null,
           });
         }
       });
