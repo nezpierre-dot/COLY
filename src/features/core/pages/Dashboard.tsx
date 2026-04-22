@@ -726,10 +726,13 @@ const Dashboard = () => {
           className="relative"
         >
 
-          <div className="bg-gradient-hero px-5 pt-6 pb-8 sm:px-8 sm:pt-8 sm:pb-12 rounded-b-[2.5rem] shadow-soft relative overflow-hidden">
+          <div className={`${isVoyageur ? "bg-gradient-hero" : "bg-gradient-hero-bright"} px-5 pt-6 pb-10 sm:px-8 sm:pt-8 sm:pb-14 rounded-b-[2.75rem] shadow-soft relative overflow-hidden`}>
             {/* Decorative aura blobs for "Future" feel */}
-            <div aria-hidden className="pointer-events-none absolute -top-16 -right-10 w-64 h-64 rounded-full bg-secondary/25 blur-3xl" />
-            <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-10 w-56 h-56 rounded-full bg-primary/20 blur-3xl" />
+            <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 w-80 h-80 rounded-full bg-secondary/30 blur-3xl" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-primary/25 blur-3xl" />
+            {!isVoyageur && (
+              <div aria-hidden className="pointer-events-none absolute top-1/3 left-1/2 w-40 h-40 rounded-full bg-accent/20 blur-3xl" />
+            )}
 
             <div className="relative flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
@@ -744,42 +747,115 @@ const Dashboard = () => {
               </button>
             </div>
 
-            <div className="relative flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <span className="greeting-bubble mb-3">
-                  <img
-                    src={waveHandIllustration}
+            {isVoyageur ? (
+              /* ---------- Voyageur header (compact, unchanged spirit) ---------- */
+              <div className="relative flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <span className="greeting-bubble mb-3">
+                    <img src={waveHandIllustration} alt="" aria-hidden="true" className="w-5 h-5 object-contain" />
+                    Bonjour !
+                  </span>
+                  <h1 className="text-[clamp(1.85rem,5.5vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-foreground">
+                    Prêt pour un nouveau voyage ?
+                  </h1>
+                  <UserLevelBadge variant="full" className="mt-3" />
+                </div>
+                <img
+                  src={planeIllustration}
+                  alt=""
+                  aria-hidden="true"
+                  className="w-28 h-28 sm:w-36 sm:h-36 object-contain shrink-0 drop-shadow-[0_15px_25px_rgba(255,150,80,0.25)]"
+                />
+              </div>
+            ) : (
+              /* ---------- Demandeur header — grand, lumineux, dominant ---------- */
+              <div className="relative grid grid-cols-[1fr_auto] items-start gap-3 sm:gap-5">
+                <div className="min-w-0 pt-1">
+                  <motion.span
+                    initial={{ opacity: 0, y: -6, scale: 0.94 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ type: "spring", stiffness: 280, damping: 20, delay: 0.05 }}
+                    className="greeting-bubble-xl mb-4"
+                  >
+                    <motion.img
+                      src={waveHandIllustration}
+                      alt=""
+                      aria-hidden="true"
+                      className="w-6 h-6 object-contain"
+                      animate={{ rotate: [0, 18, -8, 14, 0] }}
+                      transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.4, ease: "easeInOut" }}
+                    />
+                    Bonjour !
+                  </motion.span>
+                  <motion.h1
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: 0.1 }}
+                    className="text-[clamp(2.1rem,7vw,3.1rem)] font-extrabold leading-[1.02] tracking-tight text-foreground"
+                  >
+                    Suivez vos envois<br />
+                    <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">en un coup d'œil.</span>
+                  </motion.h1>
+                  <motion.p
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, delay: 0.18 }}
+                    className="mt-3 text-[15px] sm:text-base text-muted-foreground font-medium max-w-[280px] leading-snug"
+                  >
+                    Chaque colis, chaque étape, chaque livraison — en toute sérénité ✨
+                  </motion.p>
+                  <UserLevelBadge variant="full" className="mt-4" />
+                </div>
+
+                {/* Dominant 3D parcel illustration with route + pin */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.7, rotate: -10 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 180, damping: 16, delay: 0.05 }}
+                  className="relative shrink-0 w-[148px] h-[148px] sm:w-[200px] sm:h-[200px] -mt-2 sm:-mt-4 -mr-2"
+                >
+                  {/* Soft glow under parcel */}
+                  <div aria-hidden className="absolute inset-2 rounded-full bg-gradient-to-br from-orange-300/40 via-pink-300/30 to-transparent blur-2xl" />
+                  {/* Animated dotted route SVG */}
+                  <svg
+                    aria-hidden
+                    viewBox="0 0 200 200"
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                  >
+                    <path
+                      d="M 25 165 Q 50 90, 110 70 T 180 25"
+                      fill="none"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      className="route-dash-anim opacity-70"
+                    />
+                  </svg>
+                  {/* Parcel image — dominant */}
+                  <motion.img
+                    src={parcelFutureHero}
                     alt=""
                     aria-hidden="true"
                     loading="eager"
-                    width={20}
-                    height={20}
-                    className="w-5 h-5 object-contain"
+                    className="relative w-full h-full object-contain drop-shadow-[0_22px_30px_rgba(255,130,60,0.35)]"
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                   />
-                  Bonjour !
-                </span>
-                <h1 className="text-[clamp(1.85rem,5.5vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-foreground">
-                  {isVoyageur
-                    ? "Prêt pour un nouveau voyage ?"
-                    : "Suivez vos envois en un coup d'œil."}
-                </h1>
-                {!isVoyageur && (
-                  <p className="mt-2 text-sm sm:text-base text-muted-foreground font-medium max-w-[260px] leading-snug">
-                    Suivez l'avancement de chacun de vos colis en toute sérénité ✨
-                  </p>
-                )}
-                <UserLevelBadge variant="full" className="mt-3" />
+                  {/* Floating location pin badge — top right of illustration */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.4, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 18, delay: 0.5 }}
+                    className="absolute -top-1 -right-1 sm:top-2 sm:right-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-card shadow-elevated border border-border/60"
+                  >
+                    <span className="w-6 h-6 rounded-xl bg-gradient-primary flex items-center justify-center">
+                      <MapPin size={12} className="text-primary-foreground" strokeWidth={2.6} />
+                    </span>
+                    <span className="text-[10px] font-bold text-foreground hidden sm:inline">En route</span>
+                  </motion.div>
+                </motion.div>
               </div>
-              <img
-                src={isVoyageur ? planeIllustration : parcelFutureHero}
-                alt=""
-                aria-hidden="true"
-                loading="eager"
-                width={140}
-                height={140}
-                className="w-28 h-28 sm:w-36 sm:h-36 object-contain shrink-0 drop-shadow-[0_15px_25px_rgba(255,150,80,0.25)]"
-              />
-            </div>
+            )}
           </div>
         </motion.div>
 
