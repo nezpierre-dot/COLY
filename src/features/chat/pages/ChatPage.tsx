@@ -244,6 +244,67 @@ const ChatPage = () => {
     setItemDetail(prev => prev?.type === "mission" ? { ...prev, country: editFields.country, city: editFields.city || null, prix_max: editFields.prix_max || null, timing: editFields.timing } : prev);
   };
 
+  const fetchAiSuggestions = async () => {
+    if (!conversationId || !user || !itemDetail) return;
+    aiAbortRef.current?.abort();
+    const controller = new AbortController();
+    aiAbortRef.current = controller;
+    setLoadingAi(true);
+    setAiError(null);
+    try {
+      const lastMessages = messages.slice(-10).map((m) => ({
+        role: "user" as const,
+        content: m.content.startsWith("__IMG__:") || m.content.startsWith("__PROOF__:")
+          ? "[photo envoyée]"
+          : m.content,
+        isMe: m.sender_id === user.id,
+      }));
+      const productName = itemDetail.type === "mission"
+        ? (itemDetail.product_name ?? itemDetail.category_path?.join(" > ") ?? null)
+        : null;
+      const { data, error } = await supabase.functions.invoke("ai-chat-suggestions", {
+        body: {
+          messages: lastMessages,
+          role: isVoyageur ? "voyageur" : "demandeur",
+          itemType: itemDetail.type,
+          status: shipmentStatus,
+          route: shipmentRoute,
+          productName,
+        },
+      });
+      if (controller.signal.aborted) return;
+      if (error) throw error;
+      const suggestions: unknown = data?.suggestions;
+      if (Array.isArray(suggestions)) {
+        setAiSuggestions(suggestions.filter((s): s is string => typeof s === "string").slice(0, 3));
+      } else {
+        setAiSuggestions([]);
+      }
+    } catch (e) {
+      if (controller.signal.aborted) return;
+      console.error("AI suggestions failed", e);
+      setAiError("Suggestions indisponibles");
+      setAiSuggestions([]);
+    } finally {
+      if (!controller.signal.aborted) setLoadingAi(false);
+    }
+  };
+
+  // Auto-fetch suggestions when conversation or status changes (debounced)
+  useEffect(() => {
+    if (!itemDetail || !conversationId) return;
+    const lastMsg = messages[messages.length - 1];
+    // Trigger fetch only when the OTHER person sent the last message OR when convo is empty
+    const shouldFetch = !lastMsg || (lastMsg && lastMsg.sender_id !== user?.id);
+    if (!shouldFetch) {
+      setAiSuggestions([]);
+      return;
+    }
+    const timer = setTimeout(() => { fetchAiSuggestions(); }, 600);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, itemDetail?.type, shipmentStatus, messages.length, user?.id]);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="bg-card/95 backdrop-blur-lg border-b border-border/60 px-4 pt-12 pb-3 shrink-0 z-10">
