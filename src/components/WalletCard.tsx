@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 interface WalletTransaction {
@@ -121,22 +123,11 @@ const WalletCard = ({ compact = false }: WalletCardProps) => {
             {(balance ?? 0).toFixed(2)}{currency}
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => handleTopup(10)}
-          disabled={topupLoading !== null}
-          className="h-9 gap-1 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
-          aria-label="Recharger 10€"
-        >
-          {topupLoading !== null ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <>
-              <Plus size={13} />
-              Recharger
-            </>
-          )}
-        </Button>
+        <TopupPicker
+          loading={topupLoading}
+          currency={currency}
+          onPick={handleTopup}
+        />
       </div>
     );
   }
@@ -257,5 +248,102 @@ const WalletCard = ({ compact = false }: WalletCardProps) => {
     </div>
   );
 };
+
+/* ─────────── Topup Picker (popover) ─────────── */
+const QUICK_AMOUNTS = [10, 25, 50];
+
+interface TopupPickerProps {
+  loading: number | null;
+  currency: string;
+  onPick: (amount: number) => void;
+}
+
+const TopupPicker = ({ loading, currency, onPick }: TopupPickerProps) => {
+  const [open, setOpen] = useState(false);
+  const [custom, setCustom] = useState<string>("");
+
+  const customAmount = Number.parseFloat(custom.replace(",", "."));
+  const customValid = !Number.isNaN(customAmount) && customAmount >= 1 && customAmount <= 1000;
+
+  const choose = (amt: number) => {
+    setOpen(false);
+    onPick(amt);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          size="sm"
+          disabled={loading !== null}
+          className="h-9 gap-1 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
+          aria-label="Choisir un montant à recharger"
+        >
+          {loading !== null ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <>
+              <Plus size={13} />
+              Recharger
+            </>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-64 p-3">
+        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+          Choisir un montant
+        </p>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {QUICK_AMOUNTS.map((amt) => (
+            <Button
+              key={amt}
+              variant="outline"
+              size="sm"
+              onClick={() => choose(amt)}
+              className="h-10 font-bold text-sm rounded-xl border-primary/25 hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              {amt}{currency}
+            </Button>
+          ))}
+        </div>
+        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+          Autre montant
+        </p>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Input
+              type="number"
+              inputMode="decimal"
+              min={1}
+              max={1000}
+              step={1}
+              value={custom}
+              onChange={(e) => setCustom(e.target.value)}
+              placeholder="20"
+              className="h-10 pr-8 text-sm font-semibold"
+              aria-label="Montant personnalisé"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+              {currency}
+            </span>
+          </div>
+          <Button
+            size="sm"
+            disabled={!customValid}
+            onClick={() => customValid && choose(Math.round(customAmount * 100) / 100)}
+            className="h-10 px-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            aria-label="Confirmer le montant personnalisé"
+          >
+            OK
+          </Button>
+        </div>
+        <p className="text-[10px] text-muted-foreground mt-2">
+          Min. 1{currency} — Max. 1 000{currency}
+        </p>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 
 export default WalletCard;
