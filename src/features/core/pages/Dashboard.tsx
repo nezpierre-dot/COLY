@@ -12,6 +12,7 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
 import NotificationBell from "@/components/NotificationBell";
+import AdminQuickMenu from "@/components/AdminQuickMenu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
@@ -757,14 +758,17 @@ const Dashboard = () => {
                 <img src={appLogo} alt="Nidit" className="w-10 h-10 object-contain" />
                 <NotificationBell />
               </div>
-              <button
-                onClick={toggleRole}
-                className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-foreground/80 bg-white/55 backdrop-blur-md border border-white/60 shadow-sm transition-all hover:bg-white/75 hover:text-primary hover:border-primary/30 active:scale-[0.97]"
-                aria-label={isVoyageur ? t("dashboard.switchToDemandeur") : t("dashboard.switchToVoyageur")}
-              >
-                {isVoyageur ? t("dashboard.switchToDemandeur") : t("dashboard.switchToVoyageur")}
-                <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <AdminQuickMenu />
+                <button
+                  onClick={toggleRole}
+                  className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-foreground/80 bg-white/55 backdrop-blur-md border border-white/60 shadow-sm transition-all hover:bg-white/75 hover:text-primary hover:border-primary/30 active:scale-[0.97]"
+                  aria-label={isVoyageur ? t("dashboard.switchToDemandeur") : t("dashboard.switchToVoyageur")}
+                >
+                  {isVoyageur ? t("dashboard.switchToDemandeur") : t("dashboard.switchToVoyageur")}
+                  <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                </button>
+              </div>
             </div>
 
             {isVoyageur ? (
