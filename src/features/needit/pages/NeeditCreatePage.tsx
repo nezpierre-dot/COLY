@@ -165,10 +165,37 @@ const NeeditCreatePage = () => {
   const budgetNum = budgetMode === "fixed" ? parseFloat(budget.replace(",", ".")) : NaN;
   const totalEstimate = !Number.isNaN(budgetNum) ? budgetNum * qtyNum : null;
 
-  const canSubmit =
-    !!pays.trim() &&
-    !!ville.trim() &&
-    (budgetMode === "devis" || (!Number.isNaN(budgetNum) && budgetNum > 0));
+  // Re-validate on field change to show inline errors only after first interaction
+  useEffect(() => {
+    const schema = buildSchema(budgetMode);
+    const result = schema.safeParse({
+      pays,
+      ville,
+      quantity: qtyNum,
+      budget,
+      comments,
+      pickupAddress,
+    });
+    if (result.success) {
+      setErrors({});
+      return;
+    }
+    const next: FieldErrors = {};
+    for (const issue of result.error.issues) {
+      const key = issue.path[0] as keyof FieldErrors;
+      if (key && !next[key]) next[key] = issue.message;
+    }
+    setErrors(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pays, ville, qtyNum, budget, comments, pickupAddress, budgetMode]);
+
+  const markTouched = (field: keyof FieldErrors) =>
+    setTouched((t) => ({ ...t, [field]: true }));
+
+  const showErr = (field: keyof FieldErrors): string | null =>
+    touched[field] && errors[field] ? errors[field]! : null;
+
+  const canSubmit = Object.keys(errors).length === 0;
 
   const handleSubmit = async () => {
     if (!user) {
