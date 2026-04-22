@@ -362,6 +362,7 @@ const ConversationsPage = () => {
               icon={MessageCircle}
               title={t("conversations.empty")}
               description={t("conversations.emptyDesc")}
+              illustration={messagesIllustration}
             />
           ) : (
             <>

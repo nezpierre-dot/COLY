@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import { CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey } from "@/lib/categoryIcons";
 import NeeditPageHeader from "../components/NeeditPageHeader";
 import { useNeeditDraft } from "../hooks/useNeeditDraft";
+import needitBagIllustration from "@/assets/illustrations/needit-bag.png";
 
 /**
  * Écran 1/3 — Catégories style Vinted.
