@@ -1,21 +1,20 @@
-// Centralized mapping for the 15 NeedIt category icons.
-// PNG sources live in src/assets/icons/cat-*.png
+// Centralized mapping for the 13 NeedIt category icons.
+// SVG sources live in src/assets/icons/cat-*.svg
+// (each SVG embeds the premium 3D illustration as a high-res image)
 
-import catTabac from "@/assets/icons/cat-tabac.png";
-import catParfum from "@/assets/icons/cat-parfum.png";
-import catAlcool from "@/assets/icons/cat-alcool.png";
-import catCosmetique from "@/assets/icons/cat-cosmetique.png";
-import catHightech from "@/assets/icons/cat-hightech.png";
-import catMaroquinerie from "@/assets/icons/cat-maroquinerie.png";
-import catEpicerie from "@/assets/icons/cat-epicerie.png";
-import catMode from "@/assets/icons/cat-mode.png";
-import catBebe from "@/assets/icons/cat-bebe.png";
-import catPharmacie from "@/assets/icons/cat-pharmacie.png";
-import catCafe from "@/assets/icons/cat-cafe.png";
-import catCaviar from "@/assets/icons/cat-caviar.png";
-import catJeuxvideo from "@/assets/icons/cat-jeuxvideo.png";
-import catLivres from "@/assets/icons/cat-livres.png";
-import catAutres from "@/assets/icons/cat-autres.png";
+import catTabac from "@/assets/icons/cat-tabac.svg";
+import catParfum from "@/assets/icons/cat-parfum.svg";
+import catAlcool from "@/assets/icons/cat-alcool.svg";
+import catCosmetique from "@/assets/icons/cat-cosmetique.svg";
+import catHightech from "@/assets/icons/cat-hightech.svg";
+import catMaroquinerie from "@/assets/icons/cat-maroquinerie.svg";
+import catEpicerie from "@/assets/icons/cat-epicerie.svg";
+import catMode from "@/assets/icons/cat-mode.svg";
+import catBebe from "@/assets/icons/cat-bebe.svg";
+import catPharmacie from "@/assets/icons/cat-pharmacie.svg";
+import catJeuxvideo from "@/assets/icons/cat-jeuxvideo.svg";
+import catLivres from "@/assets/icons/cat-livres.svg";
+import catAutres from "@/assets/icons/cat-autres.svg";
 
 export type CategoryKey =
   | "tabac"
@@ -28,8 +27,6 @@ export type CategoryKey =
   | "mode"
   | "bebe"
   | "pharmacie"
-  | "cafe"
-  | "caviar"
   | "jeuxvideo"
   | "livres"
   | "autres";
@@ -37,52 +34,46 @@ export type CategoryKey =
 export interface CategoryDef {
   key: CategoryKey;
   label: string;       // canonical FR label used in DB category_path
-  icon: string;        // imported image url
+  icon: string;        // imported svg url
   children?: { label: string }[];
 }
 
 export const CATEGORIES: CategoryDef[] = [
-  { key: "tabac", label: "Tabac", icon: catTabac, children: [
+  { key: "tabac", label: "Cigarettes & Tabac", icon: catTabac, children: [
     { label: "Cigarettes" }, { label: "Cigares" }, { label: "Tabac à rouler" },
   ]},
-  { key: "parfum", label: "Parfum", icon: catParfum, children: [
+  { key: "parfum", label: "Parfums & Eaux", icon: catParfum, children: [
     { label: "Eau de parfum" }, { label: "Eau de toilette" }, { label: "Coffret" },
   ]},
-  { key: "alcool", label: "Alcool", icon: catAlcool, children: [
+  { key: "alcool", label: "Alcools & Spiritueux", icon: catAlcool, children: [
     { label: "Whisky / Bourbon" }, { label: "Vin" }, { label: "Champagne" }, { label: "Spiritueux" },
   ]},
-  { key: "cosmetique", label: "Cosmétique", icon: catCosmetique, children: [
+  { key: "cosmetique", label: "Cosmétiques & Soins", icon: catCosmetique, children: [
     { label: "Maquillage" }, { label: "Soin visage" }, { label: "Soin corps" },
   ]},
-  { key: "hightech", label: "High-Tech", icon: catHightech, children: [
+  { key: "hightech", label: "High-Tech & Électronique", icon: catHightech, children: [
     { label: "Smartphones" }, { label: "Ordinateurs" }, { label: "Accessoires" },
   ]},
-  { key: "maroquinerie", label: "Maroquinerie", icon: catMaroquinerie, children: [
-    { label: "Sac à main" }, { label: "Portefeuille" }, { label: "Montre" },
+  { key: "maroquinerie", label: "Maroquinerie & Joaillerie", icon: catMaroquinerie, children: [
+    { label: "Sac à main" }, { label: "Portefeuille" }, { label: "Montre" }, { label: "Bijoux" },
   ]},
-  { key: "epicerie", label: "Épicerie fine", icon: catEpicerie, children: [
-    { label: "Chocolat" }, { label: "Confiserie" }, { label: "Conserves" }, { label: "Huile / Vinaigre" },
+  { key: "epicerie", label: "Épicerie fine & Chocolats", icon: catEpicerie, children: [
+    { label: "Chocolat" }, { label: "Confiserie" }, { label: "Caviar / Truffe" }, { label: "Huile / Vinaigre" }, { label: "Café / Thé" },
   ]},
-  { key: "mode", label: "Mode", icon: catMode, children: [
+  { key: "mode", label: "Vêtements & Mode", icon: catMode, children: [
     { label: "Vêtements" }, { label: "Chaussures" }, { label: "Accessoires" },
   ]},
-  { key: "bebe", label: "Bébé", icon: catBebe, children: [
+  { key: "bebe", label: "Produits pour bébés", icon: catBebe, children: [
     { label: "Lait infantile" }, { label: "Couches" }, { label: "Soins bébé" },
   ]},
-  { key: "pharmacie", label: "Pharmacie", icon: catPharmacie, children: [
+  { key: "pharmacie", label: "Médicaments & Compléments", icon: catPharmacie, children: [
     { label: "Médicaments OTC" }, { label: "Compléments" }, { label: "Parapharmacie" },
   ]},
-  { key: "cafe", label: "Café", icon: catCafe, children: [
-    { label: "Grains" }, { label: "Capsules" }, { label: "Moulu" },
+  { key: "jeuxvideo", label: "Jouets & Jeux vidéo", icon: catJeuxvideo, children: [
+    { label: "Console" }, { label: "Jeux" }, { label: "Manettes / Accessoires" }, { label: "Jouets" },
   ]},
-  { key: "caviar", label: "Caviar", icon: catCaviar, children: [
-    { label: "Caviar" }, { label: "Truffe" }, { label: "Foie gras" },
-  ]},
-  { key: "jeuxvideo", label: "Jeux vidéo", icon: catJeuxvideo, children: [
-    { label: "Console" }, { label: "Jeux" }, { label: "Manettes / Accessoires" },
-  ]},
-  { key: "livres", label: "Livres", icon: catLivres, children: [
-    { label: "Roman" }, { label: "BD / Manga" }, { label: "Beaux livres" },
+  { key: "livres", label: "Livres & Papeterie", icon: catLivres, children: [
+    { label: "Roman" }, { label: "BD / Manga" }, { label: "Beaux livres" }, { label: "Papeterie" },
   ]},
   { key: "autres", label: "Autres", icon: catAutres },
 ];
@@ -95,26 +86,60 @@ const LABEL_TO_ICON: Record<string, string> = CATEGORIES.reduce((acc, c) => {
 
 // Aliases to match legacy / variant labels found in the DB
 const ALIASES: Record<string, CategoryKey> = {
+  // hightech
   "high-tech": "hightech",
   "high tech": "hightech",
   "high-tech / électronique": "hightech",
+  "électronique": "hightech",
+  "electronique": "hightech",
+  // épicerie (incl. former café & caviar)
   "alimentation / boissons": "epicerie",
   "épicerie": "epicerie",
   "epicerie": "epicerie",
+  "épicerie fine": "epicerie",
+  "chocolats": "epicerie",
+  "café": "epicerie",
+  "cafe": "epicerie",
+  "caviar": "epicerie",
+  "truffe": "epicerie",
+  "foie gras": "epicerie",
+  // alcool
   "vins / spiritueux": "alcool",
   "spiritueux": "alcool",
+  "vin": "alcool",
+  // tabac
   "cigarettes": "tabac",
+  "tabac": "tabac",
+  // cosmétique
+  "cosmétique": "cosmetique",
   "cosmétique / beauté": "cosmetique",
   "beauté": "cosmetique",
+  // mode
   "vêtements": "mode",
+  "mode": "mode",
   "mode / accessoires": "mode",
+  // maroquinerie
   "sac": "maroquinerie",
   "montre": "maroquinerie",
+  "bijoux": "maroquinerie",
+  "joaillerie": "maroquinerie",
+  // jeux vidéo / jouets
+  "jeux vidéo": "jeuxvideo",
   "jeux vidéo / consoles": "jeuxvideo",
   "console": "jeuxvideo",
+  "jouets": "jeuxvideo",
+  // pharmacie
   "santé": "pharmacie",
   "médicaments": "pharmacie",
-  "épicerie fine": "epicerie",
+  "pharmacie": "pharmacie",
+  // livres
+  "livres": "livres",
+  "papeterie": "livres",
+  // bébé
+  "bébé": "bebe",
+  "bebe": "bebe",
+  // parfum
+  "parfum": "parfum",
 };
 
 /**
