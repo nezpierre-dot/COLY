@@ -533,6 +533,50 @@ const ChatPage = () => {
         onChange={handleProofCapture}
       />
 
+      {/* AI suggestions row */}
+      {(loadingAi || aiSuggestions.length > 0 || aiError) && (
+        <div className="px-4 pt-2 pb-1 shrink-0">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Sparkles size={11} className="text-primary" />
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Suggestions IA</span>
+            <button
+              onClick={fetchAiSuggestions}
+              disabled={loadingAi}
+              className="ml-auto text-muted-foreground hover:text-primary disabled:opacity-40 transition-colors p-0.5"
+              aria-label="Régénérer les suggestions"
+            >
+              <RefreshCw size={11} className={loadingAi ? "animate-spin" : ""} />
+            </button>
+          </div>
+          {aiError && !loadingAi && aiSuggestions.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground italic">{aiError}</p>
+          ) : (
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {loadingAi && aiSuggestions.length === 0 && (
+                <>
+                  <div className="shrink-0 h-8 w-32 rounded-2xl bg-gradient-to-r from-muted via-muted/60 to-muted animate-pulse" />
+                  <div className="shrink-0 h-8 w-40 rounded-2xl bg-gradient-to-r from-muted via-muted/60 to-muted animate-pulse" />
+                  <div className="shrink-0 h-8 w-28 rounded-2xl bg-gradient-to-r from-muted via-muted/60 to-muted animate-pulse" />
+                </>
+              )}
+              {aiSuggestions.map((s, idx) => (
+                <motion.button
+                  key={`${idx}-${s}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  onClick={() => { setNewMessage(s); setAiSuggestions([]); }}
+                  className="shrink-0 px-3.5 py-2 rounded-2xl bg-gradient-primary text-primary-foreground text-xs font-medium shadow-soft hover:shadow-glow active:scale-95 transition-all whitespace-nowrap max-w-[260px] truncate"
+                  title={s}
+                >
+                  {s}
+                </motion.button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="px-4 pb-1 shrink-0">
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
           {(() => {
