@@ -256,6 +256,7 @@ const Welcome = () => {
           className="px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
         >
           <button
+            ref={signupCtaRef}
             type="button"
             onClick={() => navigate("/signup")}
             aria-label={`${t("welcome.signup")} – créer un compte Nidit`}
