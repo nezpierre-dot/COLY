@@ -194,8 +194,38 @@ const NeeditMission = () => {
   }, [errors.pays]);
 
   const currentCategories = () => (categoryPath.length === 0 ? PRODUCT_CATEGORIES : categoryPath[categoryPath.length - 1].children || []);
-  const handleCategorySelect = (node: CategoryNode) => { if (node.children) { setCategoryPath((p) => [...p, node]); setSelectedLeaf(""); } else setSelectedLeaf(node.label); };
+  const handleCategorySelect = (node: CategoryNode) => {
+    if (node.children) {
+      setCategoryPath((p) => [...p, node]);
+      setSelectedLeaf("");
+      // If this is a top-level category and brands are enabled, jump to brand picker
+      if (categoryPath.length === 0 && node.key && BRAND_ENABLED_CATEGORIES.includes(node.key)) {
+        setDirection(1);
+        setBrandPhase("brands");
+      }
+    } else {
+      setSelectedLeaf(node.label);
+    }
+  };
   const handleCategoryBack = () => { setCategoryPath((p) => p.slice(0, -1)); setSelectedLeaf(""); };
+
+  const handleBrandSelect = (brand: Brand) => {
+    setSelectedBrand(brand);
+    setSelectedBrandProduct(null);
+    setDirection(1);
+    setBrandPhase("products");
+  };
+  const handleBrandSkip = () => {
+    // Drop back to the sub-category list (or close brand phase entirely)
+    setSelectedBrand(null);
+    setSelectedBrandProduct(null);
+    setBrandPhase("categories");
+  };
+  const handleBrandProductSelect = (product: BrandProduct, variant: string | null) => {
+    setSelectedBrandProduct({ product, variant });
+    const label = variant ? `${product.name} – ${variant}` : product.name;
+    setSelectedLeaf(label);
+  };
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { setPhotoFile(file); const reader = new FileReader(); reader.onloadend = () => setPhotoPreview(reader.result as string); reader.readAsDataURL(file); } };
 
   const validateStep1 = () => {
