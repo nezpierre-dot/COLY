@@ -198,6 +198,42 @@ const NeeditCreatePage = () => {
 
   const canSubmit = Object.keys(errors).length === 0;
 
+  const generateDescription = async () => {
+    setGeneratingDesc(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-mission-description", {
+        body: {
+          productName: draft.brandProduct?.name ?? draft.categoryLabel ?? null,
+          brand: draft.brand?.name ?? null,
+          variant: variant,
+          category: draft.categoryLabel ?? null,
+          country: pays,
+          city: ville,
+          pickupAddress: pickupAddress,
+          quantity: qtyNum,
+          budget: budgetMode === "fixed" && budget
+            ? `${budget} ${currency.symbol}`
+            : budgetMode === "devis" ? "Sur devis" : null,
+          currentNotes: comments || null,
+        },
+      });
+      if (error) throw error;
+      const description: unknown = data?.description;
+      if (typeof description === "string" && description.trim()) {
+        setComments(description.trim().slice(0, COMMENTS_MAX));
+        setTouched((t) => ({ ...t, comments: true }));
+        toast.success("Description générée ✨");
+      } else {
+        throw new Error("Empty");
+      }
+    } catch (e) {
+      console.error("AI description failed", e);
+      toast.error("Impossible de générer la description. Réessayez.");
+    } finally {
+      setGeneratingDesc(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user) {
       toast.error("Vous devez être connecté.");
