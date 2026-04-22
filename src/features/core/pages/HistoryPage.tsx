@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin, Camera, PackageCheck, BarChart3 } from "lucide-react";
+import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin, Camera, PackageCheck, BarChart3, X, ChevronRight, Clock, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -39,6 +39,11 @@ interface HistoryItem {
   category: HistoryType;
   icon: string;
   destination: string;
+  status: string;
+  recipient: string;
+  productCategory: string;
+  departureDate: Date | null;
+  failureReason: string | null;
 }
 
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
@@ -64,6 +69,42 @@ const iconBgMap: Record<string, string> = {
 // Platform commission rate
 const PLATFORM_RATE = 0.18;
 
+type StatusMeta = {
+  label: string;
+  progress: number; // 0-100
+  tone: "pending" | "active" | "success" | "danger";
+  failure?: boolean;
+};
+
+const getStatusMeta = (status: string, category: HistoryType): StatusMeta => {
+  const map: Record<string, StatusMeta> = {
+    pending: { label: "En attente d'un voyageur", progress: 15, tone: "pending" },
+    accepted: { label: "Voyageur trouvé", progress: 40, tone: "active" },
+    picked_up: { label: "Récupéré", progress: 60, tone: "active" },
+    in_transit: { label: "En transit", progress: 75, tone: "active" },
+    active: { label: "En cours", progress: 60, tone: "active" },
+    delivered: { label: "Livré", progress: 100, tone: "success" },
+    completed: { label: "Terminé", progress: 100, tone: "success" },
+    cancelled: { label: "Annulé", progress: 0, tone: "danger", failure: true },
+    refused: { label: "Refusé par le voyageur", progress: 0, tone: "danger", failure: true },
+    expired: { label: "Expiré — délai dépassé", progress: 0, tone: "danger", failure: true },
+    disputed: { label: "Litige en cours", progress: 50, tone: "danger", failure: true },
+  };
+  return map[status] || { label: status || "Statut inconnu", progress: 10, tone: "pending" };
+};
+
+const formatETA = (departureDate: Date | null, status: string): string | null => {
+  if (!departureDate) return null;
+  if (status === "delivered" || status === "completed" || status === "cancelled") return null;
+  const now = new Date();
+  const diffMs = departureDate.getTime() - now.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays > 1) return `Départ dans ${diffDays} j`;
+  if (diffDays === 1) return "Départ demain";
+  if (diffDays === 0) return "Départ aujourd'hui";
+  if (diffDays >= -2) return "Livraison imminente";
+  return null;
+};
 const HistoryPage = () => {
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
@@ -136,6 +177,11 @@ const HistoryPage = () => {
           category: "coly",
           icon: "envoi",
           destination: s.arrival_city || "",
+          status: s.status || "pending",
+          recipient: `${s.contact_prenom || ""} ${s.contact_nom || ""}`.trim(),
+          productCategory: s.size || "",
+          departureDate: s.departure_date ? new Date(s.departure_date) : null,
+          failureReason: null,
         });
       });
 
@@ -156,6 +202,11 @@ const HistoryPage = () => {
             category: "voyageur",
             icon: "transport",
             destination: s.arrival_city || "",
+            status: s.status || "pending",
+            recipient: `${s.contact_prenom || ""} ${s.contact_nom || ""}`.trim(),
+            productCategory: s.size || "",
+            departureDate: s.departure_date ? new Date(s.departure_date) : null,
+            failureReason: null,
           });
         }
       });
@@ -176,6 +227,11 @@ const HistoryPage = () => {
             category: "needit",
             icon: "needit",
             destination: m.city || m.country || "",
+            status: m.status || "pending",
+            recipient: m.product_name || "",
+            productCategory: (m.category_path && m.category_path[0]) || "",
+            departureDate: null,
+            failureReason: null,
           });
         }
       });
@@ -197,6 +253,11 @@ const HistoryPage = () => {
             category: "voyageur",
             icon: "transport",
             destination: m.city || m.country || "",
+            status: m.status || "pending",
+            recipient: m.product_name || "",
+            productCategory: (m.category_path && m.category_path[0]) || "",
+            departureDate: null,
+            failureReason: null,
           });
         }
       });
@@ -239,7 +300,12 @@ const HistoryPage = () => {
     if (search) {
       const q = search.toLowerCase();
       items = items.filter(
-        (i) => i.ref.toLowerCase().includes(q) || i.type.toLowerCase().includes(q)
+        (i) =>
+          i.ref.toLowerCase().includes(q) ||
+          i.type.toLowerCase().includes(q) ||
+          i.recipient.toLowerCase().includes(q) ||
+          i.productCategory.toLowerCase().includes(q) ||
+          i.destination.toLowerCase().includes(q)
       );
     }
 
@@ -261,6 +327,27 @@ const HistoryPage = () => {
 
     return items;
   }, [activeTab, search, aiFilter, allData, historySort]);
+
+  // Search suggestions (unique recipients, refs, categories)
+  const suggestions = useMemo(() => {
+    if (!search || search.length < 2) return [];
+    const q = search.toLowerCase();
+    const set = new Set<string>();
+    allData.forEach((i) => {
+      if (i.recipient && i.recipient.toLowerCase().includes(q)) set.add(i.recipient);
+      if (i.productCategory && i.productCategory.toLowerCase().includes(q)) set.add(i.productCategory);
+      if (i.destination && i.destination.toLowerCase().includes(q)) set.add(i.destination);
+      if (i.ref.toLowerCase().includes(q)) set.add(i.ref);
+    });
+    return Array.from(set).slice(0, 5);
+  }, [search, allData]);
+
+  const hasActiveFilters = !!search || activeTab !== "all" || aiFilter !== "all";
+  const clearAllFilters = () => {
+    setSearch("");
+    setActiveTab("all");
+    setAiFilter("all");
+  };
 
   // Stats
   const totalGains = useMemo(() => allData.filter((i) => i.amount > 0).reduce((s, i) => s + i.amount, 0), [allData]);
@@ -309,21 +396,21 @@ const HistoryPage = () => {
     const items: HistoryItem[] = [];
     shipRes.data?.filter(s => s.user_id === user.id).forEach((s) => {
       const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
-      items.push({ id: `s-dem-${s.id}`, realId: s.id, dbTable: "shipments", type: "Envoi", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "coly", icon: "envoi", destination: s.arrival_city || "" });
+      items.push({ id: `s-dem-${s.id}`, realId: s.id, dbTable: "shipments", type: "Envoi", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "coly", icon: "envoi", destination: s.arrival_city || "", status: s.status || "pending", recipient: `${s.contact_prenom || ""} ${s.contact_nom || ""}`.trim(), productCategory: s.size || "", departureDate: s.departure_date ? new Date(s.departure_date) : null, failureReason: null });
     });
     shipRes.data?.filter(s => s.voyageur_id === user.id).forEach((s) => {
       const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
       const gain = raw * (1 - PLATFORM_RATE);
-      if (gain > 0) items.push({ id: `s-voy-${s.id}`, realId: s.id, dbTable: "shipments", type: "Transport", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "voyageur", icon: "transport", destination: s.arrival_city || "" });
+      if (gain > 0) items.push({ id: `s-voy-${s.id}`, realId: s.id, dbTable: "shipments", type: "Transport", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "voyageur", icon: "transport", destination: s.arrival_city || "", status: s.status || "pending", recipient: `${s.contact_prenom || ""} ${s.contact_nom || ""}`.trim(), productCategory: s.size || "", departureDate: s.departure_date ? new Date(s.departure_date) : null, failureReason: null });
     });
     missRes.data?.filter(m => m.user_id === user.id).forEach((m) => {
       const raw = parseFloat(m.prix_max?.replace(/[^0-9.]/g, "") ?? "0") || 0;
-      if (raw > 0) items.push({ id: `n-dem-${m.id}`, realId: m.id, dbTable: "needit_missions", type: "Mission NeedIt", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "needit", icon: "needit", destination: m.city || m.country || "" });
+      if (raw > 0) items.push({ id: `n-dem-${m.id}`, realId: m.id, dbTable: "needit_missions", type: "Mission NeedIt", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "needit", icon: "needit", destination: m.city || m.country || "", status: m.status || "pending", recipient: m.product_name || "", productCategory: (m.category_path && m.category_path[0]) || "", departureDate: null, failureReason: null });
     });
     missRes.data?.filter(m => m.voyageur_id === user.id).forEach((m) => {
       const raw = parseFloat(m.prix_max?.replace(/[^0-9.]/g, "") ?? "0") || 0;
       const gain = raw * (1 - PLATFORM_RATE);
-      if (gain > 0) items.push({ id: `n-voy-${m.id}`, realId: m.id, dbTable: "needit_missions", type: "Mission NeedIt (gain)", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "voyageur", icon: "transport", destination: m.city || m.country || "" });
+      if (gain > 0) items.push({ id: `n-voy-${m.id}`, realId: m.id, dbTable: "needit_missions", type: "Mission NeedIt (gain)", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "voyageur", icon: "transport", destination: m.city || m.country || "", status: m.status || "pending", recipient: m.product_name || "", productCategory: (m.category_path && m.category_path[0]) || "", departureDate: null, failureReason: null });
     });
     items.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
     setAllData(items);
@@ -466,18 +553,54 @@ const HistoryPage = () => {
         )}
 
         {/* Search + Sort */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex-1 flex items-center gap-2 bg-muted rounded-2xl px-4 py-3">
-            <Search size={16} className="text-muted-foreground shrink-0" />
-            <input
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-              placeholder={t("history.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Rechercher des transactions"
-            />
+        <div className="relative mb-3">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3">
+                <Search size={16} className="text-muted-foreground shrink-0" />
+                <input
+                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
+                  placeholder="Référence, destinataire, catégorie…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  aria-label="Rechercher dans mes envois"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="shrink-0 p-1 rounded-full hover:bg-background/60 text-muted-foreground"
+                    aria-label="Effacer la recherche"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              {/* Suggestions */}
+              {suggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-popover border border-border rounded-xl shadow-lg overflow-hidden">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSearch(s)}
+                      className="w-full text-left px-4 py-2 text-xs text-foreground hover:bg-muted transition-colors flex items-center gap-2"
+                    >
+                      <Search size={11} className="text-muted-foreground" />
+                      <span className="truncate">{s}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <SortSelect value={historySort} onChange={setHistorySort} t={t} keys={["dateCreated", "price", "destination"]} />
           </div>
-          <SortSelect value={historySort} onChange={setHistorySort} t={t} keys={["dateCreated", "price", "destination"]} />
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+            >
+              <X size={11} /> Effacer les filtres
+            </button>
+          )}
         </div>
 
         {/* AI filter pills */}
@@ -539,67 +662,121 @@ const HistoryPage = () => {
                 <p className="text-muted-foreground text-sm">{t("history.noResultFilter")}</p>
               </li>
             ) : (
-              filtered.map((item) => (
-                <motion.li
-                  key={item.id}
-                  variants={staggerItem}
-                  className="flex items-center gap-3 bg-card rounded-xl border border-border p-3.5 hover:shadow-sm transition-shadow"
-                >
-                  <div className={`w-10 h-10 rounded-lg ${iconBgMap[item.icon]} flex items-center justify-center shrink-0`}>
-                    {iconMap[item.icon]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-semibold text-foreground text-sm">{item.type}</p>
-                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
-                        item.category === "voyageur" ? "bg-primary/10 text-primary" :
-                        item.category === "coly" ? "bg-secondary/10 text-secondary" :
-                        "bg-accent/10 text-accent"
-                      }`}>
-                        {item.category}
-                      </span>
+              filtered.map((item) => {
+                const meta = getStatusMeta(item.status, item.category);
+                const eta = formatETA(item.departureDate, item.status);
+                const detailPath = item.dbTable === "shipments" ? `/shipment/${item.realId}` : `/mission/${item.realId}`;
+                const toneClasses: Record<string, string> = {
+                  pending: "bg-warning/15 text-warning",
+                  active: "bg-primary/15 text-primary",
+                  success: "bg-emerald-500/15 text-emerald-600",
+                  danger: "bg-destructive/15 text-destructive",
+                };
+                const barColor: Record<string, string> = {
+                  pending: "bg-warning",
+                  active: "bg-primary",
+                  success: "bg-emerald-500",
+                  danger: "bg-destructive",
+                };
+                const StatusIcon = meta.tone === "success" ? CheckCircle2 : meta.tone === "danger" ? AlertCircle : meta.tone === "active" ? Loader2 : Clock;
+                return (
+                  <motion.li
+                    key={item.id}
+                    variants={staggerItem}
+                    onClick={() => navigate(detailPath)}
+                    className="group flex items-start gap-3 bg-card rounded-xl border border-border p-3.5 hover:shadow-md hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
+                  >
+                    <div className={`w-10 h-10 rounded-lg ${iconBgMap[item.icon]} flex items-center justify-center shrink-0`}>
+                      {iconMap[item.icon]}
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <span>{item.ref}</span>
-                      {item.destination && (
-                        <>
-                          <span>•</span>
-                          <span className="flex items-center gap-0.5"><MapPin size={10} className="shrink-0" />{item.destination}</span>
-                        </>
-                      )}
-                    </div>
-                    {/* Proof badges */}
-                    {proofsMap[item.realId] && (proofsMap[item.realId].pickup > 0 || proofsMap[item.realId].delivery > 0) && (
-                      <div className="flex items-center gap-2 mt-1">
-                        {proofsMap[item.realId].pickup > 0 && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">
-                            <PackageCheck size={10} /> Récup. ({proofsMap[item.realId].pickup})
-                          </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-semibold text-foreground text-sm">{item.type}</p>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                          item.category === "voyageur" ? "bg-primary/10 text-primary" :
+                          item.category === "coly" ? "bg-secondary/10 text-secondary" :
+                          "bg-accent/10 text-accent"
+                        }`}>
+                          {item.category}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                        <span className="font-mono">{item.ref}</span>
+                        {item.recipient && (
+                          <>
+                            <span>•</span>
+                            <span className="truncate">{item.recipient}</span>
+                          </>
                         )}
-                        {proofsMap[item.realId].delivery > 0 && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-accent/10 text-accent rounded-full px-2 py-0.5">
-                            <Camera size={10} /> Livr. ({proofsMap[item.realId].delivery})
-                          </span>
+                        {item.destination && (
+                          <>
+                            <span>•</span>
+                            <span className="flex items-center gap-0.5 truncate"><MapPin size={10} className="shrink-0" />{item.destination}</span>
+                          </>
                         )}
                       </div>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0 flex items-center gap-2">
-                    <div>
+
+                      {/* Status indicator with progress + ETA / failure */}
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${toneClasses[meta.tone]}`}>
+                            <StatusIcon size={10} className={meta.tone === "active" ? "animate-spin" : ""} />
+                            {meta.label}
+                          </span>
+                          {eta && (
+                            <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-0.5">
+                              <Clock size={9} /> {eta}
+                            </span>
+                          )}
+                        </div>
+                        {!meta.failure && (
+                          <div className="h-1 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${barColor[meta.tone]} transition-all`}
+                              style={{ width: `${meta.progress}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Proof badges */}
+                      {proofsMap[item.realId] && (proofsMap[item.realId].pickup > 0 || proofsMap[item.realId].delivery > 0) && (
+                        <div className="flex items-center gap-2 mt-1.5">
+                          {proofsMap[item.realId].pickup > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">
+                              <PackageCheck size={10} /> Récup. ({proofsMap[item.realId].pickup})
+                            </span>
+                          )}
+                          {proofsMap[item.realId].delivery > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-accent/10 text-accent rounded-full px-2 py-0.5">
+                              <Camera size={10} /> Livr. ({proofsMap[item.realId].delivery})
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0 flex flex-col items-end gap-1">
                       <p className={`font-bold text-sm ${item.amount >= 0 ? "text-primary" : "text-destructive"}`}>
                         {item.amount >= 0 ? "+" : ""}{item.amount.toFixed(1)}{getCurrencySymbol()}
                       </p>
-                      <p className="text-xs text-muted-foreground">{item.date}</p>
+                      <p className="text-[10px] text-muted-foreground">{item.date}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteDialog({ id: item.id, realId: item.realId, dbTable: item.dbTable, ref: item.ref });
+                          }}
+                          className="w-6 h-6 rounded-full bg-muted hover:bg-destructive/20 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
+                          aria-label="Supprimer"
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                        <ChevronRight size={14} className="text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                      </div>
                     </div>
-                    <button
-                      onClick={() => setDeleteDialog({ id: item.id, realId: item.realId, dbTable: item.dbTable, ref: item.ref })}
-                      className="w-7 h-7 rounded-full bg-muted hover:bg-destructive/20 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                </motion.li>
-              ))
+                  </motion.li>
+                );
+              })
             )}
           </motion.ul>
         )}

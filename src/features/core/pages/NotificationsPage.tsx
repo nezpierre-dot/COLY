@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 type NotifFilter = "all" | "match" | "proof" | "status" | "reminder";
+type ReadFilter = "all" | "unread" | "latest";
 
 const getNotifCategory = (type: string): NotifFilter => {
   if (type.startsWith("match:")) return "match";
@@ -112,15 +113,22 @@ export default function NotificationsPage() {
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 
   const [filter, setFilter] = useState<NotifFilter>("all");
+  const [readFilter, setReadFilter] = useState<ReadFilter>("all");
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: "single" | "bulk"; id?: string } | null>(null);
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
-    if (filter === "all") return notifications;
-    return notifications.filter((n) => getNotifCategory(n.type) === filter);
-  }, [notifications, filter]);
+    let list = filter === "all" ? notifications : notifications.filter((n) => getNotifCategory(n.type) === filter);
+    if (readFilter === "unread") list = list.filter((n) => !n.is_read);
+    if (readFilter === "latest") {
+      list = [...list]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 10);
+    }
+    return list;
+  }, [notifications, filter, readFilter]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<NotifFilter, number> = { all: notifications.length, match: 0, proof: 0, status: 0, reminder: 0 };
@@ -241,27 +249,62 @@ export default function NotificationsPage() {
       <main className="page-content pt-6">
 
         {notifications.length > 0 && !selectMode && (
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
-            {filterLabels.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
-                  filter === f.key
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
-                }`}
-              >
-                {f.icon}
-                {f.label}
-                {categoryCounts[f.key] > 0 && (
-                  <span className={`ml-0.5 text-[10px] ${filter === f.key ? "text-primary-foreground/80" : "text-muted-foreground/60"}`}>
-                    {categoryCounts[f.key]}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          <>
+            {/* Segmented sort/read filter */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 inline-flex bg-muted rounded-2xl p-1">
+                {([
+                  { key: "unread" as ReadFilter, label: `Non lues${unreadCount > 0 ? ` (${unreadCount})` : ""}` },
+                  { key: "all" as ReadFilter, label: "Toutes" },
+                  { key: "latest" as ReadFilter, label: "Dernières" },
+                ]).map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setReadFilter(opt.key)}
+                    className={`flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                      readFilter === opt.key
+                        ? "bg-foreground text-background shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {unreadCount > 0 && (
+                <button
+                  onClick={() => markAllAsRead()}
+                  className="shrink-0 inline-flex items-center gap-1 text-[11px] text-primary font-semibold hover:underline whitespace-nowrap"
+                  aria-label="Marquer tout comme lu"
+                >
+                  <Check size={12} /> Tout lire
+                </button>
+              )}
+            </div>
+
+            {/* Category filter chips */}
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
+              {filterLabels.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
+                    filter === f.key
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  {f.icon}
+                  {f.label}
+                  {categoryCounts[f.key] > 0 && (
+                    <span className={`ml-0.5 text-[10px] ${filter === f.key ? "text-primary-foreground/80" : "text-muted-foreground/60"}`}>
+                      {categoryCounts[f.key]}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </>
         )}
 
         {loading ? (
