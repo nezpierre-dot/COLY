@@ -302,29 +302,30 @@
   }
 
   .page-header-soft {
-    @apply px-5 sm:px-8 pt-12 pb-6 rounded-b-[2.5rem] border-b border-border/40 relative overflow-hidden;
-    background: var(--gradient-hero);
+    @apply px-5 sm:px-8 pt-12 pb-8 rounded-b-[2.75rem] relative overflow-hidden;
+    background: var(--gradient-hero-bright);
     box-shadow: var(--shadow-soft);
+    border: none;
   }
-  /* Auras décoratives douces, automatiques sur tous les headers Future */
+  /* Auras décoratives lumineuses — automatiquement appliquées à tous les headers Future */
   .page-header-soft::before,
   .page-header-soft::after {
     content: "";
     position: absolute;
     border-radius: 9999px;
-    filter: blur(48px);
+    filter: blur(56px);
     pointer-events: none;
     z-index: 0;
   }
   .page-header-soft::before {
-    top: -4rem; right: -3rem;
-    width: 16rem; height: 16rem;
-    background: hsl(var(--secondary) / 0.28);
+    top: -5rem; right: -4rem;
+    width: 20rem; height: 20rem;
+    background: hsl(var(--secondary) / 0.32);
   }
   .page-header-soft::after {
-    bottom: -5rem; left: -3rem;
-    width: 14rem; height: 14rem;
-    background: hsl(var(--primary) / 0.22);
+    bottom: -6rem; left: -4rem;
+    width: 18rem; height: 18rem;
+    background: hsl(var(--primary) / 0.28);
   }
   .page-header-soft > * { position: relative; z-index: 1; }
 
@@ -397,6 +398,45 @@
     box-shadow: var(--shadow-soft);
     border: 1px solid hsl(var(--border));
   }
+
+  /* ---- Stat cards arrondies colorées (mockup Future) ---- */
+  .stat-card-future {
+    @apply rounded-3xl p-4 flex flex-col items-start gap-2 transition-all;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid hsl(var(--border) / 0.4);
+  }
+  .stat-card-future:hover { box-shadow: var(--shadow-card); transform: translateY(-2px); }
+  .stat-card-future .stat-icon {
+    @apply w-10 h-10 rounded-2xl flex items-center justify-center;
+  }
+  .stat-card-future.tone-primary { background: linear-gradient(160deg, hsl(224 100% 96%) 0%, hsl(0 0% 100%) 100%); }
+  .stat-card-future.tone-primary .stat-icon { background: hsl(var(--primary) / 0.14); color: hsl(var(--primary)); }
+  .stat-card-future.tone-secondary { background: linear-gradient(160deg, hsl(254 92% 96%) 0%, hsl(0 0% 100%) 100%); }
+  .stat-card-future.tone-secondary .stat-icon { background: hsl(var(--secondary) / 0.18); color: hsl(254 70% 50%); }
+  .stat-card-future.tone-accent { background: linear-gradient(160deg, hsl(16 100% 95%) 0%, hsl(0 0% 100%) 100%); }
+  .stat-card-future.tone-accent .stat-icon { background: hsl(var(--accent) / 0.25); color: hsl(16 80% 55%); }
+  .stat-card-future.tone-success { background: linear-gradient(160deg, hsl(152 70% 94%) 0%, hsl(0 0% 100%) 100%); }
+  .stat-card-future.tone-success .stat-icon { background: hsl(var(--success) / 0.18); color: hsl(var(--success)); }
+
+  /* ---- Search bar pilule (mockup Future) ---- */
+  .search-pill {
+    @apply flex items-center gap-3 bg-card rounded-full px-5 py-3.5 border border-border/50;
+    box-shadow: var(--shadow-soft);
+    transition: box-shadow .2s ease, transform .2s ease;
+  }
+  .search-pill:focus-within {
+    box-shadow: var(--shadow-card), 0 0 0 4px hsl(var(--primary) / 0.10);
+    transform: translateY(-1px);
+  }
+  .search-pill input {
+    @apply flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none;
+  }
+  .search-pill .search-pill-action {
+    @apply w-10 h-10 rounded-full flex items-center justify-center text-primary-foreground shrink-0 transition;
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-soft);
+  }
+  .search-pill .search-pill-action:hover { box-shadow: var(--shadow-glow); }
 }
 
 /* Foldable & small mobile */

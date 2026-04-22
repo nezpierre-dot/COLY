@@ -245,87 +245,86 @@ const MyAccount = () => {
 
   return (
     <div className="page-shell" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px) + 16px)" }}>
-      {/* Profile Hero Banner — Future style */}
-      <div
-        className="relative overflow-hidden px-6 pt-12 pb-8 rounded-b-[2.5rem]"
-        style={{
-          background: "var(--gradient-hero)"
-        }}
-      >
-        <div className="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-primary/10 blur-2xl" />
-        <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-secondary/15 blur-2xl" />
-
-        <div className="relative z-10 flex items-start gap-4">
-          {/* Avatar */}
-          <div className="relative shrink-0">
-            <motion.div
-              whileTap={{ scale: 0.95 }}
-              className="w-24 h-24 rounded-2xl bg-white/20 flex items-center justify-center overflow-hidden cursor-pointer group backdrop-blur-sm"
-              onClick={() => fileRef.current?.click()}
-            >
-              {avatar ? (
-                <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <User size={40} className="text-white/60" />
-              )}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
-                <Camera size={24} className="text-white" />
-              </div>
-            </motion.div>
-            {kycStatus === "verified" ? (
-              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center border-2 border-background">
-                <BadgeCheck size={14} className="text-white" />
-              </div>
-            ) : (
-              <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center border-2 border-background">
-                <CheckCircle2 size={14} className="text-white" />
-              </div>
-            )}
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
-          </div>
-
-          {/* Name, bio & rating */}
-          <div className="flex-1 min-w-0 pt-1">
-            <h1 className="text-xl font-bold text-white truncate text-on-gradient">
-            {fullName || t("account.user")}
-            </h1>
-            <p className="text-white/70 text-xs mt-0.5 text-on-gradient">
-              {isVoyageur ? t("account.voyageur") : t("account.sender")} · N°{userId.toUpperCase()}
-            </p>
-
-            {bio && !editing && (
-              <p className="text-white/70 text-xs mt-1.5 line-clamp-2 italic">"{bio}"</p>
-            )}
-
-            {rating ? (
-              <div className="flex items-center gap-1.5 mt-2">
-                <div className="flex items-center gap-0.5">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star
-                      key={s}
-                      size={14}
-                      className={s <= Math.round(rating.average_score) ? "text-amber-400" : "text-white/20"}
-                      fill={s <= Math.round(rating.average_score) ? "currentColor" : "none"}
-                    />
-                  ))}
+      {/* Profile Hero — Future style (lumineux, white pill, gradient title) */}
+      <header className="page-header-soft">
+        <div className="page-content">
+          <div className="flex items-start gap-4">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <motion.div
+                whileTap={{ scale: 0.95 }}
+                className="w-24 h-24 rounded-3xl bg-card border border-border/60 shadow-card flex items-center justify-center overflow-hidden cursor-pointer group"
+                onClick={() => fileRef.current?.click()}
+              >
+                {avatar ? (
+                  <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={40} className="text-muted-foreground" />
+                )}
+                <div className="absolute inset-0 bg-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl flex items-center justify-center">
+                  <Camera size={24} className="text-white" />
                 </div>
-                <span className="text-white/80 text-xs font-semibold">{rating.average_score}</span>
-                <span className="text-white/40 text-xs">({rating.total_ratings} {t("account.reviews")})</span>
-              </div>
-            ) : (
-              <p className="text-white/40 text-xs mt-2">{t("account.notRated")}</p>
-            )}
-          </div>
+              </motion.div>
+              {kycStatus === "verified" ? (
+                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-success flex items-center justify-center border-2 border-background">
+                  <BadgeCheck size={14} className="text-success-foreground" />
+                </div>
+              ) : (
+                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-warning flex items-center justify-center border-2 border-background">
+                  <CheckCircle2 size={14} className="text-warning-foreground" />
+                </div>
+              )}
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+            </div>
 
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => { hapticLight(); editing ? handleSave() : setEditing(true); }}
-            className="shrink-0 w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white hover:bg-white/25 transition-colors backdrop-blur-sm"
-          >
-            {editing ? <Save size={20} /> : <Pencil size={20} />}
-          </motion.button>
+            {/* Name, bio & rating */}
+            <div className="flex-1 min-w-0 pt-1">
+              <span className="greeting-bubble-xl mb-2">
+                <User size={16} className="text-primary" />
+                {isVoyageur ? t("account.voyageur") : t("account.sender")}
+              </span>
+              <h1 className="text-[clamp(1.5rem,5vw,2rem)] font-extrabold leading-tight tracking-tight text-foreground truncate mt-1">
+                {fullName || t("account.user")}
+              </h1>
+              <p className="text-xs text-muted-foreground mt-1 font-medium">
+                N°{userId.toUpperCase()}
+              </p>
+
+              {bio && !editing && (
+                <p className="text-foreground/70 text-sm mt-2 line-clamp-2 italic">"{bio}"</p>
+              )}
+
+              {rating ? (
+                <div className="flex items-center gap-1.5 mt-2">
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        size={14}
+                        className={s <= Math.round(rating.average_score) ? "text-warning" : "text-muted-foreground/30"}
+                        fill={s <= Math.round(rating.average_score) ? "currentColor" : "none"}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-foreground text-xs font-bold">{rating.average_score}</span>
+                  <span className="text-muted-foreground text-xs">({rating.total_ratings} {t("account.reviews")})</span>
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-xs mt-2">{t("account.notRated")}</p>
+              )}
+            </div>
+
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => { hapticLight(); editing ? handleSave() : setEditing(true); }}
+              className="shrink-0 icon-btn-soft"
+              aria-label={editing ? "Enregistrer" : "Modifier"}
+            >
+              {editing ? <Save size={18} /> : <Pencil size={18} />}
+            </motion.button>
+          </div>
         </div>
-      </div>
+      </header>
 
       <div className="px-6 -mt-4 relative z-10">
         {/* Quick stats row */}

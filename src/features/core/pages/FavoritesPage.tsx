@@ -40,12 +40,28 @@ const FavoritesPage = () => {
 
   return (
     <div className="page-shell">
-      <div className="px-6 pt-12">
-        <button onClick={() => navigate(-1)} className="text-muted-foreground mb-4"><ArrowLeft size={24} /></button>
-        <h1 className="text-3xl font-bold text-foreground mb-6 flex items-center gap-2">
-          <Heart size={28} className="text-destructive" /> {t("favorites.title")}
-        </h1>
+      <header className="page-header-soft">
+        <div className="page-content">
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => navigate(-1)} className="icon-btn-soft" aria-label="Retour">
+              <ArrowLeft size={18} className="text-foreground" />
+            </button>
+          </div>
+          <span className="greeting-bubble-xl mb-3">
+            <Heart size={18} className="text-destructive" fill="currentColor" />
+            {t("favorites.title")}
+          </span>
+          <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+            Vos coups<br />
+            <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">de cœur ❤️</span>
+          </h1>
+          <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
+            Itinéraires & produits sauvegardés pour aller plus vite ✨
+          </p>
+        </div>
+      </header>
 
+      <main className="page-content pt-6">
         <Tabs value={tab} onValueChange={setTab} className="mb-4">
           <TabsList className="w-full">
             <TabsTrigger value="routes" className="flex-1 text-xs gap-1"><MapPin size={14} />{t("favorites.tabRoutes")}</TabsTrigger>
@@ -121,7 +137,7 @@ const FavoritesPage = () => {
             )}
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
       <BottomNav />
     </div>
   );

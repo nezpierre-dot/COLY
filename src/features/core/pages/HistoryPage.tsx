@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin, Camera, PackageCheck } from "lucide-react";
+import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin, Camera, PackageCheck, BarChart3 } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -333,15 +333,26 @@ const HistoryPage = () => {
     <div className="page-shell">
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
-        <div className="page-header-soft flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-soft" aria-label="Retour">
-            <ArrowLeft size={18} className="text-foreground" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">{t("history.title")}</h1>
-            <p className="text-sm text-muted-foreground">{t("history.subtitle")}</p>
+        <header className="page-header-soft">
+          <div className="page-content">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={() => navigate(-1)} className="icon-btn-soft" aria-label="Retour">
+                <ArrowLeft size={18} className="text-foreground" />
+              </button>
+            </div>
+            <span className="greeting-bubble-xl mb-3">
+              <BarChart3 size={18} className="text-primary" />
+              {t("history.title")}
+            </span>
+            <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+              Toutes vos<br />
+              <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">transactions.</span>
+            </h1>
+            <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
+              {t("history.subtitle")}
+            </p>
           </div>
-        </div>
+        </header>
         <main className="page-content pt-6" id="main-content" role="main" aria-label="Historique des transactions">
 
         {/* Summary cards */}

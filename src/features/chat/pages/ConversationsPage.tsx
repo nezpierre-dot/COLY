@@ -326,33 +326,46 @@ const ConversationsPage = () => {
     <div className="page-shell">
       <PageTransition>
         <PullToRefresh onRefresh={load}>
-        <div className="px-6 pt-12">
-          <div className="flex items-center gap-3 mb-6">
-            <button onClick={() => navigate("/dashboard")} className="text-muted-foreground hover:text-foreground">
-              <ArrowLeft size={24} />
-            </button>
-            <h1 className="text-2xl font-bold text-foreground flex-1">{t("conversations.title")}</h1>
-            {user && conversations.filter((c) => c.is_archived_by?.includes(user.id)).length > 0 && (
-              <button
-                onClick={() => setShowArchived(!showArchived)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
-              >
-                <Archive size={14} />
-                <span>{conversations.filter((c) => c.is_archived_by?.includes(user.id)).length}</span>
+        <header className="page-header-soft">
+          <div className="page-content">
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={() => navigate("/dashboard")} className="icon-btn-soft" aria-label="Retour">
+                <ArrowLeft size={18} className="text-foreground" />
               </button>
-            )}
+              {user && conversations.filter((c) => c.is_archived_by?.includes(user.id)).length > 0 && (
+                <button
+                  onClick={() => setShowArchived(!showArchived)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-card border border-border/60 text-foreground/70 hover:text-foreground text-xs font-semibold shadow-soft transition-colors"
+                >
+                  <Archive size={14} />
+                  <span>{conversations.filter((c) => c.is_archived_by?.includes(user.id)).length}</span>
+                </button>
+              )}
+            </div>
+            <span className="greeting-bubble-xl mb-3">
+              <MessageCircle size={18} className="text-primary" />
+              Messages
+            </span>
+            <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+              Vos échanges<br />
+              <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">en un clin d'œil.</span>
+            </h1>
+            <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
+              Retrouvez toutes vos conversations avec vos demandeurs et voyageurs ✨
+            </p>
           </div>
+        </header>
 
+        <main className="page-content pt-6">
           {/* Search bar */}
-          <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mb-4">
+          <label className="search-pill mb-5">
             <Search size={18} className="text-muted-foreground shrink-0" />
             <input
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
               placeholder="Rechercher par nom ou trajet…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-          </div>
+          </label>
 
           {loading ? (
             <div className="flex justify-center py-12">
@@ -424,7 +437,7 @@ const ConversationsPage = () => {
                         <span>Tout supprimer</span>
                       </button>
                     )}
-                  </div>
+        </div>
 
                   <AnimatePresence>
                     {showArchived && (
@@ -464,7 +477,7 @@ const ConversationsPage = () => {
               )}
             </>
           )}
-        </div>
+        </main>
         </PullToRefresh>
       </PageTransition>
       <BottomNav />

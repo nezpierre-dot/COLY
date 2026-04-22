@@ -23,11 +23,22 @@ export default function Comptabilite() {
     <div className="page-shell">
       <header className="page-header-soft">
         <div className="page-content">
-          <button onClick={() => navigate("/my-account")} className="text-muted-foreground mb-4 inline-flex items-center justify-center w-10 h-10 rounded-full bg-card/80 backdrop-blur shadow-soft hover:bg-card transition" aria-label={t("common.back")}>
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">{t("compta.title")}</h1>
-          <p className="text-sm text-muted-foreground mt-2">{t("compta.section")}</p>
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => navigate("/my-account")} className="icon-btn-soft" aria-label={t("common.back")}>
+              <ArrowLeft size={18} className="text-foreground" />
+            </button>
+          </div>
+          <span className="greeting-bubble-xl mb-3">
+            <FileText size={18} className="text-primary" />
+            {t("compta.title")}
+          </span>
+          <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+            Vos finances<br />
+            <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">en toute clarté.</span>
+          </h1>
+          <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
+            {t("compta.section")}
+          </p>
         </div>
       </header>
 
