@@ -144,6 +144,8 @@ const NeeditCreatePage = () => {
     draft.brandProduct?.photo_url ?? null,
   );
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const currency = getCurrencyForCountry(pays);
 
