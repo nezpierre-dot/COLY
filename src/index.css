@@ -76,7 +76,8 @@
     --sidebar-ring: 224 100% 65%;
 
     /* Gradients signature – bleu clair → blanc → violet très clair */
-    --gradient-hero: linear-gradient(135deg, hsl(224 100% 92%) 0%, hsl(0 0% 100%) 50%, hsl(254 92% 94%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(224 100% 90%) 0%, hsl(220 100% 96%) 35%, hsl(0 0% 100%) 60%, hsl(264 95% 93%) 100%);
+    --gradient-hero-bright: radial-gradient(ellipse 120% 80% at 80% 0%, hsl(264 100% 92%) 0%, transparent 55%), radial-gradient(ellipse 100% 70% at 0% 0%, hsl(224 100% 90%) 0%, transparent 55%), linear-gradient(180deg, hsl(220 100% 98%) 0%, hsl(0 0% 100%) 100%);
     --gradient-soft: linear-gradient(180deg, hsl(224 100% 97%) 0%, hsl(0 0% 100%) 60%, hsl(254 92% 97%) 100%);
     --gradient-primary: linear-gradient(135deg, hsl(224 100% 65%), hsl(254 92% 70%));
     --gradient-accent: linear-gradient(135deg, hsl(16 100% 80%), hsl(340 100% 82%));
@@ -254,6 +255,27 @@
   .bg-gradient-header,
   .bg-gradient-hero {
     background: var(--gradient-hero);
+  }
+
+  .bg-gradient-hero-bright {
+    background: var(--gradient-hero-bright);
+  }
+
+  .greeting-bubble-xl {
+    @apply inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-base font-bold;
+    background: hsl(0 0% 100%);
+    color: hsl(var(--foreground));
+    box-shadow: var(--shadow-card);
+    border: 1px solid hsl(var(--border) / 0.6);
+  }
+
+  /* Animated dotted route used in hero illustration */
+  @keyframes route-dash {
+    to { stroke-dashoffset: -24; }
+  }
+  .route-dash-anim {
+    stroke-dasharray: 4 6;
+    animation: route-dash 1.4s linear infinite;
   }
 
   .bg-gradient-soft {
