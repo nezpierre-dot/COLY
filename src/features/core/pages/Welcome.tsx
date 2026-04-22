@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import OnboardingFlow from "@/components/OnboardingFlow";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useAuth } from "@/hooks/useAuth";
+import logo from "@/assets/logo.svg";
 
 const Welcome = () => {
   const navigate = useNavigate();
@@ -51,12 +52,22 @@ const Welcome = () => {
       </div>
 
       {/* Header */}
-      <div className="relative z-10 px-6 pt-20 pb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 backdrop-blur-md border border-white/60 shadow-soft mb-6">
-          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-          <span className="text-xs font-medium text-foreground/80 tracking-wide">
-            Nidit
-          </span>
+      <div className="relative z-10 px-6 pt-16 pb-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/40 to-secondary/40 blur-xl" />
+            <img
+              src={logo}
+              alt="Nidit"
+              className="relative w-16 h-16 rounded-2xl shadow-soft"
+            />
+          </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 backdrop-blur-md border border-white/60 shadow-soft">
+            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+            <span className="text-xs font-medium text-foreground/80 tracking-wide">
+              Nidit
+            </span>
+          </div>
         </div>
         <h1 className="text-[2.6rem] font-bold leading-[1.1] tracking-tight whitespace-pre-line bg-gradient-to-br from-foreground via-foreground to-primary bg-clip-text text-transparent">
           {t("welcome.tagline")}
