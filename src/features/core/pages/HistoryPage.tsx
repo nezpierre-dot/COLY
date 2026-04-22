@@ -264,7 +264,12 @@ const HistoryPage = () => {
     if (search) {
       const q = search.toLowerCase();
       items = items.filter(
-        (i) => i.ref.toLowerCase().includes(q) || i.type.toLowerCase().includes(q)
+        (i) =>
+          i.ref.toLowerCase().includes(q) ||
+          i.type.toLowerCase().includes(q) ||
+          i.recipient.toLowerCase().includes(q) ||
+          i.productCategory.toLowerCase().includes(q) ||
+          i.destination.toLowerCase().includes(q)
       );
     }
 
@@ -286,6 +291,27 @@ const HistoryPage = () => {
 
     return items;
   }, [activeTab, search, aiFilter, allData, historySort]);
+
+  // Search suggestions (unique recipients, refs, categories)
+  const suggestions = useMemo(() => {
+    if (!search || search.length < 2) return [];
+    const q = search.toLowerCase();
+    const set = new Set<string>();
+    allData.forEach((i) => {
+      if (i.recipient && i.recipient.toLowerCase().includes(q)) set.add(i.recipient);
+      if (i.productCategory && i.productCategory.toLowerCase().includes(q)) set.add(i.productCategory);
+      if (i.destination && i.destination.toLowerCase().includes(q)) set.add(i.destination);
+      if (i.ref.toLowerCase().includes(q)) set.add(i.ref);
+    });
+    return Array.from(set).slice(0, 5);
+  }, [search, allData]);
+
+  const hasActiveFilters = !!search || activeTab !== "all" || aiFilter !== "all";
+  const clearAllFilters = () => {
+    setSearch("");
+    setActiveTab("all");
+    setAiFilter("all");
+  };
 
   // Stats
   const totalGains = useMemo(() => allData.filter((i) => i.amount > 0).reduce((s, i) => s + i.amount, 0), [allData]);
