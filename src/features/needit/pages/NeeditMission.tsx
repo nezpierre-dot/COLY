@@ -367,7 +367,27 @@ const NeeditMission = () => {
                 </div>
               </>
             )}
-            {step === 2 && !isUnlisted && (
+            {step === 2 && !isUnlisted && brandPhase === "brands" && categoryPath[0]?.key && (
+              <BrandPicker
+                categoryKey={categoryPath[0].key}
+                categoryLabel={categoryPath[0].label}
+                onSelect={handleBrandSelect}
+                onSkip={handleBrandSkip}
+              />
+            )}
+            {step === 2 && !isUnlisted && brandPhase === "products" && selectedBrand && (
+              <BrandProductPicker
+                brand={selectedBrand}
+                selected={selectedBrandProduct}
+                onSelect={handleBrandProductSelect}
+                onSkip={() => {
+                  // Allow user to type a custom item under this brand: keep brand, free product name later
+                  setSelectedBrandProduct(null);
+                  setSelectedLeaf(selectedBrand.name);
+                }}
+              />
+            )}
+            {step === 2 && !isUnlisted && brandPhase === "categories" && (
               <>
                 {categoryPath.length > 0 && (
                   <div className="space-y-2 mb-6">
@@ -426,7 +446,7 @@ const NeeditMission = () => {
                     ))}
                   </div>
                 )}
-                <button onClick={() => { setIsUnlisted(true); setSelectedLeaf(""); setCategoryPath([]); }} className="w-full flex items-center justify-center gap-3 py-4 rounded-full bg-[hsl(var(--chart-4))] text-primary-foreground text-lg font-medium mb-4">{t("needit.unlistedProduct")} <ArrowRight size={20} /></button>
+                <button onClick={() => { setIsUnlisted(true); setSelectedLeaf(""); setCategoryPath([]); setBrandPhase("categories"); setSelectedBrand(null); setSelectedBrandProduct(null); }} className="w-full flex items-center justify-center gap-3 py-4 rounded-full bg-[hsl(var(--chart-4))] text-primary-foreground text-lg font-medium mb-4">{t("needit.unlistedProduct")} <ArrowRight size={20} /></button>
               </>
             )}
             {step === 2 && isUnlisted && (
