@@ -707,7 +707,83 @@ const NeeditMission = () => {
             )}
             {step === 4 && (
               <>
-                <h3 className="text-xl text-muted-foreground mb-6">{t("needit.describeProducts")}</h3>
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-foreground mb-1">Détails de ma demande</h3>
+                  <p className="text-sm text-muted-foreground">Précisez vos attentes pour le voyageur</p>
+                </div>
+
+                {/* Compact product summary header */}
+                {(selectedBrand || selectedLeaf || (isUnlisted && unlistedName)) && (
+                  <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 mb-5 shadow-sm">
+                    {(photoPreview || selectedBrandProduct?.product.photo_url) ? (
+                      <img
+                        src={photoPreview ?? selectedBrandProduct!.product.photo_url!}
+                        alt=""
+                        className="w-14 h-14 rounded-xl object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0">
+                        <Camera size={18} className="text-primary/60" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      {selectedBrand && (
+                        <p className="text-[10px] font-bold text-primary uppercase tracking-wider truncate">{selectedBrand.name}</p>
+                      )}
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {isUnlisted ? unlistedName : (selectedBrandProduct?.product.name || selectedLeaf || "Produit")}
+                      </p>
+                      {selectedBrandProduct?.variant && (
+                        <p className="text-xs text-muted-foreground">{selectedBrandProduct.variant}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quantity + Comments — premium "request details" section */}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-2">
+                      <Hash size={12} /> Quantité souhaitée
+                    </label>
+                    <div className="inline-flex items-center rounded-2xl border border-border bg-card overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity((q) => String(Math.max(1, parseInt(q || "1") - 1)))}
+                        className="w-11 h-11 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value.replace(/[^0-9]/g, "") || "1")}
+                        className="w-14 h-11 text-center bg-transparent text-base font-semibold text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setQuantity((q) => String(parseInt(q || "1") + 1))}
+                        className="w-11 h-11 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-2">
+                      <MessageSquare size={12} /> Commentaires / Instructions particulières
+                    </label>
+                    <textarea
+                      value={comments}
+                      onChange={(e) => setComments(e.target.value)}
+                      placeholder="Ex : emballage renforcé, livraison en main propre, choix du parfum si rupture…"
+                      rows={3}
+                      className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 resize-none transition-colors"
+                    />
+                  </div>
+                </div>
 
                 {/* Recap for unlisted products */}
                 {isUnlisted && (
