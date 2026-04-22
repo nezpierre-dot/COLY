@@ -65,6 +65,11 @@ const ChatPage = () => {
   const [uploadingProof, setUploadingProof] = useState(false);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [proofFile, setProofFile] = useState<File | null>(null);
+  // AI suggestions
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [loadingAi, setLoadingAi] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const aiAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!conversationId || !user) return;
