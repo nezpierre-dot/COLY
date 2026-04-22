@@ -686,7 +686,7 @@ const Dashboard = () => {
     {showDemandeurOnboarding && (
       <DemandeurOnboarding onComplete={() => setShowDemandeurOnboarding(false)} />
     )}
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-gradient-soft pb-24">
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
       <main className="px-0 pt-0" id="main-content" role="main">
@@ -728,13 +728,18 @@ const Dashboard = () => {
                     height={20}
                     className="w-5 h-5 object-contain"
                   />
-                  {t("dashboard.greeting") || "Bonjour !"}
+                  Bonjour !
                 </span>
                 <h1 className="text-[clamp(1.85rem,5.5vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-foreground">
                   {isVoyageur
-                    ? (t("dashboard.voyageurHeroTitle") || "Prêt pour un nouveau voyage ?")
-                    : (t("dashboard.demandeurHeroTitle") || "Suivez vos envois en un coup d'œil.")}
+                    ? "Prêt pour un nouveau voyage ?"
+                    : "Suivez vos envois en un coup d'œil."}
                 </h1>
+                {!isVoyageur && (
+                  <p className="mt-2 text-sm sm:text-base text-muted-foreground font-medium max-w-[260px] leading-snug">
+                    Suivez l'avancement de chacun de vos colis en toute sérénité ✨
+                  </p>
+                )}
                 <UserLevelBadge variant="full" className="mt-3" />
               </div>
               <img
@@ -1363,20 +1368,20 @@ const Dashboard = () => {
               transition={{ duration: 0.4 }}
               className="relative"
             >
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                <Search size={18} className="text-muted-foreground" />
+              <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                <Search size={20} className="text-muted-foreground" />
               </div>
               <input
                 type="search"
-                placeholder={t("dashboard.searchPlaceholder") || "Rechercher un envoi, une ville, une mission…"}
+                placeholder="Rechercher un voyageur, colis..."
                 onClick={() => navigate("/history/coly")}
                 readOnly
-                className="w-full h-14 pl-12 pr-16 rounded-2xl bg-card border border-border/60 shadow-soft text-sm font-medium text-foreground placeholder:text-muted-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all cursor-pointer"
+                className="w-full h-16 pl-14 pr-20 rounded-3xl bg-card border border-border/60 shadow-card text-base font-medium text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all cursor-pointer hover:shadow-elevated"
                 aria-label="Rechercher"
               />
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-soft">
-                  <SlidersHorizontal size={16} className="text-primary-foreground" />
+                <div className="w-11 h-11 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-soft">
+                  <SlidersHorizontal size={18} className="text-primary-foreground" />
                 </div>
               </div>
             </motion.div>
@@ -1391,7 +1396,7 @@ const Dashboard = () => {
               {[
                 {
                   value: demandeurShipments.length,
-                  label: t("dashboard.tabEnvois") || "Envois",
+                  label: "Envois",
                   icon: Send,
                   bg: "from-primary/15 to-primary/5",
                   iconBg: "bg-primary/20",
@@ -1411,7 +1416,7 @@ const Dashboard = () => {
                 },
                 {
                   value: demandeurShipments.filter(s => s.status === "pending").length,
-                  label: t("dashboard.statusPending") || "En attente",
+                  label: "En attente",
                   icon: Clock,
                   bg: "from-accent/25 to-accent/5",
                   iconBg: "bg-accent/30",
@@ -1459,12 +1464,12 @@ const Dashboard = () => {
                 className="space-y-3"
               >
                 <div className="flex items-center justify-between px-1">
-                  <h2 className="text-base font-bold text-foreground tracking-tight">{t("dashboard.myShipments") || "Mes envois"}</h2>
+                  <h2 className="text-lg font-bold text-foreground tracking-tight">Mes envois</h2>
                   <button
                     onClick={() => navigate("/history/coly")}
                     className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
                   >
-                    {t("dashboard.seeAll") || "Tout voir"} <ChevronRight size={14} />
+                    Tout voir <ChevronRight size={14} />
                   </button>
                 </div>
 
@@ -1472,8 +1477,8 @@ const Dashboard = () => {
                   {demandeurShipments.slice(0, 2).map((s, idx) => {
                     const stages = [
                       { key: "created", label: "Créé" },
-                      { key: "pickup", label: "Récup." },
-                      { key: "transit", label: "Transit" },
+                      { key: "transit", label: "En transit" },
+                      { key: "delivery", label: "En livraison" },
                       { key: "delivered", label: "Livré" },
                     ];
                     const reachedIndex = s.status === "delivered" || s.status === "completed" ? 4
@@ -1561,10 +1566,10 @@ const Dashboard = () => {
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/send-coly")}
-              className="w-full py-5 rounded-3xl bg-gradient-primary text-primary-foreground font-bold text-base flex items-center justify-center gap-2.5 shadow-elevated hover:shadow-glow transition-all"
+              className="w-full py-6 rounded-3xl bg-gradient-primary text-primary-foreground font-bold text-lg flex items-center justify-center gap-3 shadow-elevated hover:shadow-glow transition-all"
             >
-              <Plus size={24} strokeWidth={2.5} />
-              {t("dashboard.sendParcel") || "Envoyer un colis"}
+              <Plus size={26} strokeWidth={2.8} />
+              Envoyer un colis
             </motion.button>
 
             <Tabs defaultValue="envois" className="space-y-3">
