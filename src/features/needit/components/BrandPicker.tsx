@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Search, Loader2, ChevronRight, X, ImageOff, Sparkles, PenLine } from "lucide-react";
+import { Search, Loader2, ChevronRight, X, Sparkles, PenLine } from "lucide-react";
 import { motion } from "framer-motion";
 import { useBrands, type Brand } from "../hooks/useBrandCatalog";
+import BrandImage from "./BrandImage";
 
 interface Props {
   categoryKey: string;
