@@ -24,16 +24,22 @@ import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 
-import { CATEGORIES as ICON_CATEGORIES } from "@/lib/categoryIcons";
+import { CATEGORIES as ICON_CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey } from "@/lib/categoryIcons";
+import BrandPicker from "../components/BrandPicker";
+import BrandProductPicker from "../components/BrandProductPicker";
+import type { Brand, BrandProduct } from "../hooks/useBrandCatalog";
 
-type CategoryNode = { label: string; icon?: string; children?: CategoryNode[]; };
+type CategoryNode = { label: string; icon?: string; children?: CategoryNode[]; key?: CategoryKey };
 
 // Built from the centralized icon mapping so the visual grid stays in sync.
 const PRODUCT_CATEGORIES: CategoryNode[] = ICON_CATEGORIES.map((c) => ({
   label: c.label,
   icon: c.icon,
   children: c.children,
+  key: c.key,
 }));
+
+type BrandPhase = "categories" | "brands" | "products";
 
 const fetchCountries = async (): Promise<string[]> => {
   try {
@@ -154,6 +160,13 @@ const NeeditMission = () => {
   const [autoAccept, setAutoAccept] = useState(false);
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupAccessCode, setPickupAccessCode] = useState("");
+  // Brand sub-flow state
+  const [brandPhase, setBrandPhase] = useState<BrandPhase>("categories");
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+  const [selectedBrandProduct, setSelectedBrandProduct] = useState<{
+    product: BrandProduct;
+    variant: string | null;
+  } | null>(null);
   useEffect(() => { fetchCountries().then((data) => { setCountries(data); setLoadingCountries(false); }); }, []);
 
   useEffect(() => {
@@ -181,8 +194,38 @@ const NeeditMission = () => {
   }, [errors.pays]);
 
   const currentCategories = () => (categoryPath.length === 0 ? PRODUCT_CATEGORIES : categoryPath[categoryPath.length - 1].children || []);
-  const handleCategorySelect = (node: CategoryNode) => { if (node.children) { setCategoryPath((p) => [...p, node]); setSelectedLeaf(""); } else setSelectedLeaf(node.label); };
+  const handleCategorySelect = (node: CategoryNode) => {
+    if (node.children) {
+      setCategoryPath((p) => [...p, node]);
+      setSelectedLeaf("");
+      // If this is a top-level category and brands are enabled, jump to brand picker
+      if (categoryPath.length === 0 && node.key && BRAND_ENABLED_CATEGORIES.includes(node.key)) {
+        setDirection(1);
+        setBrandPhase("brands");
+      }
+    } else {
+      setSelectedLeaf(node.label);
+    }
+  };
   const handleCategoryBack = () => { setCategoryPath((p) => p.slice(0, -1)); setSelectedLeaf(""); };
+
+  const handleBrandSelect = (brand: Brand) => {
+    setSelectedBrand(brand);
+    setSelectedBrandProduct(null);
+    setDirection(1);
+    setBrandPhase("products");
+  };
+  const handleBrandSkip = () => {
+    // Drop back to the sub-category list (or close brand phase entirely)
+    setSelectedBrand(null);
+    setSelectedBrandProduct(null);
+    setBrandPhase("categories");
+  };
+  const handleBrandProductSelect = (product: BrandProduct, variant: string | null) => {
+    setSelectedBrandProduct({ product, variant });
+    const label = variant ? `${product.name} – ${variant}` : product.name;
+    setSelectedLeaf(label);
+  };
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { setPhotoFile(file); const reader = new FileReader(); reader.onloadend = () => setPhotoPreview(reader.result as string); reader.readAsDataURL(file); } };
 
   const validateStep1 = () => {
@@ -218,8 +261,16 @@ const NeeditMission = () => {
           const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, photoFile);
           if (!uploadErr) { const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90); photo_url = data?.signedUrl ?? null; }
         }
-        const pathLabels = categoryPath.map((n) => n.label); if (selectedLeaf) pathLabels.push(selectedLeaf);
-        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: isUnlisted ? unlistedName : selectedLeaf, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview, dimension: dimension || null, poids: poids || null, prix_max: finalPrixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
+        const pathLabels = categoryPath.map((n) => n.label);
+        // Inject brand into the path so DB has full hierarchy: Category > Brand > Product
+        if (selectedBrand) pathLabels.push(selectedBrand.name);
+        if (selectedLeaf) pathLabels.push(selectedLeaf);
+        const finalProductName = isUnlisted
+          ? unlistedName
+          : selectedBrand
+            ? `${selectedBrand.name} ${selectedLeaf}`.trim()
+            : selectedLeaf;
+        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: finalProductName, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview ?? selectedBrandProduct?.product.photo_url ?? null, dimension: dimension || null, poids: poids || null, prix_max: finalPrixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
         if (editId) {
           await supabase.from("needit_missions").update(missionData as any).eq("id", editId).eq("user_id", user.id);
           successFeedback(t("needit.missionUpdated"), { description: t("needit.missionUpdatedDesc") });
@@ -241,8 +292,41 @@ const NeeditMission = () => {
     }
   };
 
-  const handleBack = () => { setDirection(-1); if (step === 1) navigate(editId ? "/mes-missions-needit" : "/dashboard"); else if (step === 2 && categoryPath.length > 0) handleCategoryBack(); else setStep((s) => s - 1); };
-  const stepTitle = () => step === 1 ? t("needit.infoTitle") : step === 2 ? (categoryPath.length === 0 ? t("needit.products") : t("needit.productInfo")) : t("needit.infoTitle");
+  const handleBack = () => {
+    setDirection(-1);
+    if (step === 1) {
+      navigate(editId ? "/mes-missions-needit" : "/dashboard");
+      return;
+    }
+    if (step === 2) {
+      // Brand sub-flow back navigation
+      if (brandPhase === "products") {
+        setSelectedBrandProduct(null);
+        setSelectedLeaf("");
+        setBrandPhase("brands");
+        return;
+      }
+      if (brandPhase === "brands") {
+        setSelectedBrand(null);
+        setCategoryPath((p) => p.slice(0, -1));
+        setBrandPhase("categories");
+        return;
+      }
+      if (categoryPath.length > 0) {
+        handleCategoryBack();
+        return;
+      }
+    }
+    setStep((s) => s - 1);
+  };
+  const stepTitle = () => {
+    if (step === 1) return t("needit.infoTitle");
+    if (step === 2) {
+      if (brandPhase === "brands" || brandPhase === "products") return "";
+      return categoryPath.length === 0 ? t("needit.products") : t("needit.productInfo");
+    }
+    return t("needit.infoTitle");
+  };
 
   const stepVariants = {
     enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -260,7 +344,7 @@ const NeeditMission = () => {
             <h2 className="text-2xl font-bold text-foreground text-center mb-6">{stepTitle()}</h2>
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
-                key={step}
+                key={`${step}-${brandPhase}`}
                 custom={direction}
                 variants={stepVariants}
                 initial="enter"
@@ -283,7 +367,27 @@ const NeeditMission = () => {
                 </div>
               </>
             )}
-            {step === 2 && !isUnlisted && (
+            {step === 2 && !isUnlisted && brandPhase === "brands" && categoryPath[0]?.key && (
+              <BrandPicker
+                categoryKey={categoryPath[0].key}
+                categoryLabel={categoryPath[0].label}
+                onSelect={handleBrandSelect}
+                onSkip={handleBrandSkip}
+              />
+            )}
+            {step === 2 && !isUnlisted && brandPhase === "products" && selectedBrand && (
+              <BrandProductPicker
+                brand={selectedBrand}
+                selected={selectedBrandProduct}
+                onSelect={handleBrandProductSelect}
+                onSkip={() => {
+                  // Allow user to type a custom item under this brand: keep brand, free product name later
+                  setSelectedBrandProduct(null);
+                  setSelectedLeaf(selectedBrand.name);
+                }}
+              />
+            )}
+            {step === 2 && !isUnlisted && brandPhase === "categories" && (
               <>
                 {categoryPath.length > 0 && (
                   <div className="space-y-2 mb-6">
@@ -342,7 +446,7 @@ const NeeditMission = () => {
                     ))}
                   </div>
                 )}
-                <button onClick={() => { setIsUnlisted(true); setSelectedLeaf(""); setCategoryPath([]); }} className="w-full flex items-center justify-center gap-3 py-4 rounded-full bg-[hsl(var(--chart-4))] text-primary-foreground text-lg font-medium mb-4">{t("needit.unlistedProduct")} <ArrowRight size={20} /></button>
+                <button onClick={() => { setIsUnlisted(true); setSelectedLeaf(""); setCategoryPath([]); setBrandPhase("categories"); setSelectedBrand(null); setSelectedBrandProduct(null); }} className="w-full flex items-center justify-center gap-3 py-4 rounded-full bg-[hsl(var(--chart-4))] text-primary-foreground text-lg font-medium mb-4">{t("needit.unlistedProduct")} <ArrowRight size={20} /></button>
               </>
             )}
             {step === 2 && isUnlisted && (

@@ -36,7 +36,25 @@ export interface CategoryDef {
   label: string;       // canonical FR label used in DB category_path
   icon: string;        // imported svg url
   children?: { label: string }[];
+  /** When true, the brand selection sub-screen is shown after this category. */
+  hasBrands?: boolean;
 }
+
+/** Categories where the brand → product flow makes sense. */
+export const BRAND_ENABLED_CATEGORIES: CategoryKey[] = [
+  "parfum",
+  "alcool",
+  "cosmetique",
+  "hightech",
+  "maroquinerie",
+  "epicerie",
+  "mode",
+  "bebe",
+  "tabac",
+  "pharmacie",
+  "jeuxvideo",
+  "livres",
+];
 
 export const CATEGORIES: CategoryDef[] = [
   { key: "tabac", label: "Cigarettes & Tabac", icon: catTabac, children: [
