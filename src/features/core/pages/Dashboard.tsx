@@ -1493,45 +1493,6 @@ const Dashboard = () => {
                   ring: "ring-accent/25",
                   onClick: () => {},
                 },
-
-            {/* Stat cards — colorées, arrondies, "Future" */}
-            <motion.div
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-              className="grid grid-cols-3 gap-3"
-            >
-              {[
-                {
-                  value: demandeurShipments.length,
-                  label: "Envois",
-                  icon: Send,
-                  bg: "from-primary/15 to-primary/5",
-                  iconBg: "bg-primary/20",
-                  iconColor: "text-primary",
-                  ring: "ring-primary/15",
-                  onClick: () => navigate("/history/coly"),
-                },
-                {
-                  value: demandeurMissions.length,
-                  label: "Missions",
-                  icon: ShoppingBag,
-                  bg: "from-secondary/20 to-secondary/5",
-                  iconBg: "bg-secondary/25",
-                  iconColor: "text-secondary",
-                  ring: "ring-secondary/20",
-                  onClick: () => navigate("/mes-missions-needit"),
-                },
-                {
-                  value: demandeurShipments.filter(s => s.status === "pending").length,
-                  label: "En attente",
-                  icon: Clock,
-                  bg: "from-accent/25 to-accent/5",
-                  iconBg: "bg-accent/30",
-                  iconColor: "text-accent-foreground",
-                  ring: "ring-accent/25",
-                  onClick: () => {},
-                },
               ].map((stat) => (
                 <motion.button
                   key={stat.label}
