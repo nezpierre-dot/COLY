@@ -334,21 +334,21 @@ const HistoryPage = () => {
     const items: HistoryItem[] = [];
     shipRes.data?.filter(s => s.user_id === user.id).forEach((s) => {
       const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
-      items.push({ id: `s-dem-${s.id}`, realId: s.id, dbTable: "shipments", type: "Envoi", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "coly", icon: "envoi", destination: s.arrival_city || "" });
+      items.push({ id: `s-dem-${s.id}`, realId: s.id, dbTable: "shipments", type: "Envoi", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "coly", icon: "envoi", destination: s.arrival_city || "", status: s.status || "pending", recipient: `${s.contact_prenom || ""} ${s.contact_nom || ""}`.trim(), productCategory: s.size || "", departureDate: s.departure_date ? new Date(s.departure_date) : null, failureReason: null });
     });
     shipRes.data?.filter(s => s.voyageur_id === user.id).forEach((s) => {
       const raw = parseFloat(s.tarif?.replace(/[^0-9.]/g, "") ?? "0") || 0;
       const gain = raw * (1 - PLATFORM_RATE);
-      if (gain > 0) items.push({ id: `s-voy-${s.id}`, realId: s.id, dbTable: "shipments", type: "Transport", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "voyageur", icon: "transport", destination: s.arrival_city || "" });
+      if (gain > 0) items.push({ id: `s-voy-${s.id}`, realId: s.id, dbTable: "shipments", type: "Transport", ref: `NIDIT-${s.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(s.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(s.created_at), category: "voyageur", icon: "transport", destination: s.arrival_city || "", status: s.status || "pending", recipient: `${s.contact_prenom || ""} ${s.contact_nom || ""}`.trim(), productCategory: s.size || "", departureDate: s.departure_date ? new Date(s.departure_date) : null, failureReason: null });
     });
     missRes.data?.filter(m => m.user_id === user.id).forEach((m) => {
       const raw = parseFloat(m.prix_max?.replace(/[^0-9.]/g, "") ?? "0") || 0;
-      if (raw > 0) items.push({ id: `n-dem-${m.id}`, realId: m.id, dbTable: "needit_missions", type: "Mission NeedIt", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "needit", icon: "needit", destination: m.city || m.country || "" });
+      if (raw > 0) items.push({ id: `n-dem-${m.id}`, realId: m.id, dbTable: "needit_missions", type: "Mission NeedIt", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: -raw, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "needit", icon: "needit", destination: m.city || m.country || "", status: m.status || "pending", recipient: m.product_name || "", productCategory: (m.category_path && m.category_path[0]) || "", departureDate: null, failureReason: null });
     });
     missRes.data?.filter(m => m.voyageur_id === user.id).forEach((m) => {
       const raw = parseFloat(m.prix_max?.replace(/[^0-9.]/g, "") ?? "0") || 0;
       const gain = raw * (1 - PLATFORM_RATE);
-      if (gain > 0) items.push({ id: `n-voy-${m.id}`, realId: m.id, dbTable: "needit_missions", type: "Mission NeedIt (gain)", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "voyageur", icon: "transport", destination: m.city || m.country || "" });
+      if (gain > 0) items.push({ id: `n-voy-${m.id}`, realId: m.id, dbTable: "needit_missions", type: "Mission NeedIt (gain)", ref: `NEED-${m.id.slice(0, 8).toUpperCase()}`, amount: gain, date: new Date(m.created_at).toLocaleDateString("fr-FR"), rawDate: new Date(m.created_at), category: "voyageur", icon: "transport", destination: m.city || m.country || "", status: m.status || "pending", recipient: m.product_name || "", productCategory: (m.category_path && m.category_path[0]) || "", departureDate: null, failureReason: null });
     });
     items.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
     setAllData(items);
