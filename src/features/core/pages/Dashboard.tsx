@@ -686,7 +686,7 @@ const Dashboard = () => {
     {showDemandeurOnboarding && (
       <DemandeurOnboarding onComplete={() => setShowDemandeurOnboarding(false)} />
     )}
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-gradient-soft pb-24">
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
       <main className="px-0 pt-0" id="main-content" role="main">
