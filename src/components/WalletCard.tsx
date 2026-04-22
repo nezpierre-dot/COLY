@@ -123,22 +123,11 @@ const WalletCard = ({ compact = false }: WalletCardProps) => {
             {(balance ?? 0).toFixed(2)}{currency}
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => handleTopup(10)}
-          disabled={topupLoading !== null}
-          className="h-9 gap-1 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
-          aria-label="Recharger 10€"
-        >
-          {topupLoading !== null ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <>
-              <Plus size={13} />
-              Recharger
-            </>
-          )}
-        </Button>
+        <TopupPicker
+          loading={topupLoading}
+          currency={currency}
+          onPick={handleTopup}
+        />
       </div>
     );
   }
