@@ -361,22 +361,21 @@ const MesNeeditMissions = () => {
                     <motion.div
                       key={m.id}
                       variants={staggerItem}
-                      className="relative overflow-hidden rounded-2xl"
+                      whileHover={{ y: -2 }}
+                      className="relative overflow-hidden rounded-3xl"
                     >
                       {/* Swipe reveal actions */}
                       {m.user_id === user?.id && m.status === "pending" && (
-                        <div className="absolute right-0 top-0 bottom-0 flex items-stretch z-0">
+                        <div className="absolute right-0 top-0 bottom-0 flex items-stretch z-0 rounded-3xl overflow-hidden">
                           <button
                             onClick={(e) => { e.stopPropagation(); navigate(`/needit-mission/${m.id}`); }}
-                            className="w-[72px] flex flex-col items-center justify-center gap-1 text-white text-xs font-semibold"
-                            style={{ background: "#0D84FF" }}
+                            className="w-[72px] flex flex-col items-center justify-center gap-1 text-primary-foreground text-xs font-semibold bg-gradient-to-br from-primary to-secondary"
                           >
                             <Pencil size={18} /> Éditer
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); setDeleteId(m.id); }}
-                            className="w-[72px] flex flex-col items-center justify-center gap-1 text-white text-xs font-semibold"
-                            style={{ background: "#FF453A" }}
+                            className="w-[72px] flex flex-col items-center justify-center gap-1 text-white text-xs font-semibold bg-gradient-to-br from-rose-500 to-red-500"
                           >
                             <Trash2 size={18} /> Supprimer
                           </button>
@@ -400,131 +399,144 @@ const MesNeeditMissions = () => {
                           if (swipedId === m.id) { setSwipedId(null); return; }
                           navigate(`/mission/${m.id}`);
                         }}
-                        className="bg-white dark:bg-[#1A1F2E] border border-[#E2E8F0] dark:border-[#2A3245] rounded-2xl p-5 shadow-sm cursor-pointer active:scale-[0.98] transition-transform relative z-10"
+                        className="relative bg-card/95 backdrop-blur-sm border border-border/50 rounded-3xl p-5 shadow-soft hover:shadow-elevated cursor-pointer transition-all duration-300 z-10 overflow-hidden"
                       >
-                      <div className="flex items-start gap-3">
-                        {/* Product image (or category icon fallback) */}
-                        {m.photo_url ? (
-                          <img
-                            src={m.photo_url}
-                            alt="Produit"
-                            className="w-[68px] h-[68px] rounded-xl object-cover shrink-0"
-                          />
-                        ) : (
-                          <CategoryIcon category={m.category_path} size={68} />
+                        {/* Decorative gradient aura */}
+                        <div className="pointer-events-none absolute -top-16 -right-16 w-40 h-40 rounded-full bg-secondary/15 blur-3xl" />
+                        <div className="pointer-events-none absolute -bottom-20 -left-12 w-44 h-44 rounded-full bg-primary/10 blur-3xl" />
+
+                        <div className="relative flex items-start gap-4">
+                          {/* Product image with gradient halo */}
+                          <div className="relative shrink-0">
+                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/30 to-secondary/30 blur-md opacity-60" />
+                            {m.photo_url ? (
+                              <img
+                                src={m.photo_url}
+                                alt="Produit"
+                                className="relative w-[72px] h-[72px] rounded-2xl object-cover ring-2 ring-card shadow-soft"
+                              />
+                            ) : (
+                              <div className="relative w-[72px] h-[72px] rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 ring-2 ring-card shadow-soft flex items-center justify-center">
+                                <CategoryIcon category={m.category_path} size={56} />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[17px] font-extrabold text-foreground leading-tight truncate tracking-tight">
+                                  {m.product_name || m.category_path?.[m.category_path.length - 1] || "Produit non référencé"}
+                                </p>
+                                {m.category_path && m.category_path.length > 0 && (
+                                  <p className="text-[12px] mt-1 truncate text-muted-foreground font-medium uppercase tracking-wide">
+                                    {m.category_path.join(" • ")}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className={`text-[11px] font-bold px-3 py-1.5 rounded-full shadow-sm ${st.bgClass} ${st.textColor}`}>
+                                  {st.label}
+                                </span>
+                                {m.status === "pending" && m.user_id === user?.id && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); navigate(`/needit-mission/${m.id}`); }}
+                                    className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-primary/10 text-primary"
+                                    aria-label="Modifier cette mission"
+                                  >
+                                    <Pencil size={14} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Location + timing pills */}
+                            <div className="flex flex-wrap items-center gap-2 mt-3">
+                              <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-foreground/80 bg-muted/60 rounded-full px-2.5 py-1">
+                                <MapPin size={12} className="text-primary" /> {m.country}{m.city ? `, ${m.city}` : ""}
+                              </span>
+                              <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-foreground/80 bg-muted/60 rounded-full px-2.5 py-1">
+                                <Clock size={12} className="text-secondary" /> {m.timing === "asap" ? t("missions.asap") : t("missions.scheduled")}
+                              </span>
+                            </div>
+
+                            {/* Price badge */}
+                            {m.prix_max && (
+                              <div className="mt-3 inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-500/15 to-teal-500/15 text-emerald-600 dark:text-emerald-400 rounded-full px-3 py-1.5">
+                                <span className="text-[11px] font-semibold uppercase tracking-wide opacity-80">{t("missions.priceMax")}</span>
+                                <span className="text-[14px] font-extrabold">{m.prix_max}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Voyageur availability alert */}
+                        {m.status === "pending" && (
+                          <div className="relative mt-4">
+                            <VoyageurAvailability country={m.country} city={m.city} variant="full" onShare={() => handleShare(m)} />
+                          </div>
                         )}
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[18px] font-bold text-[#0F172A] dark:text-[#F1F5F9] leading-tight truncate">
-                                {m.product_name || m.category_path?.[m.category_path.length - 1] || "Produit non référencé"}
-                              </p>
-                              {m.category_path && m.category_path.length > 0 && (
-                                <p className="text-[13px] mt-1 truncate" style={{ color: "#64748B" }}>
-                                  {m.category_path.join(" → ")}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <span className={`text-[12px] font-bold px-3 py-1 rounded-full ${st.bgClass} ${st.textColor}`}>
-                                {st.label}
-                              </span>
-                              {m.status === "pending" && m.user_id === user?.id && (
-                                <button
-                                  onClick={() => navigate(`/needit-mission/${m.id}`)}
-                                  className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-[#0D84FF]/10"
-                                  style={{ color: "#0D84FF" }}
-                                  aria-label="Modifier cette mission"
-                                >
-                                  <Pencil size={14} />
-                                </button>
-                              )}
-                            </div>
+                        {/* EAN info */}
+                        {m.ean_code && (
+                          <p className="relative text-xs mt-3 font-mono flex items-center gap-1.5 text-muted-foreground">
+                            <ScanBarcode size={12} /> EAN: {m.ean_code}
+                            {m.ean_verified && <CheckCircle2 size={14} className="text-emerald-500" />}
+                          </p>
+                        )}
+
+                        {/* EAN scanner for voyageur */}
+                        {m.status === "accepted" && m.voyageur_id === user?.id && !m.ean_verified && (
+                          <div className="relative mt-3">
+                            {scanningMissionId === m.id ? (
+                              <AnimatePresence>
+                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
+                                  <EanScanner
+                                    mode={m.ean_code ? "verify" : "scan"}
+                                    expectedEan={m.ean_code || undefined}
+                                    onVerified={async (ean) => {
+                                      await supabase.from("needit_missions").update({ ean_verified: true } as any).eq("id", m.id);
+                                      loadMissions();
+                                      setScanningMissionId(null);
+                                    }}
+                                    onProductFound={async (product) => {
+                                      await supabase.from("needit_missions").update({ ean_code: product.ean_code, ean_verified: true } as any).eq("id", m.id);
+                                      loadMissions();
+                                      setScanningMissionId(null);
+                                    }}
+                                  />
+                                  <button onClick={(e) => { e.stopPropagation(); setScanningMissionId(null); }} className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground">
+                                    Fermer le scanner
+                                  </button>
+                                </motion.div>
+                              </AnimatePresence>
+                            ) : (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setScanningMissionId(m.id); }}
+                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-semibold bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                              >
+                                <ScanBarcode size={16} />
+                                {m.ean_code ? "Vérifier le produit (EAN)" : "Scanner le code-barres"}
+                              </button>
+                            )}
                           </div>
+                        )}
 
-                          {/* Location + timing */}
-                          <div className="flex items-center gap-4 mt-2">
-                            <span className="flex items-center gap-1 text-[13px]" style={{ color: "#64748B" }}>
-                              <MapPin size={14} /> {m.country}{m.city ? `, ${m.city}` : ""}
-                            </span>
-                            <span className="flex items-center gap-1 text-[13px]" style={{ color: "#64748B" }}>
-                              <Clock size={14} /> {m.timing === "asap" ? t("missions.asap") : t("missions.scheduled")}
-                            </span>
+                        {m.ean_verified && (
+                          <div className="relative mt-3 inline-flex items-center gap-1.5 text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full px-3 py-1.5">
+                            <CheckCircle2 size={14} /> Produit vérifié par scan
                           </div>
+                        )}
 
-                          {/* Price */}
-                          {m.prix_max && (
-                            <p className="text-[15px] font-bold mt-2" style={{ color: "#30D158" }}>
-                              {t("missions.priceMax")} : {m.prix_max}
-                            </p>
-                          )}
+                        {/* Date footer */}
+                        <div className="relative mt-4 pt-3 border-t border-border/40 flex items-center justify-between">
+                          <p className="text-[11px] text-muted-foreground font-medium">
+                            Créée le {new Date(m.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
+                          </p>
+                          <span className="text-[11px] text-primary font-semibold inline-flex items-center gap-1">
+                            Voir détail →
+                          </span>
                         </div>
-                      </div>
-
-                      {/* Voyageur availability alert */}
-                      {m.status === "pending" && (
-                        <div className="mt-3">
-                          <VoyageurAvailability country={m.country} city={m.city} variant="full" onShare={() => handleShare(m)} />
-                        </div>
-                      )}
-
-                      {/* EAN info */}
-                      {m.ean_code && (
-                        <p className="text-xs mt-2 font-mono flex items-center gap-1.5" style={{ color: "#64748B" }}>
-                          <ScanBarcode size={12} /> EAN: {m.ean_code}
-                          {m.ean_verified && <CheckCircle2 size={14} style={{ color: "#30D158" }} />}
-                        </p>
-                      )}
-
-                      {/* EAN scanner for voyageur */}
-                      {m.status === "accepted" && m.voyageur_id === user?.id && !m.ean_verified && (
-                        <div className="mt-3">
-                          {scanningMissionId === m.id ? (
-                            <AnimatePresence>
-                              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
-                                <EanScanner
-                                  mode={m.ean_code ? "verify" : "scan"}
-                                  expectedEan={m.ean_code || undefined}
-                                  onVerified={async (ean) => {
-                                    await supabase.from("needit_missions").update({ ean_verified: true } as any).eq("id", m.id);
-                                    loadMissions();
-                                    setScanningMissionId(null);
-                                  }}
-                                  onProductFound={async (product) => {
-                                    await supabase.from("needit_missions").update({ ean_code: product.ean_code, ean_verified: true } as any).eq("id", m.id);
-                                    loadMissions();
-                                    setScanningMissionId(null);
-                                  }}
-                                />
-                                <button onClick={() => setScanningMissionId(null)} className="w-full mt-2 text-xs hover:text-[#0F172A] dark:hover:text-[#F1F5F9]" style={{ color: "#64748B" }}>
-                                  Fermer le scanner
-                                </button>
-                              </motion.div>
-                            </AnimatePresence>
-                          ) : (
-                            <button
-                              onClick={() => setScanningMissionId(m.id)}
-                              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-medium transition-colors"
-                              style={{ background: "rgba(13,132,255,0.1)", color: "#0D84FF" }}
-                            >
-                              <ScanBarcode size={16} />
-                              {m.ean_code ? "Vérifier le produit (EAN)" : "Scanner le code-barres"}
-                            </button>
-                          )}
-                        </div>
-                      )}
-
-                      {m.ean_verified && (
-                        <div className="mt-2 flex items-center gap-1.5 text-xs font-medium" style={{ color: "#30D158" }}>
-                          <CheckCircle2 size={14} /> Produit vérifié par scan
-                        </div>
-                      )}
-
-                      {/* Date */}
-                      <p className="text-[12px] mt-3" style={{ color: "#64748B" }}>
-                        {new Date(m.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
-                      </p>
                       </motion.div>
                     </motion.div>
                   );
