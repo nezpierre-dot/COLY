@@ -51,6 +51,64 @@ const writeLastLocation = (loc: { pays?: string; ville?: string; pickupAddress?:
   }
 };
 
+/* ------------------------------------------------------------------ */
+/*  Validation                                                         */
+/* ------------------------------------------------------------------ */
+
+const COMMENTS_MAX = 500;
+const PICKUP_MAX = 200;
+
+const buildSchema = (budgetMode: "fixed" | "devis") =>
+  z.object({
+    pays: z
+      .string()
+      .trim()
+      .min(2, { message: "Indiquez un pays valide (2 caractères min.)." })
+      .max(60, { message: "Le pays ne peut pas dépasser 60 caractères." }),
+    ville: z
+      .string()
+      .trim()
+      .min(2, { message: "Indiquez une ville valide (2 caractères min.)." })
+      .max(80, { message: "La ville ne peut pas dépasser 80 caractères." }),
+    quantity: z
+      .number({ invalid_type_error: "La quantité doit être un nombre." })
+      .int({ message: "La quantité doit être un entier." })
+      .min(1, { message: "La quantité doit être d’au moins 1." })
+      .max(99, { message: "La quantité ne peut pas dépasser 99." }),
+    budget:
+      budgetMode === "devis"
+        ? z.string().optional()
+        : z
+            .string()
+            .trim()
+            .min(1, { message: "Indiquez un budget maximum." })
+            .refine((v) => !Number.isNaN(parseFloat(v.replace(",", "."))), {
+              message: "Budget invalide. Utilisez un nombre (ex : 25 ou 25,50).",
+            })
+            .refine((v) => parseFloat(v.replace(",", ".")) > 0, {
+              message: "Le budget doit être supérieur à 0.",
+            })
+            .refine((v) => parseFloat(v.replace(",", ".")) <= 10000, {
+              message: "Le budget ne peut pas dépasser 10 000.",
+            }),
+    comments: z
+      .string()
+      .max(COMMENTS_MAX, {
+        message: `Les commentaires ne peuvent pas dépasser ${COMMENTS_MAX} caractères.`,
+      })
+      .optional(),
+    pickupAddress: z
+      .string()
+      .max(PICKUP_MAX, {
+        message: `L’adresse ne peut pas dépasser ${PICKUP_MAX} caractères.`,
+      })
+      .optional(),
+  });
+
+type FieldErrors = Partial<
+  Record<"pays" | "ville" | "quantity" | "budget" | "comments" | "pickupAddress", string>
+>;
+
 /**
  * Écran 3/3 — Création de la mission style Vinted.
  * Page unique scrollable avec sticky bottom CTA + récap prix.
