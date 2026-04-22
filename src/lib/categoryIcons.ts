@@ -38,6 +38,8 @@ export interface CategoryDef {
   children?: { label: string }[];
   /** When true, the brand selection sub-screen is shown after this category. */
   hasBrands?: boolean;
+  /** When true, surfaced first in the categories grid with a "Populaire" badge. */
+  popular?: boolean;
 }
 
 /** Categories where the brand → product flow makes sense. */
@@ -57,20 +59,20 @@ export const BRAND_ENABLED_CATEGORIES: CategoryKey[] = [
 ];
 
 export const CATEGORIES: CategoryDef[] = [
-  { key: "tabac", label: "Cigarettes & Tabac", icon: catTabac, children: [
+  { key: "tabac", label: "Cigarettes & Tabac", icon: catTabac, popular: true, children: [
     { label: "Cigarettes" }, { label: "Cigares" }, { label: "Tabac à rouler" },
   ]},
-  { key: "parfum", label: "Parfums & Eaux", icon: catParfum, children: [
+  { key: "parfum", label: "Parfums & Eaux", icon: catParfum, popular: true, children: [
     { label: "Eau de parfum" }, { label: "Eau de toilette" }, { label: "Coffret" },
   ]},
-  { key: "alcool", label: "Alcools & Spiritueux", icon: catAlcool, children: [
+  { key: "alcool", label: "Alcools & Spiritueux", icon: catAlcool, popular: true, children: [
     { label: "Whisky / Bourbon" }, { label: "Vin" }, { label: "Champagne" }, { label: "Spiritueux" },
+  ]},
+  { key: "hightech", label: "High-Tech & Électronique", icon: catHightech, popular: true, children: [
+    { label: "Smartphones" }, { label: "Ordinateurs" }, { label: "Accessoires" },
   ]},
   { key: "cosmetique", label: "Cosmétiques & Soins", icon: catCosmetique, children: [
     { label: "Maquillage" }, { label: "Soin visage" }, { label: "Soin corps" },
-  ]},
-  { key: "hightech", label: "High-Tech & Électronique", icon: catHightech, children: [
-    { label: "Smartphones" }, { label: "Ordinateurs" }, { label: "Accessoires" },
   ]},
   { key: "maroquinerie", label: "Maroquinerie & Joaillerie", icon: catMaroquinerie, children: [
     { label: "Sac à main" }, { label: "Portefeuille" }, { label: "Montre" }, { label: "Bijoux" },
