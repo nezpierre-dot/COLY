@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.admin-daily-digest]
 verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false
