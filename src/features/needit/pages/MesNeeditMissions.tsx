@@ -175,64 +175,69 @@ const MesNeeditMissions = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0F1115] pb-24">
+    <div className="page-shell">
       <PageTransition>
         <PullToRefresh onRefresh={loadMissions}>
-          {/* ─── Header ─── */}
-          <div className="bg-[#F8FAFC] dark:bg-[#0F1115] px-5 pt-12 pb-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
+          {/* ─── Header Future ─── */}
+          <header className="page-header-soft">
+            <div className="page-content">
+              <div className="flex items-center justify-between mb-4">
                 <button
                   onClick={() => navigate("/dashboard")}
-                  className="w-10 h-10 rounded-2xl flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                  className="icon-btn-soft"
                   aria-label="Retour"
                 >
-                  <ArrowLeft size={28} style={{ color: "#0D84FF" }} strokeWidth={2} />
+                  <ArrowLeft size={18} className="text-foreground" />
                 </button>
-                <div>
-                   <h1 className="text-[22px] font-bold leading-tight text-[#0F172A] dark:text-[#F1F5F9]">
-                    {t("missions.title")}
-                  </h1>
-                  <p className="text-[14px] mt-0.5" style={{ color: "#64748B" }}>
-                    {t("missions.subtitle")}
-                  </p>
-                </div>
+                <NotificationBell />
               </div>
-              <NotificationBell />
-            </div>
+              <span className="greeting-bubble-xl mb-3">
+                <Package size={18} className="text-primary" />
+                NeedIt
+              </span>
+              <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+                {t("missions.title")}<br />
+                <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
+                  livré par un voyageur ✨
+                </span>
+              </h1>
+              <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
+                {t("missions.subtitle")}
+              </p>
 
-            {/* ─── Tabs segment control ─── */}
-            <div className="flex gap-1.5 bg-[#E2E8F0] dark:bg-[#1A1F2E] rounded-2xl p-1">
-              {getFilterTabs(t).map((tab) => {
-                const count = counts[tab.key];
-                const isActive = activeFilter === tab.key;
-                return (
-                  <button
-                    key={tab.key}
-                    onClick={() => setActiveFilter(tab.key)}
-                    className={`flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${
-                      isActive
-                        ? "bg-[#0D84FF] text-white shadow-md"
-                        : "text-[#64748B] hover:text-[#0F172A] dark:hover:text-[#F1F5F9]"
-                    }`}
-                  >
-                    {tab.label}
-                    {count > 0 && (
-                      <span className={`min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-bold ${
-                        isActive ? "bg-white/25 text-white" : "bg-[#0D84FF]/15 text-[#0D84FF]"
-                      }`}>
-                        {count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+              {/* ─── Tabs segment control ─── */}
+              <div className="mt-6 flex gap-1.5 bg-card/70 backdrop-blur-md border border-border/50 rounded-2xl p-1 shadow-soft">
+                {getFilterTabs(t).map((tab) => {
+                  const count = counts[tab.key];
+                  const isActive = activeFilter === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveFilter(tab.key)}
+                      className={`flex-1 flex items-center justify-center gap-1 py-2.5 rounded-xl text-[13px] font-semibold transition-all ${
+                        isActive
+                          ? "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-md"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {tab.label}
+                      {count > 0 && (
+                        <span className={`min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-bold ${
+                          isActive ? "bg-white/25 text-primary-foreground" : "bg-primary/15 text-primary"
+                        }`}>
+                          {count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          </header>
 
-          <div className="px-5">
-            {/* Search bar */}
-            <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3 mt-4 mb-2">
+          <main className="page-content pt-6">
+            {/* Search bar Future */}
+            <label className="search-pill mb-4">
               <Search size={18} className="text-muted-foreground shrink-0" />
               <input
                 className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
@@ -240,11 +245,11 @@ const MesNeeditMissions = () => {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-            </div>
+            </label>
 
             {/* Sort + New mission */}
             {missions.length > 0 && (
-              <div className="mt-4 mb-3">
+              <div className="mb-3">
                 <SortSelect value={sort} onChange={setSort} t={t} keys={["dateCreated", "price", "destination"]} />
               </div>
             )}
@@ -252,8 +257,7 @@ const MesNeeditMissions = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/needit-mission")}
-              className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-[17px] text-white shadow-lg mt-4 mb-6 transition-opacity hover:opacity-90"
-              style={{ background: "#0D84FF" }}
+              className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-[17px] text-primary-foreground shadow-elevated mt-3 mb-6 transition-opacity hover:opacity-95 bg-gradient-to-r from-primary via-primary to-secondary"
             >
               <Plus size={22} /> {t("missions.new")}
             </motion.button>
