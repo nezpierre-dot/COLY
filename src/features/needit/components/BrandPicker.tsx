@@ -182,23 +182,15 @@ const BrandCard = ({
     onClick={onSelect}
     className="relative flex flex-col items-center gap-2 p-3 aspect-square rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all"
   >
-    {brand.logo_url ? (
-      <img
-        src={brand.logo_url}
-        alt={brand.name}
-        className="w-16 h-16 object-contain"
-      />
-    ) : (
-      <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+    <BrandImage
+      src={brand.logo_url}
+      alt={brand.name}
+      className="w-16 h-16 rounded-2xl"
+      imgClassName="object-contain"
+      fallback={
         <span className="text-base font-bold text-primary">{initials(brand.name)}</span>
-        <span
-          aria-label="Sans photo"
-          className="absolute -bottom-1 -right-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted border border-border text-[9px] font-semibold text-muted-foreground"
-        >
-          <ImageOff size={8} />
-        </span>
-      </div>
-    )}
+      }
+    />
     <span className="text-xs font-semibold text-foreground text-center leading-tight line-clamp-2">
       {brand.name}
     </span>
