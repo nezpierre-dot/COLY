@@ -302,14 +302,76 @@
   }
 
   .page-header-soft {
-    @apply px-5 sm:px-8 pt-12 pb-6 rounded-b-[2.5rem] border-b border-border/40;
+    @apply px-5 sm:px-8 pt-12 pb-6 rounded-b-[2.5rem] border-b border-border/40 relative overflow-hidden;
     background: var(--gradient-hero);
     box-shadow: var(--shadow-soft);
   }
+  /* Auras décoratives douces, automatiques sur tous les headers Future */
+  .page-header-soft::before,
+  .page-header-soft::after {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(48px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .page-header-soft::before {
+    top: -4rem; right: -3rem;
+    width: 16rem; height: 16rem;
+    background: hsl(var(--secondary) / 0.28);
+  }
+  .page-header-soft::after {
+    bottom: -5rem; left: -3rem;
+    width: 14rem; height: 14rem;
+    background: hsl(var(--primary) / 0.22);
+  }
+  .page-header-soft > * { position: relative; z-index: 1; }
+
+  .page-header-bright {
+    @apply px-5 sm:px-8 pt-12 pb-8 rounded-b-[2.75rem] relative overflow-hidden;
+    background: var(--gradient-hero-bright);
+    box-shadow: var(--shadow-soft);
+  }
+  .page-header-bright::before,
+  .page-header-bright::after {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(56px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .page-header-bright::before {
+    top: -5rem; right: -4rem;
+    width: 20rem; height: 20rem;
+    background: hsl(var(--secondary) / 0.32);
+  }
+  .page-header-bright::after {
+    bottom: -6rem; left: -4rem;
+    width: 18rem; height: 18rem;
+    background: hsl(var(--primary) / 0.28);
+  }
+  .page-header-bright > * { position: relative; z-index: 1; }
 
   .page-content {
     @apply px-5 sm:px-8 max-w-3xl mx-auto w-full;
   }
+
+  /* Bouton pilule premium réutilisable */
+  .btn-pill-primary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold text-primary-foreground transition-all;
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-soft);
+  }
+  .btn-pill-primary:hover { box-shadow: var(--shadow-glow); filter: brightness(1.05); }
+  .btn-pill-primary:active { transform: scale(0.97); }
+
+  /* Icône arrondie discrète pour boutons retour cohérents */
+  .icon-btn-soft {
+    @apply w-10 h-10 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-soft transition;
+  }
+  .icon-btn-soft:hover { box-shadow: var(--shadow-card); transform: translateY(-1px); }
 
   .card-future {
     @apply bg-card rounded-3xl border border-border/60 p-5;
