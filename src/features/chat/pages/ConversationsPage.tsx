@@ -437,7 +437,7 @@ const ConversationsPage = () => {
                         <span>Tout supprimer</span>
                       </button>
                     )}
-                  </div>
+        </main>
 
                   <AnimatePresence>
                     {showArchived && (
