@@ -302,29 +302,30 @@
   }
 
   .page-header-soft {
-    @apply px-5 sm:px-8 pt-12 pb-6 rounded-b-[2.5rem] border-b border-border/40 relative overflow-hidden;
-    background: var(--gradient-hero);
+    @apply px-5 sm:px-8 pt-12 pb-8 rounded-b-[2.75rem] relative overflow-hidden;
+    background: var(--gradient-hero-bright);
     box-shadow: var(--shadow-soft);
+    border: none;
   }
-  /* Auras décoratives douces, automatiques sur tous les headers Future */
+  /* Auras décoratives lumineuses — automatiquement appliquées à tous les headers Future */
   .page-header-soft::before,
   .page-header-soft::after {
     content: "";
     position: absolute;
     border-radius: 9999px;
-    filter: blur(48px);
+    filter: blur(56px);
     pointer-events: none;
     z-index: 0;
   }
   .page-header-soft::before {
-    top: -4rem; right: -3rem;
-    width: 16rem; height: 16rem;
-    background: hsl(var(--secondary) / 0.28);
+    top: -5rem; right: -4rem;
+    width: 20rem; height: 20rem;
+    background: hsl(var(--secondary) / 0.32);
   }
   .page-header-soft::after {
-    bottom: -5rem; left: -3rem;
-    width: 14rem; height: 14rem;
-    background: hsl(var(--primary) / 0.22);
+    bottom: -6rem; left: -4rem;
+    width: 18rem; height: 18rem;
+    background: hsl(var(--primary) / 0.28);
   }
   .page-header-soft > * { position: relative; z-index: 1; }
 
