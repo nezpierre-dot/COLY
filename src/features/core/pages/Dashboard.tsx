@@ -741,9 +741,11 @@ const Dashboard = () => {
               </div>
               <button
                 onClick={toggleRole}
-                className="px-4 py-2 rounded-full text-[13px] font-bold text-primary-foreground bg-gradient-primary shadow-soft transition-all hover:shadow-glow hover:brightness-105 active:scale-[0.97]"
+                className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-foreground/80 bg-white/55 backdrop-blur-md border border-white/60 shadow-sm transition-all hover:bg-white/75 hover:text-primary hover:border-primary/30 active:scale-[0.97]"
+                aria-label={isVoyageur ? t("dashboard.switchToDemandeur") : t("dashboard.switchToVoyageur")}
               >
                 {isVoyageur ? t("dashboard.switchToDemandeur") : t("dashboard.switchToVoyageur")}
+                <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
 
@@ -791,20 +793,20 @@ const Dashboard = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, delay: 0.1 }}
-                    className="text-[clamp(2.1rem,7vw,3.1rem)] font-extrabold leading-[1.02] tracking-tight text-foreground"
+                    className="text-[clamp(1.7rem,5.6vw,2.4rem)] font-extrabold leading-[1.08] tracking-tight text-foreground"
                   >
-                    Suivez vos envois<br />
+                    Suivez vos envois{" "}
                     <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">en un coup d'œil.</span>
                   </motion.h1>
                   <motion.p
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.45, delay: 0.18 }}
-                    className="mt-3 text-[15px] sm:text-base text-muted-foreground font-medium max-w-[280px] leading-snug"
+                    className="mt-2.5 text-[13.5px] sm:text-sm text-muted-foreground font-medium max-w-[280px] leading-snug"
                   >
-                    Chaque colis, chaque étape, chaque livraison — en toute sérénité ✨
+                    Chaque colis, chaque étape — en toute sérénité ✨
                   </motion.p>
-                  <UserLevelBadge variant="full" className="mt-4" />
+                  <UserLevelBadge variant="full" className="mt-3" />
                 </div>
 
                 {/* Dominant 3D parcel illustration with route + pin */}
@@ -812,7 +814,7 @@ const Dashboard = () => {
                   initial={{ opacity: 0, scale: 0.7, rotate: -10 }}
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 180, damping: 16, delay: 0.05 }}
-                  className="relative shrink-0 w-[148px] h-[148px] sm:w-[200px] sm:h-[200px] -mt-2 sm:-mt-4 -mr-2"
+                  className="relative shrink-0 w-[110px] h-[110px] sm:w-[150px] sm:h-[150px] mt-2 sm:mt-0 -mr-1 self-start"
                 >
                   {/* Soft glow under parcel */}
                   <div aria-hidden className="absolute inset-2 rounded-full bg-gradient-to-br from-orange-300/40 via-pink-300/30 to-transparent blur-2xl" />
