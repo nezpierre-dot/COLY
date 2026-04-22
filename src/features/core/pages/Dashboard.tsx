@@ -402,6 +402,34 @@ const Dashboard = () => {
   const [demandeurShipments, setDemandeurShipments] = useState<any[]>([]);
   const [demandeurMissions, setDemandeurMissions] = useState<any[]>([]);
 
+  // Demandeur search
+  const [demandeurSearch, setDemandeurSearch] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const handleDemandeurSearch = useCallback((e?: React.FormEvent) => {
+    e?.preventDefault();
+    const q = demandeurSearch.trim();
+    if (!q) {
+      navigate("/history/coly");
+      return;
+    }
+    const lower = q.toLowerCase();
+    // 1) Try local match in current shipments (by city/country)
+    const localMatch = demandeurShipments.find(s =>
+      s.departure_city?.toLowerCase().includes(lower) ||
+      s.arrival_city?.toLowerCase().includes(lower) ||
+      s.arrival_country?.toLowerCase().includes(lower)
+    );
+    if (localMatch) {
+      hapticLight();
+      toast.success(`Envoi trouvé : ${localizeCity(localMatch.arrival_city)}`);
+      navigate(`/shipment/${localMatch.id}`);
+      return;
+    }
+    // 2) Otherwise route the user to the traveler search filtered by query
+    hapticLight();
+    navigate(`/voyageur-search?q=${encodeURIComponent(q)}`);
+  }, [demandeurSearch, demandeurShipments, navigate]);
+
   useEffect(() => {
     if (isVoyageur || !user) return;
     const loadDemandeurData = async () => {
@@ -1361,30 +1389,71 @@ const Dashboard = () => {
         ) : (
           /* ============ DEMANDEUR ============ */
           <div className="space-y-5">
-            {/* Search bar — large, modern */}
-            <motion.div
+            {/* Search bar — large, modern, fonctionnelle */}
+            <motion.form
+              onSubmit={handleDemandeurSearch}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="relative"
+              className="relative group"
+              role="search"
             >
-              <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
-                <Search size={20} className="text-muted-foreground" />
-              </div>
-              <input
-                type="search"
-                placeholder="Rechercher un voyageur, colis..."
-                onClick={() => navigate("/history/coly")}
-                readOnly
-                className="w-full h-16 pl-14 pr-20 rounded-3xl bg-card border border-border/60 shadow-card text-base font-medium text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all cursor-pointer hover:shadow-elevated"
-                aria-label="Rechercher"
-              />
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-soft">
-                  <SlidersHorizontal size={18} className="text-primary-foreground" />
+              <motion.div
+                animate={{
+                  scale: searchFocused ? 1.01 : 1,
+                  boxShadow: searchFocused
+                    ? "0 20px 50px -16px hsl(254 50% 50% / 0.25)"
+                    : "0 10px 30px -10px hsl(224 40% 40% / 0.12)",
+                }}
+                transition={{ type: "spring", stiffness: 240, damping: 22 }}
+                className="relative rounded-3xl bg-card border border-border/60"
+              >
+                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                  <motion.div
+                    animate={{ rotate: searchFocused ? -8 : 0, scale: searchFocused ? 1.1 : 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                  >
+                    <Search size={20} className={searchFocused ? "text-primary" : "text-muted-foreground"} />
+                  </motion.div>
                 </div>
-              </div>
-            </motion.div>
+                <input
+                  type="search"
+                  value={demandeurSearch}
+                  onChange={(e) => setDemandeurSearch(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  placeholder="Rechercher un voyageur, colis..."
+                  enterKeyHint="search"
+                  className="w-full h-16 pl-14 pr-24 rounded-3xl bg-transparent text-base font-medium text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all"
+                  aria-label="Rechercher un voyageur ou un colis"
+                />
+                <AnimatePresence>
+                  {demandeurSearch && (
+                    <motion.button
+                      type="button"
+                      initial={{ opacity: 0, scale: 0.6 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.6 }}
+                      onClick={() => setDemandeurSearch("")}
+                      className="absolute inset-y-0 right-[4.25rem] flex items-center text-muted-foreground hover:text-foreground"
+                      aria-label="Effacer"
+                    >
+                      <X size={16} />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+                <motion.button
+                  type="submit"
+                  whileHover={{ scale: 1.06, rotate: -2 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 320, damping: 18 }}
+                  className="absolute inset-y-0 right-3 my-auto h-11 w-11 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-soft hover:shadow-glow"
+                  aria-label="Lancer la recherche"
+                >
+                  <SlidersHorizontal size={18} className="text-primary-foreground" />
+                </motion.button>
+              </motion.div>
+            </motion.form>
 
             {/* Stat cards — colorées, arrondies, "Future" */}
             <motion.div
@@ -1428,24 +1497,30 @@ const Dashboard = () => {
                 <motion.button
                   key={stat.label}
                   variants={staggerItem}
-                  whileHover={{ y: -3 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ y: -4, transition: { type: "spring", stiffness: 280, damping: 20 } }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={stat.onClick}
-                  className={`relative overflow-hidden bg-gradient-to-br ${stat.bg} rounded-3xl p-4 text-left ring-1 ${stat.ring} shadow-soft transition-shadow hover:shadow-card`}
+                  className={`relative overflow-hidden bg-gradient-to-br ${stat.bg} rounded-3xl p-4 text-left ring-1 ${stat.ring} shadow-soft transition-shadow hover:shadow-card group`}
                 >
-                  <div className={`w-9 h-9 rounded-2xl ${stat.iconBg} flex items-center justify-center mb-2`}>
+                  {/* Soft glow on hover */}
+                  <div aria-hidden className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <motion.div
+                    whileHover={{ rotate: -8, scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 16 }}
+                    className={`relative w-9 h-9 rounded-2xl ${stat.iconBg} flex items-center justify-center mb-2`}
+                  >
                     <stat.icon size={18} className={stat.iconColor} />
-                  </div>
+                  </motion.div>
                   <motion.p
                     key={stat.value}
                     initial={{ scale: 0.6, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 280, damping: 18 }}
-                    className="text-2xl font-bold text-foreground tracking-tight leading-none"
+                    className="relative text-2xl font-bold text-foreground tracking-tight leading-none"
                   >
                     {stat.value}
                   </motion.p>
-                  <p className="text-[11px] font-semibold text-muted-foreground mt-1 uppercase tracking-wide">{stat.label}</p>
+                  <p className="relative text-[11px] font-semibold text-muted-foreground mt-1 uppercase tracking-wide">{stat.label}</p>
                 </motion.button>
               ))}
             </motion.div>
@@ -1493,18 +1568,29 @@ const Dashboard = () => {
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.35, delay: 0.05 * idx }}
+                        whileHover={{ y: -3, transition: { type: "spring", stiffness: 280, damping: 22 } }}
                         whileTap={{ scale: 0.99 }}
                         onClick={() => navigate(`/shipment/${s.id}`)}
-                        className="card-future cursor-pointer hover:shadow-elevated transition-all relative overflow-hidden"
+                        className="card-future cursor-pointer hover:shadow-elevated transition-shadow relative overflow-hidden group"
                       >
                         {/* Subtle gradient accent */}
-                        <div aria-hidden className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-primary/15 to-secondary/10 blur-2xl pointer-events-none" />
+                        <motion.div
+                          aria-hidden
+                          initial={{ opacity: 0.6 }}
+                          whileHover={{ opacity: 1, scale: 1.15 }}
+                          transition={{ duration: 0.4 }}
+                          className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-primary/15 to-secondary/10 blur-2xl pointer-events-none"
+                        />
 
                         <div className="relative flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="w-11 h-11 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0 shadow-soft">
+                            <motion.div
+                              whileHover={{ rotate: -6, scale: 1.05 }}
+                              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                              className="w-11 h-11 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0 shadow-soft"
+                            >
                               <Package size={20} className="text-primary-foreground" />
-                            </div>
+                            </motion.div>
                             <div className="min-w-0 flex-1">
                               <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{formatDate(s.created_at)}</p>
                               <h3 className="font-bold text-sm text-foreground truncate">
@@ -1531,13 +1617,25 @@ const Dashboard = () => {
                               const isCurrent = i === reachedIndex - 1;
                               return (
                                 <div key={stage.key} className="flex flex-col items-center gap-1.5 z-10 flex-1">
-                                  <div
-                                    className={`w-3 h-3 rounded-full border-2 transition-all ${
+                                  <motion.div
+                                    initial={{ scale: 0.6, opacity: 0 }}
+                                    animate={{ scale: isCurrent ? 1.25 : 1, opacity: 1 }}
+                                    transition={{ type: "spring", stiffness: 320, damping: 18, delay: 0.05 * i }}
+                                    className={`relative w-3 h-3 rounded-full border-2 ${
                                       reached
                                         ? "bg-gradient-primary border-transparent shadow-glow"
                                         : "bg-card border-border"
-                                    } ${isCurrent ? "ring-4 ring-primary/20 scale-125" : ""}`}
-                                  />
+                                    }`}
+                                  >
+                                    {isCurrent && (
+                                      <motion.span
+                                        aria-hidden
+                                        animate={{ scale: [1, 1.8, 1], opacity: [0.5, 0, 0.5] }}
+                                        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                                        className="absolute inset-0 rounded-full bg-primary"
+                                      />
+                                    )}
+                                  </motion.div>
                                   <span className={`text-[9px] font-semibold tracking-wide ${reached ? "text-foreground" : "text-muted-foreground"}`}>
                                     {stage.label}
                                   </span>
@@ -1547,9 +1645,11 @@ const Dashboard = () => {
                             {/* Dotted line behind dots */}
                             <div aria-hidden className="absolute top-[5px] left-3 right-3 h-[2px] -z-0">
                               <div className="w-full h-full" style={{ backgroundImage: "repeating-linear-gradient(to right, hsl(var(--border)) 0 4px, transparent 4px 8px)" }} />
-                              <div
-                                className="absolute top-0 left-0 h-full bg-gradient-primary rounded-full transition-all"
-                                style={{ width: `${Math.max(0, ((reachedIndex - 1) / 3) * 100)}%` }}
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.max(0, ((reachedIndex - 1) / 3) * 100)}%` }}
+                                transition={{ duration: 0.9, ease: "easeOut", delay: 0.15 + 0.05 * idx }}
+                                className="absolute top-0 left-0 h-full bg-gradient-primary rounded-full"
                               />
                             </div>
                           </div>
