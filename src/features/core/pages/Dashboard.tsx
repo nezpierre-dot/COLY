@@ -222,10 +222,12 @@ const Dashboard = () => {
     (async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("first_name")
+        .select("full_name")
         .eq("id", user.id)
         .maybeSingle();
-      if (!cancelled && data?.first_name) setFirstName(data.first_name);
+      if (!cancelled && data?.full_name) {
+        setFirstName(data.full_name.trim().split(/\s+/)[0] ?? "");
+      }
     })();
     return () => { cancelled = true; };
   }, [user]);
