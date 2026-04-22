@@ -146,6 +146,7 @@ const NeeditCreatePage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [generatingDesc, setGeneratingDesc] = useState(false);
 
   const currency = getCurrencyForCountry(pays);
 
