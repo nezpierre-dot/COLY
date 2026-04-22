@@ -409,31 +409,106 @@ const NeeditMission = () => {
                   </div>
                 )}
                 {categoryPath.length === 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-                    {currentCategories().map((node) => {
-                      const isSelected = selectedLeaf === node.label;
-                      return (
+                  <>
+                    {/* Premium hero header */}
+                    <div className="text-center mb-5">
+                      <h3 className="text-2xl font-bold text-foreground mb-1">
+                        Que cherchez-vous aujourd'hui ?
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Choisissez une catégorie pour commencer
+                      </p>
+                    </div>
+
+                    {/* Live search bar */}
+                    <div className="flex items-center gap-2 mb-5 px-4 py-3 rounded-2xl bg-muted/50 border border-border focus-within:border-primary/50 transition-colors">
+                      <Search size={16} className="text-muted-foreground shrink-0" />
+                      <input
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        placeholder="Rechercher un produit ou une catégorie…"
+                        className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                      />
+                      {categorySearch && (
                         <button
-                          key={node.label}
-                          onClick={() => handleCategorySelect(node)}
-                          className={`flex flex-col items-center justify-center gap-3 p-4 aspect-square rounded-2xl border transition-all ${
-                            isSelected
-                              ? "border-primary bg-primary/10 ring-2 ring-primary/30"
-                              : "border-border bg-card hover:border-primary/40 hover:bg-primary/5"
-                          }`}
+                          onClick={() => setCategorySearch("")}
+                          aria-label="Effacer"
+                          className="shrink-0 w-6 h-6 rounded-full bg-muted-foreground/20 hover:bg-muted-foreground/30 flex items-center justify-center transition-colors"
                         >
-                          {node.icon ? (
-                            <img src={node.icon} alt="" className="w-20 h-20 sm:w-24 sm:h-24 object-contain" />
-                          ) : (
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-muted" />
-                          )}
-                          <span className="text-sm font-semibold text-foreground text-center leading-tight line-clamp-2">
-                            {node.label}
-                          </span>
+                          <X size={12} className="text-foreground" />
                         </button>
+                      )}
+                    </div>
+
+                    {(() => {
+                      const q = categorySearch.trim().toLowerCase();
+                      const matchesQuery = (node: CategoryNode) => {
+                        if (!q) return true;
+                        if (node.label.toLowerCase().includes(q)) return true;
+                        return (node.children || []).some((c) =>
+                          c.label.toLowerCase().includes(q),
+                        );
+                      };
+                      const filtered = currentCategories().filter(matchesQuery);
+                      // Sort: popular first, then alphabetical
+                      const sorted = [...filtered].sort((a, b) => {
+                        if (!!a.popular === !!b.popular) return a.label.localeCompare(b.label);
+                        return a.popular ? -1 : 1;
+                      });
+
+                      if (sorted.length === 0) {
+                        return (
+                          <div className="text-center py-10 mb-6">
+                            <p className="text-sm text-muted-foreground mb-1">Aucune catégorie pour</p>
+                            <p className="text-base font-semibold text-foreground mb-4">"{categorySearch}"</p>
+                            <button
+                              onClick={() => { setIsUnlisted(true); setSelectedLeaf(""); setCategoryPath([]); setUnlistedName(categorySearch); }}
+                              className="text-sm text-primary font-medium underline underline-offset-2"
+                            >
+                              Décrire ma demande librement
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+                          {sorted.map((node, idx) => {
+                            const isSelected = selectedLeaf === node.label;
+                            return (
+                              <motion.button
+                                key={node.label}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: Math.min(idx * 0.025, 0.25) }}
+                                whileTap={{ scale: 0.94 }}
+                                onClick={() => handleCategorySelect(node)}
+                                className={`relative flex flex-col items-center justify-center gap-2 p-3 aspect-square rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all ${
+                                  isSelected
+                                    ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                                    : "border-border hover:border-primary/40"
+                                }`}
+                              >
+                                {node.popular && (
+                                  <span className="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-accent/15 text-accent text-[9px] font-bold uppercase tracking-wide">
+                                    <Sparkles size={8} />
+                                  </span>
+                                )}
+                                {node.icon ? (
+                                  <img src={node.icon} alt="" className="w-16 h-16 sm:w-20 sm:h-20 object-contain" />
+                                ) : (
+                                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-muted" />
+                                )}
+                                <span className="text-[11px] sm:text-xs font-semibold text-foreground text-center leading-tight line-clamp-2">
+                                  {node.label}
+                                </span>
+                              </motion.button>
+                            );
+                          })}
+                        </div>
                       );
-                    })}
-                  </div>
+                    })()}
+                  </>
                 ) : (
                   <div className="space-y-2 mb-6">
                     {currentCategories().map((node) => (
