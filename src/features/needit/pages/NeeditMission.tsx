@@ -183,6 +183,13 @@ const NeeditMission = () => {
       setPays(data.country || ""); setVille(data.city || ""); setTiming(data.timing || ""); setIsUnlisted(data.is_unlisted || false);
       setUnlistedName(data.unlisted_description || data.product_name || ""); setSelectedLeaf(data.is_unlisted ? "" : (data.product_name || ""));
       setPhotoPreview(data.photo_url || null); setDimension(data.dimension || ""); setPoids(data.poids || ""); setPrixMax(data.prix_max || ""); setEanCode(data.ean_code || "");
+      // Restore quantity (prefix "Nx ") and comments (split from unlisted_description)
+      const nameRaw = data.product_name || "";
+      const qtyMatch = nameRaw.match(/^(\d+)×\s*/);
+      if (qtyMatch) setQuantity(qtyMatch[1]);
+      const desc = data.unlisted_description || "";
+      const commentMatch = desc.match(/Commentaires\s*:\s*([\s\S]*)$/);
+      if (commentMatch) setComments(commentMatch[1].trim());
       setAutoAccept((data as any).auto_accept ?? false);
       setPickupAddress((data as any).pickup_address || "");
       setPickupAccessCode((data as any).pickup_access_code || "");
