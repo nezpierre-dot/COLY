@@ -556,18 +556,33 @@ const NeeditCreatePage = () => {
             error={showErr("comments")}
             hint={`${comments.length}/${COMMENTS_MAX} caractères`}
           >
-            <textarea
-              value={comments}
-              onChange={(e) => setComments(e.target.value.slice(0, COMMENTS_MAX))}
-              onBlur={() => markTouched("comments")}
-              aria-invalid={!!showErr("comments")}
-              maxLength={COMMENTS_MAX}
-              placeholder="Ex : emballage renforcé, livraison en main propre, alternative si rupture…"
-              rows={4}
-              className={`w-full rounded-2xl border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 resize-none transition-colors ${
-                showErr("comments") ? "border-destructive" : "border-border"
-              }`}
-            />
+            <div className="relative">
+              <textarea
+                value={comments}
+                onChange={(e) => setComments(e.target.value.slice(0, COMMENTS_MAX))}
+                onBlur={() => markTouched("comments")}
+                aria-invalid={!!showErr("comments")}
+                maxLength={COMMENTS_MAX}
+                placeholder="Ex : emballage renforcé, livraison en main propre, alternative si rupture…"
+                rows={4}
+                className={`w-full rounded-2xl border bg-card px-4 py-3 pr-3 pb-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 resize-none transition-colors ${
+                  showErr("comments") ? "border-destructive" : "border-border"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={generateDescription}
+                disabled={generatingDesc}
+                className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-primary text-primary-foreground text-[11px] font-bold shadow-soft hover:shadow-glow active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                aria-label="Générer une description avec l'IA"
+              >
+                {generatingDesc ? (
+                  <><Loader2 size={11} className="animate-spin" /> Génération…</>
+                ) : (
+                  <><Sparkles size={11} /> {comments.trim() ? "Améliorer ✨" : "Générer ✨"}</>
+                )}
+              </button>
+            </div>
           </Field>
         </div>
 
