@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 interface WalletTransaction {
