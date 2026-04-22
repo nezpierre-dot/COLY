@@ -123,23 +123,13 @@ const ProductCard = ({
       }`}
     >
       <div className="flex gap-3">
-        {product.photo_url ? (
-          <img
-            src={product.photo_url}
-            alt={product.name}
-            className="w-16 h-16 rounded-2xl object-cover shrink-0"
-          />
-        ) : (
-          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shrink-0">
-            <Package size={24} className="text-primary/70" />
-            <span
-              aria-label="Sans photo"
-              className="absolute -bottom-1 -right-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted border border-border text-[9px] font-semibold text-muted-foreground"
-            >
-              <ImageOff size={8} />
-            </span>
-          </div>
-        )}
+        <BrandImage
+          src={product.photo_url}
+          alt={product.name}
+          className="w-16 h-16 rounded-2xl"
+          imgClassName="object-cover"
+          fallback={<Package size={24} className="text-primary/70" />}
+        />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground leading-tight mb-0.5">
             {product.name}
