@@ -184,7 +184,7 @@ const Welcome = () => {
               </span>
             ))}
             {lines.length > 0 && (
-              <span className="block bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent pb-1">
+              <span className="block bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent pb-0.5">
                 {lines[lines.length - 1]}
               </span>
             )}
