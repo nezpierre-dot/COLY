@@ -23,6 +23,9 @@ const SendColy = lazy(() => import("./features/shipment/pages/SendColy"));
 const Settings = lazy(() => import("./features/account/pages/Settings"));
 const MyAccount = lazy(() => import("./features/account/pages/MyAccount"));
 const NeeditMission = lazy(() => import("./features/needit/pages/NeeditMission"));
+const NeeditCategoriesPage = lazy(() => import("./features/needit/pages/NeeditCategoriesPage"));
+const NeeditBrandsPage = lazy(() => import("./features/needit/pages/NeeditBrandsPage"));
+const NeeditCreatePage = lazy(() => import("./features/needit/pages/NeeditCreatePage"));
 const MesNeeditMissions = lazy(() => import("./features/needit/pages/MesNeeditMissions"));
 const KycFlow = lazy(() => import("./features/auth/pages/KycFlow"));
 const MyInfo = lazy(() => import("./features/account/pages/MyInfo"));
@@ -103,6 +106,9 @@ const App = () => {
                     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                     <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
                     <Route path="/needit-mission" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
+                    <Route path="/needit/categories" element={<ProtectedRoute><NeeditCategoriesPage /></ProtectedRoute>} />
+                    <Route path="/needit/marques/:catKey" element={<ProtectedRoute><NeeditBrandsPage /></ProtectedRoute>} />
+                    <Route path="/needit/creer" element={<ProtectedRoute><NeeditCreatePage /></ProtectedRoute>} />
                     <Route path="/needit-mission/:id" element={<ProtectedRoute><NeeditMission /></ProtectedRoute>} />
                     <Route path="/mes-missions-needit" element={<ProtectedRoute><MesNeeditMissions /></ProtectedRoute>} />
                     <Route path="/kyc" element={<ProtectedRoute><KycFlow /></ProtectedRoute>} />

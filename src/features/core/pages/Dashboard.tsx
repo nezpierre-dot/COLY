@@ -118,7 +118,7 @@ const AiRecommendation = ({ isVoyageur, t }: { isVoyageur: boolean; t: (k: strin
         { text: t("dashboard.aiRecVoyageur2").replace("{currency}", currency), cta: t("dashboard.aiCtaVoyageur2"), action: () => navigate("/settings") },
       ]
     : [
-        { text: t("dashboard.aiRecDemandeur1").replace("{currency}", currency), cta: t("dashboard.aiCtaDemandeur1"), action: () => navigate("/needit-mission") },
+        { text: t("dashboard.aiRecDemandeur1").replace("{currency}", currency), cta: t("dashboard.aiCtaDemandeur1"), action: () => navigate("/needit/categories") },
         { text: t("dashboard.aiRecDemandeur2"), cta: t("dashboard.aiCtaDemandeur2"), action: () => {} },
       ];
 
@@ -1510,7 +1510,7 @@ const Dashboard = () => {
                     title={t("dashboard.noNeeditMission")}
                     description={t("dashboard.noNeeditMissionDesc")}
                     action={
-                      <button onClick={() => navigate("/needit-mission")} className="px-5 py-3 rounded-xl bg-secondary text-secondary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg">
+                      <button onClick={() => navigate("/needit/categories")} className="px-5 py-3 rounded-xl bg-secondary text-secondary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg">
                         <Plus size={20} className="inline mr-1.5 -mt-0.5" /> {t("dashboard.createMission")}
                       </button>
                     }
@@ -1580,7 +1580,7 @@ const Dashboard = () => {
                   ))
                 )}
 
-                <button onClick={() => navigate("/needit-mission")}
+                <button onClick={() => navigate("/needit/categories")}
                   className="w-full py-3.5 rounded-2xl bg-secondary text-secondary-foreground font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-md">
                   <Plus size={22} /> {t("dashboard.createMission")}
                 </button>
@@ -1608,7 +1608,7 @@ const Dashboard = () => {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => navigate("/needit-mission")}
+                    onClick={() => navigate("/needit/categories")}
                     className="flex flex-col items-center gap-2 py-5 rounded-2xl bg-secondary/10 border border-secondary/20 hover:bg-secondary/15 transition-colors"
                   >
                     <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
