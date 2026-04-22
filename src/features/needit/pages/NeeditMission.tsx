@@ -160,6 +160,13 @@ const NeeditMission = () => {
   const [autoAccept, setAutoAccept] = useState(false);
   const [pickupAddress, setPickupAddress] = useState("");
   const [pickupAccessCode, setPickupAccessCode] = useState("");
+  // Brand sub-flow state
+  const [brandPhase, setBrandPhase] = useState<BrandPhase>("categories");
+  const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+  const [selectedBrandProduct, setSelectedBrandProduct] = useState<{
+    product: BrandProduct;
+    variant: string | null;
+  } | null>(null);
   useEffect(() => { fetchCountries().then((data) => { setCountries(data); setLoadingCountries(false); }); }, []);
 
   useEffect(() => {
