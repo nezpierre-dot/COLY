@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 import BottomNav from "@/components/BottomNav";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -50,6 +51,64 @@ const writeLastLocation = (loc: { pays?: string; ville?: string; pickupAddress?:
   }
 };
 
+/* ------------------------------------------------------------------ */
+/*  Validation                                                         */
+/* ------------------------------------------------------------------ */
+
+const COMMENTS_MAX = 500;
+const PICKUP_MAX = 200;
+
+const buildSchema = (budgetMode: "fixed" | "devis") =>
+  z.object({
+    pays: z
+      .string()
+      .trim()
+      .min(2, { message: "Indiquez un pays valide (2 caractères min.)." })
+      .max(60, { message: "Le pays ne peut pas dépasser 60 caractères." }),
+    ville: z
+      .string()
+      .trim()
+      .min(2, { message: "Indiquez une ville valide (2 caractères min.)." })
+      .max(80, { message: "La ville ne peut pas dépasser 80 caractères." }),
+    quantity: z
+      .number({ invalid_type_error: "La quantité doit être un nombre." })
+      .int({ message: "La quantité doit être un entier." })
+      .min(1, { message: "La quantité doit être d’au moins 1." })
+      .max(99, { message: "La quantité ne peut pas dépasser 99." }),
+    budget:
+      budgetMode === "devis"
+        ? z.string().optional()
+        : z
+            .string()
+            .trim()
+            .min(1, { message: "Indiquez un budget maximum." })
+            .refine((v) => !Number.isNaN(parseFloat(v.replace(",", "."))), {
+              message: "Budget invalide. Utilisez un nombre (ex : 25 ou 25,50).",
+            })
+            .refine((v) => parseFloat(v.replace(",", ".")) > 0, {
+              message: "Le budget doit être supérieur à 0.",
+            })
+            .refine((v) => parseFloat(v.replace(",", ".")) <= 10000, {
+              message: "Le budget ne peut pas dépasser 10 000.",
+            }),
+    comments: z
+      .string()
+      .max(COMMENTS_MAX, {
+        message: `Les commentaires ne peuvent pas dépasser ${COMMENTS_MAX} caractères.`,
+      })
+      .optional(),
+    pickupAddress: z
+      .string()
+      .max(PICKUP_MAX, {
+        message: `L’adresse ne peut pas dépasser ${PICKUP_MAX} caractères.`,
+      })
+      .optional(),
+  });
+
+type FieldErrors = Partial<
+  Record<"pays" | "ville" | "quantity" | "budget" | "comments" | "pickupAddress", string>
+>;
+
 /**
  * Écran 3/3 — Création de la mission style Vinted.
  * Page unique scrollable avec sticky bottom CTA + récap prix.
@@ -85,6 +144,8 @@ const NeeditCreatePage = () => {
     draft.brandProduct?.photo_url ?? null,
   );
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const currency = getCurrencyForCountry(pays);
 
@@ -104,22 +165,70 @@ const NeeditCreatePage = () => {
   const budgetNum = budgetMode === "fixed" ? parseFloat(budget.replace(",", ".")) : NaN;
   const totalEstimate = !Number.isNaN(budgetNum) ? budgetNum * qtyNum : null;
 
-  const canSubmit =
-    !!pays.trim() &&
-    !!ville.trim() &&
-    (budgetMode === "devis" || (!Number.isNaN(budgetNum) && budgetNum > 0));
+  // Re-validate on field change to show inline errors only after first interaction
+  useEffect(() => {
+    const schema = buildSchema(budgetMode);
+    const result = schema.safeParse({
+      pays,
+      ville,
+      quantity: qtyNum,
+      budget,
+      comments,
+      pickupAddress,
+    });
+    if (result.success) {
+      setErrors({});
+      return;
+    }
+    const next: FieldErrors = {};
+    for (const issue of result.error.issues) {
+      const key = issue.path[0] as keyof FieldErrors;
+      if (key && !next[key]) next[key] = issue.message;
+    }
+    setErrors(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pays, ville, qtyNum, budget, comments, pickupAddress, budgetMode]);
+
+  const markTouched = (field: keyof FieldErrors) =>
+    setTouched((t) => ({ ...t, [field]: true }));
+
+  const showErr = (field: keyof FieldErrors): string | null =>
+    touched[field] && errors[field] ? errors[field]! : null;
+
+  const canSubmit = Object.keys(errors).length === 0;
 
   const handleSubmit = async () => {
     if (!user) {
       toast.error("Vous devez être connecté.");
       return;
     }
-    if (!pays.trim() || !ville.trim()) {
-      toast.error("Indiquez le pays et la ville de récupération.");
-      return;
-    }
-    if (budgetMode === "fixed" && (!budget.trim() || Number.isNaN(budgetNum) || budgetNum <= 0)) {
-      toast.error("Indiquez un budget maximum valide.");
+    // Mark all fields as touched and run full validation
+    setTouched({
+      pays: true,
+      ville: true,
+      quantity: true,
+      budget: true,
+      comments: true,
+      pickupAddress: true,
+    });
+    const schema = buildSchema(budgetMode);
+    const result = schema.safeParse({
+      pays,
+      ville,
+      quantity: qtyNum,
+      budget,
+      comments,
+      pickupAddress,
+    });
+    if (!result.success) {
+      const next: FieldErrors = {};
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof FieldErrors;
+        if (key && !next[key]) next[key] = issue.message;
+      }
+      setErrors(next);
+      const first = Object.values(next)[0];
+      toast.error(first ?? "Veuillez corriger les champs en rouge.");
       return;
     }
 
@@ -293,11 +402,20 @@ const NeeditCreatePage = () => {
           <Field
             label="Quantité souhaitée"
             icon={<Hash size={14} className="text-primary" />}
+            error={showErr("quantity")}
+            hint="Entre 1 et 99"
           >
-            <div className="inline-flex items-center rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+            <div
+              className={`inline-flex items-center rounded-2xl border bg-card overflow-hidden shadow-sm ${
+                showErr("quantity") ? "border-destructive" : "border-border"
+              }`}
+            >
               <button
                 type="button"
-                onClick={() => setQuantity((q) => String(Math.max(1, parseInt(q || "1") - 1)))}
+                onClick={() => {
+                  markTouched("quantity");
+                  setQuantity((q) => String(Math.max(1, parseInt(q || "1") - 1)));
+                }}
                 className="w-12 h-12 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
                 aria-label="Diminuer"
               >
@@ -306,14 +424,20 @@ const NeeditCreatePage = () => {
               <input
                 type="number"
                 min={1}
+                max={99}
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value.replace(/[^0-9]/g, "") || "1")}
+                onBlur={() => markTouched("quantity")}
+                aria-invalid={!!showErr("quantity")}
                 className="w-16 h-12 text-center bg-transparent text-base font-semibold text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 aria-label="Quantité"
               />
               <button
                 type="button"
-                onClick={() => setQuantity((q) => String(parseInt(q || "1") + 1))}
+                onClick={() => {
+                  markTouched("quantity");
+                  setQuantity((q) => String(Math.min(99, parseInt(q || "1") + 1)));
+                }}
                 className="w-12 h-12 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
                 aria-label="Augmenter"
               >
@@ -339,6 +463,7 @@ const NeeditCreatePage = () => {
                 </TooltipProvider>
               </span>
             }
+            error={budgetMode === "fixed" ? showErr("budget") : null}
           >
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
@@ -371,7 +496,13 @@ const NeeditCreatePage = () => {
                     placeholder="0"
                     value={budget}
                     onChange={(e) => setBudget(e.target.value)}
-                    className="h-14 text-2xl font-bold text-foreground bg-card rounded-2xl border-border pr-14 pl-5 focus-visible:ring-2 focus-visible:ring-primary/30"
+                    onBlur={() => markTouched("budget")}
+                    aria-invalid={!!showErr("budget")}
+                    min={0}
+                    max={10000}
+                    className={`h-14 text-2xl font-bold text-foreground bg-card rounded-2xl pr-14 pl-5 focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                      showErr("budget") ? "border-destructive focus-visible:ring-destructive/30" : "border-border"
+                    }`}
                   />
                   <span className="absolute right-5 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">
                     {currency.symbol}
@@ -385,13 +516,20 @@ const NeeditCreatePage = () => {
           <Field
             label="Commentaires / Instructions"
             icon={<MessageSquare size={14} className="text-primary" />}
+            error={showErr("comments")}
+            hint={`${comments.length}/${COMMENTS_MAX} caractères`}
           >
             <textarea
               value={comments}
-              onChange={(e) => setComments(e.target.value)}
+              onChange={(e) => setComments(e.target.value.slice(0, COMMENTS_MAX))}
+              onBlur={() => markTouched("comments")}
+              aria-invalid={!!showErr("comments")}
+              maxLength={COMMENTS_MAX}
               placeholder="Ex : emballage renforcé, livraison en main propre, alternative si rupture…"
               rows={4}
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 resize-none transition-colors"
+              className={`w-full rounded-2xl border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 resize-none transition-colors ${
+                showErr("comments") ? "border-destructive" : "border-border"
+              }`}
             />
           </Field>
         </div>
@@ -400,20 +538,30 @@ const NeeditCreatePage = () => {
         <SectionTitle>Lieu de récupération</SectionTitle>
         <div className="space-y-4 mb-8">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Pays *">
+            <Field label="Pays *" error={showErr("pays")}>
               <Input
                 value={pays}
                 onChange={(e) => setPays(e.target.value)}
+                onBlur={() => markTouched("pays")}
+                aria-invalid={!!showErr("pays")}
                 placeholder="Ex : France"
-                className="h-12 rounded-2xl bg-card border-border focus-visible:ring-2 focus-visible:ring-primary/30"
+                maxLength={60}
+                className={`h-12 rounded-2xl bg-card focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                  showErr("pays") ? "border-destructive" : "border-border"
+                }`}
               />
             </Field>
-            <Field label="Ville *">
+            <Field label="Ville *" error={showErr("ville")}>
               <Input
                 value={ville}
                 onChange={(e) => setVille(e.target.value)}
+                onBlur={() => markTouched("ville")}
+                aria-invalid={!!showErr("ville")}
                 placeholder="Ex : Paris"
-                className="h-12 rounded-2xl bg-card border-border focus-visible:ring-2 focus-visible:ring-primary/30"
+                maxLength={80}
+                className={`h-12 rounded-2xl bg-card focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                  showErr("ville") ? "border-destructive" : "border-border"
+                }`}
               />
             </Field>
           </div>
@@ -421,12 +569,18 @@ const NeeditCreatePage = () => {
           <Field
             label="Adresse précise (optionnel)"
             icon={<MapPin size={14} className="text-primary" />}
+            error={showErr("pickupAddress")}
           >
             <Input
               value={pickupAddress}
               onChange={(e) => setPickupAddress(e.target.value)}
+              onBlur={() => markTouched("pickupAddress")}
+              aria-invalid={!!showErr("pickupAddress")}
               placeholder="Ex : Carrefour Champs-Élysées"
-              className="h-12 rounded-2xl bg-card border-border focus-visible:ring-2 focus-visible:ring-primary/30"
+              maxLength={PICKUP_MAX}
+              className={`h-12 rounded-2xl bg-card focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                showErr("pickupAddress") ? "border-destructive" : "border-border"
+              }`}
             />
           </Field>
         </div>
@@ -517,10 +671,14 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 const Field = ({
   label,
   icon,
+  error,
+  hint,
   children,
 }: {
   label: React.ReactNode;
   icon?: React.ReactNode;
+  error?: string | null;
+  hint?: React.ReactNode;
   children: React.ReactNode;
 }) => (
   <div>
@@ -529,6 +687,17 @@ const Field = ({
       {label}
     </label>
     {children}
+    {error ? (
+      <p
+        role="alert"
+        className="mt-1.5 text-xs font-medium text-destructive flex items-start gap-1"
+      >
+        <span aria-hidden>⚠</span>
+        <span>{error}</span>
+      </p>
+    ) : hint ? (
+      <p className="mt-1.5 text-[11px] text-muted-foreground">{hint}</p>
+    ) : null}
   </div>
 );
 
