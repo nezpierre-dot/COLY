@@ -43,19 +43,35 @@ const BrandProductPicker = ({ brand, selected, onSelect, onSkip }: Props) => {
         <div className="flex justify-center py-12">
           <Loader2 className="animate-spin text-primary" size={28} />
         </div>
+      ) : products.length === 0 ? (
+        <div className="rounded-3xl border border-dashed border-border bg-muted/30 p-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/15 to-secondary/15 flex items-center justify-center">
+            <PenLine className="text-primary" size={28} />
+          </div>
+          <h3 className="text-base font-semibold text-foreground mb-1">
+            Aucun produit référencé
+          </h3>
+          <p className="text-sm text-muted-foreground mb-5 max-w-xs mx-auto">
+            Cette marque n'a pas encore de catalogue de produits. Décrivez librement le produit
+            recherché à l'étape suivante.
+          </p>
+          <button
+            onClick={onSkip}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+          >
+            Continuer sans produit <ChevronRight size={16} />
+          </button>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-10">
           <Package className="mx-auto mb-3 text-muted-foreground" size={32} />
-          <p className="text-sm text-muted-foreground mb-4">
-            {products.length === 0
-              ? "Aucun produit référencé pour cette marque"
-              : "Aucun produit ne correspond"}
-          </p>
+          <p className="text-sm text-muted-foreground mb-1">Aucun produit trouvé pour</p>
+          <p className="text-base font-semibold text-foreground mb-4">"{search}"</p>
           <button
             onClick={onSkip}
             className="text-sm text-primary font-medium underline underline-offset-2"
           >
-            Saisir le produit manuellement
+            Continuer sans produit
           </button>
         </div>
       ) : (
@@ -73,9 +89,9 @@ const BrandProductPicker = ({ brand, selected, onSelect, onSkip }: Props) => {
           </div>
           <button
             onClick={onSkip}
-            className="w-full py-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="w-full py-3 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-2"
           >
-            Mon produit n'est pas listé
+            Mon produit n'est pas listé <ChevronRight size={14} />
           </button>
         </>
       )}
