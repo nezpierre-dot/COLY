@@ -292,8 +292,41 @@ const NeeditMission = () => {
     }
   };
 
-  const handleBack = () => { setDirection(-1); if (step === 1) navigate(editId ? "/mes-missions-needit" : "/dashboard"); else if (step === 2 && categoryPath.length > 0) handleCategoryBack(); else setStep((s) => s - 1); };
-  const stepTitle = () => step === 1 ? t("needit.infoTitle") : step === 2 ? (categoryPath.length === 0 ? t("needit.products") : t("needit.productInfo")) : t("needit.infoTitle");
+  const handleBack = () => {
+    setDirection(-1);
+    if (step === 1) {
+      navigate(editId ? "/mes-missions-needit" : "/dashboard");
+      return;
+    }
+    if (step === 2) {
+      // Brand sub-flow back navigation
+      if (brandPhase === "products") {
+        setSelectedBrandProduct(null);
+        setSelectedLeaf("");
+        setBrandPhase("brands");
+        return;
+      }
+      if (brandPhase === "brands") {
+        setSelectedBrand(null);
+        setCategoryPath((p) => p.slice(0, -1));
+        setBrandPhase("categories");
+        return;
+      }
+      if (categoryPath.length > 0) {
+        handleCategoryBack();
+        return;
+      }
+    }
+    setStep((s) => s - 1);
+  };
+  const stepTitle = () => {
+    if (step === 1) return t("needit.infoTitle");
+    if (step === 2) {
+      if (brandPhase === "brands" || brandPhase === "products") return "";
+      return categoryPath.length === 0 ? t("needit.products") : t("needit.productInfo");
+    }
+    return t("needit.infoTitle");
+  };
 
   const stepVariants = {
     enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
