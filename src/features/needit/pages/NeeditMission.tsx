@@ -300,25 +300,25 @@ const NeeditMission = () => {
                   </div>
                 )}
                 {categoryPath.length === 0 ? (
-                  <div className="grid grid-cols-3 gap-3 mb-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
                     {currentCategories().map((node) => {
                       const isSelected = selectedLeaf === node.label;
                       return (
                         <button
                           key={node.label}
                           onClick={() => handleCategorySelect(node)}
-                          className={`flex flex-col items-center justify-center gap-2 p-3 aspect-square rounded-2xl border transition-all ${
+                          className={`flex flex-col items-center justify-center gap-3 p-4 aspect-square rounded-2xl border transition-all ${
                             isSelected
                               ? "border-primary bg-primary/10 ring-2 ring-primary/30"
                               : "border-border bg-card hover:border-primary/40 hover:bg-primary/5"
                           }`}
                         >
                           {node.icon ? (
-                            <img src={node.icon} alt="" className="w-12 h-12 object-contain" />
+                            <img src={node.icon} alt="" className="w-20 h-20 sm:w-24 sm:h-24 object-contain" />
                           ) : (
-                            <div className="w-12 h-12 rounded-lg bg-muted" />
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-muted" />
                           )}
-                          <span className="text-[11px] font-semibold text-foreground text-center leading-tight line-clamp-2">
+                          <span className="text-sm font-semibold text-foreground text-center leading-tight line-clamp-2">
                             {node.label}
                           </span>
                         </button>
