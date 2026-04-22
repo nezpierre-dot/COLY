@@ -13,6 +13,7 @@ import PullToRefresh from "@/components/PullToRefresh";
 import { localizeCity } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
 import UserLevelBadge from "@/components/UserLevelBadge";
+import messagesIllustration from "@/assets/illustrations/messages-empty.png";
 
 interface Conversation {
   id: string;
@@ -362,6 +363,7 @@ const ConversationsPage = () => {
               icon={MessageCircle}
               title={t("conversations.empty")}
               description={t("conversations.emptyDesc")}
+              illustration={messagesIllustration}
             />
           ) : (
             <>

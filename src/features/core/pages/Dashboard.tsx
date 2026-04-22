@@ -1,5 +1,8 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import appLogo from "@/assets/logo.png";
+import parcelRouteIllustration from "@/assets/illustrations/parcel-route.png";
+import planeIllustration from "@/assets/illustrations/traveler-plane.png";
+import waveHandIllustration from "@/assets/illustrations/wave-hand.png";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield, Trash2, Archive, ArrowUpDown, Trophy } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
@@ -694,41 +697,55 @@ const Dashboard = () => {
           className="relative"
         >
 
-          <div className="bg-[#F8FAFC] dark:bg-[#0F1115] px-5 pt-5 pb-5">
-            <div className="flex justify-between items-center mb-4">
+          <div className="bg-gradient-hero px-5 pt-6 pb-8 sm:px-8 sm:pt-8 sm:pb-10 rounded-b-[2.5rem] shadow-soft">
+            <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
                 <img src={appLogo} alt="Nidit" className="w-10 h-10 object-contain" />
                 <NotificationBell />
               </div>
               <button
                 onClick={toggleRole}
-                className="px-3.5 py-1.5 rounded-full text-[13px] font-bold text-white transition-opacity hover:opacity-90 active:scale-[0.97]"
-                style={{ background: isVoyageur ? "#30D158" : "#0D84FF" }}
+                className="px-4 py-2 rounded-full text-[13px] font-bold text-primary-foreground bg-gradient-primary shadow-soft transition-all hover:shadow-glow hover:brightness-105 active:scale-[0.97]"
               >
                 {isVoyageur ? t("dashboard.switchToDemandeur") : t("dashboard.switchToVoyageur")}
               </button>
             </div>
 
-            <div className="flex items-center gap-3">
-              {isVoyageur ? (
-                <Plane size={38} style={{ color: "#0D84FF" }} strokeWidth={1.8} aria-hidden="true" />
-              ) : (
-                <Package size={38} style={{ color: "#30D158" }} strokeWidth={1.8} aria-hidden="true" />
-              )}
-              <div>
-                <h1 className="text-[28px] font-bold leading-tight" style={{ color: isVoyageur ? "#0D84FF" : "#30D158" }}>
-                  {isVoyageur ? t("dashboard.roleVoyageur") : t("dashboard.roleDemandeur")}
-                </h1>
-                <p className="text-[15px] mt-0.5" style={{ color: "#64748B" }}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <h1 className="text-[clamp(1.75rem,5vw,2.25rem)] font-bold leading-tight tracking-tight text-foreground">
+                    {t("dashboard.greeting") || "Bonjour !"}
+                  </h1>
+                  <img
+                    src={waveHandIllustration}
+                    alt=""
+                    aria-hidden="true"
+                    loading="eager"
+                    width={40}
+                    height={40}
+                    className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
+                  />
+                </div>
+                <p className="text-[15px] sm:text-base text-muted-foreground leading-relaxed max-w-[28ch]">
                   {isVoyageur ? t("dashboard.voyageurSubtitle") : t("dashboard.demandeurSubtitle")}
                 </p>
-                <UserLevelBadge variant="full" className="mt-1.5" />
+                <UserLevelBadge variant="full" className="mt-3" />
               </div>
+              <img
+                src={isVoyageur ? planeIllustration : parcelRouteIllustration}
+                alt=""
+                aria-hidden="true"
+                loading="eager"
+                width={140}
+                height={140}
+                className="w-24 h-24 sm:w-32 sm:h-32 object-contain shrink-0 drop-shadow-lg"
+              />
             </div>
           </div>
         </motion.div>
 
-        <div className="px-5 pt-2 relative z-10 space-y-4">
+        <div className="px-5 pt-4 sm:px-8 relative z-10 space-y-5">
 
         {/* PWA Install Banner */}
         <AnimatePresence>

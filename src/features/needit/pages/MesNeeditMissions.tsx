@@ -13,6 +13,7 @@ import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PullToRefresh from "@/components/PullToRefresh";
 import NotificationBell from "@/components/NotificationBell";
 import CategoryIcon from "@/components/CategoryIcon";
+import needitBagIllustration from "@/assets/illustrations/needit-bag.png";
 import { useTranslation } from "@/hooks/useTranslation";
 import { toast } from "sonner";
 import {
@@ -268,11 +269,11 @@ const MesNeeditMissions = () => {
                   icon={Package}
                   title={t("missions.empty")}
                   description={t("missions.emptyDesc")}
+                  illustration={needitBagIllustration}
                   action={
                     <button
-                      onClick={() => navigate("/needit-mission")}
-                      className="px-5 py-3 rounded-2xl text-white text-sm font-bold shadow-lg"
-                      style={{ background: "#0D84FF" }}
+                      onClick={() => navigate("/needit/categories")}
+                      className="px-6 py-3.5 rounded-2xl text-primary-foreground text-sm font-bold bg-gradient-primary shadow-elevated hover:shadow-glow active:scale-[0.97] transition-all"
                     >
                       <Plus size={20} className="inline mr-1.5 -mt-0.5" /> {t("missions.createFirst")}
                     </button>
