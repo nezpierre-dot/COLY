@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { useState, useId, useRef, useEffect } from "react";
+import { motion, AnimatePresence, PanInfo, useReducedMotion } from "framer-motion";
 import { Package, Globe, ShieldCheck, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -13,6 +13,16 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [direction, setDirection] = useState(0);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
+  const titleId = useId();
+  const descId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Move focus into the dialog when it mounts so screen readers announce it
+  // and keyboard users land inside.
+  useEffect(() => {
+    dialogRef.current?.focus();
+  }, []);
 
   const slides = [
     { icon: <Package size={48} />, title: t("onboarding.slide1Title"), description: t("onboarding.slide1Desc"), accent: "from-primary to-primary/70" },
@@ -27,54 +37,144 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     setCurrent(next);
   };
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.x < -swipeThreshold) paginate(1);
     else if (info.offset.x > swipeThreshold) paginate(-1);
   };
 
+  // When the user finishes onboarding, mark it done, close the dialog
+  // (so focus can return to the Welcome CTA), then navigate.
   const finish = (path: string) => {
     localStorage.setItem("onboarding-done", "1");
     onComplete();
-    navigate(path);
+    if (path !== "/") {
+      navigate(path);
+    }
   };
 
-  const variants = {
-    enter: (d: number) => ({ x: d > 0 ? 300 : -300, opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (d: number) => ({ x: d > 0 ? -300 : 300, opacity: 0 }),
-  };
+  const variants = prefersReducedMotion
+    ? {
+        enter: { x: 0, opacity: 1 },
+        center: { x: 0, opacity: 1 },
+        exit: { x: 0, opacity: 1 },
+      }
+    : {
+        enter: (d: number) => ({ x: d > 0 ? 300 : -300, opacity: 0 }),
+        center: { x: 0, opacity: 1 },
+        exit: (d: number) => ({ x: d > 0 ? -300 : 300, opacity: 0 }),
+      };
 
   const slide = slides[current];
   const isLast = current === slides.length - 1;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-background">
+    <div
+      ref={dialogRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descId}
+      data-testid="onboarding-dialog"
+      className="fixed inset-0 z-[100] flex flex-col bg-background outline-none"
+    >
       {!isLast && (
-        <button onClick={() => finish("/")} className="absolute top-6 right-6 z-10 text-sm text-foreground/60 hover:text-foreground transition-colors">{t("onboarding.skip")}</button>
+        <button
+          type="button"
+          onClick={() => finish("/")}
+          aria-label={t("onboarding.skip")}
+          data-testid="onboarding-skip"
+          className="absolute top-6 right-6 z-10 text-sm text-foreground/60 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md px-2 py-1"
+        >
+          {t("onboarding.skip")}
+        </button>
       )}
       <div className="flex-1 flex items-center justify-center overflow-hidden px-6">
         <AnimatePresence custom={direction} mode="wait">
-          <motion.div key={current} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ type: "spring", stiffness: 300, damping: 30 }} drag="x" dragConstraints={{ left: 0, right: 0 }} dragElastic={0.2} onDragEnd={handleDragEnd} className="flex flex-col items-center text-center max-w-sm w-full select-none">
-            <div className={`w-24 h-24 rounded-3xl bg-gradient-to-br ${slide.accent} flex items-center justify-center text-primary-foreground mb-8 shadow-lg`}>{slide.icon}</div>
-            <h2 className="text-2xl font-bold text-foreground whitespace-pre-line leading-tight mb-4">{slide.title}</h2>
-            <p className="text-base text-foreground/60 whitespace-pre-line leading-relaxed">{slide.description}</p>
+          <motion.div
+            key={current}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={
+              prefersReducedMotion
+                ? { duration: 0 }
+                : { type: "spring", stiffness: 300, damping: 30 }
+            }
+            drag={prefersReducedMotion ? false : "x"}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+            className="flex flex-col items-center text-center max-w-sm w-full select-none"
+          >
+            <div
+              aria-hidden="true"
+              className={`w-24 h-24 rounded-3xl bg-gradient-to-br ${slide.accent} flex items-center justify-center text-primary-foreground mb-8 shadow-lg`}
+            >
+              {slide.icon}
+            </div>
+            <h2
+              id={titleId}
+              className="text-2xl font-bold text-foreground whitespace-pre-line leading-tight mb-4"
+            >
+              {slide.title}
+            </h2>
+            <p
+              id={descId}
+              className="text-base text-foreground/60 whitespace-pre-line leading-relaxed"
+            >
+              {slide.description}
+            </p>
           </motion.div>
         </AnimatePresence>
       </div>
-      <div className="flex justify-center gap-2 mb-6">
+      <div
+        role="tablist"
+        aria-label="Onboarding progress"
+        className="flex justify-center gap-2 mb-6"
+      >
         {slides.map((_, i) => (
-          <button key={i} onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i); }} aria-label={`Slide ${i + 1}`} className={`h-2 rounded-full transition-all duration-300 ${i === current ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"}`} />
+          <button
+            key={i}
+            type="button"
+            role="tab"
+            aria-selected={i === current}
+            onClick={() => { setDirection(i > current ? 1 : -1); setCurrent(i); }}
+            aria-label={`Slide ${i + 1}`}
+            className={`h-2 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${i === current ? "w-8 bg-primary" : "w-2 bg-muted-foreground/30"}`}
+          />
         ))}
       </div>
       <div className="px-6 pb-10 space-y-3">
         {isLast ? (
           <>
-            <button onClick={() => finish("/signup")} className="w-full py-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-lg font-semibold shadow-lg active:scale-[0.97] transition-transform">{t("onboarding.createAccount")}</button>
-            <button onClick={() => finish("/login")} className="w-full py-4 rounded-2xl border border-border text-foreground text-base font-medium hover:bg-muted/50 transition-colors">{t("onboarding.haveAccount")}</button>
+            <button
+              type="button"
+              onClick={() => finish("/signup")}
+              data-testid="onboarding-create-account"
+              className="w-full py-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-lg font-semibold shadow-lg active:scale-[0.97] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {t("onboarding.createAccount")}
+            </button>
+            <button
+              type="button"
+              onClick={() => finish("/login")}
+              data-testid="onboarding-have-account"
+              className="w-full py-4 rounded-2xl border border-border text-foreground text-base font-medium hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {t("onboarding.haveAccount")}
+            </button>
           </>
         ) : (
-          <button onClick={() => paginate(1)} className="w-full py-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-lg font-semibold shadow-lg flex items-center justify-center gap-2 active:scale-[0.97] transition-transform">
-            {t("onboarding.next")} <ArrowRight size={20} />
+          <button
+            type="button"
+            onClick={() => paginate(1)}
+            data-testid="onboarding-next"
+            className="w-full py-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground text-lg font-semibold shadow-lg flex items-center justify-center gap-2 active:scale-[0.97] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            {t("onboarding.next")} <ArrowRight size={20} aria-hidden="true" />
           </button>
         )}
       </div>
