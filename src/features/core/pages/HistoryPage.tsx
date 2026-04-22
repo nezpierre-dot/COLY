@@ -330,19 +330,19 @@ const HistoryPage = () => {
   }, [user]);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
-        <main className="px-6 pt-12" id="main-content" role="main" aria-label="Historique des transactions">
-        <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Retour">
-            <ArrowLeft size={24} aria-hidden="true" />
+        <div className="page-header-soft flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-soft" aria-label="Retour">
+            <ArrowLeft size={18} className="text-foreground" />
           </button>
           <div>
-            <h1 className="text-[26px] font-bold text-foreground leading-tight">{t("history.title")}</h1>
+            <h1 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">{t("history.title")}</h1>
             <p className="text-sm text-muted-foreground">{t("history.subtitle")}</p>
           </div>
         </div>
+        <main className="page-content pt-6" id="main-content" role="main" aria-label="Historique des transactions">
 
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-3 mb-6 foldable-grid" role="region" aria-label="Résumé financier">

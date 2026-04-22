@@ -39,15 +39,24 @@ export default function SoldePage() {
   const filtered = MOCK_TRANSACTIONS.filter((tx) => !search || tx.type.toLowerCase().includes(search.toLowerCase()) || tx.ref.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <main className="px-6 pt-12" id="main-content" role="main" aria-label={t("balance.title")}>
-        <button onClick={() => navigate("/comptabilite")} className="text-muted-foreground mb-6" aria-label={t("common.back")}><ArrowLeft size={24} aria-hidden="true" /></button>
+    <div className="page-shell">
+      <div className="page-header-soft flex items-center gap-3">
+        <button onClick={() => navigate("/comptabilite")} className="w-10 h-10 rounded-2xl bg-card border border-border/60 flex items-center justify-center shadow-soft" aria-label={t("common.back")}>
+          <ArrowLeft size={18} className="text-foreground" aria-hidden="true" />
+        </button>
+        <div>
+          <h1 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">{t("balance.title")}</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">au 03/02/2025 à 15h02</p>
+        </div>
+      </div>
 
-        <h1 className="text-[28px] font-black text-foreground leading-tight">{t("balance.title")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">au 03/02/2025 à 15h02</p>
-        <p className={`text-4xl font-black mt-3 ${balance >= 0 ? "text-[#30D158]" : "text-destructive"}`}>
-          {balance >= 0 ? "+" : ""} {balance.toFixed(2)}{currencySymbol}
-        </p>
+      <main className="page-content pt-5" id="main-content" role="main" aria-label={t("balance.title")}>
+        <div className="card-future text-center mb-5">
+          <p className="text-xs uppercase tracking-wider font-bold text-muted-foreground mb-1">Solde disponible</p>
+          <p className={`text-4xl font-black ${balance >= 0 ? "text-success" : "text-destructive"}`}>
+            {balance >= 0 ? "+" : ""} {balance.toFixed(2)}{currencySymbol}
+          </p>
+        </div>
 
         <div className="flex gap-2 mt-5 mb-8">
           <button onClick={() => navigate("/payment-methods")} className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors">
