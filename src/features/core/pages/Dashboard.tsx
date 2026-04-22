@@ -1497,24 +1497,30 @@ const Dashboard = () => {
                 <motion.button
                   key={stat.label}
                   variants={staggerItem}
-                  whileHover={{ y: -3 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ y: -4, transition: { type: "spring", stiffness: 280, damping: 20 } }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={stat.onClick}
-                  className={`relative overflow-hidden bg-gradient-to-br ${stat.bg} rounded-3xl p-4 text-left ring-1 ${stat.ring} shadow-soft transition-shadow hover:shadow-card`}
+                  className={`relative overflow-hidden bg-gradient-to-br ${stat.bg} rounded-3xl p-4 text-left ring-1 ${stat.ring} shadow-soft transition-shadow hover:shadow-card group`}
                 >
-                  <div className={`w-9 h-9 rounded-2xl ${stat.iconBg} flex items-center justify-center mb-2`}>
+                  {/* Soft glow on hover */}
+                  <div aria-hidden className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <motion.div
+                    whileHover={{ rotate: -8, scale: 1.1 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 16 }}
+                    className={`relative w-9 h-9 rounded-2xl ${stat.iconBg} flex items-center justify-center mb-2`}
+                  >
                     <stat.icon size={18} className={stat.iconColor} />
-                  </div>
+                  </motion.div>
                   <motion.p
                     key={stat.value}
                     initial={{ scale: 0.6, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", stiffness: 280, damping: 18 }}
-                    className="text-2xl font-bold text-foreground tracking-tight leading-none"
+                    className="relative text-2xl font-bold text-foreground tracking-tight leading-none"
                   >
                     {stat.value}
                   </motion.p>
-                  <p className="text-[11px] font-semibold text-muted-foreground mt-1 uppercase tracking-wide">{stat.label}</p>
+                  <p className="relative text-[11px] font-semibold text-muted-foreground mt-1 uppercase tracking-wide">{stat.label}</p>
                 </motion.button>
               ))}
             </motion.div>
