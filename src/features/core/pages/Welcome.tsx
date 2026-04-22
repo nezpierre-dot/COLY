@@ -227,12 +227,12 @@ const Welcome = () => {
         </motion.ul>
 
         {/* Spacer */}
-        <div className="flex-1 min-h-[1.5rem]" />
+        <div className="flex-1 min-h-[1rem]" />
 
         {/* CTA */}
         <motion.div
           variants={item}
-          className="px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+          className="px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
         >
           <button
             ref={signupCtaRef}
