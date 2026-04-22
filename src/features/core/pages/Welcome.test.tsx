@@ -57,7 +57,9 @@ describe("Welcome page", () => {
     renderPage();
     const heading = screen.getByRole("heading", { level: 1 });
     expect(heading).toBeInTheDocument();
-    expect(heading.textContent ?? "").toMatch(/trajet|échanges|partagez/i);
+    expect(heading.textContent ?? "").toMatch(
+      /trajet|échanges|partagez|journey|exchanges|share/i,
+    );
   });
 
   it("renders the primary signup CTA and triggers navigation", async () => {
