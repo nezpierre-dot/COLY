@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 type NotifFilter = "all" | "match" | "proof" | "status" | "reminder";
+type ReadFilter = "all" | "unread" | "latest";
 
 const getNotifCategory = (type: string): NotifFilter => {
   if (type.startsWith("match:")) return "match";
@@ -112,15 +113,22 @@ export default function NotificationsPage() {
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 
   const [filter, setFilter] = useState<NotifFilter>("all");
+  const [readFilter, setReadFilter] = useState<ReadFilter>("all");
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: "single" | "bulk"; id?: string } | null>(null);
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
-    if (filter === "all") return notifications;
-    return notifications.filter((n) => getNotifCategory(n.type) === filter);
-  }, [notifications, filter]);
+    let list = filter === "all" ? notifications : notifications.filter((n) => getNotifCategory(n.type) === filter);
+    if (readFilter === "unread") list = list.filter((n) => !n.is_read);
+    if (readFilter === "latest") {
+      list = [...list]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 10);
+    }
+    return list;
+  }, [notifications, filter, readFilter]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<NotifFilter, number> = { all: notifications.length, match: 0, proof: 0, status: 0, reminder: 0 };
