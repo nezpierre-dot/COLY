@@ -402,11 +402,20 @@ const NeeditCreatePage = () => {
           <Field
             label="Quantité souhaitée"
             icon={<Hash size={14} className="text-primary" />}
+            error={showErr("quantity")}
+            hint="Entre 1 et 99"
           >
-            <div className="inline-flex items-center rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+            <div
+              className={`inline-flex items-center rounded-2xl border bg-card overflow-hidden shadow-sm ${
+                showErr("quantity") ? "border-destructive" : "border-border"
+              }`}
+            >
               <button
                 type="button"
-                onClick={() => setQuantity((q) => String(Math.max(1, parseInt(q || "1") - 1)))}
+                onClick={() => {
+                  markTouched("quantity");
+                  setQuantity((q) => String(Math.max(1, parseInt(q || "1") - 1)));
+                }}
                 className="w-12 h-12 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
                 aria-label="Diminuer"
               >
@@ -415,14 +424,20 @@ const NeeditCreatePage = () => {
               <input
                 type="number"
                 min={1}
+                max={99}
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value.replace(/[^0-9]/g, "") || "1")}
+                onBlur={() => markTouched("quantity")}
+                aria-invalid={!!showErr("quantity")}
                 className="w-16 h-12 text-center bg-transparent text-base font-semibold text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 aria-label="Quantité"
               />
               <button
                 type="button"
-                onClick={() => setQuantity((q) => String(parseInt(q || "1") + 1))}
+                onClick={() => {
+                  markTouched("quantity");
+                  setQuantity((q) => String(Math.min(99, parseInt(q || "1") + 1)));
+                }}
                 className="w-12 h-12 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
                 aria-label="Augmenter"
               >
