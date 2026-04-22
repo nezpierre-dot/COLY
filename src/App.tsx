@@ -11,6 +11,7 @@ import { FavoritesProvider } from "@/hooks/useFavorites";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import SplashScreen from "@/components/SplashScreen";
+import AiChatWidget from "@/components/AiChatWidget";
 
 // Lazy-loaded pages
 const Welcome = lazy(() => import("./features/core/pages/Welcome"));
@@ -148,6 +149,7 @@ const App = () => {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
+                <AiChatWidget />
               </FavoritesProvider>
               </AutoLogoutWrapper>
             </AuthProvider>
