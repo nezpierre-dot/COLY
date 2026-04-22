@@ -23,45 +23,66 @@ const Welcome = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-coly-blue relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-white/10" />
-      <div className="absolute top-12 right-8 text-white/30">
-        <svg width="24" height="16" viewBox="0 0 24 16"><path d="M1 8c3-6 7-6 10 0s7 6 10 0" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
+    <div
+      className="flex min-h-screen flex-col relative overflow-hidden"
+      style={{ background: "var(--gradient-hero-bright)" }}
+    >
+      {/* Organic blobs — Future DA */}
+      <div className="pointer-events-none absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-primary/25 blur-3xl" />
+      <div className="pointer-events-none absolute top-32 -right-32 w-[26rem] h-[26rem] rounded-full bg-secondary/30 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 w-[30rem] h-[24rem] rounded-full bg-accent/20 blur-3xl" />
+
+      {/* Subtle decorative accents */}
+      <div className="pointer-events-none absolute top-16 right-8 opacity-50">
+        <svg width="48" height="22" viewBox="0 0 48 22">
+          <path
+            d="M2 11c6-10 12-10 20 0s14 10 24 0"
+            stroke="hsl(var(--primary))"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </svg>
       </div>
-      <div className="absolute top-24 right-12 grid grid-cols-4 gap-1.5">
+      <div className="pointer-events-none absolute top-28 right-10 grid grid-cols-4 gap-1.5 opacity-40">
         {Array.from({ length: 16 }).map((_, i) => (
-          <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/20" />
+          <div key={i} className="w-1.5 h-1.5 rounded-full bg-primary/40" />
         ))}
       </div>
-      <div className="absolute top-64 left-0 w-32 h-32 rounded-full bg-white/10 -translate-x-1/2" />
 
       {/* Header */}
-      <div className="relative z-10 px-6 pt-16 pb-8">
-        <svg className="mb-4" width="40" height="20" viewBox="0 0 40 20">
-          <path d="M2 10c5-8 10-8 16 0s10 8 16 0" stroke="white" strokeWidth="2.5" fill="none"/>
-        </svg>
-        <h1 className="text-4xl font-bold text-white leading-tight whitespace-pre-line">
+      <div className="relative z-10 px-6 pt-20 pb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/60 backdrop-blur-md border border-white/60 shadow-soft mb-6">
+          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+          <span className="text-xs font-medium text-foreground/80 tracking-wide">
+            Nidit
+          </span>
+        </div>
+        <h1 className="text-[2.6rem] font-bold leading-[1.1] tracking-tight whitespace-pre-line bg-gradient-to-br from-foreground via-foreground to-primary bg-clip-text text-transparent">
           {t("welcome.tagline")}
         </h1>
+        <p className="mt-4 text-base text-foreground/65 max-w-md leading-relaxed">
+          Connectez voyageurs et demandeurs en toute simplicité.
+        </p>
       </div>
 
-      {/* Spacer for illustration area */}
+      {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Buttons */}
-      <div className="relative z-10 px-6 pb-12 space-y-4">
-        <button
-          onClick={() => navigate("/login")}
-          className="w-full py-4 rounded-2xl border-2 border-white/40 bg-coly-blue-dark/60 text-white text-lg font-medium backdrop-blur-sm hover:bg-coly-blue-dark/80 transition-colors"
-        >
-          {t("welcome.haveAccount")}
-        </button>
+      {/* CTA buttons */}
+      <div className="relative z-10 px-6 pb-12 space-y-3">
         <button
           onClick={() => navigate("/signup")}
-          className="w-full py-4 rounded-2xl border-2 border-white/40 bg-coly-blue-dark/60 text-white text-lg font-medium backdrop-blur-sm hover:bg-coly-blue-dark/80 transition-colors"
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-gradient-to-r from-primary via-primary to-secondary text-primary-foreground text-base font-semibold shadow-soft hover:shadow-elevated active:scale-[0.98] transition-all"
         >
           {t("welcome.signup")}
+          <ArrowRight size={18} />
+        </button>
+        <button
+          onClick={() => navigate("/login")}
+          className="w-full py-4 rounded-2xl border border-white/60 bg-white/70 backdrop-blur-md text-foreground text-base font-medium shadow-soft hover:bg-white hover:shadow-elevated transition-all"
+        >
+          {t("welcome.haveAccount")}
         </button>
       </div>
     </div>
