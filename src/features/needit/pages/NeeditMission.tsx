@@ -344,7 +344,7 @@ const NeeditMission = () => {
             <h2 className="text-2xl font-bold text-foreground text-center mb-6">{stepTitle()}</h2>
             <AnimatePresence mode="wait" custom={direction}>
               <motion.div
-                key={step}
+                key={`${step}-${brandPhase}`}
                 custom={direction}
                 variants={stepVariants}
                 initial="enter"
