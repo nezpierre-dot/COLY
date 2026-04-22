@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import appLogo from "@/assets/logo.png";
 import parcelRouteIllustration from "@/assets/illustrations/parcel-route.png";
+import parcelFutureHero from "@/assets/illustrations/parcel-future-hero.png";
 import planeIllustration from "@/assets/illustrations/traveler-plane.png";
 import waveHandIllustration from "@/assets/illustrations/wave-hand.png";
 import { useNavigate } from "react-router-dom";
@@ -697,8 +698,12 @@ const Dashboard = () => {
           className="relative"
         >
 
-          <div className="bg-gradient-hero px-5 pt-6 pb-8 sm:px-8 sm:pt-8 sm:pb-10 rounded-b-[2.5rem] shadow-soft">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-gradient-hero px-5 pt-6 pb-8 sm:px-8 sm:pt-8 sm:pb-12 rounded-b-[2.5rem] shadow-soft relative overflow-hidden">
+            {/* Decorative aura blobs for "Future" feel */}
+            <div aria-hidden className="pointer-events-none absolute -top-16 -right-10 w-64 h-64 rounded-full bg-secondary/25 blur-3xl" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-10 w-56 h-56 rounded-full bg-primary/20 blur-3xl" />
+
+            <div className="relative flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
                 <img src={appLogo} alt="Nidit" className="w-10 h-10 object-contain" />
                 <NotificationBell />
@@ -711,35 +716,35 @@ const Dashboard = () => {
               </button>
             </div>
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="relative flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h1 className="text-[clamp(1.75rem,5vw,2.25rem)] font-bold leading-tight tracking-tight text-foreground">
-                    {t("dashboard.greeting") || "Bonjour !"}
-                  </h1>
+                <span className="greeting-bubble mb-3">
                   <img
                     src={waveHandIllustration}
                     alt=""
                     aria-hidden="true"
                     loading="eager"
-                    width={40}
-                    height={40}
-                    className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
+                    width={20}
+                    height={20}
+                    className="w-5 h-5 object-contain"
                   />
-                </div>
-                <p className="text-[15px] sm:text-base text-muted-foreground leading-relaxed max-w-[28ch]">
-                  {isVoyageur ? t("dashboard.voyageurSubtitle") : t("dashboard.demandeurSubtitle")}
-                </p>
+                  {t("dashboard.greeting") || "Bonjour !"}
+                </span>
+                <h1 className="text-[clamp(1.85rem,5.5vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-foreground">
+                  {isVoyageur
+                    ? (t("dashboard.voyageurHeroTitle") || "Prêt pour un nouveau voyage ?")
+                    : (t("dashboard.demandeurHeroTitle") || "Suivez vos envois en un coup d'œil.")}
+                </h1>
                 <UserLevelBadge variant="full" className="mt-3" />
               </div>
               <img
-                src={isVoyageur ? planeIllustration : parcelRouteIllustration}
+                src={isVoyageur ? planeIllustration : parcelFutureHero}
                 alt=""
                 aria-hidden="true"
                 loading="eager"
                 width={140}
                 height={140}
-                className="w-24 h-24 sm:w-32 sm:h-32 object-contain shrink-0 drop-shadow-lg"
+                className="w-28 h-28 sm:w-36 sm:h-36 object-contain shrink-0 drop-shadow-[0_15px_25px_rgba(255,150,80,0.25)]"
               />
             </div>
           </div>
@@ -1350,47 +1355,217 @@ const Dashboard = () => {
           </div>
         ) : (
           /* ============ DEMANDEUR ============ */
-          <div className="space-y-4">
-            <div className="space-y-3 mb-4">
-              <motion.div
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-                className="grid grid-cols-3 gap-2"
-              >
-                {[
-                  { value: demandeurShipments.length, label: t("dashboard.tabEnvois"), gradient: "from-primary to-primary/70", textColor: "text-primary-foreground" },
-                  { value: demandeurMissions.length, label: "Missions", gradient: "from-secondary to-secondary/70", textColor: "text-secondary-foreground" },
-                  { value: demandeurShipments.filter(s => s.status === "pending").length, label: t("dashboard.statusPending"), gradient: "from-warning to-warning/70", textColor: "text-warning-foreground" },
-                ].map((stat) => (
-                  <motion.div
-                    key={stat.label}
-                    variants={staggerItem}
-                    whileHover={{ scale: 1.04, y: -2 }}
-                    whileTap={{ scale: 0.97 }}
-                    className={`bg-gradient-to-br ${stat.gradient} rounded-2xl p-3 text-center cursor-default shadow-lg relative overflow-hidden`}
+          <div className="space-y-5">
+            {/* Search bar — large, modern */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="relative"
+            >
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <Search size={18} className="text-muted-foreground" />
+              </div>
+              <input
+                type="search"
+                placeholder={t("dashboard.searchPlaceholder") || "Rechercher un envoi, une ville, une mission…"}
+                onClick={() => navigate("/history/coly")}
+                readOnly
+                className="w-full h-14 pl-12 pr-16 rounded-2xl bg-card border border-border/60 shadow-soft text-sm font-medium text-foreground placeholder:text-muted-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all cursor-pointer"
+                aria-label="Rechercher"
+              />
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-soft">
+                  <SlidersHorizontal size={16} className="text-primary-foreground" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Stat cards — colorées, arrondies, "Future" */}
+            <motion.div
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="grid grid-cols-3 gap-3"
+            >
+              {[
+                {
+                  value: demandeurShipments.length,
+                  label: t("dashboard.tabEnvois") || "Envois",
+                  icon: Send,
+                  bg: "from-primary/15 to-primary/5",
+                  iconBg: "bg-primary/20",
+                  iconColor: "text-primary",
+                  ring: "ring-primary/15",
+                  onClick: () => navigate("/history/coly"),
+                },
+                {
+                  value: demandeurMissions.length,
+                  label: "Missions",
+                  icon: ShoppingBag,
+                  bg: "from-secondary/20 to-secondary/5",
+                  iconBg: "bg-secondary/25",
+                  iconColor: "text-secondary",
+                  ring: "ring-secondary/20",
+                  onClick: () => navigate("/mes-missions-needit"),
+                },
+                {
+                  value: demandeurShipments.filter(s => s.status === "pending").length,
+                  label: t("dashboard.statusPending") || "En attente",
+                  icon: Clock,
+                  bg: "from-accent/25 to-accent/5",
+                  iconBg: "bg-accent/30",
+                  iconColor: "text-accent-foreground",
+                  ring: "ring-accent/25",
+                  onClick: () => {},
+                },
+              ].map((stat) => (
+                <motion.button
+                  key={stat.label}
+                  variants={staggerItem}
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={stat.onClick}
+                  className={`relative overflow-hidden bg-gradient-to-br ${stat.bg} rounded-3xl p-4 text-left ring-1 ${stat.ring} shadow-soft transition-shadow hover:shadow-card`}
+                >
+                  <div className={`w-9 h-9 rounded-2xl ${stat.iconBg} flex items-center justify-center mb-2`}>
+                    <stat.icon size={18} className={stat.iconColor} />
+                  </div>
+                  <motion.p
+                    key={stat.value}
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 280, damping: 18 }}
+                    className="text-2xl font-bold text-foreground tracking-tight leading-none"
                   >
-                    <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-white/10" />
-                    <motion.p
-                      key={stat.value}
-                      initial={{ scale: 0.5, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                      className={`text-xl font-bold ${stat.textColor}`}
-                    >
-                      {stat.value}
-                    </motion.p>
-                    <p className={`text-xs ${stat.textColor}/80 font-medium mt-0.5`}>{stat.label}</p>
-                  </motion.div>
-                ))}
-              </motion.div>
+                    {stat.value}
+                  </motion.p>
+                  <p className="text-[11px] font-semibold text-muted-foreground mt-1 uppercase tracking-wide">{stat.label}</p>
+                </motion.button>
+              ))}
+            </motion.div>
 
-              {/* Activity chart moved to profile page */}
-            </div>
-
+            {/* Wallet card — bien mise en avant */}
             <WalletCard compact />
 
             <FavoriteRoutes t={t} />
+
+            {/* "Mes envois" preview — timeline visuelle (top 2) */}
+            {demandeurShipments.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="space-y-3"
+              >
+                <div className="flex items-center justify-between px-1">
+                  <h2 className="text-base font-bold text-foreground tracking-tight">{t("dashboard.myShipments") || "Mes envois"}</h2>
+                  <button
+                    onClick={() => navigate("/history/coly")}
+                    className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+                  >
+                    {t("dashboard.seeAll") || "Tout voir"} <ChevronRight size={14} />
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {demandeurShipments.slice(0, 2).map((s, idx) => {
+                    const stages = [
+                      { key: "created", label: "Créé" },
+                      { key: "pickup", label: "Récup." },
+                      { key: "transit", label: "Transit" },
+                      { key: "delivered", label: "Livré" },
+                    ];
+                    const reachedIndex = s.status === "delivered" || s.status === "completed" ? 4
+                      : s.status === "in_transit" ? 3
+                      : s.status === "picked_up" ? 2
+                      : s.status === "accepted" ? 1
+                      : 1;
+
+                    return (
+                      <motion.div
+                        key={s.id}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35, delay: 0.05 * idx }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={() => navigate(`/shipment/${s.id}`)}
+                        className="card-future cursor-pointer hover:shadow-elevated transition-all relative overflow-hidden"
+                      >
+                        {/* Subtle gradient accent */}
+                        <div aria-hidden className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br from-primary/15 to-secondary/10 blur-2xl pointer-events-none" />
+
+                        <div className="relative flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-11 h-11 rounded-2xl bg-gradient-primary flex items-center justify-center shrink-0 shadow-soft">
+                              <Package size={20} className="text-primary-foreground" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{formatDate(s.created_at)}</p>
+                              <h3 className="font-bold text-sm text-foreground truncate">
+                                {s.departure_city ? localizeCity(s.departure_city) : "—"} → {localizeCity(s.arrival_city)}
+                              </h3>
+                            </div>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${
+                            s.status === "pending" ? "bg-warning/20 text-warning-foreground" :
+                            s.status === "accepted" ? "bg-primary/15 text-primary" :
+                            s.status === "delivered" || s.status === "completed" ? "bg-success/15 text-success" :
+                            s.status === "cancelled" ? "bg-destructive/15 text-destructive" :
+                            "bg-muted text-muted-foreground"
+                          }`}>
+                            {getStatusLabel(s.status)}
+                          </span>
+                        </div>
+
+                        {/* Visual timeline */}
+                        <div className="relative pt-2">
+                          <div className="flex items-center justify-between relative">
+                            {stages.map((stage, i) => {
+                              const reached = i < reachedIndex;
+                              const isCurrent = i === reachedIndex - 1;
+                              return (
+                                <div key={stage.key} className="flex flex-col items-center gap-1.5 z-10 flex-1">
+                                  <div
+                                    className={`w-3 h-3 rounded-full border-2 transition-all ${
+                                      reached
+                                        ? "bg-gradient-primary border-transparent shadow-glow"
+                                        : "bg-card border-border"
+                                    } ${isCurrent ? "ring-4 ring-primary/20 scale-125" : ""}`}
+                                  />
+                                  <span className={`text-[9px] font-semibold tracking-wide ${reached ? "text-foreground" : "text-muted-foreground"}`}>
+                                    {stage.label}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                            {/* Dotted line behind dots */}
+                            <div aria-hidden className="absolute top-[5px] left-3 right-3 h-[2px] -z-0">
+                              <div className="w-full h-full" style={{ backgroundImage: "repeating-linear-gradient(to right, hsl(var(--border)) 0 4px, transparent 4px 8px)" }} />
+                              <div
+                                className="absolute top-0 left-0 h-full bg-gradient-primary rounded-full transition-all"
+                                style={{ width: `${Math.max(0, ((reachedIndex - 1) / 3) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.section>
+            )}
+
+            {/* Big CTA — très visible */}
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate("/send-coly")}
+              className="w-full py-5 rounded-3xl bg-gradient-primary text-primary-foreground font-bold text-base flex items-center justify-center gap-2.5 shadow-elevated hover:shadow-glow transition-all"
+            >
+              <Plus size={24} strokeWidth={2.5} />
+              {t("dashboard.sendParcel") || "Envoyer un colis"}
+            </motion.button>
 
             <Tabs defaultValue="envois" className="space-y-3">
               <TabsList className="w-full glass rounded-xl p-1 h-auto">
