@@ -98,7 +98,7 @@ const MyInfo = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <div className="px-6 pt-12">
         <button onClick={() => navigate("/my-account")} className="text-muted-foreground mb-4"><ArrowLeft size={24} /></button>
         <h1 className="text-3xl font-bold text-foreground mb-2">{t("myinfo.title")}</h1>

@@ -185,7 +185,7 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <div className="px-6 pt-12">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => selectMode ? exitSelectMode() : navigate(-1)} className="text-foreground hover:text-primary transition-colors">

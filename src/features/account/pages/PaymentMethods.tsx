@@ -201,7 +201,7 @@ export default function PaymentMethods() {
   }, [fetchMethods]);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <main className="px-6 pt-12" id="main-content" role="main" aria-label={t("payment.title")}>
         <button onClick={() => navigate("/comptabilite")} className="text-muted-foreground mb-4" aria-label={t("common.back")}>
           <ArrowLeft size={24} aria-hidden="true" />

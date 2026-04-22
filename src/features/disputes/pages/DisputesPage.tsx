@@ -622,7 +622,7 @@ const DisputesPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">

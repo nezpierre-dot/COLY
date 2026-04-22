@@ -69,7 +69,7 @@ const PublicProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-soft flex items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     );
@@ -88,7 +88,7 @@ const PublicProfile = () => {
   const userRef = `VOY-${userId?.slice(0, 8).toUpperCase()}`;
 
   return (
-    <div className="min-h-screen bg-background" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px) + 16px)" }}>
+    <div className="min-h-screen bg-gradient-soft" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px) + 16px)" }}>
       {/* Header */}
       <div
         className="relative overflow-hidden px-6 pt-12 pb-8"

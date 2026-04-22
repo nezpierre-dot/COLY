@@ -306,7 +306,7 @@ const ChatPage = () => {
   }, [conversationId, itemDetail?.type, shipmentStatus, messages.length, user?.id]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-soft flex flex-col">
       <div className="bg-card/95 backdrop-blur-lg border-b border-border/60 px-4 pt-12 pb-3 shrink-0 z-10">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate("/conversations")} className="text-muted-foreground hover:text-foreground"><ArrowLeft size={24} /></button>

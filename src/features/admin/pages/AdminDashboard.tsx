@@ -313,7 +313,7 @@ const AdminDashboard = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="text-center space-y-3"><div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" /><p className="text-sm text-muted-foreground">{t("admin.loadingAdmin")}</p></div></div>;
 
   return (
-    <div className="min-h-screen bg-background pb-10">
+    <div className="page-shell">
       <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-8">
         <div className="flex items-center justify-between mb-6">
           <div><h1 className="text-2xl font-bold text-foreground flex items-center gap-2"><Shield size={22} className="text-primary" /> {t("admin.title")}</h1><p className="text-xs text-muted-foreground mt-0.5">{t("admin.subtitle")}</p></div>

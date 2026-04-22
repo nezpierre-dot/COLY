@@ -92,7 +92,7 @@ const SupportContactPage = () => {
   const closedTickets = tickets.filter((t) => t.status === "closed");
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <div className="px-6 pt-12">
         <button onClick={() => navigate(-1)} className="text-muted-foreground mb-4">
           <ArrowLeft size={24} />

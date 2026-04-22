@@ -17,7 +17,7 @@ const InstallPage = () => {
   const isNotifUnsupported = permission === "unsupported";
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <div className="px-5 pt-10">
         <button onClick={() => navigate(-1)} className="text-muted-foreground mb-5" aria-label={t("common.back")}><ArrowLeft size={24} /></button>
         <h1 className="text-2xl font-bold text-foreground mb-1">{t("install.title")}</h1>
