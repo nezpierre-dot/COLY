@@ -213,6 +213,22 @@ const Dashboard = () => {
 
   const [voyages, setVoyages] = useState<Voyage[]>([]);
   const [selectedVoyage, setSelectedVoyage] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState<string>("");
+
+  // Load first name once for personal greeting
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("first_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled && data?.first_name) setFirstName(data.first_name);
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   // Cancel dialog state
   const [cancelDialog, setCancelDialog] = useState<{ type: "voyage" | "shipment" | "mission"; id: string; label: string } | null>(null);
@@ -770,25 +786,25 @@ const Dashboard = () => {
                 />
               </div>
             ) : (
-              /* ---------- Demandeur header — grand, lumineux, dominant ---------- */
+              /* ---------- Demandeur header — épuré, lumineux ---------- */
               <div className="relative grid grid-cols-[1fr_auto] items-start gap-3 sm:gap-5">
                 <div className="min-w-0 pt-1">
-                  <motion.span
-                    initial={{ opacity: 0, y: -6, scale: 0.94 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 280, damping: 20, delay: 0.05 }}
-                    className="greeting-bubble-xl mb-4"
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: 0.05 }}
+                    className="flex items-center gap-1.5 mb-2.5 text-sm font-semibold text-foreground/75"
                   >
                     <motion.img
                       src={waveHandIllustration}
                       alt=""
                       aria-hidden="true"
-                      className="w-6 h-6 object-contain"
+                      className="w-5 h-5 object-contain"
                       animate={{ rotate: [0, 18, -8, 14, 0] }}
                       transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.4, ease: "easeInOut" }}
                     />
-                    Bonjour !
-                  </motion.span>
+                    <span>Bonjour{firstName ? `, ${firstName}` : ""} !</span>
+                  </motion.div>
                   <motion.h1
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
