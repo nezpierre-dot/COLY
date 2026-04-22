@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { ArrowRight, Plane, Package, Coins } from "lucide-react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
@@ -15,6 +15,20 @@ const Welcome = () => {
   const [showOnboarding, setShowOnboarding] = useState(
     () => !localStorage.getItem("onboarding-done")
   );
+  // Tracks whether the user just finished the onboarding so we can return
+  // focus to the primary CTA (a11y: avoid losing focus position).
+  const justFinishedOnboardingRef = useRef(false);
+  const signupCtaRef = useRef<HTMLButtonElement>(null);
+
+  // After onboarding closes, send focus to the signup CTA so keyboard and
+  // screen-reader users land on the next meaningful action.
+  useEffect(() => {
+    if (!showOnboarding && justFinishedOnboardingRef.current) {
+      justFinishedOnboardingRef.current = false;
+      // Wait for the Welcome layout to mount before focusing.
+      requestAnimationFrame(() => signupCtaRef.current?.focus());
+    }
+  }, [showOnboarding]);
 
   // If user is already authenticated, go to dashboard (skip onboarding)
   if (!loading && user) {
@@ -22,8 +36,16 @@ const Welcome = () => {
   }
 
   if (showOnboarding && !loading && !user) {
-    return <OnboardingFlow onComplete={() => setShowOnboarding(false)} />;
+    return (
+      <OnboardingFlow
+        onComplete={() => {
+          justFinishedOnboardingRef.current = true;
+          setShowOnboarding(false);
+        }}
+      />
+    );
   }
+
 
   // Split tagline → highlight last meaningful line with gradient
   const tagline = t("welcome.tagline");
@@ -234,6 +256,7 @@ const Welcome = () => {
           className="px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
         >
           <button
+            ref={signupCtaRef}
             type="button"
             onClick={() => navigate("/signup")}
             aria-label={`${t("welcome.signup")} – créer un compte Nidit`}
