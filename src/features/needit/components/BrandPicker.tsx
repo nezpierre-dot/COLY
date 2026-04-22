@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Search, Loader2, ChevronRight, X, ImageOff, Sparkles, PenLine } from "lucide-react";
+import { Search, Loader2, ChevronRight, X, Sparkles, PenLine } from "lucide-react";
 import { motion } from "framer-motion";
 import { useBrands, type Brand } from "../hooks/useBrandCatalog";
+import BrandImage from "./BrandImage";
 
 interface Props {
   categoryKey: string;
@@ -54,7 +55,7 @@ const BrandPicker = ({ categoryKey, categoryLabel, onSelect, onSkip }: Props) =>
             <PenLine className="text-primary" size={28} />
           </div>
           <h3 className="text-base font-semibold text-foreground mb-1">
-            Pas de marques répertoriées
+            Aucune marque référencée
           </h3>
           <p className="text-sm text-muted-foreground mb-5 max-w-xs mx-auto">
             Cette catégorie n'a pas encore de catalogue de marques. Décrivez librement le produit
@@ -64,7 +65,7 @@ const BrandPicker = ({ categoryKey, categoryLabel, onSelect, onSkip }: Props) =>
             onClick={onSkip}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
           >
-            Saisir manuellement <ChevronRight size={16} />
+            Continuer sans marque <ChevronRight size={16} />
           </button>
         </div>
       </div>
@@ -181,23 +182,15 @@ const BrandCard = ({
     onClick={onSelect}
     className="relative flex flex-col items-center gap-2 p-3 aspect-square rounded-2xl border border-border bg-card hover:border-primary/40 hover:bg-primary/5 transition-all"
   >
-    {brand.logo_url ? (
-      <img
-        src={brand.logo_url}
-        alt={brand.name}
-        className="w-16 h-16 object-contain"
-      />
-    ) : (
-      <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+    <BrandImage
+      src={brand.logo_url}
+      alt={brand.name}
+      className="w-16 h-16 rounded-2xl"
+      imgClassName="object-contain"
+      fallback={
         <span className="text-base font-bold text-primary">{initials(brand.name)}</span>
-        <span
-          aria-label="Sans photo"
-          className="absolute -bottom-1 -right-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted border border-border text-[9px] font-semibold text-muted-foreground"
-        >
-          <ImageOff size={8} />
-        </span>
-      </div>
-    )}
+      }
+    />
     <span className="text-xs font-semibold text-foreground text-center leading-tight line-clamp-2">
       {brand.name}
     </span>
