@@ -1484,33 +1484,27 @@ const Dashboard = () => {
           </div>
         ) : (
           /* ============ DEMANDEUR ============ */
-          <div className="space-y-5">
-            {/* Search bar — large, modern, fonctionnelle */}
+          <div className="space-y-4">
+            {/* Search bar — compacte, sticky sous le header */}
             <motion.form
               onSubmit={handleDemandeurSearch}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="relative group"
+              className="sticky top-2 z-20 -mx-1 px-1"
               role="search"
             >
               <motion.div
                 animate={{
-                  scale: searchFocused ? 1.01 : 1,
                   boxShadow: searchFocused
-                    ? "0 20px 50px -16px hsl(254 50% 50% / 0.25)"
-                    : "0 10px 30px -10px hsl(224 40% 40% / 0.12)",
+                    ? "0 14px 36px -14px hsl(254 50% 50% / 0.28)"
+                    : "0 6px 18px -8px hsl(224 40% 40% / 0.10)",
                 }}
                 transition={{ type: "spring", stiffness: 240, damping: 22 }}
-                className="relative rounded-3xl bg-card border border-border/60"
+                className="relative rounded-2xl bg-card/95 backdrop-blur-md border border-border/60"
               >
-                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
-                  <motion.div
-                    animate={{ rotate: searchFocused ? -8 : 0, scale: searchFocused ? 1.1 : 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 18 }}
-                  >
-                    <Search size={20} className={searchFocused ? "text-primary" : "text-muted-foreground"} />
-                  </motion.div>
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <Search size={17} className={searchFocused ? "text-primary" : "text-muted-foreground"} />
                 </div>
                 <input
                   type="search"
@@ -1520,7 +1514,7 @@ const Dashboard = () => {
                   onBlur={() => setSearchFocused(false)}
                   placeholder="Rechercher un voyageur, colis..."
                   enterKeyHint="search"
-                  className="w-full h-16 pl-14 pr-24 rounded-3xl bg-transparent text-base font-medium text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all"
+                  className="w-full h-12 pl-11 pr-20 rounded-2xl bg-transparent text-[14px] font-medium text-foreground placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all"
                   aria-label="Rechercher un voyageur ou un colis"
                 />
                 <AnimatePresence>
@@ -1531,10 +1525,10 @@ const Dashboard = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.6 }}
                       onClick={() => setDemandeurSearch("")}
-                      className="absolute inset-y-0 right-[4.25rem] flex items-center text-muted-foreground hover:text-foreground"
+                      className="absolute inset-y-0 right-[3.25rem] flex items-center text-muted-foreground hover:text-foreground"
                       aria-label="Effacer"
                     >
-                      <X size={16} />
+                      <X size={15} />
                     </motion.button>
                   )}
                 </AnimatePresence>
@@ -1543,10 +1537,10 @@ const Dashboard = () => {
                   whileHover={{ scale: 1.06, rotate: -2 }}
                   whileTap={{ scale: 0.92 }}
                   transition={{ type: "spring", stiffness: 320, damping: 18 }}
-                  className="absolute inset-y-0 right-3 my-auto h-11 w-11 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-soft hover:shadow-glow"
-                  aria-label="Lancer la recherche"
+                  className="absolute inset-y-0 right-2 my-auto h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-soft hover:shadow-glow"
+                  aria-label="Filtres de recherche"
                 >
-                  <SlidersHorizontal size={18} className="text-primary-foreground" />
+                  <SlidersHorizontal size={15} className="text-primary-foreground" />
                 </motion.button>
               </motion.div>
             </motion.form>
