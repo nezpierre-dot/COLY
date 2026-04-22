@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search, Loader2, Package } from "lucide-react";
+import { Search, Loader2, Package, ImageOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { useBrandProducts, type Brand, type BrandProduct } from "../hooks/useBrandCatalog";
 
@@ -110,11 +110,17 @@ const ProductCard = ({
           <img
             src={product.photo_url}
             alt={product.name}
-            className="w-16 h-16 rounded-xl object-cover shrink-0"
+            className="w-16 h-16 rounded-2xl object-cover shrink-0"
           />
         ) : (
-          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center shrink-0">
-            <Package size={20} className="text-primary/60" />
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center shrink-0">
+            <Package size={24} className="text-primary/70" />
+            <span
+              aria-label="Sans photo"
+              className="absolute -bottom-1 -right-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-muted border border-border text-[9px] font-semibold text-muted-foreground"
+            >
+              <ImageOff size={8} />
+            </span>
           </div>
         )}
         <div className="flex-1 min-w-0">
