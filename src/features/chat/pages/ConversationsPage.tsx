@@ -477,7 +477,7 @@ const ConversationsPage = () => {
               )}
             </>
           )}
-        </div>
+        </main>
         </PullToRefresh>
       </PageTransition>
       <BottomNav />
