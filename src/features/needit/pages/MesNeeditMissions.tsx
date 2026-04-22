@@ -531,7 +531,7 @@ const MesNeeditMissions = () => {
                 })}
               </motion.div>
             )}
-          </div>
+          </main>
         </PullToRefresh>
       </PageTransition>
       <BottomNav />
