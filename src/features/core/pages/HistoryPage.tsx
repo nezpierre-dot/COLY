@@ -69,6 +69,42 @@ const iconBgMap: Record<string, string> = {
 // Platform commission rate
 const PLATFORM_RATE = 0.18;
 
+type StatusMeta = {
+  label: string;
+  progress: number; // 0-100
+  tone: "pending" | "active" | "success" | "danger";
+  failure?: boolean;
+};
+
+const getStatusMeta = (status: string, category: HistoryType): StatusMeta => {
+  const map: Record<string, StatusMeta> = {
+    pending: { label: "En attente d'un voyageur", progress: 15, tone: "pending" },
+    accepted: { label: "Voyageur trouvé", progress: 40, tone: "active" },
+    picked_up: { label: "Récupéré", progress: 60, tone: "active" },
+    in_transit: { label: "En transit", progress: 75, tone: "active" },
+    active: { label: "En cours", progress: 60, tone: "active" },
+    delivered: { label: "Livré", progress: 100, tone: "success" },
+    completed: { label: "Terminé", progress: 100, tone: "success" },
+    cancelled: { label: "Annulé", progress: 0, tone: "danger", failure: true },
+    refused: { label: "Refusé par le voyageur", progress: 0, tone: "danger", failure: true },
+    expired: { label: "Expiré — délai dépassé", progress: 0, tone: "danger", failure: true },
+    disputed: { label: "Litige en cours", progress: 50, tone: "danger", failure: true },
+  };
+  return map[status] || { label: status || "Statut inconnu", progress: 10, tone: "pending" };
+};
+
+const formatETA = (departureDate: Date | null, status: string): string | null => {
+  if (!departureDate) return null;
+  if (status === "delivered" || status === "completed" || status === "cancelled") return null;
+  const now = new Date();
+  const diffMs = departureDate.getTime() - now.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays > 1) return `Départ dans ${diffDays} j`;
+  if (diffDays === 1) return "Départ demain";
+  if (diffDays === 0) return "Départ aujourd'hui";
+  if (diffDays >= -2) return "Livraison imminente";
+  return null;
+};
 const HistoryPage = () => {
   const navigate = useNavigate();
   const { type } = useParams<{ type: string }>();
@@ -626,67 +662,121 @@ const HistoryPage = () => {
                 <p className="text-muted-foreground text-sm">{t("history.noResultFilter")}</p>
               </li>
             ) : (
-              filtered.map((item) => (
-                <motion.li
-                  key={item.id}
-                  variants={staggerItem}
-                  className="flex items-center gap-3 bg-card rounded-xl border border-border p-3.5 hover:shadow-sm transition-shadow"
-                >
-                  <div className={`w-10 h-10 rounded-lg ${iconBgMap[item.icon]} flex items-center justify-center shrink-0`}>
-                    {iconMap[item.icon]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-semibold text-foreground text-sm">{item.type}</p>
-                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
-                        item.category === "voyageur" ? "bg-primary/10 text-primary" :
-                        item.category === "coly" ? "bg-secondary/10 text-secondary" :
-                        "bg-accent/10 text-accent"
-                      }`}>
-                        {item.category}
-                      </span>
+              filtered.map((item) => {
+                const meta = getStatusMeta(item.status, item.category);
+                const eta = formatETA(item.departureDate, item.status);
+                const detailPath = item.dbTable === "shipments" ? `/shipment/${item.realId}` : `/mission/${item.realId}`;
+                const toneClasses: Record<string, string> = {
+                  pending: "bg-warning/15 text-warning",
+                  active: "bg-primary/15 text-primary",
+                  success: "bg-emerald-500/15 text-emerald-600",
+                  danger: "bg-destructive/15 text-destructive",
+                };
+                const barColor: Record<string, string> = {
+                  pending: "bg-warning",
+                  active: "bg-primary",
+                  success: "bg-emerald-500",
+                  danger: "bg-destructive",
+                };
+                const StatusIcon = meta.tone === "success" ? CheckCircle2 : meta.tone === "danger" ? AlertCircle : meta.tone === "active" ? Loader2 : Clock;
+                return (
+                  <motion.li
+                    key={item.id}
+                    variants={staggerItem}
+                    onClick={() => navigate(detailPath)}
+                    className="group flex items-start gap-3 bg-card rounded-xl border border-border p-3.5 hover:shadow-md hover:border-primary/30 active:scale-[0.99] transition-all cursor-pointer"
+                  >
+                    <div className={`w-10 h-10 rounded-lg ${iconBgMap[item.icon]} flex items-center justify-center shrink-0`}>
+                      {iconMap[item.icon]}
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <span>{item.ref}</span>
-                      {item.destination && (
-                        <>
-                          <span>•</span>
-                          <span className="flex items-center gap-0.5"><MapPin size={10} className="shrink-0" />{item.destination}</span>
-                        </>
-                      )}
-                    </div>
-                    {/* Proof badges */}
-                    {proofsMap[item.realId] && (proofsMap[item.realId].pickup > 0 || proofsMap[item.realId].delivery > 0) && (
-                      <div className="flex items-center gap-2 mt-1">
-                        {proofsMap[item.realId].pickup > 0 && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">
-                            <PackageCheck size={10} /> Récup. ({proofsMap[item.realId].pickup})
-                          </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-semibold text-foreground text-sm">{item.type}</p>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                          item.category === "voyageur" ? "bg-primary/10 text-primary" :
+                          item.category === "coly" ? "bg-secondary/10 text-secondary" :
+                          "bg-accent/10 text-accent"
+                        }`}>
+                          {item.category}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                        <span className="font-mono">{item.ref}</span>
+                        {item.recipient && (
+                          <>
+                            <span>•</span>
+                            <span className="truncate">{item.recipient}</span>
+                          </>
                         )}
-                        {proofsMap[item.realId].delivery > 0 && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-accent/10 text-accent rounded-full px-2 py-0.5">
-                            <Camera size={10} /> Livr. ({proofsMap[item.realId].delivery})
-                          </span>
+                        {item.destination && (
+                          <>
+                            <span>•</span>
+                            <span className="flex items-center gap-0.5 truncate"><MapPin size={10} className="shrink-0" />{item.destination}</span>
+                          </>
                         )}
                       </div>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0 flex items-center gap-2">
-                    <div>
+
+                      {/* Status indicator with progress + ETA / failure */}
+                      <div className="mt-2">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${toneClasses[meta.tone]}`}>
+                            <StatusIcon size={10} className={meta.tone === "active" ? "animate-spin" : ""} />
+                            {meta.label}
+                          </span>
+                          {eta && (
+                            <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-0.5">
+                              <Clock size={9} /> {eta}
+                            </span>
+                          )}
+                        </div>
+                        {!meta.failure && (
+                          <div className="h-1 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${barColor[meta.tone]} transition-all`}
+                              style={{ width: `${meta.progress}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Proof badges */}
+                      {proofsMap[item.realId] && (proofsMap[item.realId].pickup > 0 || proofsMap[item.realId].delivery > 0) && (
+                        <div className="flex items-center gap-2 mt-1.5">
+                          {proofsMap[item.realId].pickup > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-primary/10 text-primary rounded-full px-2 py-0.5">
+                              <PackageCheck size={10} /> Récup. ({proofsMap[item.realId].pickup})
+                            </span>
+                          )}
+                          {proofsMap[item.realId].delivery > 0 && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium bg-accent/10 text-accent rounded-full px-2 py-0.5">
+                              <Camera size={10} /> Livr. ({proofsMap[item.realId].delivery})
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0 flex flex-col items-end gap-1">
                       <p className={`font-bold text-sm ${item.amount >= 0 ? "text-primary" : "text-destructive"}`}>
                         {item.amount >= 0 ? "+" : ""}{item.amount.toFixed(1)}{getCurrencySymbol()}
                       </p>
-                      <p className="text-xs text-muted-foreground">{item.date}</p>
+                      <p className="text-[10px] text-muted-foreground">{item.date}</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteDialog({ id: item.id, realId: item.realId, dbTable: item.dbTable, ref: item.ref });
+                          }}
+                          className="w-6 h-6 rounded-full bg-muted hover:bg-destructive/20 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
+                          aria-label="Supprimer"
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                        <ChevronRight size={14} className="text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                      </div>
                     </div>
-                    <button
-                      onClick={() => setDeleteDialog({ id: item.id, realId: item.realId, dbTable: item.dbTable, ref: item.ref })}
-                      className="w-7 h-7 rounded-full bg-muted hover:bg-destructive/20 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                </motion.li>
-              ))
+                  </motion.li>
+                );
+              })
             )}
           </motion.ul>
         )}
