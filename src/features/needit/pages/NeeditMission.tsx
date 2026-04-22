@@ -3,7 +3,7 @@ import { fetchCitiesByCountry, getCountryISO } from "@/lib/citySearch";
 import { getPopularCities } from "@/lib/popularCities";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin, AlertTriangle } from "lucide-react";
+import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin, AlertTriangle, Sparkles, X, MessageSquare, Hash } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -29,7 +29,7 @@ import BrandPicker from "../components/BrandPicker";
 import BrandProductPicker from "../components/BrandProductPicker";
 import type { Brand, BrandProduct } from "../hooks/useBrandCatalog";
 
-type CategoryNode = { label: string; icon?: string; children?: CategoryNode[]; key?: CategoryKey };
+type CategoryNode = { label: string; icon?: string; children?: CategoryNode[]; key?: CategoryKey; popular?: boolean };
 
 // Built from the centralized icon mapping so the visual grid stays in sync.
 const PRODUCT_CATEGORIES: CategoryNode[] = ICON_CATEGORIES.map((c) => ({
@@ -37,6 +37,7 @@ const PRODUCT_CATEGORIES: CategoryNode[] = ICON_CATEGORIES.map((c) => ({
   icon: c.icon,
   children: c.children,
   key: c.key,
+  popular: c.popular,
 }));
 
 type BrandPhase = "categories" | "brands" | "products";
@@ -167,6 +168,10 @@ const NeeditMission = () => {
     product: BrandProduct;
     variant: string | null;
   } | null>(null);
+  // Category search + new fields for premium product detail
+  const [categorySearch, setCategorySearch] = useState("");
+  const [quantity, setQuantity] = useState("1");
+  const [comments, setComments] = useState("");
   useEffect(() => { fetchCountries().then((data) => { setCountries(data); setLoadingCountries(false); }); }, []);
 
   useEffect(() => {
@@ -178,6 +183,13 @@ const NeeditMission = () => {
       setPays(data.country || ""); setVille(data.city || ""); setTiming(data.timing || ""); setIsUnlisted(data.is_unlisted || false);
       setUnlistedName(data.unlisted_description || data.product_name || ""); setSelectedLeaf(data.is_unlisted ? "" : (data.product_name || ""));
       setPhotoPreview(data.photo_url || null); setDimension(data.dimension || ""); setPoids(data.poids || ""); setPrixMax(data.prix_max || ""); setEanCode(data.ean_code || "");
+      // Restore quantity (prefix "Nx ") and comments (split from unlisted_description)
+      const nameRaw = data.product_name || "";
+      const qtyMatch = nameRaw.match(/^(\d+)×\s*/);
+      if (qtyMatch) setQuantity(qtyMatch[1]);
+      const desc = data.unlisted_description || "";
+      const commentMatch = desc.match(/Commentaires\s*:\s*([\s\S]*)$/);
+      if (commentMatch) setComments(commentMatch[1].trim());
       setAutoAccept((data as any).auto_accept ?? false);
       setPickupAddress((data as any).pickup_address || "");
       setPickupAccessCode((data as any).pickup_access_code || "");
@@ -265,12 +277,19 @@ const NeeditMission = () => {
         // Inject brand into the path so DB has full hierarchy: Category > Brand > Product
         if (selectedBrand) pathLabels.push(selectedBrand.name);
         if (selectedLeaf) pathLabels.push(selectedLeaf);
-        const finalProductName = isUnlisted
+        const qty = Math.max(1, parseInt(quantity || "1") || 1);
+        const baseName = isUnlisted
           ? unlistedName
           : selectedBrand
             ? `${selectedBrand.name} ${selectedLeaf}`.trim()
             : selectedLeaf;
-        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: finalProductName, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview ?? selectedBrandProduct?.product.photo_url ?? null, dimension: dimension || null, poids: poids || null, prix_max: finalPrixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
+        const finalProductName = qty > 1 ? `${qty}× ${baseName}` : baseName;
+        // Merge user comments into unlisted_description so we don't need a schema change
+        const mergedDescription = [
+          isUnlisted ? unlistedName : null,
+          comments.trim() ? `Commentaires : ${comments.trim()}` : null,
+        ].filter(Boolean).join("\n\n") || null;
+        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: finalProductName, is_unlisted: isUnlisted, unlisted_description: mergedDescription, photo_url: photo_url ?? photoPreview ?? selectedBrandProduct?.product.photo_url ?? null, dimension: dimension || null, poids: poids || null, prix_max: finalPrixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
         if (editId) {
           await supabase.from("needit_missions").update(missionData as any).eq("id", editId).eq("user_id", user.id);
           successFeedback(t("needit.missionUpdated"), { description: t("needit.missionUpdatedDesc") });
@@ -404,31 +423,106 @@ const NeeditMission = () => {
                   </div>
                 )}
                 {categoryPath.length === 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-                    {currentCategories().map((node) => {
-                      const isSelected = selectedLeaf === node.label;
-                      return (
+                  <>
+                    {/* Premium hero header */}
+                    <div className="text-center mb-5">
+                      <h3 className="text-2xl font-bold text-foreground mb-1">
+                        Que cherchez-vous aujourd'hui ?
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Choisissez une catégorie pour commencer
+                      </p>
+                    </div>
+
+                    {/* Live search bar */}
+                    <div className="flex items-center gap-2 mb-5 px-4 py-3 rounded-2xl bg-muted/50 border border-border focus-within:border-primary/50 transition-colors">
+                      <Search size={16} className="text-muted-foreground shrink-0" />
+                      <input
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        placeholder="Rechercher un produit ou une catégorie…"
+                        className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                      />
+                      {categorySearch && (
                         <button
-                          key={node.label}
-                          onClick={() => handleCategorySelect(node)}
-                          className={`flex flex-col items-center justify-center gap-3 p-4 aspect-square rounded-2xl border transition-all ${
-                            isSelected
-                              ? "border-primary bg-primary/10 ring-2 ring-primary/30"
-                              : "border-border bg-card hover:border-primary/40 hover:bg-primary/5"
-                          }`}
+                          onClick={() => setCategorySearch("")}
+                          aria-label="Effacer"
+                          className="shrink-0 w-6 h-6 rounded-full bg-muted-foreground/20 hover:bg-muted-foreground/30 flex items-center justify-center transition-colors"
                         >
-                          {node.icon ? (
-                            <img src={node.icon} alt="" className="w-20 h-20 sm:w-24 sm:h-24 object-contain" />
-                          ) : (
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-muted" />
-                          )}
-                          <span className="text-sm font-semibold text-foreground text-center leading-tight line-clamp-2">
-                            {node.label}
-                          </span>
+                          <X size={12} className="text-foreground" />
                         </button>
+                      )}
+                    </div>
+
+                    {(() => {
+                      const q = categorySearch.trim().toLowerCase();
+                      const matchesQuery = (node: CategoryNode) => {
+                        if (!q) return true;
+                        if (node.label.toLowerCase().includes(q)) return true;
+                        return (node.children || []).some((c) =>
+                          c.label.toLowerCase().includes(q),
+                        );
+                      };
+                      const filtered = currentCategories().filter(matchesQuery);
+                      // Sort: popular first, then alphabetical
+                      const sorted = [...filtered].sort((a, b) => {
+                        if (!!a.popular === !!b.popular) return a.label.localeCompare(b.label);
+                        return a.popular ? -1 : 1;
+                      });
+
+                      if (sorted.length === 0) {
+                        return (
+                          <div className="text-center py-10 mb-6">
+                            <p className="text-sm text-muted-foreground mb-1">Aucune catégorie pour</p>
+                            <p className="text-base font-semibold text-foreground mb-4">"{categorySearch}"</p>
+                            <button
+                              onClick={() => { setIsUnlisted(true); setSelectedLeaf(""); setCategoryPath([]); setUnlistedName(categorySearch); }}
+                              className="text-sm text-primary font-medium underline underline-offset-2"
+                            >
+                              Décrire ma demande librement
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+                          {sorted.map((node, idx) => {
+                            const isSelected = selectedLeaf === node.label;
+                            return (
+                              <motion.button
+                                key={node.label}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: Math.min(idx * 0.025, 0.25) }}
+                                whileTap={{ scale: 0.94 }}
+                                onClick={() => handleCategorySelect(node)}
+                                className={`relative flex flex-col items-center justify-center gap-2 p-3 aspect-square rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all ${
+                                  isSelected
+                                    ? "border-primary bg-primary/5 ring-2 ring-primary/30"
+                                    : "border-border hover:border-primary/40"
+                                }`}
+                              >
+                                {node.popular && (
+                                  <span className="absolute top-1.5 right-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-accent/15 text-accent text-[9px] font-bold uppercase tracking-wide">
+                                    <Sparkles size={8} />
+                                  </span>
+                                )}
+                                {node.icon ? (
+                                  <img src={node.icon} alt="" className="w-16 h-16 sm:w-20 sm:h-20 object-contain" />
+                                ) : (
+                                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-muted" />
+                                )}
+                                <span className="text-[11px] sm:text-xs font-semibold text-foreground text-center leading-tight line-clamp-2">
+                                  {node.label}
+                                </span>
+                              </motion.button>
+                            );
+                          })}
+                        </div>
                       );
-                    })}
-                  </div>
+                    })()}
+                  </>
                 ) : (
                   <div className="space-y-2 mb-6">
                     {currentCategories().map((node) => (
@@ -508,33 +602,202 @@ const NeeditMission = () => {
               </div>
             )}
             {step === 3 && (
-              <div className="flex flex-col items-center gap-6 mb-8">
-                {isUnlisted ? (
-                  <>
-                    {/* For unlisted products, photo was already captured at step 2 — just show EAN scanner */}
-                    {photoPreview && <img src={photoPreview} alt="Produit" className="max-h-48 rounded-2xl object-contain" />}
-                    <div className="w-full mt-2">
-                      <div className="flex items-center gap-2 mb-3"><ScanBarcode size={18} className="text-primary" /><h3 className="text-sm font-semibold text-foreground">{t("needit.eanOptional")}</h3></div>
-                      {eanCode ? <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20"><ScanBarcode size={16} className="text-primary shrink-0" /><span className="text-sm font-mono text-foreground flex-1">{eanCode}</span><button onClick={() => setEanCode("")} className="text-xs text-destructive">{t("needit.remove")}</button></div> : <EanScanner mode="scan" onProductFound={(p) => { setEanCode(p.ean_code); if (p.product_name && !unlistedName) { setUnlistedName(p.product_name); } if (p.weight && !poids) setPoids(p.weight); }} />}
-                      <p className="text-xs text-muted-foreground mt-2">{t("needit.eanHelp")}</p>
+              <div className="flex flex-col gap-6 mb-8">
+                {/* PREMIUM PRODUCT HERO */}
+                {!isUnlisted && (selectedBrand || selectedLeaf) && (
+                  <div className="rounded-3xl bg-gradient-to-b from-muted/40 to-muted/10 border border-border p-5">
+                    {/* Hero photo */}
+                    <div className="relative mx-auto mb-4 aspect-square max-w-[260px] rounded-3xl bg-card shadow-md overflow-hidden flex items-center justify-center">
+                      {(photoPreview || selectedBrandProduct?.product.photo_url) ? (
+                        <img
+                          src={photoPreview ?? selectedBrandProduct!.product.photo_url!}
+                          alt={selectedLeaf || selectedBrand?.name || "Produit"}
+                          className="w-full h-full object-contain p-4"
+                        />
+                      ) : selectedBrand?.logo_url ? (
+                        <img src={selectedBrand.logo_url} alt={selectedBrand.name} className="w-3/4 h-3/4 object-contain" />
+                      ) : (
+                        <Camera size={48} className="text-muted-foreground/50" />
+                      )}
+                      <label className="absolute bottom-2 right-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-card border border-border shadow-sm text-xs font-semibold text-foreground cursor-pointer hover:bg-muted transition-colors">
+                        <Camera size={12} /> {photoPreview ? "Changer" : "Photo"}
+                        <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                      </label>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    {photoPreview ? <img src={photoPreview} alt="Produit" className="max-h-72 rounded-2xl object-contain" /> : <><h3 className="text-xl font-semibold text-foreground text-left w-full">{t("needit.addPhoto")}</h3><label className="w-full max-w-xs flex items-center justify-center py-6 rounded-2xl bg-accent text-accent-foreground cursor-pointer hover:opacity-90 transition-opacity shadow-lg"><Camera size={48} /><input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} /></label></>}
-                    {photoPreview && <label className="text-sm text-primary underline cursor-pointer">{t("needit.changePhoto")}<input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} /></label>}
-                    <div className="w-full mt-2">
-                      <div className="flex items-center gap-2 mb-3"><ScanBarcode size={18} className="text-primary" /><h3 className="text-sm font-semibold text-foreground">{t("needit.eanOptional")}</h3></div>
-                      {eanCode ? <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20"><ScanBarcode size={16} className="text-primary shrink-0" /><span className="text-sm font-mono text-foreground flex-1">{eanCode}</span><button onClick={() => setEanCode("")} className="text-xs text-destructive">{t("needit.remove")}</button></div> : <EanScanner mode="scan" onProductFound={(p) => { setEanCode(p.ean_code); if (p.product_name && !selectedLeaf && !unlistedName) { setUnlistedName(p.product_name); setIsUnlisted(true); } if (p.weight && !poids) setPoids(p.weight); }} />}
-                      <p className="text-xs text-muted-foreground mt-2">{t("needit.eanHelp")}</p>
-                    </div>
-                  </>
+
+                    {/* Brand + product name */}
+                    {selectedBrand && (
+                      <p className="text-center text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+                        {selectedBrand.name}
+                      </p>
+                    )}
+                    <h3 className="text-center text-xl font-bold text-foreground leading-tight mb-2">
+                      {selectedBrandProduct?.product.name || selectedLeaf || "Produit"}
+                    </h3>
+
+                    {/* Variant chips (if a brand product is selected with variants) */}
+                    {selectedBrandProduct && selectedBrandProduct.product.variants.length > 0 && (
+                      <div className="flex flex-wrap justify-center gap-2 mb-2">
+                        {selectedBrandProduct.product.variants.map((v) => {
+                          const isActive = selectedBrandProduct.variant === v;
+                          return (
+                            <button
+                              key={v}
+                              onClick={() => {
+                                const newSel = { product: selectedBrandProduct.product, variant: v };
+                                setSelectedBrandProduct(newSel);
+                                setSelectedLeaf(`${selectedBrandProduct.product.name} – ${v}`);
+                              }}
+                              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                                isActive
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "bg-card border border-border text-foreground hover:border-primary/40"
+                              }`}
+                            >
+                              {v}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Indicative price */}
+                    {selectedBrandProduct?.product.indicative_price && (
+                      <p className="text-center text-sm text-muted-foreground">
+                        Prix indicatif : <span className="font-semibold text-foreground">{selectedBrandProduct.product.indicative_price}</span>
+                      </p>
+                    )}
+                  </div>
                 )}
+
+                {/* For unlisted: keep existing minimal view */}
+                {isUnlisted && photoPreview && (
+                  <div className="flex flex-col items-center gap-2">
+                    <img src={photoPreview} alt="Produit" className="max-h-48 rounded-2xl object-contain" />
+                    <label className="text-sm text-primary underline cursor-pointer">
+                      {t("needit.changePhoto")}
+                      <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                    </label>
+                  </div>
+                )}
+
+                {/* Photo CTA when no preview & no brand product photo (referenced flow) */}
+                {!isUnlisted && !photoPreview && !selectedBrandProduct?.product.photo_url && !selectedBrand && (
+                  <label className="w-full flex flex-col items-center justify-center gap-2 py-8 rounded-2xl bg-accent/10 border-2 border-dashed border-accent/30 cursor-pointer hover:bg-accent/15 transition-colors">
+                    <Camera size={32} className="text-accent" />
+                    <span className="text-sm font-medium text-foreground">{t("needit.addPhoto")}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                  </label>
+                )}
+
+                {/* EAN scanner (collapsed style) */}
+                <div className="rounded-2xl border border-border bg-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ScanBarcode size={16} className="text-primary" />
+                    <h4 className="text-sm font-semibold text-foreground">{t("needit.eanOptional")}</h4>
+                  </div>
+                  {eanCode ? (
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                      <ScanBarcode size={16} className="text-primary shrink-0" />
+                      <span className="text-sm font-mono text-foreground flex-1">{eanCode}</span>
+                      <button onClick={() => setEanCode("")} className="text-xs text-destructive">{t("needit.remove")}</button>
+                    </div>
+                  ) : (
+                    <EanScanner
+                      mode="scan"
+                      onProductFound={(p) => {
+                        setEanCode(p.ean_code);
+                        if (p.product_name && !selectedLeaf && !unlistedName) {
+                          setUnlistedName(p.product_name);
+                          setIsUnlisted(true);
+                        }
+                        if (p.weight && !poids) setPoids(p.weight);
+                      }}
+                    />
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">{t("needit.eanHelp")}</p>
+                </div>
               </div>
             )}
             {step === 4 && (
               <>
-                <h3 className="text-xl text-muted-foreground mb-6">{t("needit.describeProducts")}</h3>
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-foreground mb-1">Détails de ma demande</h3>
+                  <p className="text-sm text-muted-foreground">Précisez vos attentes pour le voyageur</p>
+                </div>
+
+                {/* Compact product summary header */}
+                {(selectedBrand || selectedLeaf || (isUnlisted && unlistedName)) && (
+                  <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 mb-5 shadow-sm">
+                    {(photoPreview || selectedBrandProduct?.product.photo_url) ? (
+                      <img
+                        src={photoPreview ?? selectedBrandProduct!.product.photo_url!}
+                        alt=""
+                        className="w-14 h-14 rounded-xl object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 flex items-center justify-center shrink-0">
+                        <Camera size={18} className="text-primary/60" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      {selectedBrand && (
+                        <p className="text-[10px] font-bold text-primary uppercase tracking-wider truncate">{selectedBrand.name}</p>
+                      )}
+                      <p className="text-sm font-semibold text-foreground truncate">
+                        {isUnlisted ? unlistedName : (selectedBrandProduct?.product.name || selectedLeaf || "Produit")}
+                      </p>
+                      {selectedBrandProduct?.variant && (
+                        <p className="text-xs text-muted-foreground">{selectedBrandProduct.variant}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quantity + Comments — premium "request details" section */}
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-2">
+                      <Hash size={12} /> Quantité souhaitée
+                    </label>
+                    <div className="inline-flex items-center rounded-2xl border border-border bg-card overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity((q) => String(Math.max(1, parseInt(q || "1") - 1)))}
+                        className="w-11 h-11 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min={1}
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value.replace(/[^0-9]/g, "") || "1")}
+                        className="w-14 h-11 text-center bg-transparent text-base font-semibold text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setQuantity((q) => String(parseInt(q || "1") + 1))}
+                        className="w-11 h-11 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground mb-2">
+                      <MessageSquare size={12} /> Commentaires / Instructions particulières
+                    </label>
+                    <textarea
+                      value={comments}
+                      onChange={(e) => setComments(e.target.value)}
+                      placeholder="Ex : emballage renforcé, livraison en main propre, choix du parfum si rupture…"
+                      rows={3}
+                      className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 resize-none transition-colors"
+                    />
+                  </div>
+                </div>
 
                 {/* Recap for unlisted products */}
                 {isUnlisted && (
@@ -687,10 +950,32 @@ const NeeditMission = () => {
             )}
               </motion.div>
             </AnimatePresence>
-            <div className="flex items-center justify-between pt-4">
-              <button onClick={handleBack} className="text-lg text-muted-foreground hover:text-foreground transition-colors">{t("common.back")}</button>
-              <button onClick={handleNext} disabled={submitting} className="flex items-center gap-2 px-8 py-3 rounded-full text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50" style={{ backgroundColor: "#30D158" }}>{submitting ? <Loader2 size={20} className="animate-spin" /> : <>{step === 4 ? (editId ? t("needit.save") : t("needit.validate")) : t("common.next")} <ArrowRight size={20} /></>}</button>
-            </div>
+            {step === 4 ? (
+              <div className="pt-4 space-y-3">
+                <button
+                  onClick={handleNext}
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-primary-foreground text-base font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  {submitting ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <>{editId ? t("needit.save") : "Créer ma mission NeedIt"} <ArrowRight size={20} /></>
+                  )}
+                </button>
+                <button
+                  onClick={handleBack}
+                  className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+                >
+                  {t("common.back")}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between pt-4">
+                <button onClick={handleBack} className="text-lg text-muted-foreground hover:text-foreground transition-colors">{t("common.back")}</button>
+                <button onClick={handleNext} disabled={submitting} className="flex items-center gap-2 px-8 py-3 rounded-full text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50" style={{ backgroundColor: "#30D158" }}>{submitting ? <Loader2 size={20} className="animate-spin" /> : <>{t("common.next")} <ArrowRight size={20} /></>}</button>
+              </div>
+            )}
           </>
         )}
       </div>
