@@ -354,20 +354,22 @@ const VoyageDetail = () => {
   const statusLabel = voyage.status === "active" ? t("dashboard.active") : voyage.status === "cancelled" ? t("dashboard.cancelled") : voyage.status === "completed" ? "Terminé" : voyage.status;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <PageTransition>
         {/* Header */}
-        <div className="px-6 pt-12 pb-6 rounded-b-3xl" style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}>
-          <div className="flex items-center justify-between">
-            <button onClick={() => navigate(-1)} className="text-primary-foreground">
-              <ArrowLeft size={24} />
-            </button>
-            <h1 className="text-xl font-bold text-primary-foreground">{t("dashboard.voyageDetail")}</h1>
-            <div className="w-6" />
+        <header className="page-header-soft">
+          <div className="page-content">
+            <div className="flex items-center justify-between">
+              <button onClick={() => navigate(-1)} className="text-muted-foreground inline-flex items-center justify-center w-10 h-10 rounded-full bg-card/80 backdrop-blur shadow-soft hover:bg-card transition" aria-label={t("common.back")}>
+                <ArrowLeft size={20} />
+              </button>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">{t("dashboard.voyageDetail")}</h1>
+              <div className="w-10" />
+            </div>
           </div>
-        </div>
+        </header>
 
-        <div className="px-6 pt-6 space-y-4">
+        <div className="page-content pt-6 space-y-4">
           {/* Status badge */}
           <div className="flex items-center justify-between">
             <span className={`text-xs font-bold px-3 py-1 rounded-full text-white ${statusColor}`}>

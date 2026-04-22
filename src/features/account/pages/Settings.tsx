@@ -266,11 +266,11 @@ const Settings = () => {
 
         <button
           onClick={handleLogout}
-          className="w-full py-3.5 rounded-2xl border border-destructive/30 text-destructive font-medium text-sm hover:bg-destructive/10 transition-colors mt-2"
+          className="w-full py-4 rounded-2xl border border-destructive/30 bg-card text-destructive font-semibold text-sm hover:bg-destructive/10 transition-colors mt-4 shadow-soft"
         >
           {t("common.logout")}
         </button>
-      </div>
+      </main>
 
       <BottomNav />
     </div>
