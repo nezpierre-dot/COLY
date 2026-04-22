@@ -77,7 +77,7 @@ const PublicProfile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen bg-gradient-soft flex flex-col items-center justify-center gap-4">
         <User size={48} className="text-muted-foreground" />
         <p className="text-muted-foreground">Profil introuvable</p>
         <button onClick={() => navigate(-1)} className="text-primary text-sm hover:underline">Retour</button>
