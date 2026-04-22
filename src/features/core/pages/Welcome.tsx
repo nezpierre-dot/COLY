@@ -176,7 +176,7 @@ const Welcome = () => {
         <motion.div variants={item} className="px-6 text-center">
           <h1
             id="welcome-title"
-            className="text-[2.5rem] leading-[1.05] sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground"
+            className="text-[2.5rem] leading-[1.15] sm:text-5xl sm:leading-[1.15] md:text-6xl md:leading-[1.15] font-bold tracking-tight text-foreground pb-1"
           >
             {lines.slice(0, -1).map((line, i) => (
               <span key={i} className="block">
@@ -184,7 +184,7 @@ const Welcome = () => {
               </span>
             ))}
             {lines.length > 0 && (
-              <span className="block bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent pb-1">
                 {lines[lines.length - 1]}
               </span>
             )}
