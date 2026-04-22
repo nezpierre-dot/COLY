@@ -60,7 +60,7 @@ const fr: TranslationDict = {
   "welcome.tagline": "Partagez le trajet,\nfacilitez vos\néchanges.",
   "welcome.haveAccount": "J'ai déjà un compte",
   "welcome.signup": "Inscription",
-  "login.title": "Content de vous revoir !",
+  "login.title": "Content de vous revoir !",
   "login.subtitle": "Connectez-vous pour continuer vos échanges en toute simplicité.",
   "login.heading": "Connexion",
   "login.forgotPassword": "Mot de passe oublié?",
