@@ -277,31 +277,28 @@ const NewTrip = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 flex flex-col">
+    <div className="page-shell flex flex-col">
       {/* Header */}
-      <div
-        className="px-6 pt-12 pb-6 rounded-b-3xl"
-        style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))" }}
-      >
-        <h1 className="text-3xl font-extrabold text-primary-foreground leading-tight whitespace-pre-line">
-          {t("trip.shareTitle")}
-        </h1>
-        {/* Step indicator */}
-        <div className="flex gap-1.5 mt-4">
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <div
-              key={i}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                i < step ? "bg-primary-foreground" : "bg-primary-foreground/30"
-              }`}
-            />
-          ))}
+      <header className="page-header-soft">
+        <div className="page-content">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight whitespace-pre-line">
+            {t("trip.shareTitle")}
+          </h1>
+          <div className="flex gap-1.5 mt-5">
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              <div
+                key={i}
+                className="h-1.5 flex-1 rounded-full transition-colors"
+                style={i < step ? { background: "var(--gradient-primary)" } : { background: "hsl(var(--foreground) / 0.1)" }}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Content */}
-      <div className="flex-1 px-6 pt-6">
-        <div className="bg-card rounded-2xl border border-border p-5 shadow-sm min-h-[320px] overflow-hidden">
+      <div className="flex-1 page-content pt-6">
+        <div className="card-future min-h-[320px] overflow-hidden">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={step}

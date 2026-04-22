@@ -60,20 +60,24 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <div className="px-6 pt-12">
-        <div className="flex items-center gap-3 mb-2">
-          <button onClick={() => navigate("/dashboard")} className="text-foreground">
-            <ArrowLeft size={24} />
-          </button>
-          <h1 className="text-[26px] font-bold text-foreground leading-tight">{t("settings.title")}</h1>
+    <div className="page-shell">
+      <header className="page-header-soft">
+        <div className="page-content">
+          <div className="flex items-center gap-3 mb-2">
+            <button onClick={() => navigate("/dashboard")} className="text-muted-foreground inline-flex items-center justify-center w-10 h-10 rounded-full bg-card/80 backdrop-blur shadow-soft hover:bg-card transition" aria-label={t("common.back")}>
+              <ArrowLeft size={20} />
+            </button>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">{t("settings.title")}</h1>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2 pl-13">{t("settings.subtitle")}</p>
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mt-4 ${isVoyageur ? "bg-secondary/20 text-secondary-foreground" : "bg-primary/15 text-primary"}`}>
+            {isVoyageur ? <Plane size={14} /> : <Package size={14} />}
+            {isVoyageur ? t("settings.voyageurMode") : t("settings.demandeurMode")}
+          </div>
         </div>
-        <p className="text-sm text-muted-foreground mb-8 pl-10">{t("settings.subtitle")}</p>
+      </header>
 
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 ${isVoyageur ? "bg-secondary/20 text-secondary" : "bg-primary/20 text-primary"}`}>
-          {isVoyageur ? <Plane size={14} /> : <Package size={14} />}
-          {isVoyageur ? t("settings.voyageurMode") : t("settings.demandeurMode")}
-        </div>
+      <main className="page-content pt-6">
 
         <Section title={t("settings.appearance")}>
           <div className="px-4 py-3.5">
@@ -266,11 +270,11 @@ const Settings = () => {
 
         <button
           onClick={handleLogout}
-          className="w-full py-3.5 rounded-2xl border border-destructive/30 text-destructive font-medium text-sm hover:bg-destructive/10 transition-colors mt-2"
+          className="w-full py-4 rounded-2xl border border-destructive/30 bg-card text-destructive font-semibold text-sm hover:bg-destructive/10 transition-colors mt-4 shadow-soft"
         >
           {t("common.logout")}
         </button>
-      </div>
+      </main>
 
       <BottomNav />
     </div>

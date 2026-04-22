@@ -162,20 +162,22 @@ const VoyageurSearch = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
-        <main className="px-5 pt-10" id="main-content" role="main" aria-label="Recherche de voyageurs">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-5">
-            <button onClick={() => navigate(-1)} className="text-muted-foreground" aria-label="Retour">
-              <ArrowLeft size={24} />
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{t("search.title")}</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("search.subtitle")}</p>
+        <header className="page-header-soft">
+          <div className="page-content">
+            <div className="flex items-center gap-3 mb-1">
+              <button onClick={() => navigate(-1)} className="text-muted-foreground inline-flex items-center justify-center w-10 h-10 rounded-full bg-card/80 backdrop-blur shadow-soft hover:bg-card transition" aria-label="Retour">
+                <ArrowLeft size={20} />
+              </button>
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">{t("search.title")}</h1>
             </div>
+            <p className="text-sm text-muted-foreground mt-2 pl-13">{t("search.subtitle")}</p>
           </div>
+        </header>
+
+        <main className="page-content pt-5" id="main-content" role="main" aria-label="Recherche de voyageurs">
 
           {/* Search fields */}
           <div className="space-y-2 mb-3">

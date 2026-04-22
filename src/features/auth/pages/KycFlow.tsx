@@ -72,46 +72,46 @@ const KycFlow = () => {
     100;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-shell">
       {/* Header */}
-      <div
-        className="relative px-6 pt-12 pb-16 text-primary-foreground overflow-hidden"
-        style={{ background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--coly-blue-dark)))" }}
-      >
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full bg-primary-foreground/10" />
-        <div className="absolute top-16 right-6 grid grid-cols-4 gap-1.5 opacity-30">
-          {Array.from({ length: 16 }).map((_, i) => (
-            <div key={i} className="w-2 h-2 rounded-full bg-primary-foreground" />
-          ))}
-        </div>
-        <div className="absolute bottom-10 left-0 w-20 h-20 rounded-full bg-coly-blue-dark/50" />
-
-        <h1 className="text-3xl font-bold relative z-10">
-          {step === "success" ? t("kyc.congrats") : "ID NOW"}
-        </h1>
-        <p className="text-sm mt-2 opacity-90 relative z-10">
-          {step === "intro" && t("kyc.confirmIdentity")}
-          {step === "loading" && t("kyc.sending")}
-          {step === "idnow" && t("kyc.useServices")}
-          {step === "success" && t("kyc.verifiedDesc")}
-          {step === "failure" && t("common.error")}
-        </p>
-
-        {step !== "success" && step !== "failure" && (
-          <div className="mt-4 relative z-10">
-            <div className="w-full h-1.5 rounded-full bg-primary-foreground/20">
-              <div
-                className="h-1.5 rounded-full bg-primary-foreground transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
+      <header className="page-header-soft relative overflow-hidden">
+        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-primary/15 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -left-8 w-44 h-44 rounded-full bg-secondary/20 blur-3xl pointer-events-none" />
+        <div className="page-content relative">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-12 h-12 rounded-2xl bg-card/80 backdrop-blur shadow-soft flex items-center justify-center">
+              <Shield size={22} className="text-primary" />
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+                {step === "success" ? t("kyc.congrats") : "ID Now"}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {step === "intro" && t("kyc.confirmIdentity")}
+                {step === "loading" && t("kyc.sending")}
+                {step === "idnow" && t("kyc.useServices")}
+                {step === "success" && t("kyc.verifiedDesc")}
+                {step === "failure" && t("common.error")}
+              </p>
             </div>
           </div>
-        )}
-      </div>
+
+          {step !== "success" && step !== "failure" && (
+            <div className="mt-4">
+              <div className="w-full h-2 rounded-full bg-card/60 backdrop-blur overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%`, background: "var(--gradient-primary)" }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
 
       {/* Content */}
-      <div className="px-6 -mt-8">
-        <div className="bg-card rounded-t-3xl p-6 min-h-[50vh] flex flex-col">
+      <main className="page-content pt-6">
+        <div className="card-future min-h-[50vh] flex flex-col">
           {/* INTRO */}
           {step === "intro" && (
             <div className="flex-1 flex flex-col justify-between">
@@ -248,7 +248,7 @@ const KycFlow = () => {
             </div>
           )}
         </div>
-      </div>
+      </main>
 
       <BottomNav />
     </div>
