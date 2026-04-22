@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin, Camera, PackageCheck, BarChart3 } from "lucide-react";
+import { ArrowLeft, Search, Truck, ArrowUpCircle, ShoppingBag, TrendingUp, Sparkles, Trash2, MapPin, Camera, PackageCheck, BarChart3, X, ChevronRight, Clock, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import SortSelect, { applySortOption, type SortOption } from "@/components/SortSelect";
 import { motion } from "framer-motion";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
@@ -39,6 +39,11 @@ interface HistoryItem {
   category: HistoryType;
   icon: string;
   destination: string;
+  status: string;
+  recipient: string;
+  productCategory: string;
+  departureDate: Date | null;
+  failureReason: string | null;
 }
 
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
