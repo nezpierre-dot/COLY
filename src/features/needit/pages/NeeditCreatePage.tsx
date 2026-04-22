@@ -538,20 +538,30 @@ const NeeditCreatePage = () => {
         <SectionTitle>Lieu de récupération</SectionTitle>
         <div className="space-y-4 mb-8">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Pays *">
+            <Field label="Pays *" error={showErr("pays")}>
               <Input
                 value={pays}
                 onChange={(e) => setPays(e.target.value)}
+                onBlur={() => markTouched("pays")}
+                aria-invalid={!!showErr("pays")}
                 placeholder="Ex : France"
-                className="h-12 rounded-2xl bg-card border-border focus-visible:ring-2 focus-visible:ring-primary/30"
+                maxLength={60}
+                className={`h-12 rounded-2xl bg-card focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                  showErr("pays") ? "border-destructive" : "border-border"
+                }`}
               />
             </Field>
-            <Field label="Ville *">
+            <Field label="Ville *" error={showErr("ville")}>
               <Input
                 value={ville}
                 onChange={(e) => setVille(e.target.value)}
+                onBlur={() => markTouched("ville")}
+                aria-invalid={!!showErr("ville")}
                 placeholder="Ex : Paris"
-                className="h-12 rounded-2xl bg-card border-border focus-visible:ring-2 focus-visible:ring-primary/30"
+                maxLength={80}
+                className={`h-12 rounded-2xl bg-card focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                  showErr("ville") ? "border-destructive" : "border-border"
+                }`}
               />
             </Field>
           </div>
@@ -559,12 +569,18 @@ const NeeditCreatePage = () => {
           <Field
             label="Adresse précise (optionnel)"
             icon={<MapPin size={14} className="text-primary" />}
+            error={showErr("pickupAddress")}
           >
             <Input
               value={pickupAddress}
               onChange={(e) => setPickupAddress(e.target.value)}
+              onBlur={() => markTouched("pickupAddress")}
+              aria-invalid={!!showErr("pickupAddress")}
               placeholder="Ex : Carrefour Champs-Élysées"
-              className="h-12 rounded-2xl bg-card border-border focus-visible:ring-2 focus-visible:ring-primary/30"
+              maxLength={PICKUP_MAX}
+              className={`h-12 rounded-2xl bg-card focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                showErr("pickupAddress") ? "border-destructive" : "border-border"
+              }`}
             />
           </Field>
         </div>
