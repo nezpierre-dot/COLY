@@ -126,9 +126,10 @@ const ProductCard = ({
         <BrandImage
           src={product.photo_url}
           alt={product.name}
+          kind="produit"
           className="w-16 h-16 rounded-2xl"
           imgClassName="object-cover"
-          fallback={<Package size={24} className="text-primary/70" />}
+          fallback={<Package size={24} className="text-primary/70" aria-hidden="true" />}
         />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground leading-tight mb-0.5">
