@@ -402,6 +402,34 @@ const Dashboard = () => {
   const [demandeurShipments, setDemandeurShipments] = useState<any[]>([]);
   const [demandeurMissions, setDemandeurMissions] = useState<any[]>([]);
 
+  // Demandeur search
+  const [demandeurSearch, setDemandeurSearch] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const handleDemandeurSearch = useCallback((e?: React.FormEvent) => {
+    e?.preventDefault();
+    const q = demandeurSearch.trim();
+    if (!q) {
+      navigate("/history/coly");
+      return;
+    }
+    const lower = q.toLowerCase();
+    // 1) Try local match in current shipments (by city/country)
+    const localMatch = demandeurShipments.find(s =>
+      s.departure_city?.toLowerCase().includes(lower) ||
+      s.arrival_city?.toLowerCase().includes(lower) ||
+      s.arrival_country?.toLowerCase().includes(lower)
+    );
+    if (localMatch) {
+      hapticLight();
+      toast.success(`Envoi trouvé : ${localizeCity(localMatch.arrival_city)}`);
+      navigate(`/shipment/${localMatch.id}`);
+      return;
+    }
+    // 2) Otherwise route the user to the traveler search filtered by query
+    hapticLight();
+    navigate(`/voyageur-search?q=${encodeURIComponent(q)}`);
+  }, [demandeurSearch, demandeurShipments, navigate]);
+
   useEffect(() => {
     if (isVoyageur || !user) return;
     const loadDemandeurData = async () => {
