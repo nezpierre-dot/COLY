@@ -13,6 +13,7 @@ import VoyageurAvailability from "@/components/VoyageurAvailability";
 import PullToRefresh from "@/components/PullToRefresh";
 import NotificationBell from "@/components/NotificationBell";
 import CategoryIcon from "@/components/CategoryIcon";
+import needitBagIllustration from "@/assets/illustrations/needit-bag.png";
 import { useTranslation } from "@/hooks/useTranslation";
 import { toast } from "sonner";
 import {
