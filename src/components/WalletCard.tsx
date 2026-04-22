@@ -116,12 +116,27 @@ const WalletCard = ({ compact = false }: WalletCardProps) => {
           <Wallet size={20} className="text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Wallet Nidit</p>
-          <p className={`text-xl font-black ${(balance ?? 0) >= 0 ? "text-primary" : "text-destructive"}`}>
+          <p className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wide">Wallet Nidit</p>
+          <p className={`text-xl font-black leading-tight ${(balance ?? 0) >= 0 ? "text-primary" : "text-destructive"}`}>
             {(balance ?? 0).toFixed(2)}{currency}
           </p>
         </div>
-        <ChevronRight size={16} className="text-muted-foreground" />
+        <Button
+          size="sm"
+          onClick={() => handleTopup(10)}
+          disabled={topupLoading !== null}
+          className="h-9 gap-1 text-xs font-bold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shrink-0"
+          aria-label="Recharger 10€"
+        >
+          {topupLoading !== null ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <>
+              <Plus size={13} />
+              Recharger
+            </>
+          )}
+        </Button>
       </div>
     );
   }

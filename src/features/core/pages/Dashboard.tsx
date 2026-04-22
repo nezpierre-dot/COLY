@@ -1585,7 +1585,14 @@ const Dashboard = () => {
                   whileTap={{ scale: 0.96 }}
                   onClick={stat.onClick}
                   className="relative overflow-hidden bg-card/85 backdrop-blur-md rounded-3xl p-4 text-left ring-1 ring-border/60 shadow-soft transition-shadow hover:shadow-card group"
+                  aria-label={`${stat.value} ${stat.label}`}
                 >
+                  {/* Chevron pour signaler la cliquabilité */}
+                  <ChevronRight
+                    size={14}
+                    className="absolute top-3 right-3 text-muted-foreground/50 group-hover:text-primary group-hover:translate-x-0.5 transition-all"
+                    aria-hidden
+                  />
                   <motion.div
                     whileHover={{ rotate: -8, scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 320, damping: 16 }}
