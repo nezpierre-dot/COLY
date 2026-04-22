@@ -626,10 +626,14 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 const Field = ({
   label,
   icon,
+  error,
+  hint,
   children,
 }: {
   label: React.ReactNode;
   icon?: React.ReactNode;
+  error?: string | null;
+  hint?: React.ReactNode;
   children: React.ReactNode;
 }) => (
   <div>
@@ -638,6 +642,17 @@ const Field = ({
       {label}
     </label>
     {children}
+    {error ? (
+      <p
+        role="alert"
+        className="mt-1.5 text-xs font-medium text-destructive flex items-start gap-1"
+      >
+        <span aria-hidden>⚠</span>
+        <span>{error}</span>
+      </p>
+    ) : hint ? (
+      <p className="mt-1.5 text-[11px] text-muted-foreground">{hint}</p>
+    ) : null}
   </div>
 );
 
