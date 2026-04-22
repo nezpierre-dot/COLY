@@ -202,12 +202,33 @@ const NeeditCreatePage = () => {
       toast.error("Vous devez être connecté.");
       return;
     }
-    if (!pays.trim() || !ville.trim()) {
-      toast.error("Indiquez le pays et la ville de récupération.");
-      return;
-    }
-    if (budgetMode === "fixed" && (!budget.trim() || Number.isNaN(budgetNum) || budgetNum <= 0)) {
-      toast.error("Indiquez un budget maximum valide.");
+    // Mark all fields as touched and run full validation
+    setTouched({
+      pays: true,
+      ville: true,
+      quantity: true,
+      budget: true,
+      comments: true,
+      pickupAddress: true,
+    });
+    const schema = buildSchema(budgetMode);
+    const result = schema.safeParse({
+      pays,
+      ville,
+      quantity: qtyNum,
+      budget,
+      comments,
+      pickupAddress,
+    });
+    if (!result.success) {
+      const next: FieldErrors = {};
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof FieldErrors;
+        if (key && !next[key]) next[key] = issue.message;
+      }
+      setErrors(next);
+      const first = Object.values(next)[0];
+      toast.error(first ?? "Veuillez corriger les champs en rouge.");
       return;
     }
 
