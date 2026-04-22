@@ -588,28 +588,121 @@ const NeeditMission = () => {
               </div>
             )}
             {step === 3 && (
-              <div className="flex flex-col items-center gap-6 mb-8">
-                {isUnlisted ? (
-                  <>
-                    {/* For unlisted products, photo was already captured at step 2 — just show EAN scanner */}
-                    {photoPreview && <img src={photoPreview} alt="Produit" className="max-h-48 rounded-2xl object-contain" />}
-                    <div className="w-full mt-2">
-                      <div className="flex items-center gap-2 mb-3"><ScanBarcode size={18} className="text-primary" /><h3 className="text-sm font-semibold text-foreground">{t("needit.eanOptional")}</h3></div>
-                      {eanCode ? <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20"><ScanBarcode size={16} className="text-primary shrink-0" /><span className="text-sm font-mono text-foreground flex-1">{eanCode}</span><button onClick={() => setEanCode("")} className="text-xs text-destructive">{t("needit.remove")}</button></div> : <EanScanner mode="scan" onProductFound={(p) => { setEanCode(p.ean_code); if (p.product_name && !unlistedName) { setUnlistedName(p.product_name); } if (p.weight && !poids) setPoids(p.weight); }} />}
-                      <p className="text-xs text-muted-foreground mt-2">{t("needit.eanHelp")}</p>
+              <div className="flex flex-col gap-6 mb-8">
+                {/* PREMIUM PRODUCT HERO */}
+                {!isUnlisted && (selectedBrand || selectedLeaf) && (
+                  <div className="rounded-3xl bg-gradient-to-b from-muted/40 to-muted/10 border border-border p-5">
+                    {/* Hero photo */}
+                    <div className="relative mx-auto mb-4 aspect-square max-w-[260px] rounded-3xl bg-card shadow-md overflow-hidden flex items-center justify-center">
+                      {(photoPreview || selectedBrandProduct?.product.photo_url) ? (
+                        <img
+                          src={photoPreview ?? selectedBrandProduct!.product.photo_url!}
+                          alt={selectedLeaf || selectedBrand?.name || "Produit"}
+                          className="w-full h-full object-contain p-4"
+                        />
+                      ) : selectedBrand?.logo_url ? (
+                        <img src={selectedBrand.logo_url} alt={selectedBrand.name} className="w-3/4 h-3/4 object-contain" />
+                      ) : (
+                        <Camera size={48} className="text-muted-foreground/50" />
+                      )}
+                      <label className="absolute bottom-2 right-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-card border border-border shadow-sm text-xs font-semibold text-foreground cursor-pointer hover:bg-muted transition-colors">
+                        <Camera size={12} /> {photoPreview ? "Changer" : "Photo"}
+                        <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                      </label>
                     </div>
-                  </>
-                ) : (
-                  <>
-                    {photoPreview ? <img src={photoPreview} alt="Produit" className="max-h-72 rounded-2xl object-contain" /> : <><h3 className="text-xl font-semibold text-foreground text-left w-full">{t("needit.addPhoto")}</h3><label className="w-full max-w-xs flex items-center justify-center py-6 rounded-2xl bg-accent text-accent-foreground cursor-pointer hover:opacity-90 transition-opacity shadow-lg"><Camera size={48} /><input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} /></label></>}
-                    {photoPreview && <label className="text-sm text-primary underline cursor-pointer">{t("needit.changePhoto")}<input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} /></label>}
-                    <div className="w-full mt-2">
-                      <div className="flex items-center gap-2 mb-3"><ScanBarcode size={18} className="text-primary" /><h3 className="text-sm font-semibold text-foreground">{t("needit.eanOptional")}</h3></div>
-                      {eanCode ? <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20"><ScanBarcode size={16} className="text-primary shrink-0" /><span className="text-sm font-mono text-foreground flex-1">{eanCode}</span><button onClick={() => setEanCode("")} className="text-xs text-destructive">{t("needit.remove")}</button></div> : <EanScanner mode="scan" onProductFound={(p) => { setEanCode(p.ean_code); if (p.product_name && !selectedLeaf && !unlistedName) { setUnlistedName(p.product_name); setIsUnlisted(true); } if (p.weight && !poids) setPoids(p.weight); }} />}
-                      <p className="text-xs text-muted-foreground mt-2">{t("needit.eanHelp")}</p>
-                    </div>
-                  </>
+
+                    {/* Brand + product name */}
+                    {selectedBrand && (
+                      <p className="text-center text-xs font-semibold text-primary uppercase tracking-wider mb-1">
+                        {selectedBrand.name}
+                      </p>
+                    )}
+                    <h3 className="text-center text-xl font-bold text-foreground leading-tight mb-2">
+                      {selectedBrandProduct?.product.name || selectedLeaf || "Produit"}
+                    </h3>
+
+                    {/* Variant chips (if a brand product is selected with variants) */}
+                    {selectedBrandProduct && selectedBrandProduct.product.variants.length > 0 && (
+                      <div className="flex flex-wrap justify-center gap-2 mb-2">
+                        {selectedBrandProduct.product.variants.map((v) => {
+                          const isActive = selectedBrandProduct.variant === v;
+                          return (
+                            <button
+                              key={v}
+                              onClick={() => {
+                                const newSel = { product: selectedBrandProduct.product, variant: v };
+                                setSelectedBrandProduct(newSel);
+                                setSelectedLeaf(`${selectedBrandProduct.product.name} – ${v}`);
+                              }}
+                              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                                isActive
+                                  ? "bg-primary text-primary-foreground shadow-sm"
+                                  : "bg-card border border-border text-foreground hover:border-primary/40"
+                              }`}
+                            >
+                              {v}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Indicative price */}
+                    {selectedBrandProduct?.product.indicative_price && (
+                      <p className="text-center text-sm text-muted-foreground">
+                        Prix indicatif : <span className="font-semibold text-foreground">{selectedBrandProduct.product.indicative_price}</span>
+                      </p>
+                    )}
+                  </div>
                 )}
+
+                {/* For unlisted: keep existing minimal view */}
+                {isUnlisted && photoPreview && (
+                  <div className="flex flex-col items-center gap-2">
+                    <img src={photoPreview} alt="Produit" className="max-h-48 rounded-2xl object-contain" />
+                    <label className="text-sm text-primary underline cursor-pointer">
+                      {t("needit.changePhoto")}
+                      <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                    </label>
+                  </div>
+                )}
+
+                {/* Photo CTA when no preview & no brand product photo (referenced flow) */}
+                {!isUnlisted && !photoPreview && !selectedBrandProduct?.product.photo_url && !selectedBrand && (
+                  <label className="w-full flex flex-col items-center justify-center gap-2 py-8 rounded-2xl bg-accent/10 border-2 border-dashed border-accent/30 cursor-pointer hover:bg-accent/15 transition-colors">
+                    <Camera size={32} className="text-accent" />
+                    <span className="text-sm font-medium text-foreground">{t("needit.addPhoto")}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+                  </label>
+                )}
+
+                {/* EAN scanner (collapsed style) */}
+                <div className="rounded-2xl border border-border bg-card p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ScanBarcode size={16} className="text-primary" />
+                    <h4 className="text-sm font-semibold text-foreground">{t("needit.eanOptional")}</h4>
+                  </div>
+                  {eanCode ? (
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                      <ScanBarcode size={16} className="text-primary shrink-0" />
+                      <span className="text-sm font-mono text-foreground flex-1">{eanCode}</span>
+                      <button onClick={() => setEanCode("")} className="text-xs text-destructive">{t("needit.remove")}</button>
+                    </div>
+                  ) : (
+                    <EanScanner
+                      mode="scan"
+                      onProductFound={(p) => {
+                        setEanCode(p.ean_code);
+                        if (p.product_name && !selectedLeaf && !unlistedName) {
+                          setUnlistedName(p.product_name);
+                          setIsUnlisted(true);
+                        }
+                        if (p.weight && !poids) setPoids(p.weight);
+                      }}
+                    />
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">{t("needit.eanHelp")}</p>
+                </div>
               </div>
             )}
             {step === 4 && (
