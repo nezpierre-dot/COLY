@@ -698,8 +698,12 @@ const Dashboard = () => {
           className="relative"
         >
 
-          <div className="bg-gradient-hero px-5 pt-6 pb-8 sm:px-8 sm:pt-8 sm:pb-10 rounded-b-[2.5rem] shadow-soft">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-gradient-hero px-5 pt-6 pb-8 sm:px-8 sm:pt-8 sm:pb-12 rounded-b-[2.5rem] shadow-soft relative overflow-hidden">
+            {/* Decorative aura blobs for "Future" feel */}
+            <div aria-hidden className="pointer-events-none absolute -top-16 -right-10 w-64 h-64 rounded-full bg-secondary/25 blur-3xl" />
+            <div aria-hidden className="pointer-events-none absolute -bottom-20 -left-10 w-56 h-56 rounded-full bg-primary/20 blur-3xl" />
+
+            <div className="relative flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
                 <img src={appLogo} alt="Nidit" className="w-10 h-10 object-contain" />
                 <NotificationBell />
@@ -712,35 +716,35 @@ const Dashboard = () => {
               </button>
             </div>
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="relative flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h1 className="text-[clamp(1.75rem,5vw,2.25rem)] font-bold leading-tight tracking-tight text-foreground">
-                    {t("dashboard.greeting") || "Bonjour !"}
-                  </h1>
+                <span className="greeting-bubble mb-3">
                   <img
                     src={waveHandIllustration}
                     alt=""
                     aria-hidden="true"
                     loading="eager"
-                    width={40}
-                    height={40}
-                    className="w-9 h-9 sm:w-10 sm:h-10 object-contain"
+                    width={20}
+                    height={20}
+                    className="w-5 h-5 object-contain"
                   />
-                </div>
-                <p className="text-[15px] sm:text-base text-muted-foreground leading-relaxed max-w-[28ch]">
-                  {isVoyageur ? t("dashboard.voyageurSubtitle") : t("dashboard.demandeurSubtitle")}
-                </p>
+                  {t("dashboard.greeting") || "Bonjour !"}
+                </span>
+                <h1 className="text-[clamp(1.85rem,5.5vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-foreground">
+                  {isVoyageur
+                    ? (t("dashboard.voyageurHeroTitle") || "Prêt pour un nouveau voyage ?")
+                    : (t("dashboard.demandeurHeroTitle") || "Suivez vos envois en un coup d'œil.")}
+                </h1>
                 <UserLevelBadge variant="full" className="mt-3" />
               </div>
               <img
-                src={isVoyageur ? planeIllustration : parcelRouteIllustration}
+                src={isVoyageur ? planeIllustration : parcelFutureHero}
                 alt=""
                 aria-hidden="true"
                 loading="eager"
                 width={140}
                 height={140}
-                className="w-24 h-24 sm:w-32 sm:h-32 object-contain shrink-0 drop-shadow-lg"
+                className="w-28 h-28 sm:w-36 sm:h-36 object-contain shrink-0 drop-shadow-[0_15px_25px_rgba(255,150,80,0.25)]"
               />
             </div>
           </div>
