@@ -55,16 +55,27 @@ const NeeditCategoriesPage = () => {
       />
 
       <main className="flex-1 px-4 sm:px-5 pt-5 pb-32 max-w-2xl mx-auto w-full">
-        {/* Hero */}
-        <div className="mb-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight tracking-tight">
-            Que cherchez-vous
-            <br />
-            aujourd'hui&nbsp;?
-          </h2>
-          <p className="text-sm sm:text-base text-muted-foreground mt-2">
-            Choisissez une catégorie pour commencer.
-          </p>
+        {/* Hero – avec illustration 3D */}
+        <div className="mb-7 flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight tracking-tight">
+              Que cherchez-vous
+              <br />
+              aujourd&rsquo;hui&nbsp;?
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground mt-3 leading-relaxed max-w-[34ch]">
+              Choisissez une catégorie pour commencer.
+            </p>
+          </div>
+          <img
+            src={needitBagIllustration}
+            alt=""
+            aria-hidden="true"
+            loading="eager"
+            width={112}
+            height={112}
+            className="w-20 h-20 sm:w-28 sm:h-28 object-contain shrink-0 drop-shadow-lg"
+          />
         </div>
 
         {/* Search */}
