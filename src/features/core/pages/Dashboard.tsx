@@ -1545,30 +1545,24 @@ const Dashboard = () => {
                   value: demandeurShipments.length,
                   label: "Envois",
                   icon: Send,
-                  bg: "from-primary/15 to-primary/5",
-                  iconBg: "bg-primary/20",
+                  iconBg: "bg-primary/15",
                   iconColor: "text-primary",
-                  ring: "ring-primary/15",
                   onClick: () => navigate("/history/coly"),
                 },
                 {
                   value: demandeurMissions.length,
                   label: "Missions",
                   icon: ShoppingBag,
-                  bg: "from-secondary/20 to-secondary/5",
-                  iconBg: "bg-secondary/25",
+                  iconBg: "bg-secondary/15",
                   iconColor: "text-secondary",
-                  ring: "ring-secondary/20",
                   onClick: () => navigate("/mes-missions-needit"),
                 },
                 {
                   value: demandeurShipments.filter(s => s.status === "pending").length,
                   label: "En attente",
                   icon: Clock,
-                  bg: "from-accent/25 to-accent/5",
-                  iconBg: "bg-accent/30",
+                  iconBg: "bg-accent/25",
                   iconColor: "text-accent-foreground",
-                  ring: "ring-accent/25",
                   onClick: () => {},
                 },
               ].map((stat) => (
@@ -1578,10 +1572,8 @@ const Dashboard = () => {
                   whileHover={{ y: -4, transition: { type: "spring", stiffness: 280, damping: 20 } }}
                   whileTap={{ scale: 0.96 }}
                   onClick={stat.onClick}
-                  className={`relative overflow-hidden bg-gradient-to-br ${stat.bg} rounded-3xl p-4 text-left ring-1 ${stat.ring} shadow-soft transition-shadow hover:shadow-card group`}
+                  className="relative overflow-hidden bg-card/85 backdrop-blur-md rounded-3xl p-4 text-left ring-1 ring-border/60 shadow-soft transition-shadow hover:shadow-card group"
                 >
-                  {/* Soft glow on hover */}
-                  <div aria-hidden className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   <motion.div
                     whileHover={{ rotate: -8, scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 320, damping: 16 }}

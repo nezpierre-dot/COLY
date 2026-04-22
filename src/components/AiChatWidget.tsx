@@ -171,7 +171,7 @@ const AiChatWidget = () => {
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             onClick={() => setOpen(true)}
             aria-label="Ouvrir l'assistant Nidit"
-            className="fixed bottom-24 right-4 sm:bottom-8 sm:right-8 z-40 h-14 w-14 rounded-full bg-gradient-primary text-primary-foreground shadow-elevated hover:shadow-glow active:scale-95 transition-all flex items-center justify-center"
+            className="fixed bottom-28 right-4 sm:bottom-10 sm:right-8 z-40 h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-primary text-primary-foreground shadow-elevated hover:shadow-glow active:scale-95 transition-all flex items-center justify-center"
           >
             <MessageCircle size={26} strokeWidth={2} />
             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-accent flex items-center justify-center">
