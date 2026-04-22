@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import appLogo from "@/assets/logo.png";
 import parcelRouteIllustration from "@/assets/illustrations/parcel-route.png";
+import parcelFutureHero from "@/assets/illustrations/parcel-future-hero.png";
 import planeIllustration from "@/assets/illustrations/traveler-plane.png";
 import waveHandIllustration from "@/assets/illustrations/wave-hand.png";
 import { useNavigate } from "react-router-dom";
