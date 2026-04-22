@@ -3,7 +3,7 @@ import { fetchCitiesByCountry, getCountryISO } from "@/lib/citySearch";
 import { getPopularCities } from "@/lib/popularCities";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin, AlertTriangle } from "lucide-react";
+import { ArrowRight, ChevronDown, Loader2, Search, Camera, ScanBarcode, Info, Heart, MapPin, AlertTriangle, Sparkles, X, MessageSquare, Hash } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -29,7 +29,7 @@ import BrandPicker from "../components/BrandPicker";
 import BrandProductPicker from "../components/BrandProductPicker";
 import type { Brand, BrandProduct } from "../hooks/useBrandCatalog";
 
-type CategoryNode = { label: string; icon?: string; children?: CategoryNode[]; key?: CategoryKey };
+type CategoryNode = { label: string; icon?: string; children?: CategoryNode[]; key?: CategoryKey; popular?: boolean };
 
 // Built from the centralized icon mapping so the visual grid stays in sync.
 const PRODUCT_CATEGORIES: CategoryNode[] = ICON_CATEGORIES.map((c) => ({
@@ -37,6 +37,7 @@ const PRODUCT_CATEGORIES: CategoryNode[] = ICON_CATEGORIES.map((c) => ({
   icon: c.icon,
   children: c.children,
   key: c.key,
+  popular: c.popular,
 }));
 
 type BrandPhase = "categories" | "brands" | "products";
@@ -167,6 +168,10 @@ const NeeditMission = () => {
     product: BrandProduct;
     variant: string | null;
   } | null>(null);
+  // Category search + new fields for premium product detail
+  const [categorySearch, setCategorySearch] = useState("");
+  const [quantity, setQuantity] = useState("1");
+  const [comments, setComments] = useState("");
   useEffect(() => { fetchCountries().then((data) => { setCountries(data); setLoadingCountries(false); }); }, []);
 
   useEffect(() => {
