@@ -185,6 +185,7 @@ const BrandCard = ({
     <BrandImage
       src={brand.logo_url}
       alt={brand.name}
+      kind="logo"
       className="w-16 h-16 rounded-2xl"
       imgClassName="object-contain"
       fallback={
