@@ -186,42 +186,59 @@ export default function NotificationsPage() {
 
   return (
     <div className="page-shell">
-      <div className="px-6 pt-12">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => selectMode ? exitSelectMode() : navigate(-1)} className="text-foreground hover:text-primary transition-colors">
-            <ArrowLeft size={24} />
-          </button>
-          <h1 className="text-2xl font-bold text-foreground flex-1">
+      <header className="page-header-soft">
+        <div className="page-content">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => selectMode ? exitSelectMode() : navigate(-1)}
+              className="icon-btn-soft"
+              aria-label="Retour"
+            >
+              <ArrowLeft size={18} className="text-foreground" />
+            </button>
+            {selectMode ? (
+              <div className="flex items-center gap-2">
+                <button onClick={selectAll} className="text-xs text-primary font-semibold hover:underline">
+                  {selected.size === filtered.length ? "Tout désélectionner" : "Tout sélectionner"}
+                </button>
+                <button
+                  onClick={() => setDeleteConfirm({ type: "bulk" })}
+                  disabled={selected.size === 0}
+                  className="flex items-center gap-1 text-xs text-destructive font-semibold hover:underline disabled:opacity-40"
+                >
+                  <Trash2 size={14} /> Supprimer
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                {notifications.length > 0 && (
+                  <button onClick={() => setSelectMode(true)} className="text-xs text-foreground/70 font-semibold hover:text-foreground transition-colors">
+                    Sélectionner
+                  </button>
+                )}
+                {unreadCount > 0 && (
+                  <button onClick={() => markAllAsRead()} className="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+                    <Check size={14} /> {t("notif.markAllRead")}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+          <span className="greeting-bubble-xl mb-3">
+            <Bell size={18} className="text-primary" />
             {selectMode ? `${selected.size} sélectionnée${selected.size > 1 ? "s" : ""}` : t("notif.title")}
+          </span>
+          <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+            Restez informé<br />
+            <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">à chaque instant.</span>
           </h1>
-          {selectMode ? (
-            <div className="flex items-center gap-2">
-              <button onClick={selectAll} className="text-xs text-primary font-medium hover:underline">
-                {selected.size === filtered.length ? "Tout désélectionner" : "Tout sélectionner"}
-              </button>
-              <button
-                onClick={() => setDeleteConfirm({ type: "bulk" })}
-                disabled={selected.size === 0}
-                className="flex items-center gap-1 text-xs text-destructive font-medium hover:underline disabled:opacity-40"
-              >
-                <Trash2 size={14} /> Supprimer
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              {notifications.length > 0 && (
-                <button onClick={() => setSelectMode(true)} className="text-xs text-muted-foreground font-medium hover:text-foreground transition-colors">
-                  Sélectionner
-                </button>
-              )}
-              {unreadCount > 0 && (
-                <button onClick={() => markAllAsRead()} className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
-                  <Check size={14} /> {t("notif.markAllRead")}
-                </button>
-              )}
-            </div>
-          )}
+          <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
+            Toutes vos alertes, matchs et mises à jour réunies ✨
+          </p>
         </div>
+      </header>
+
+      <main className="page-content pt-6">
 
         {notifications.length > 0 && !selectMode && (
           <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
