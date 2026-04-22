@@ -381,7 +381,7 @@ export default function NotificationsPage() {
           </AnimatePresence>
           </div>
         )}
-      </div>
+      </main>
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
