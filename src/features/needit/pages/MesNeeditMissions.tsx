@@ -48,10 +48,10 @@ interface NeeditMission {
 }
 
 const statusLabels: Record<string, { label: string; bgClass: string; textColor: string }> = {
-  pending: { label: "En attente", bgClass: "bg-[#0D84FF]", textColor: "text-white" },
-  accepted: { label: "Acceptée", bgClass: "bg-[#30D158]", textColor: "text-white" },
-  completed: { label: "Terminée", bgClass: "bg-[#64748B]", textColor: "text-white" },
-  cancelled: { label: "Annulée", bgClass: "bg-[#FF453A]", textColor: "text-white" },
+  pending: { label: "En attente", bgClass: "bg-gradient-to-r from-primary to-secondary", textColor: "text-primary-foreground" },
+  accepted: { label: "Acceptée", bgClass: "bg-gradient-to-r from-emerald-500 to-teal-500", textColor: "text-white" },
+  completed: { label: "Terminée", bgClass: "bg-gradient-to-r from-slate-500 to-slate-600", textColor: "text-white" },
+  cancelled: { label: "Annulée", bgClass: "bg-gradient-to-r from-rose-500 to-red-500", textColor: "text-white" },
 };
 
 const getFilterTabs = (t: (k: string) => string) => [
