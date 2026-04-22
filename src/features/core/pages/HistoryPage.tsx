@@ -517,18 +517,54 @@ const HistoryPage = () => {
         )}
 
         {/* Search + Sort */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex-1 flex items-center gap-2 bg-muted rounded-2xl px-4 py-3">
-            <Search size={16} className="text-muted-foreground shrink-0" />
-            <input
-              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-              placeholder={t("history.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Rechercher des transactions"
-            />
+        <div className="relative mb-3">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <div className="flex items-center gap-2 bg-muted rounded-2xl px-4 py-3">
+                <Search size={16} className="text-muted-foreground shrink-0" />
+                <input
+                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-w-0"
+                  placeholder="Référence, destinataire, catégorie…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  aria-label="Rechercher dans mes envois"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="shrink-0 p-1 rounded-full hover:bg-background/60 text-muted-foreground"
+                    aria-label="Effacer la recherche"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+              {/* Suggestions */}
+              {suggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-popover border border-border rounded-xl shadow-lg overflow-hidden">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSearch(s)}
+                      className="w-full text-left px-4 py-2 text-xs text-foreground hover:bg-muted transition-colors flex items-center gap-2"
+                    >
+                      <Search size={11} className="text-muted-foreground" />
+                      <span className="truncate">{s}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <SortSelect value={historySort} onChange={setHistorySort} t={t} keys={["dateCreated", "price", "destination"]} />
           </div>
-          <SortSelect value={historySort} onChange={setHistorySort} t={t} keys={["dateCreated", "price", "destination"]} />
+          {hasActiveFilters && (
+            <button
+              onClick={clearAllFilters}
+              className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+            >
+              <X size={11} /> Effacer les filtres
+            </button>
+          )}
         </div>
 
         {/* AI filter pills */}
