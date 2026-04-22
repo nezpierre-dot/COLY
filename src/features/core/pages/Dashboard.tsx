@@ -34,6 +34,7 @@ import DemandeurOnboarding from "@/components/DemandeurOnboarding";
 import UserLevelBadge from "@/components/UserLevelBadge";
 import ConfettiCelebration from "@/components/ConfettiCelebration";
 import { useLevelUpCelebration } from "@/hooks/useLevelUpCelebration";
+import CategoryIcon from "@/components/CategoryIcon";
 
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import {
@@ -1243,8 +1244,9 @@ const Dashboard = () => {
                       <button key={m.id}
                         onClick={() => setAcceptDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission", isMatched: true })}
                         className="w-full text-left bg-accent/5 border border-accent/20 rounded-xl p-3 hover:bg-accent/10 hover:border-accent/40 transition-colors cursor-pointer">
-                        <div className="flex items-start justify-between">
-                          <div className="min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <CategoryIcon category={m.category_path} size={44} />
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 mb-0.5">
                               <span className="text-[9px] font-bold bg-accent/20 text-accent px-1.5 py-0.5 rounded-full shrink-0">MATCH</span>
                               <p className="font-semibold text-foreground text-sm truncate">
@@ -1278,8 +1280,9 @@ const Dashboard = () => {
                       <button key={m.id}
                         onClick={() => setCreateVoyageDialog({ type: "mission", id: m.id, label: m.product_name || m.category_path?.[m.category_path?.length - 1] || "Mission", country: m.country, city: m.city })}
                         className="w-full text-left bg-card rounded-xl px-3 py-2.5 border border-border hover:border-secondary/40 hover:bg-secondary/5 transition-colors cursor-pointer">
-                        <div className="flex items-start justify-between">
-                          <div className="min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <CategoryIcon category={m.category_path} size={40} />
+                          <div className="min-w-0 flex-1">
                             <p className="font-medium text-foreground text-sm truncate">
                               {m.product_name || m.category_path?.[m.category_path?.length - 1] || "—"}
                             </p>
