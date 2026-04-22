@@ -249,27 +249,62 @@ export default function NotificationsPage() {
       <main className="page-content pt-6">
 
         {notifications.length > 0 && !selectMode && (
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
-            {filterLabels.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
-                  filter === f.key
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
-                }`}
-              >
-                {f.icon}
-                {f.label}
-                {categoryCounts[f.key] > 0 && (
-                  <span className={`ml-0.5 text-[10px] ${filter === f.key ? "text-primary-foreground/80" : "text-muted-foreground/60"}`}>
-                    {categoryCounts[f.key]}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          <>
+            {/* Segmented sort/read filter */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 inline-flex bg-muted rounded-2xl p-1">
+                {([
+                  { key: "unread" as ReadFilter, label: `Non lues${unreadCount > 0 ? ` (${unreadCount})` : ""}` },
+                  { key: "all" as ReadFilter, label: "Toutes" },
+                  { key: "latest" as ReadFilter, label: "Dernières" },
+                ]).map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setReadFilter(opt.key)}
+                    className={`flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                      readFilter === opt.key
+                        ? "bg-foreground text-background shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {unreadCount > 0 && (
+                <button
+                  onClick={() => markAllAsRead()}
+                  className="shrink-0 inline-flex items-center gap-1 text-[11px] text-primary font-semibold hover:underline whitespace-nowrap"
+                  aria-label="Marquer tout comme lu"
+                >
+                  <Check size={12} /> Tout lire
+                </button>
+              )}
+            </div>
+
+            {/* Category filter chips */}
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
+              {filterLabels.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilter(f.key)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors border ${
+                    filter === f.key
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  {f.icon}
+                  {f.label}
+                  {categoryCounts[f.key] > 0 && (
+                    <span className={`ml-0.5 text-[10px] ${filter === f.key ? "text-primary-foreground/80" : "text-muted-foreground/60"}`}>
+                      {categoryCounts[f.key]}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </>
         )}
 
         {loading ? (
