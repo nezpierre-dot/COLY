@@ -199,28 +199,7 @@ const Welcome = () => {
           Connectez voyageurs et demandeurs en toute simplicité.
         </motion.p>
 
-        {/* Social proof */}
-        <motion.div
-          variants={item}
-          className="mt-5 sm:mt-6 flex items-center justify-center gap-3"
-          aria-label="2 500 utilisateurs nous font confiance"
-        >
-          <div className="flex -space-x-2" aria-hidden="true">
-            {[
-              "from-primary to-secondary",
-              "from-secondary to-accent",
-              "from-accent to-primary",
-            ].map((g, i) => (
-              <div
-                key={i}
-                className={`w-7 h-7 rounded-full bg-gradient-to-br ${g} ring-2 ring-background shadow-soft`}
-              />
-            ))}
-          </div>
-          <span className="text-xs font-medium text-foreground/70">
-            +2 500 utilisateurs nous font confiance
-          </span>
-        </motion.div>
+
 
         {/* Benefits row */}
         <motion.ul
