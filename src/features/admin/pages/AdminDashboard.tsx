@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Users, Package, Plane, ShoppingBag, Shield, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, LogOut, BarChart3, ArrowUpRight, ArrowDownRight, Eye, RefreshCw, ShieldAlert, Camera, Gavel, DollarSign, MessageSquare, Send, ImagePlus, Download, Headphones, X, Archive, Link2, Search, Settings, History } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +40,8 @@ const StatCard = ({ icon: Icon, label, value, trend, color = "primary" }: { icon
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "analytics";
   const { signOut } = useAuth();
   const { t } = useTranslation();
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -337,7 +339,7 @@ const AdminDashboard = () => {
           <StatCard icon={AlertTriangle} label={t("admin.kycPending")} value={stats?.kyc_pending ?? 0} color="secondary" />
         </div>
 
-        <Tabs defaultValue="analytics" className="space-y-4">
+        <Tabs value={initialTab} onValueChange={(v) => setSearchParams({ tab: v })} className="space-y-4">
           <TabsList className="w-full bg-muted/70 rounded-xl p-1 h-auto flex-wrap">
             <TabsTrigger value="analytics" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><BarChart3 size={13} className="mr-1" /> {t("admin.analytics")}</TabsTrigger>
             <TabsTrigger value="shipments" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Package size={13} className="mr-1" /> {t("admin.parcels")}</TabsTrigger>
