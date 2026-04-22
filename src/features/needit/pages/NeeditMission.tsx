@@ -24,14 +24,16 @@ import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 
-type CategoryNode = { label: string; children?: CategoryNode[]; };
+import { CATEGORIES as ICON_CATEGORIES } from "@/lib/categoryIcons";
 
-// Categories stay in French for now, or could be translated with keys
-const PRODUCT_CATEGORIES: CategoryNode[] = [
-  { label: "ALIMENTATION / BOISSONS", children: [{ label: "Épicerie fine" }, { label: "Produits secs / Conserves" }] },
-  { label: "HIGH-TECH / ÉLECTRONIQUE", children: [{ label: "Smartphones" }, { label: "Ordinateurs" }] },
-  // ... (rest of categories, simplified for brevity but logic handles full tree)
-];
+type CategoryNode = { label: string; icon?: string; children?: CategoryNode[]; };
+
+// Built from the centralized icon mapping so the visual grid stays in sync.
+const PRODUCT_CATEGORIES: CategoryNode[] = ICON_CATEGORIES.map((c) => ({
+  label: c.label,
+  icon: c.icon,
+  children: c.children,
+}));
 
 const fetchCountries = async (): Promise<string[]> => {
   try {
@@ -283,8 +285,63 @@ const NeeditMission = () => {
             )}
             {step === 2 && !isUnlisted && (
               <>
-                {categoryPath.length > 0 && <div className="space-y-2 mb-6">{categoryPath.map((node, i) => (<button key={i} onClick={() => { setCategoryPath((p) => p.slice(0, i + 1)); setSelectedLeaf(""); }} className="block w-full text-center py-3 border border-border rounded-xl text-sm font-medium text-foreground hover:bg-muted/50 transition-colors">{node.label}</button>))}</div>}
-                <div className="space-y-2 mb-6">{currentCategories().map((node) => (<button key={node.label} onClick={() => handleCategorySelect(node)} className={`block w-full text-center py-3 border rounded-xl text-sm font-medium transition-colors ${selectedLeaf === node.label ? "border-primary bg-primary/10 text-primary" : "border-border text-foreground hover:bg-muted/50"}`}>{node.label}</button>))}</div>
+                {categoryPath.length > 0 && (
+                  <div className="space-y-2 mb-6">
+                    {categoryPath.map((node, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setCategoryPath((p) => p.slice(0, i + 1)); setSelectedLeaf(""); }}
+                        className="flex items-center gap-3 w-full py-3 px-4 border border-border rounded-xl text-sm font-medium text-foreground hover:bg-muted/50 transition-colors"
+                      >
+                        {node.icon && <img src={node.icon} alt="" className="w-7 h-7 object-contain" />}
+                        <span className="flex-1 text-left">{node.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {categoryPath.length === 0 ? (
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    {currentCategories().map((node) => {
+                      const isSelected = selectedLeaf === node.label;
+                      return (
+                        <button
+                          key={node.label}
+                          onClick={() => handleCategorySelect(node)}
+                          className={`flex flex-col items-center justify-center gap-2 p-3 aspect-square rounded-2xl border transition-all ${
+                            isSelected
+                              ? "border-primary bg-primary/10 ring-2 ring-primary/30"
+                              : "border-border bg-card hover:border-primary/40 hover:bg-primary/5"
+                          }`}
+                        >
+                          {node.icon ? (
+                            <img src={node.icon} alt="" className="w-12 h-12 object-contain" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-lg bg-muted" />
+                          )}
+                          <span className="text-[11px] font-semibold text-foreground text-center leading-tight line-clamp-2">
+                            {node.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="space-y-2 mb-6">
+                    {currentCategories().map((node) => (
+                      <button
+                        key={node.label}
+                        onClick={() => handleCategorySelect(node)}
+                        className={`block w-full text-center py-3 border rounded-xl text-sm font-medium transition-colors ${
+                          selectedLeaf === node.label
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border text-foreground hover:bg-muted/50"
+                        }`}
+                      >
+                        {node.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <button onClick={() => { setIsUnlisted(true); setSelectedLeaf(""); setCategoryPath([]); }} className="w-full flex items-center justify-center gap-3 py-4 rounded-full bg-[hsl(var(--chart-4))] text-primary-foreground text-lg font-medium mb-4">{t("needit.unlistedProduct")} <ArrowRight size={20} /></button>
               </>
             )}
