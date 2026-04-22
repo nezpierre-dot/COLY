@@ -38,7 +38,7 @@ const AuthLayout = ({ title, subtitle, children }: AuthLayoutProps) => {
       {/* Header text */}
       <div className="relative z-10 px-6 pt-14 pb-8">
         {title && (
-          <h1 className="text-4xl font-bold leading-tight tracking-tight bg-gradient-to-br from-foreground via-foreground to-primary bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold leading-tight tracking-tight bg-gradient-to-br from-foreground via-foreground to-primary bg-clip-text text-transparent text-balance">
             {title}
           </h1>
         )}
