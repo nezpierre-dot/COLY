@@ -24,16 +24,22 @@ import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 
-import { CATEGORIES as ICON_CATEGORIES } from "@/lib/categoryIcons";
+import { CATEGORIES as ICON_CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey } from "@/lib/categoryIcons";
+import BrandPicker from "../components/BrandPicker";
+import BrandProductPicker from "../components/BrandProductPicker";
+import type { Brand, BrandProduct } from "../hooks/useBrandCatalog";
 
-type CategoryNode = { label: string; icon?: string; children?: CategoryNode[]; };
+type CategoryNode = { label: string; icon?: string; children?: CategoryNode[]; key?: CategoryKey };
 
 // Built from the centralized icon mapping so the visual grid stays in sync.
 const PRODUCT_CATEGORIES: CategoryNode[] = ICON_CATEGORIES.map((c) => ({
   label: c.label,
   icon: c.icon,
   children: c.children,
+  key: c.key,
 }));
+
+type BrandPhase = "categories" | "brands" | "products";
 
 const fetchCountries = async (): Promise<string[]> => {
   try {
