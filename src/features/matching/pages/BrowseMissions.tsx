@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { hapticMedium } from "@/lib/haptics";
 import VoyageurAvailability from "@/components/VoyageurAvailability";
+import CategoryIcon from "@/components/CategoryIcon";
 
 interface PendingShipment {
   id: string;
@@ -489,9 +490,13 @@ const BrowseMissions = () => {
                       <motion.div key={m.id} variants={staggerItem} className="bg-card border border-border rounded-2xl p-4">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            {m.photo_url && <img src={m.photo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />}
+                            {m.photo_url ? (
+                              <img src={m.photo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                            ) : (
+                              <CategoryIcon category={m.category_path} size={40} />
+                            )}
                             <div>
-                              <p className="text-sm font-semibold text-foreground">{m.product_name || "Mission NeedIt"}</p>
+                              <p className="text-sm font-semibold text-foreground">{m.product_name || m.category_path?.[m.category_path.length - 1] || "Mission NeedIt"}</p>
                               <p className="text-xs text-muted-foreground flex items-center gap-1">
                                 <MapPin size={10} /> {m.city || m.country}
                               </p>

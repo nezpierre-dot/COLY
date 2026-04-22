@@ -397,13 +397,15 @@ const MesNeeditMissions = () => {
                         className="bg-white dark:bg-[#1A1F2E] border border-[#E2E8F0] dark:border-[#2A3245] rounded-2xl p-5 shadow-sm cursor-pointer active:scale-[0.98] transition-transform relative z-10"
                       >
                       <div className="flex items-start gap-3">
-                        {/* Product image */}
-                        {m.photo_url && (
+                        {/* Product image (or category icon fallback) */}
+                        {m.photo_url ? (
                           <img
                             src={m.photo_url}
                             alt="Produit"
                             className="w-[68px] h-[68px] rounded-xl object-cover shrink-0"
                           />
+                        ) : (
+                          <CategoryIcon category={m.category_path} size={68} />
                         )}
 
                         <div className="flex-1 min-w-0">
