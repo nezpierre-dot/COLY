@@ -137,7 +137,7 @@ const FavoritesPage = () => {
             )}
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
       <BottomNav />
     </div>
   );
