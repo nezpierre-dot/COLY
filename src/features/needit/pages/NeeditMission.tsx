@@ -270,12 +270,19 @@ const NeeditMission = () => {
         // Inject brand into the path so DB has full hierarchy: Category > Brand > Product
         if (selectedBrand) pathLabels.push(selectedBrand.name);
         if (selectedLeaf) pathLabels.push(selectedLeaf);
-        const finalProductName = isUnlisted
+        const qty = Math.max(1, parseInt(quantity || "1") || 1);
+        const baseName = isUnlisted
           ? unlistedName
           : selectedBrand
             ? `${selectedBrand.name} ${selectedLeaf}`.trim()
             : selectedLeaf;
-        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: finalProductName, is_unlisted: isUnlisted, unlisted_description: isUnlisted ? unlistedName : null, photo_url: photo_url ?? photoPreview ?? selectedBrandProduct?.product.photo_url ?? null, dimension: dimension || null, poids: poids || null, prix_max: finalPrixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
+        const finalProductName = qty > 1 ? `${qty}× ${baseName}` : baseName;
+        // Merge user comments into unlisted_description so we don't need a schema change
+        const mergedDescription = [
+          isUnlisted ? unlistedName : null,
+          comments.trim() ? `Commentaires : ${comments.trim()}` : null,
+        ].filter(Boolean).join("\n\n") || null;
+        const missionData = { country: pays, city: ville || null, timing, category_path: pathLabels.length > 0 ? pathLabels : undefined, product_name: finalProductName, is_unlisted: isUnlisted, unlisted_description: mergedDescription, photo_url: photo_url ?? photoPreview ?? selectedBrandProduct?.product.photo_url ?? null, dimension: dimension || null, poids: poids || null, prix_max: finalPrixMax || null, ean_code: eanCode || null, auto_accept: autoAccept, pickup_address: pickupAddress || null, pickup_access_code: pickupAccessCode || null };
         if (editId) {
           await supabase.from("needit_missions").update(missionData as any).eq("id", editId).eq("user_id", user.id);
           successFeedback(t("needit.missionUpdated"), { description: t("needit.missionUpdatedDesc") });
@@ -936,10 +943,32 @@ const NeeditMission = () => {
             )}
               </motion.div>
             </AnimatePresence>
-            <div className="flex items-center justify-between pt-4">
-              <button onClick={handleBack} className="text-lg text-muted-foreground hover:text-foreground transition-colors">{t("common.back")}</button>
-              <button onClick={handleNext} disabled={submitting} className="flex items-center gap-2 px-8 py-3 rounded-full text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50" style={{ backgroundColor: "#30D158" }}>{submitting ? <Loader2 size={20} className="animate-spin" /> : <>{step === 4 ? (editId ? t("needit.save") : t("needit.validate")) : t("common.next")} <ArrowRight size={20} /></>}</button>
-            </div>
+            {step === 4 ? (
+              <div className="pt-4 space-y-3">
+                <button
+                  onClick={handleNext}
+                  disabled={submitting}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-primary-foreground text-base font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  {submitting ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <>{editId ? t("needit.save") : "Créer ma mission NeedIt"} <ArrowRight size={20} /></>
+                  )}
+                </button>
+                <button
+                  onClick={handleBack}
+                  className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors py-2"
+                >
+                  {t("common.back")}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between pt-4">
+                <button onClick={handleBack} className="text-lg text-muted-foreground hover:text-foreground transition-colors">{t("common.back")}</button>
+                <button onClick={handleNext} disabled={submitting} className="flex items-center gap-2 px-8 py-3 rounded-full text-white text-lg font-medium hover:opacity-90 transition-opacity shadow-lg disabled:opacity-50" style={{ backgroundColor: "#30D158" }}>{submitting ? <Loader2 size={20} className="animate-spin" /> : <>{t("common.next")} <ArrowRight size={20} /></>}</button>
+              </div>
+            )}
           </>
         )}
       </div>
