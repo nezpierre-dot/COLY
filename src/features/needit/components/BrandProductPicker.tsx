@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { Search, Loader2, Package, ImageOff } from "lucide-react";
+import { Search, Loader2, Package, ChevronRight, PenLine } from "lucide-react";
 import { motion } from "framer-motion";
 import { useBrandProducts, type Brand, type BrandProduct } from "../hooks/useBrandCatalog";
+import BrandImage from "./BrandImage";
 
 interface Props {
   brand: Brand;
