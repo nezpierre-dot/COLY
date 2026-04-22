@@ -80,6 +80,89 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_products: {
+        Row: {
+          brand_id: string
+          created_at: string
+          description: string | null
+          id: string
+          indicative_price: string | null
+          name: string
+          photo_url: string | null
+          sort_order: number
+          updated_at: string
+          variants: string[]
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          indicative_price?: string | null
+          name: string
+          photo_url?: string | null
+          sort_order?: number
+          updated_at?: string
+          variants?: string[]
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          indicative_price?: string | null
+          name?: string
+          photo_url?: string | null
+          sort_order?: number
+          updated_at?: string
+          variants?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brands: {
+        Row: {
+          category_key: string
+          created_at: string
+          id: string
+          is_popular: boolean
+          logo_url: string | null
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category_key: string
+          created_at?: string
+          id?: string
+          is_popular?: boolean
+          logo_url?: string | null
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category_key?: string
+          created_at?: string
+          id?: string
+          is_popular?: boolean
+          logo_url?: string | null
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cancelled_matches_archive: {
         Row: {
           arrival_city: string | null
