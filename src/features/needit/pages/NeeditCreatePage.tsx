@@ -463,6 +463,7 @@ const NeeditCreatePage = () => {
                 </TooltipProvider>
               </span>
             }
+            error={budgetMode === "fixed" ? showErr("budget") : null}
           >
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-2">
@@ -495,7 +496,13 @@ const NeeditCreatePage = () => {
                     placeholder="0"
                     value={budget}
                     onChange={(e) => setBudget(e.target.value)}
-                    className="h-14 text-2xl font-bold text-foreground bg-card rounded-2xl border-border pr-14 pl-5 focus-visible:ring-2 focus-visible:ring-primary/30"
+                    onBlur={() => markTouched("budget")}
+                    aria-invalid={!!showErr("budget")}
+                    min={0}
+                    max={10000}
+                    className={`h-14 text-2xl font-bold text-foreground bg-card rounded-2xl pr-14 pl-5 focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                      showErr("budget") ? "border-destructive focus-visible:ring-destructive/30" : "border-border"
+                    }`}
                   />
                   <span className="absolute right-5 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">
                     {currency.symbol}
@@ -509,13 +516,20 @@ const NeeditCreatePage = () => {
           <Field
             label="Commentaires / Instructions"
             icon={<MessageSquare size={14} className="text-primary" />}
+            error={showErr("comments")}
+            hint={`${comments.length}/${COMMENTS_MAX} caractères`}
           >
             <textarea
               value={comments}
-              onChange={(e) => setComments(e.target.value)}
+              onChange={(e) => setComments(e.target.value.slice(0, COMMENTS_MAX))}
+              onBlur={() => markTouched("comments")}
+              aria-invalid={!!showErr("comments")}
+              maxLength={COMMENTS_MAX}
               placeholder="Ex : emballage renforcé, livraison en main propre, alternative si rupture…"
               rows={4}
-              className="w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 resize-none transition-colors"
+              className={`w-full rounded-2xl border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 resize-none transition-colors ${
+                showErr("comments") ? "border-destructive" : "border-border"
+              }`}
             />
           </Field>
         </div>
