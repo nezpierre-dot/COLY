@@ -368,9 +368,7 @@ const ConversationsPage = () => {
           </label>
 
           {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
+            <ListItemSkeleton count={4} />
           ) : conversations.length === 0 ? (
             <EmptyState
               icon={MessageCircle}
