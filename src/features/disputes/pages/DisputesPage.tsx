@@ -36,6 +36,31 @@ const DisputesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
+
+  const DEMANDEUR_REASONS = DEMANDEUR_REASON_VALUES.map(v => ({ value: v, label: t(`disputes.reason.${v}`) }));
+  const VOYAGEUR_REASONS = VOYAGEUR_REASON_VALUES.map(v => ({ value: v, label: t(`disputes.reason.${v}`) }));
+  const ALL_REASONS = [...DEMANDEUR_REASONS, ...VOYAGEUR_REASONS];
+
+  const formatTime = (d: string) => {
+    try {
+      return new Date(d).toLocaleDateString(localeTag, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    } catch { return d; }
+  };
+
+  const statusLabel = (s: string) => {
+    const map: Record<string, { key: string; cls: string }> = {
+      open: { key: "disputes.dStatus.open", cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
+      investigating: { key: "disputes.dStatus.investigating", cls: "bg-primary/10 text-primary" },
+      escalated: { key: "disputes.dStatus.escalated", cls: "bg-destructive/10 text-destructive" },
+      resolved: { key: "disputes.dStatus.resolved", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
+      refunded: { key: "disputes.dStatus.refunded", cls: "bg-accent/10 text-accent-foreground" },
+    };
+    const c = map[s] || { key: "", cls: "bg-muted text-muted-foreground" };
+    return <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${c.cls}`}>{c.key ? t(c.key) : s}</span>;
+  };
+
   const [shipments, setShipments] = useState<UserShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState("");
   const [reason, setReason] = useState("");
