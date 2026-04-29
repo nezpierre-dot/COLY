@@ -8,11 +8,23 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const VAPID_PUBLIC = Deno.env.get("VAPID_PUBLIC_KEY")!;
-const VAPID_PRIVATE = Deno.env.get("VAPID_PRIVATE_KEY")!;
+const VAPID_PUBLIC = Deno.env.get("VAPID_PUBLIC_KEY") || "";
+const VAPID_PRIVATE = Deno.env.get("VAPID_PRIVATE_KEY") || "";
 const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") || "mailto:contact@nidit.fr";
 
-webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+let vapidReady = false;
+let vapidError: string | null = null;
+try {
+  if (VAPID_PUBLIC && VAPID_PRIVATE) {
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+    vapidReady = true;
+  } else {
+    vapidError = "VAPID keys missing";
+  }
+} catch (e: any) {
+  vapidError = e?.message || "VAPID init failed";
+  console.error("VAPID init error:", vapidError);
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,6 +39,14 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "user_id and title required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (!vapidReady) {
+      console.warn("send-push skipped:", vapidError);
+      return new Response(
+        JSON.stringify({ sent: 0, skipped: true, reason: vapidError }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
