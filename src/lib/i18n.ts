@@ -3620,24 +3620,6 @@ const ar: TranslationDict = {
   "notif.support_closed.title": "تم إغلاق التذكرة ✅",
   "notif.support_closed.message": "تم إغلاق تذكرتك «{{subject}}».",
 
-};
-
-export const dictionaries: Record<AppLocale, TranslationDict> = { fr, en, es, de, pt, it, ar };
-
-/**
- * Get a translated string. Falls back to French if key not found in target locale.
- */
-export const translate = (key: string, locale?: AppLocale): string => {
-  const lang = locale ?? getPreferredLanguage();
-  return dictionaries[lang]?.[key] ?? dictionaries.fr[key] ?? key;
-};
-
-/**
- * Returns a `t` function bound to the current language.
- */
-export const getT = (locale?: AppLocale) => {
-  const lang = locale ?? getPreferredLanguage();
-  return (key: string): string => dictionaries[lang]?.[key] ?? dictionaries.fr[key] ?? key;
   "notFound.title": "عذرًا! الصفحة غير موجودة",
   "notFound.home": "العودة إلى الرئيسية",
   "publicCommon.createAccount": "إنشاء حساب",
@@ -3745,4 +3727,22 @@ export const getT = (locale?: AppLocale) => {
   "publicLanding.ctaDesc": "تسجيل مجاني في 30 ثانية. بلا اشتراك، دفع آمن بضمان.",
   "publicLanding.createAccount": "إنشاء حسابي",
   "publicLanding.continueAsGuest": "المتابعة كزائر",
+};
+
+export const dictionaries: Record<AppLocale, TranslationDict> = { fr, en, es, de, pt, it, ar };
+
+/**
+ * Get a translated string. Falls back to French if key not found in target locale.
+ */
+export const translate = (key: string, locale?: AppLocale): string => {
+  const lang = locale ?? getPreferredLanguage();
+  return dictionaries[lang]?.[key] ?? dictionaries.fr[key] ?? key;
+};
+
+/**
+ * Returns a `t` function bound to the current language.
+ */
+export const getT = (locale?: AppLocale) => {
+  const lang = locale ?? getPreferredLanguage();
+  return (key: string): string => dictionaries[lang]?.[key] ?? dictionaries.fr[key] ?? key;
 };
