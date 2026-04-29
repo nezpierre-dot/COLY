@@ -1,6 +1,6 @@
-import { useEffect, useState, useLayoutEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, X, Wallet, Send, Repeat, Sparkles } from "lucide-react";
+import { useEffect, useState, useLayoutEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ArrowRight, ArrowLeft, X, Wallet, Send, Repeat, Sparkles } from "lucide-react";
 import { createPortal } from "react-dom";
 
 export interface CoachStep {
