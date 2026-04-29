@@ -57,6 +57,9 @@ verify_jwt = false
 [functions.send-push]
 verify_jwt = false
 
+[functions.log-client-error]
+verify_jwt = false
+
 [functions.og-meta]
 verify_jwt = false
 
