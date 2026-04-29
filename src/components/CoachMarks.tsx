@@ -1,6 +1,6 @@
 import { useEffect, useState, useLayoutEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ArrowRight, ArrowLeft, X, Wallet, Send, Repeat, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, X, Wallet, Send, Repeat, Sparkles, Plane, Euro, ListChecks, Coins, History } from "lucide-react";
 import { createPortal } from "react-dom";
 
 export interface CoachStep {
@@ -288,6 +288,44 @@ export const dashboardCoachSteps: CoachStep[] = [
     title: "Devenez voyageur",
     description: "Basculez vers le mode Voyageur pour gagner de l'argent en transportant des colis sur vos trajets.",
     icon: <Repeat size={18} />,
+  },
+];
+
+// New Trip (voyageur) coach steps
+export const newTripCoachSteps: CoachStep[] = [
+  {
+    selector: "[data-coach='trip-route']",
+    title: "Définissez votre trajet",
+    description: "Renseignez vos villes de départ et d'arrivée. Plus c'est précis, mieux les demandeurs vous trouvent.",
+    icon: <Plane size={18} />,
+  },
+  {
+    selector: "[data-coach='trip-capacity']",
+    title: "Votre capacité",
+    description: "Indiquez le poids et le nombre de colis que vous pouvez transporter. Vous recevrez les demandes correspondantes.",
+    icon: <ListChecks size={18} />,
+  },
+  {
+    selector: "[data-coach='trip-earnings']",
+    title: "Estimation des gains",
+    description: "Une estimation de revenus est calculée selon votre trajet et la capacité disponible.",
+    icon: <Euro size={18} />,
+  },
+];
+
+// Wallet / Solde coach steps
+export const walletCoachSteps: CoachStep[] = [
+  {
+    selector: "[data-coach='wallet-balance']",
+    title: "Votre solde",
+    description: "C'est l'argent disponible : gains de transport encaissés moins vos dépenses d'envoi.",
+    icon: <Coins size={18} />,
+  },
+  {
+    selector: "[data-coach='wallet-history']",
+    title: "Historique des transactions",
+    description: "Toutes vos opérations passées sont listées ici. Cliquez pour voir le détail de chaque ligne.",
+    icon: <History size={18} />,
   },
 ];
 
