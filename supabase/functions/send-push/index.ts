@@ -42,6 +42,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (!vapidReady) {
+      console.warn("send-push skipped:", vapidError);
+      return new Response(
+        JSON.stringify({ sent: 0, skipped: true, reason: vapidError }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
