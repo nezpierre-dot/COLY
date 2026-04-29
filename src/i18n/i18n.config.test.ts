@@ -54,9 +54,9 @@ describe("i18next runtime", () => {
   it("falls back to French when a key is missing in the active locale", async () => {
     // "ar" only contains a small subset → most keys must fall back to FR.
     await i18n.changeLanguage("ar");
-    // "common.save" is not in ar dict but exists in fr.
-    const value = i18n.t("common.save");
-    expect(value).toBe("Enregistrer");
+    // "dashboard.recentActivity" is not in ar dict but exists in fr.
+    const value = i18n.t("dashboard.recentActivity");
+    expect(value).toBe("Activité récente");
   });
 
   it("returns the raw key only when no language has it", async () => {
@@ -96,7 +96,7 @@ describe("legacy helpers backwards-compat", () => {
   });
 
   it("translate() falls back to FR for partial locales", () => {
-    // ar only has a tiny subset → "common.save" must fall back to FR
-    expect(translate("common.save", "ar")).toBe("Enregistrer");
+    // dashboard.recentActivity only exists in FR — must fall back even when ar requested
+    expect(translate("dashboard.recentActivity", "ar")).toBe("Activité récente");
   });
 });
