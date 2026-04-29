@@ -1,5 +1,4 @@
 import { useState, lazy, Suspense, type ReactNode } from "react";
-import { useAutoLogout } from "@/hooks/useAutoLogout";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
