@@ -2360,7 +2360,7 @@ const ar: TranslationDict = {
   "missions.title": "مهامي NeedIt",
 };
 
-const dictionaries: Record<AppLocale, TranslationDict> = { fr, en, es, de, pt, it, ar };
+export const dictionaries: Record<AppLocale, TranslationDict> = { fr, en, es, de, pt, it, ar };
 
 /**
  * Get a translated string. Falls back to French if key not found in target locale.
