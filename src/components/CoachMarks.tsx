@@ -1,6 +1,6 @@
-import { useEffect, useState, useLayoutEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, X, Wallet, Send, Repeat, Sparkles } from "lucide-react";
+import { useEffect, useState, useLayoutEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ArrowRight, ArrowLeft, X, Wallet, Send, Repeat, Sparkles } from "lucide-react";
 import { createPortal } from "react-dom";
 
 export interface CoachStep {
@@ -27,14 +27,18 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
   const [visible, setVisible] = useState(false);
   const [stepIdx, setStepIdx] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const nextBtnRef = useRef<HTMLButtonElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   // Defer mount until target is in DOM
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (localStorage.getItem(storageKey) === "1") return;
-    const t = window.setTimeout(() => setVisible(true), delay);
+    const t = window.setTimeout(() => setVisible(true), prefersReducedMotion ? 0 : delay);
     return () => window.clearTimeout(t);
-  }, [storageKey, delay]);
+  }, [storageKey, delay, prefersReducedMotion]);
 
   const measure = useCallback(() => {
     if (!visible) return;
@@ -45,10 +49,12 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
       setRect(null);
       return;
     }
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    // Wait a tick for scroll then measure
-    window.setTimeout(() => setRect(el.getBoundingClientRect()), 280);
-  }, [visible, stepIdx, steps]);
+    el.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "center",
+    });
+    window.setTimeout(() => setRect(el.getBoundingClientRect()), prefersReducedMotion ? 0 : 280);
+  }, [visible, stepIdx, steps, prefersReducedMotion]);
 
   useLayoutEffect(() => {
     if (!visible) return;
@@ -61,16 +67,64 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
     };
   }, [measure, visible]);
 
-  const finish = () => {
+  const finish = useCallback(() => {
     localStorage.setItem(storageKey, "1");
     setVisible(false);
     onComplete?.();
-  };
+    previousFocusRef.current?.focus?.();
+  }, [storageKey, onComplete]);
 
-  const next = () => {
-    if (stepIdx < steps.length - 1) setStepIdx((i) => i + 1);
-    else finish();
-  };
+  const next = useCallback(() => {
+    setStepIdx((i) => {
+      if (i < steps.length - 1) return i + 1;
+      finish();
+      return i;
+    });
+  }, [steps.length, finish]);
+
+  const prev = useCallback(() => {
+    setStepIdx((i) => Math.max(0, i - 1));
+  }, []);
+
+  // Mémorise focus avant ouverture, focus auto sur "Suivant"
+  useEffect(() => {
+    if (!visible) return;
+    previousFocusRef.current = (document.activeElement as HTMLElement) ?? null;
+    const t = window.setTimeout(() => nextBtnRef.current?.focus(), 50);
+    return () => window.clearTimeout(t);
+  }, [visible]);
+
+  // Esc / flèches / Tab loop
+  useEffect(() => {
+    if (!visible) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        finish();
+      } else if (e.key === "ArrowRight" || e.key === "Enter") {
+        if ((e.target as HTMLElement)?.tagName === "INPUT" || (e.target as HTMLElement)?.tagName === "TEXTAREA") return;
+        e.preventDefault();
+        next();
+      } else if (e.key === "ArrowLeft") {
+        if ((e.target as HTMLElement)?.tagName === "INPUT" || (e.target as HTMLElement)?.tagName === "TEXTAREA") return;
+        e.preventDefault();
+        prev();
+      } else if (e.key === "Tab") {
+        const focusables = [nextBtnRef.current, closeBtnRef.current].filter(
+          Boolean,
+        ) as HTMLElement[];
+        if (focusables.length === 0) return;
+        const active = document.activeElement as HTMLElement | null;
+        const idx = active ? focusables.indexOf(active) : -1;
+        const dir = e.shiftKey ? -1 : 1;
+        const nextIdx = (idx + dir + focusables.length) % focusables.length;
+        e.preventDefault();
+        focusables[nextIdx]?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [visible, finish, next, prev]);
 
   if (!visible) return null;
   const current = steps[stepIdx];
@@ -92,36 +146,55 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
       : { top: rect.bottom + 16, left: Math.max(16, Math.min(window.innerWidth - 320 - 16, rect.left)) };
   }
 
+  const motionInitial = prefersReducedMotion ? false : { opacity: 0 };
+  const motionAnimate = prefersReducedMotion ? { opacity: 1 } : { opacity: 1 };
+  const cardInitial = prefersReducedMotion ? false : { opacity: 0, y: 12, scale: 0.96 };
+  const cardAnimate = prefersReducedMotion
+    ? { opacity: 1, y: 0, scale: 1 }
+    : { opacity: 1, y: 0, scale: 1 };
+  const cardExit = prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.96 };
+  const cardTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 320, damping: 28 };
+
   return createPortal(
     <AnimatePresence>
       <motion.div
         key="coach-overlay"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={motionInitial}
+        animate={motionAnimate}
         exit={{ opacity: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : undefined}
         className="fixed inset-0 z-[200] pointer-events-auto"
         aria-modal="true"
         role="dialog"
         aria-label="Visite guidée"
+        aria-describedby="coach-desc"
       >
         {/* Dim backdrop */}
-        <div className="absolute inset-0 bg-black/65 backdrop-blur-[2px]" onClick={finish} />
+        <div
+          className="absolute inset-0 bg-black/65 backdrop-blur-[2px]"
+          onClick={finish}
+          aria-hidden="true"
+        />
 
         {/* Highlight cutout */}
         {highlightStyle && (
           <div
             style={highlightStyle}
-            className="absolute pointer-events-none rounded-2xl ring-4 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.65)] transition-all duration-300"
+            className={`absolute pointer-events-none rounded-2xl ring-4 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.65)] ${
+              prefersReducedMotion ? "" : "transition-all duration-300"
+            }`}
           />
         )}
 
         {/* Tooltip card */}
         <motion.div
           key={stepIdx}
-          initial={{ opacity: 0, y: 12, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 12, scale: 0.96 }}
-          transition={{ type: "spring", stiffness: 320, damping: 28 }}
+          initial={cardInitial}
+          animate={cardAnimate}
+          exit={cardExit}
+          transition={cardTransition}
           style={tooltipStyle}
           className="absolute w-[300px] max-w-[calc(100vw-32px)] bg-card border border-border rounded-2xl shadow-2xl p-4 pointer-events-auto"
         >
@@ -134,34 +207,60 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   {stepIdx + 1} / {steps.length}
                 </p>
-                <button onClick={finish} aria-label="Passer" className="text-muted-foreground hover:text-foreground transition-colors">
+                <button
+                  ref={closeBtnRef}
+                  onClick={finish}
+                  aria-label="Passer la visite guidée (Échap)"
+                  className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-2 focus-visible:outline-primary"
+                >
                   <X size={14} />
                 </button>
               </div>
               <h3 className="text-sm font-bold text-foreground">{current.title}</h3>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{current.description}</p>
+              <p id="coach-desc" className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                {current.description}
+              </p>
             </div>
           </div>
 
           {/* Progress dots + CTA */}
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex gap-1.5">
+          <div className="mt-4 flex items-center justify-between gap-2">
+            <div className="flex gap-1.5" aria-hidden="true">
               {steps.map((_, i) => (
                 <span
                   key={i}
-                  className={`h-1.5 rounded-full transition-all ${
+                  className={`h-1.5 rounded-full ${prefersReducedMotion ? "" : "transition-all"} ${
                     i === stepIdx ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
                   }`}
                 />
               ))}
             </div>
-            <button
-              onClick={next}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 active:scale-95 transition-all"
-            >
-              {stepIdx === steps.length - 1 ? "Terminer" : "Suivant"}
-              <ArrowRight size={12} />
-            </button>
+            <div className="flex items-center gap-1.5">
+              {stepIdx > 0 && (
+                <button
+                  onClick={prev}
+                  aria-label="Étape précédente (←)"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-muted text-foreground text-xs font-medium hover:bg-muted/80 transition-colors"
+                >
+                  <ArrowLeft size={12} />
+                </button>
+              )}
+              <button
+                ref={nextBtnRef}
+                onClick={next}
+                aria-label={
+                  stepIdx === steps.length - 1
+                    ? "Terminer la visite (Entrée)"
+                    : "Étape suivante (→ ou Entrée)"
+                }
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 ${
+                  prefersReducedMotion ? "" : "active:scale-95"
+                } transition-all`}
+              >
+                {stepIdx === steps.length - 1 ? "Terminer" : "Suivant"}
+                <ArrowRight size={12} />
+              </button>
+            </div>
           </div>
         </motion.div>
       </motion.div>
