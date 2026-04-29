@@ -18,13 +18,27 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      // CRITICAL: Disable SW in dev so it never runs in the Lovable preview iframe.
+      devOptions: {
+        enabled: false,
+      },
       includeAssets: ["favicon.ico", "icons/*.png"],
       workbox: {
-        // Never cache OAuth redirects
-        navigateFallbackDenylist: [/^\/~oauth/],
-        // Cache strategies
+        // Never cache OAuth redirects nor internal helper routes
+        navigateFallbackDenylist: [/^\/~oauth/, /^\/sw\.js/, /^\/service-worker\.js/],
+        // Always revalidate the HTML shell — never lock devices on a stale build
         runtimeCaching: [
           {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-shell",
+              networkTimeoutSeconds: 3,
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 },
+            },
+          },
+          {
+            // Supabase API: NetworkFirst with a tiny offline fallback window
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: "NetworkFirst",
             options: {
@@ -34,11 +48,21 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /\.(png|jpg|jpeg|svg|gif|webp)$/i,
-            handler: "CacheFirst",
+            // Static images: stale-while-revalidate is safer than CacheFirst (auto-refreshes silently)
+            urlPattern: /\.(png|jpg|jpeg|svg|gif|webp|avif)$/i,
+            handler: "StaleWhileRevalidate",
             options: {
               cacheName: "image-cache",
               expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          {
+            // Fonts
+            urlPattern: /\.(woff2?|ttf|otf)$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "font-cache",
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
           },
         ],
@@ -55,33 +79,12 @@ export default defineConfig(({ mode }) => ({
         start_url: "/",
         lang: "fr",
         icons: [
-          {
-            src: "/icons/pwa-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "/icons/pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "/icons/pwa-maskable-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
+          { src: "/icons/pwa-192x192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/icons/pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "/icons/pwa-maskable-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
         screenshots: [
-          {
-            src: "/icons/pwa-512x512.png",
-            sizes: "512x512",
-            type: "image/png",
-            form_factor: "narrow",
-            label: "Nidit Dashboard",
-          },
+          { src: "/icons/pwa-512x512.png", sizes: "512x512", type: "image/png", form_factor: "narrow", label: "Nidit Dashboard" },
         ],
         categories: ["travel", "shopping", "logistics"],
       },
@@ -90,25 +93,39 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-query': ['@tanstack/react-query'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-ui': ['framer-motion', 'sonner', 'recharts'],
-          'vendor-map': ['mapbox-gl', 'react-map-gl'],
-          'vendor-radix': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-accordion',
-          ],
+        manualChunks(id) {
+          // Vendor chunks
+          if (id.includes("node_modules")) {
+            if (id.includes("react-router") || id.includes("/react/") || id.includes("/react-dom/")) return "vendor-react";
+            if (id.includes("@tanstack")) return "vendor-query";
+            if (id.includes("@supabase")) return "vendor-supabase";
+            if (id.includes("framer-motion")) return "vendor-motion";
+            if (id.includes("recharts")) return "vendor-charts";
+            if (id.includes("mapbox-gl") || id.includes("react-map-gl")) return "vendor-map";
+            if (id.includes("@radix-ui")) return "vendor-radix";
+            if (id.includes("date-fns")) return "vendor-dates";
+            if (id.includes("lucide-react")) return "vendor-icons";
+            if (id.includes("sonner")) return "vendor-toast";
+            return "vendor";
+          }
+          // Feature-based chunks (loaded only when needed)
+          if (id.includes("/features/admin/")) return "feature-admin";
+          if (id.includes("/features/finance/")) return "feature-finance";
+          if (id.includes("/features/needit/")) return "feature-needit";
+          if (id.includes("/features/voyage/")) return "feature-voyage";
+          if (id.includes("/features/shipment/")) return "feature-shipment";
+          if (id.includes("/features/chat/")) return "feature-chat";
+          if (id.includes("/features/tracking/")) return "feature-tracking";
+          if (id.includes("/features/disputes/")) return "feature-disputes";
+          if (id.includes("/features/support/")) return "feature-support";
+          if (id.includes("/features/legal/")) return "feature-legal";
+          if (id.includes("/features/auth/")) return "feature-auth";
+          if (id.includes("/features/account/")) return "feature-account";
         },
       },
     },
+    // Larger threshold to silence warnings for our intentional vendor splits
+    chunkSizeWarningLimit: 800,
   },
   resolve: {
     alias: {
