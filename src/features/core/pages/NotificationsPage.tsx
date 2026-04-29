@@ -2,7 +2,12 @@ import { ArrowLeft, Check, Trash2, Info, CheckCircle2, AlertTriangle, XCircle, I
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS, es, de, pt, it, arSA } from "date-fns/locale";
+
+const dateLocaleMap: Record<string, typeof fr> = {
+  fr, en: enUS as typeof fr, es: es as typeof fr, de: de as typeof fr,
+  pt: pt as typeof fr, it: it as typeof fr, ar: arSA as typeof fr,
+};
 import BottomNav from "@/components/BottomNav";
 import SwipeToDelete from "@/components/SwipeToDelete";
 import PullToRefresh from "@/components/PullToRefresh";
@@ -112,7 +117,7 @@ const getNotifLink = (type: string): string | null => {
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead, deleteNotification, refresh } = useNotifications();
 
   const [filter, setFilter] = useState<NotifFilter>("all");
@@ -421,7 +426,7 @@ export default function NotificationsPage() {
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm ${!n.is_read ? "font-semibold text-foreground" : "text-foreground/80"}`}>{n.title}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">{n.message}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: dateLocaleMap[language] ?? fr })}</p>
                       </div>
                       {!selectMode && (
                         <div className="flex items-center gap-1 shrink-0 mt-1">
