@@ -70,6 +70,7 @@ const PublicExplore = lazy(() => import("./features/core/pages/PublicExplore"));
 const PublicVoyageDetail = lazy(() => import("./features/core/pages/PublicVoyageDetail"));
 const PublicMissionDetail = lazy(() => import("./features/core/pages/PublicMissionDetail"));
 const PublicShipmentDetail = lazy(() => import("./features/core/pages/PublicShipmentDetail"));
+const HowItWorks = lazy(() => import("./features/core/pages/HowItWorks"));
 
 const queryClient = new QueryClient();
 
@@ -155,6 +156,7 @@ const App = () => {
                     <Route path="/test-live-location" element={<ProtectedRoute><TestLiveLocation /></ProtectedRoute>} />
                     {/* --- Public guest mode (no login required) --- */}
                     <Route path="/decouvrir" element={<PublicLanding />} />
+                    <Route path="/comment-ca-marche" element={<HowItWorks />} />
                     <Route path="/explore" element={<PublicExplore />} />
                     <Route path="/trajet/:id" element={<PublicVoyageDetail />} />
                     <Route path="/needit/:id" element={<PublicMissionDetail />} />
