@@ -651,8 +651,46 @@ const HistoryPage = () => {
             aria-label="Liste des transactions"
           >
             {filtered.length === 0 ? (
-              <li className="text-center py-12">
-                <p className="text-muted-foreground text-sm">{t("history.noResultFilter")}</p>
+              <li>
+                {allData.length === 0 ? (
+                  <EmptyState
+                    icon={Send}
+                    title="Aucun envoi pour le moment"
+                    description="Créez votre premier envoi ou mission NeedIt et suivez ici toutes vos transactions."
+                    action={
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <button
+                          onClick={() => navigate("/send-coly")}
+                          className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg inline-flex items-center justify-center gap-1.5"
+                        >
+                          <Plus size={16} /> Créer mon premier envoi
+                        </button>
+                        <button
+                          onClick={() => navigate("/needit-mission")}
+                          className="px-5 py-3 rounded-xl border border-border bg-card text-foreground text-sm font-semibold hover:bg-muted transition-colors inline-flex items-center justify-center gap-1.5"
+                        >
+                          <ShoppingBag size={16} /> Mission NeedIt
+                        </button>
+                      </div>
+                    }
+                  />
+                ) : (
+                  <EmptyState
+                    icon={Search}
+                    title="Aucun résultat"
+                    description={t("history.noResultFilter")}
+                    action={
+                      hasActiveFilters ? (
+                        <button
+                          onClick={clearAllFilters}
+                          className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg inline-flex items-center gap-1.5"
+                        >
+                          <X size={16} /> Effacer les filtres
+                        </button>
+                      ) : null
+                    }
+                  />
+                )}
               </li>
             ) : (
               filtered.map((item) => {
