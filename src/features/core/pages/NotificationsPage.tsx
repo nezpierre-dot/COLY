@@ -441,6 +441,7 @@ export default function NotificationsPage() {
           </div>
         )}
       </main>
+      </PullToRefresh>
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
