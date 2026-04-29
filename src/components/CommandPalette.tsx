@@ -153,11 +153,11 @@ const CommandPalette = () => {
         );
         profiles.data?.forEach((p: any) =>
           out.push({
-            id: p.id,
+            id: p.user_id,
             type: "contact",
             label: p.full_name || "Utilisateur",
             sublabel: "Contact",
-            to: `/profile/${p.id}`,
+            to: `/profile/${p.user_id}`,
           })
         );
         setHits(out);
