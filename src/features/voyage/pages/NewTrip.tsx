@@ -697,6 +697,11 @@ const NewTrip = () => {
 
       <BottomNav />
 
+      {/* First-time guided tour: triggers when user reaches step 2 (route + capacity + earnings visible context) */}
+      {step >= 2 && (
+        <CoachMarks steps={newTripCoachSteps} storageKey="coach.newtrip.v1" delay={400} />
+      )}
+
       {/* Reminder prompt after creation */}
       {createdReminderInfo && (
         <ReminderDialog
