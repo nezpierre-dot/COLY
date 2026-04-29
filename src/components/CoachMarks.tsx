@@ -109,12 +109,9 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
 
         {/* Highlight cutout */}
         {highlightStyle && (
-          <motion.div
-            layout
-            initial={false}
-            animate={highlightStyle}
-            transition={{ type: "spring", stiffness: 320, damping: 30 }}
-            className="absolute pointer-events-none rounded-2xl ring-4 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.65)]"
+          <div
+            style={highlightStyle}
+            className="absolute pointer-events-none rounded-2xl ring-4 ring-primary shadow-[0_0_0_9999px_rgba(0,0,0,0.65)] transition-all duration-300"
           />
         )}
 
