@@ -310,8 +310,18 @@ const ChatPage = () => {
       <div className="bg-card/95 backdrop-blur-lg border-b border-border/60 px-4 pt-12 pb-3 shrink-0 z-10">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate("/conversations")} className="text-muted-foreground hover:text-foreground"><ArrowLeft size={24} /></button>
-          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0"><span className="text-sm font-bold text-primary">{otherName.charAt(0)?.toUpperCase() || "?"}</span></div>
-          <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-foreground truncate">{otherName}</p>{shipmentRoute && <p className="text-xs text-muted-foreground flex items-center gap-1"><Package size={10} /> {shipmentRoute}</p>}</div>
+          <div className="relative shrink-0">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center"><span className="text-sm font-bold text-primary">{otherName.charAt(0)?.toUpperCase() || "?"}</span></div>
+            <div className="absolute -bottom-0.5 -right-0.5"><PresenceBadge userId={otherUserId} variant="dot" /></div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground truncate">{otherName}</p>
+            {shipmentRoute ? (
+              <p className="text-xs text-muted-foreground flex items-center gap-1"><Package size={10} /> {shipmentRoute}</p>
+            ) : (
+              <PresenceBadge userId={otherUserId} variant="inline" />
+            )}
+          </div>
           {isOtherTyping && <span className="text-xs text-primary animate-pulse shrink-0">{t("chat.typing")}</span>}
         </div>
       </div>
