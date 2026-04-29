@@ -12,6 +12,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import SplashScreen from "@/components/SplashScreen";
 import AiChatWidget from "@/components/AiChatWidget";
+import CommandPalette from "@/components/CommandPalette";
+import OfflineBanner from "@/components/OfflineBanner";
 
 // Lazy-loaded pages
 const Welcome = lazy(() => import("./features/core/pages/Welcome"));
@@ -150,6 +152,8 @@ const App = () => {
                   </Routes>
                 </Suspense>
                 <AiChatWidget />
+                <CommandPalette />
+                <OfflineBanner />
               </FavoritesProvider>
               </AutoLogoutWrapper>
             </AuthProvider>
