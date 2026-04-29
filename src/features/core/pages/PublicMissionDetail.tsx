@@ -4,6 +4,7 @@ import { ArrowLeft, MapPin, Tag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import ShareButton from "@/components/ShareButton";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PublicMission {
   id: string;
@@ -19,6 +20,7 @@ interface PublicMission {
 export default function PublicMissionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [m, setM] = useState<PublicMission | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -48,8 +50,8 @@ export default function PublicMissionDetail() {
   if (notFound || !m) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
-        <h1 className="text-2xl font-bold">Mission introuvable</h1>
-        <Button onClick={() => navigate("/explore")} className="mt-4">Explorer Nidit</Button>
+        <h1 className="text-2xl font-bold">{t("publicMission.notFound")}</h1>
+        <Button onClick={() => navigate("/explore")} className="mt-4">{t("publicMission.exploreNidit")}</Button>
       </div>
     );
   }
@@ -87,31 +89,31 @@ export default function PublicMissionDetail() {
             </div>
             {m.prix_max && (
               <div className="mt-4 text-lg font-semibold">
-                Budget max : <span className="text-primary">{m.prix_max}</span>
+                {t("publicMission.budgetMax")} <span className="text-primary">{m.prix_max}</span>
               </div>
             )}
             {m.category_path && m.category_path.length > 0 && (
               <div className="mt-3 text-xs text-muted-foreground">
-                Catégorie : {m.category_path.join(" › ")}
+                {t("publicMission.category")} {m.category_path.join(" › ")}
               </div>
             )}
           </div>
         </div>
 
         <div className="mt-6 rounded-3xl border border-primary/30 bg-primary/5 p-6 text-center">
-          <h2 className="text-lg font-bold">Vous voyagez bientôt vers {m.country} ?</h2>
+          <h2 className="text-lg font-bold">{t("publicMission.travelingSoon", { country: m.country })}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Inscrivez-vous pour accepter cette mission et gagner de l'argent.
+            {t("publicMission.signupCta")}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Button onClick={() => navigate("/signup")}>Créer un compte</Button>
-            <Button variant="outline" onClick={() => navigate("/login")}>Se connecter</Button>
+            <Button onClick={() => navigate("/signup")}>{t("publicCommon.createAccount")}</Button>
+            <Button variant="outline" onClick={() => navigate("/login")}>{t("publicCommon.signIn")}</Button>
           </div>
         </div>
 
         <div className="mt-6 text-center">
           <Link to="/explore" className="text-sm text-muted-foreground hover:underline">
-            ← Voir d'autres opportunités
+            ← {t("publicMission.seeOthers")}
           </Link>
         </div>
       </div>
