@@ -477,7 +477,8 @@ const SearchBar = ({
       )}
     </label>
   </div>
-);
+  );
+};
 
 const Section = ({
   title,
