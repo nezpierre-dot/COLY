@@ -14,6 +14,7 @@ import { localizeCity } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
 import UserLevelBadge from "@/components/UserLevelBadge";
 import messagesIllustration from "@/assets/illustrations/messages-empty.png";
+import { ListItemSkeleton } from "@/components/Skeletons";
 
 interface Conversation {
   id: string;

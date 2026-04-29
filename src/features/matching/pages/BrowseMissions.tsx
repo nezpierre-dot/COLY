@@ -19,6 +19,7 @@ import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { hapticMedium } from "@/lib/haptics";
 import VoyageurAvailability from "@/components/VoyageurAvailability";
 import CategoryIcon from "@/components/CategoryIcon";
+import { ListItemSkeleton } from "@/components/Skeletons";
 
 interface PendingShipment {
   id: string;
