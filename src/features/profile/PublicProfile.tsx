@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Star, MapPin, ArrowLeft, User, MessageSquare, Plane, Package, Shield, AlertTriangle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
+import VerifiedBadges from "@/components/VerifiedBadges";
 import { motion } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import UserLevelBadge from "@/components/UserLevelBadge";
@@ -30,7 +31,7 @@ const PublicProfile = () => {
       setLoading(true);
 
       const [profileRes, ratingRes, badgesRes, reviewsRes, repliesRes, voyagesRes, deliveredRes] = await Promise.all([
-        supabase.from("profiles").select("full_name, avatar_url, bio, trust_badges").eq("user_id", userId).single(),
+        supabase.from("profiles").select("full_name, avatar_url, bio, trust_badges, kyc_status, phone, stripe_customer_id").eq("user_id", userId).single(),
         supabase.rpc("get_user_rating", { _user_id: userId }),
         supabase.rpc("compute_trust_badges", { _user_id: userId }),
         supabase.from("ratings").select("id, score, comment, rater_role, created_at").eq("rated_id", userId).order("created_at", { ascending: false }),
@@ -185,6 +186,19 @@ const PublicProfile = () => {
             <p className="text-lg font-bold text-foreground">{stats.delivered}</p>
             <p className="text-xs text-muted-foreground">Livraisons</p>
           </div>
+        </div>
+
+        {/* Verified signals — KYC, email, phone, payment */}
+        <div className="mb-6">
+          <VerifiedBadges
+            variant="hero"
+            signals={{
+              kyc: profile.kyc_status === "verified" || profile.kyc_status === "approved",
+              email: !!profile, // active account requires verified email
+              phone: !!profile.phone,
+              payment: !!profile.stripe_customer_id,
+            }}
+          />
         </div>
 
         {/* Trust Badges */}
