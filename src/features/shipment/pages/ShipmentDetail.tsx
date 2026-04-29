@@ -74,8 +74,8 @@ const ShipmentDetail = () => {
   // Fetch voyageur profile name
   useEffect(() => {
     if (!shipment?.voyageur_id) return;
-    supabase.from("profiles").select("full_name").eq("user_id", shipment.voyageur_id).maybeSingle()
-      .then(({ data }) => { if (data) setVoyageurName(data.full_name); });
+    supabase.from("profiles_public" as any).select("full_name").eq("user_id", shipment.voyageur_id).maybeSingle()
+      .then(({ data }: any) => { if (data) setVoyageurName(data.full_name); });
   }, [shipment?.voyageur_id]);
 
   // Fetch pickup & delivery proofs

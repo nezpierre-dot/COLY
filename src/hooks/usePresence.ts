@@ -95,7 +95,7 @@ export function useUserPresence(userId: string | null | undefined): {
     }
     let cancelled = false;
     supabase
-      .from("profiles")
+      .from("profiles_public" as any)
       .select("last_seen_at")
       .eq("user_id", userId)
       .maybeSingle()

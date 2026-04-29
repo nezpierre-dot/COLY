@@ -116,8 +116,8 @@ const CommandPalette = () => {
             .or(`produit.ilike.${like},city.ilike.${like}`)
             .limit(5),
           supabase
-            .from("profiles")
-            .select("id, full_name")
+            .from("profiles_public" as any)
+            .select("user_id, full_name")
             .ilike("full_name", like)
             .limit(5),
         ]);

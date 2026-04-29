@@ -257,7 +257,7 @@ const VoyageDetail = () => {
       (shipData || []).forEach((s: any) => { if (s.user_id) allUserIds.add(s.user_id); });
       (missionData || []).forEach((m: any) => { if (m.user_id) allUserIds.add(m.user_id); });
       if (allUserIds.size > 0) {
-        const { data: profilesData } = await supabase.from("profiles").select("user_id, full_name").in("user_id", Array.from(allUserIds));
+        const { data: profilesData } = await supabase.from("profiles_public" as any).select("user_id, full_name").in("user_id", Array.from(allUserIds));
         if (profilesData) {
           const nameMap: Record<string, string> = {};
           profilesData.forEach((p: any) => { nameMap[p.user_id] = p.full_name || "Utilisateur"; });
