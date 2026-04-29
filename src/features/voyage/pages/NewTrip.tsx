@@ -392,7 +392,7 @@ const NewTrip = () => {
 
           {/* Step 2 – Departure */}
           {step === 2 && (
-            <div className="space-y-4">
+            <div className="space-y-4" data-coach="trip-route">
               <h2 className="text-lg font-bold text-foreground">{t("trip.travelInfo")}</h2>
               <div className="space-y-3">
                 <div>
