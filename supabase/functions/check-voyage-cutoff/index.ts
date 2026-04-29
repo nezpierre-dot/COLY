@@ -52,12 +52,15 @@ Deno.serve(async (req) => {
         const hoursLeft = Math.round(remaining / (60 * 60 * 1000));
         const route = `${v.departure_city} → ${v.arrival_city}`;
 
-        // Insert in-app notification
-        await supabase.from("notifications").insert({
+        // Insert in-app notification (i18n + fallback FR)
+        const { insertNotification } = await import("../_shared/notifications.ts");
+        await insertNotification(supabase, {
           user_id: v.user_id,
-          title: "⏰ Voyage bientôt fermé",
-          message: `Votre voyage ${route} se ferme aux nouveaux matchs dans ~${hoursLeft}h. Modifiez le délai si besoin.`,
           type: notifType,
+          i18n_key: "notif.voyage_cutoff_soon",
+          i18n_params: { route, hours: hoursLeft },
+          fallback_title: "⏰ Voyage bientôt fermé",
+          fallback_message: `Votre voyage ${route} se ferme aux nouveaux matchs dans ~${hoursLeft}h. Modifiez le délai si besoin.`,
         });
 
         // Send email via Resend

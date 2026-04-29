@@ -125,11 +125,15 @@ serve(async (req) => {
         })
         .eq("id", ticket_id);
 
-      await supabaseAdmin.from("notifications").insert({
+      const { insertNotification: insertNotifClose } = await import("../_shared/notifications.ts");
+      const subjectShort = (ticket.subject || "").substring(0, 60);
+      await insertNotifClose(supabaseAdmin, {
         user_id: ticket.user_id,
-        title: "Ticket résolu ✅",
-        message: `Votre ticket "${(ticket.subject || "").substring(0, 60)}" a été clôturé.`,
         type: "support_closed:" + ticket_id,
+        i18n_key: "notif.support_closed",
+        i18n_params: { subject: subjectShort },
+        fallback_title: "Ticket résolu ✅",
+        fallback_message: `Votre ticket "${subjectShort}" a été clôturé.`,
       });
 
       return new Response(JSON.stringify({ success: true, action: "close" }), {
