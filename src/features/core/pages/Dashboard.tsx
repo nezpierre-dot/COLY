@@ -36,6 +36,7 @@ import StatisticsTab from "@/features/profile/StatisticsTab";
 import WalletCard from "@/components/WalletCard";
 import VoyageurOnboarding from "@/components/VoyageurOnboarding";
 import DemandeurOnboarding from "@/components/DemandeurOnboarding";
+import CoachMarks, { dashboardCoachSteps } from "@/components/CoachMarks";
 import UserLevelBadge from "@/components/UserLevelBadge";
 import ConfettiCelebration from "@/components/ConfettiCelebration";
 import { useLevelUpCelebration } from "@/hooks/useLevelUpCelebration";
@@ -732,6 +733,9 @@ const Dashboard = () => {
     )}
     {showDemandeurOnboarding && (
       <DemandeurOnboarding onComplete={() => setShowDemandeurOnboarding(false)} />
+    )}
+    {!showVoyageurOnboarding && !showDemandeurOnboarding && (
+      <CoachMarks steps={dashboardCoachSteps} storageKey="dashboard-coach-done" delay={900} />
     )}
     <div className="min-h-screen bg-gradient-soft pb-24">
       <PullToRefresh onRefresh={handleRefresh}>
