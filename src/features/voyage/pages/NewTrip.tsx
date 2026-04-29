@@ -23,6 +23,7 @@ import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import SearchableSelect from "@/components/SearchableSelect";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 import { useFavorites } from "@/hooks/useFavorites";
+import VoyageurEarningsEstimate from "@/components/VoyageurEarningsEstimate";
 
 
 
@@ -444,6 +445,15 @@ const NewTrip = () => {
                   <Input placeholder="456 avenue…" value={arrivalAddress} onChange={(e) => setArrivalAddress(e.target.value)} />
                 </div>
               </div>
+
+              {/* Voyageur earnings estimate — appears once route is set */}
+              <VoyageurEarningsEstimate
+                departureCountry={departureCountry}
+                departureCity={departureCity}
+                arrivalCountry={arrivalCountry}
+                arrivalCity={arrivalCity}
+                departureDate={departureDate}
+              />
             </div>
           )}
 
