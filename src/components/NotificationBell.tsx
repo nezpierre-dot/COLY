@@ -8,9 +8,10 @@ import { fr, enUS, es, de, pt, it, arSA } from "date-fns/locale";
 import { hapticLight, hapticMedium } from "@/lib/haptics";
 import { useTranslation } from "@/hooks/useTranslation";
 
-const dateLocaleMap: Record<string, Locale> = {
-  fr, en: enUS, es, de, pt, it, ar: arSA,
-} as unknown as Record<string, Locale>;
+const dateLocaleMap: Record<string, typeof fr> = {
+  fr, en: enUS as typeof fr, es: es as typeof fr, de: de as typeof fr,
+  pt: pt as typeof fr, it: it as typeof fr, ar: arSA as typeof fr,
+};
 
 const typeIcon: Record<string, string> = {
   info: "ℹ️",
