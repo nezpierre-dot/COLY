@@ -1,103 +1,123 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
 
-// VAPID public key — generated for Nidit push notifications
-// This is a PUBLIC key, safe to store in code
-const VAPID_PUBLIC_KEY = "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
+// VAPID public key — safe to expose in the frontend (it's the public half).
+const VAPID_PUBLIC_KEY =
+  "BMifj6XRqHnnAngrcZCuA5uHY9RR6Id5bfC1vybzLbPT2EdOTBNZxTJt_D5hlQgNQFAGjrt7vWdOaH2DtRVB2AM";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
+  const raw = atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
 }
 
-export type PushPermission = "default" | "granted" | "denied" | "unsupported";
+function isInIframe() {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
 
-export const usePushNotifications = () => {
+function isPreviewHost() {
+  const h = window.location.hostname;
+  return h.includes("id-preview--") || h.includes("lovableproject.com") || h.includes("lovable.app");
+}
+
+export type PushPermission = "default" | "granted" | "denied" | "unsupported" | "blocked-preview";
+
+export function usePushNotifications() {
   const { user } = useAuth();
   const [permission, setPermission] = useState<PushPermission>("default");
+  const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const supported =
+    typeof window !== "undefined" &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window &&
+    "Notification" in window;
+
+  // In Lovable preview/iframe contexts we explicitly avoid registering a SW.
+  const blocked = isInIframe() || isPreviewHost();
+
   useEffect(() => {
-    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+    if (!supported) {
       setPermission("unsupported");
       return;
     }
-    setPermission(Notification.permission as PushPermission);
-  }, []);
-
-  const subscribe = useCallback(async () => {
-    if (!user) return;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      toast.error("Les notifications push ne sont pas supportées sur ce navigateur.");
+    if (blocked) {
+      setPermission("blocked-preview");
       return;
     }
+    setPermission(Notification.permission as PushPermission);
 
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((reg) => reg.pushManager.getSubscription())
+      .then((sub) => setSubscribed(!!sub))
+      .catch(() => {});
+  }, [supported, blocked]);
+
+  const subscribe = useCallback(async () => {
+    if (!supported || blocked || !user) return false;
     setLoading(true);
     try {
-      // Request permission
-      const result = await Notification.requestPermission();
-      setPermission(result as PushPermission);
+      const reg = await navigator.serviceWorker.register("/sw.js");
+      const perm = await Notification.requestPermission();
+      setPermission(perm as PushPermission);
+      if (perm !== "granted") return false;
 
-      if (result !== "granted") {
-        toast.error("Permission refusée. Activez les notifications dans les paramètres du navigateur.");
-        return;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
       }
 
-      // Get SW registration
-      const registration = await navigator.serviceWorker.ready;
+      const json = sub.toJSON() as any;
+      await supabase.from("push_subscriptions").upsert(
+        {
+          user_id: user.id,
+          endpoint: sub.endpoint,
+          p256dh: json.keys?.p256dh,
+          auth: json.keys?.auth,
+          user_agent: navigator.userAgent,
+          last_used_at: new Date().toISOString(),
+        },
+        { onConflict: "endpoint" },
+      );
 
-      // Subscribe to push
-      const subscription = await (registration as any).pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
-
-      // Save subscription to DB
-      const subJSON = subscription.toJSON();
-      const { error } = await supabase.from("push_subscriptions" as any).upsert({
-        user_id: user.id,
-        endpoint: subJSON.endpoint,
-        p256dh: subJSON.keys?.p256dh,
-        auth: subJSON.keys?.auth,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_id" });
-
-      if (error) throw error;
-      toast.success("🔔 Notifications push activées !");
-    } catch (err: any) {
-      console.error("Push subscription error:", err);
-      // If it's a DOMException about keys (e.g. VAPID mismatch in dev), still mark as granted
-      if (Notification.permission === "granted") {
-        setPermission("granted");
-        toast.success("🔔 Notifications activées !");
-      } else {
-        toast.error("Erreur lors de l'activation des notifications.");
-      }
+      setSubscribed(true);
+      return true;
+    } catch (e) {
+      console.error("[push] subscribe failed", e);
+      return false;
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [supported, blocked, user]);
 
   const unsubscribe = useCallback(async () => {
-    if (!user) return;
+    if (!supported) return;
     setLoading(true);
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const sub = await (registration as any).pushManager.getSubscription();
-      if (sub) await sub.unsubscribe();
-      await supabase.from("push_subscriptions" as any).delete().eq("user_id", user.id);
-      setPermission("default");
-      toast.success("Notifications désactivées.");
-    } catch (err) {
-      toast.error("Erreur lors de la désactivation.");
+      const reg = await navigator.serviceWorker.getRegistration();
+      const sub = await reg?.pushManager.getSubscription();
+      if (sub) {
+        await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+        await sub.unsubscribe();
+      }
+      setSubscribed(false);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [supported]);
 
-  return { permission, loading, subscribe, unsubscribe };
-};
+  return { supported, blocked, permission, subscribed, loading, subscribe, unsubscribe };
+}
