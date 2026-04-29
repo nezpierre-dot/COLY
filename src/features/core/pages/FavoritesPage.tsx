@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, MapPin, Package, Trash2, Loader2, Plus, ArrowRight } from "lucide-react";
+import { ArrowLeft, Heart, MapPin, Package, Trash2, Plus, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -8,6 +8,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
+import { ListItemSkeleton } from "@/components/Skeletons";
 import { toast } from "sonner";
 
 const FavoritesPage = () => {
@@ -70,7 +71,7 @@ const FavoritesPage = () => {
 
           <TabsContent value="routes">
             {loadingRoutes ? (
-              <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" size={28} /></div>
+              <ListItemSkeleton count={3} />
             ) : routes.length === 0 ? (
               <EmptyState icon={MapPin} title={t("favorites.noRoutes")} description={t("favorites.noRoutesDesc")} />
             ) : (
@@ -102,7 +103,7 @@ const FavoritesPage = () => {
 
           <TabsContent value="products">
             {loadingProducts ? (
-              <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" size={28} /></div>
+              <ListItemSkeleton count={3} />
             ) : products.length === 0 ? (
               <EmptyState icon={Package} title={t("favorites.noProducts")} description={t("favorites.noProductsDesc")} />
             ) : (

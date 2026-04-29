@@ -19,6 +19,7 @@ import { Calendar as CalendarUI } from "@/components/ui/calendar";
 import { hapticMedium } from "@/lib/haptics";
 import VoyageurAvailability from "@/components/VoyageurAvailability";
 import CategoryIcon from "@/components/CategoryIcon";
+import { ListItemSkeleton } from "@/components/Skeletons";
 
 interface PendingShipment {
   id: string;
@@ -432,9 +433,7 @@ const BrowseMissions = () => {
 
               <TabsContent value="shipments" className="mt-0">
                 {loading ? (
-                  <div className="flex justify-center py-12">
-                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                  </div>
+                  <ListItemSkeleton count={4} />
                 ) : filteredShipments.length === 0 ? (
                   <EmptyState icon={Package} title="Aucun colis en attente" description="Revenez plus tard ou ajustez vos filtres" />
                 ) : (
@@ -479,9 +478,7 @@ const BrowseMissions = () => {
 
               <TabsContent value="missions" className="mt-0">
                 {loading ? (
-                  <div className="flex justify-center py-12">
-                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                  </div>
+                  <ListItemSkeleton count={4} />
                 ) : filteredMissions.length === 0 ? (
                   <EmptyState icon={ShoppingBag} title="Aucune mission NeedIt" description="Revenez plus tard ou ajustez vos filtres" />
                 ) : (

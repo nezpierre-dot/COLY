@@ -14,6 +14,7 @@ import { localizeCity } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
 import UserLevelBadge from "@/components/UserLevelBadge";
 import messagesIllustration from "@/assets/illustrations/messages-empty.png";
+import { ListItemSkeleton } from "@/components/Skeletons";
 
 interface Conversation {
   id: string;
@@ -368,9 +369,7 @@ const ConversationsPage = () => {
           </label>
 
           {loading ? (
-            <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
+            <ListItemSkeleton count={4} />
           ) : conversations.length === 0 ? (
             <EmptyState
               icon={MessageCircle}

@@ -4,6 +4,7 @@ import { ArrowLeft, Search, ShoppingBag, ArrowDownCircle, Truck, ArrowUpCircle, 
 import { CommissionBreakdown } from "@/features/account/pages/PaymentMethods";
 import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
+import CoachMarks, { walletCoachSteps } from "@/components/CoachMarks";
 
 const MOCK_TRANSACTIONS = [
   { id: "1", type: "Mission NeedIt", ref: "N°224513", amount: 32.9, date: "30/01/2025", direction: "in" as const, icon: "needit" },
@@ -51,7 +52,7 @@ export default function SoldePage() {
       </div>
 
       <main className="page-content pt-5" id="main-content" role="main" aria-label={t("balance.title")}>
-        <div className="card-future text-center mb-5">
+        <div className="card-future text-center mb-5" data-coach="wallet-balance">
           <p className="text-xs uppercase tracking-wider font-bold text-muted-foreground mb-1">Solde disponible</p>
           <p className={`text-4xl font-black ${balance >= 0 ? "text-success" : "text-destructive"}`}>
             {balance >= 0 ? "+" : ""} {balance.toFixed(2)}{currencySymbol}
@@ -71,7 +72,7 @@ export default function SoldePage() {
 
         <h2 className="text-lg font-semibold text-foreground mb-3">{t("balance.transactions")}</h2>
 
-        <ul className="space-y-3" role="list">
+        <ul className="space-y-3" role="list" data-coach="wallet-history">
           {filtered.map((tx) => (
             <li key={tx.id}>
               <button onClick={() => setExpandedId(expandedId === tx.id ? null : tx.id)} className="w-full flex items-center gap-4 bg-card rounded-2xl border border-border p-4 hover:shadow-sm transition-shadow" aria-expanded={expandedId === tx.id}>
@@ -99,6 +100,7 @@ export default function SoldePage() {
         </div>
       </main>
       <BottomNav />
+      <CoachMarks steps={walletCoachSteps} storageKey="coach.wallet.v1" delay={500} />
     </div>
   );
 }

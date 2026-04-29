@@ -24,6 +24,7 @@ import SearchableSelect from "@/components/SearchableSelect";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 import { useFavorites } from "@/hooks/useFavorites";
 import VoyageurEarningsEstimate from "@/components/VoyageurEarningsEstimate";
+import CoachMarks, { newTripCoachSteps } from "@/components/CoachMarks";
 
 
 
@@ -392,7 +393,7 @@ const NewTrip = () => {
 
           {/* Step 2 – Departure */}
           {step === 2 && (
-            <div className="space-y-4">
+            <div className="space-y-4" data-coach="trip-route">
               <h2 className="text-lg font-bold text-foreground">{t("trip.travelInfo")}</h2>
               <div className="space-y-3">
                 <div>
@@ -447,13 +448,15 @@ const NewTrip = () => {
               </div>
 
               {/* Voyageur earnings estimate — appears once route is set */}
-              <VoyageurEarningsEstimate
-                departureCountry={departureCountry}
-                departureCity={departureCity}
-                arrivalCountry={arrivalCountry}
-                arrivalCity={arrivalCity}
-                departureDate={departureDate}
-              />
+              <div data-coach="trip-earnings">
+                <VoyageurEarningsEstimate
+                  departureCountry={departureCountry}
+                  departureCity={departureCity}
+                  arrivalCountry={arrivalCountry}
+                  arrivalCity={arrivalCity}
+                  departureDate={departureDate}
+                />
+              </div>
             </div>
           )}
 
@@ -555,7 +558,7 @@ const NewTrip = () => {
               </div>
 
               {/* Capacity section */}
-              <div className="space-y-3 pt-2 border-t border-border">
+              <div className="space-y-3 pt-2 border-t border-border" data-coach="trip-capacity">
                 <h3 className="text-sm font-semibold text-foreground">{t("trip.capacityTitle")}</h3>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.maxWeight")}</Label>
@@ -693,6 +696,11 @@ const NewTrip = () => {
       </div>
 
       <BottomNav />
+
+      {/* First-time guided tour: triggers when user reaches step 2 (route + capacity + earnings visible context) */}
+      {step >= 2 && (
+        <CoachMarks steps={newTripCoachSteps} storageKey="coach.newtrip.v1" delay={400} />
+      )}
 
       {/* Reminder prompt after creation */}
       {createdReminderInfo && (
