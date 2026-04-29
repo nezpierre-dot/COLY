@@ -117,7 +117,7 @@ const getNotifLink = (type: string): string | null => {
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { notifications, loading, unreadCount, markAsRead, markAllAsRead, deleteNotification, refresh } = useNotifications();
 
   const [filter, setFilter] = useState<NotifFilter>("all");
