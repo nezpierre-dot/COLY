@@ -1753,6 +1753,28 @@ export type Database = {
           tarif: string
         }[]
       }
+      get_popular_routes: {
+        Args: { _limit?: number }
+        Returns: {
+          arrival_city: string
+          arrival_country: string
+          departure_city: string
+          voyage_count: number
+        }[]
+      }
+      get_public_mission: {
+        Args: { _id: string }
+        Returns: {
+          category_path: string[]
+          city: string
+          country: string
+          id: string
+          photo_url: string
+          prix_max: string
+          product_name: string
+          ref_number: string
+        }[]
+      }
       get_public_pending_missions: {
         Args: never
         Returns: {
@@ -1762,6 +1784,51 @@ export type Database = {
           departure_country: string
           id: string
           type: string
+        }[]
+      }
+      get_public_shipment: {
+        Args: { _id: string }
+        Returns: {
+          arrival_city: string
+          arrival_country: string
+          departure_city: string
+          departure_date: string
+          id: string
+          photo_url: string
+          ref_number: string
+          size: string
+          tarif: string
+        }[]
+      }
+      get_public_voyage: {
+        Args: { _id: string }
+        Returns: {
+          accept_needit: boolean
+          arrival_city: string
+          arrival_country: string
+          arrival_date: string
+          capacity_dimensions: string
+          departure_city: string
+          departure_country: string
+          departure_date: string
+          id: string
+          max_weight_kg: number
+          ref_number: string
+          transport_method: string
+        }[]
+      }
+      get_public_voyages: {
+        Args: { _country?: string; _limit?: number }
+        Returns: {
+          arrival_city: string
+          arrival_country: string
+          departure_city: string
+          departure_country: string
+          departure_date: string
+          id: string
+          max_weight_kg: number
+          ref_number: string
+          transport_method: string
         }[]
       }
       get_user_rating: {
