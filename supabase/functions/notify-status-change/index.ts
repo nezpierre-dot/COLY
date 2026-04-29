@@ -132,12 +132,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send in-app notification to demandeur
-    await adminClient.from("notifications").insert({
+    // Send in-app notification to demandeur (i18n + fallback FR)
+    const { insertNotification } = await import("../_shared/notifications.ts");
+    await insertNotification(adminClient, {
       user_id: ownerId,
-      title: `${config.emoji} ${config.title}`,
-      message: config.description(itemLabel).replace(/<[^>]*>/g, ""),
       type: `status_change:${item_type}:${item_id}`,
+      i18n_key: `notif.status_${new_status}`,
+      i18n_params: { label: itemLabel },
+      fallback_title: `${config.emoji} ${config.title}`,
+      fallback_message: config.description(itemLabel).replace(/<[^>]*>/g, ""),
     });
 
     // Send push notification if subscribed

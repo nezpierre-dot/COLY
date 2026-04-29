@@ -62,12 +62,15 @@ serve(async (req) => {
         })
         .eq("id", ticket_id);
 
-      // In-app notification
-      await supabaseAdmin.from("notifications").insert({
+      // In-app notification (i18n + fallback FR)
+      const { insertNotification } = await import("../_shared/notifications.ts");
+      await insertNotification(supabaseAdmin, {
         user_id: ticket.user_id,
-        title: "Réponse du support 📩",
-        message: safeReply.substring(0, 200),
         type: "support_reply:" + ticket_id,
+        i18n_key: "notif.support_reply",
+        i18n_params: { preview: safeReply.substring(0, 200) },
+        fallback_title: "Réponse du support 📩",
+        fallback_message: safeReply.substring(0, 200),
       });
 
       // Email notification

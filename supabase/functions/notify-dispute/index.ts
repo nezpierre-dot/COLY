@@ -90,13 +90,16 @@ Deno.serve(async (req) => {
     const targetUserId = isOpenedByVoyageur ? demandeurId : voyageurId;
     const targetLabel = isOpenedByVoyageur ? "le voyageur" : "le demandeur";
 
-    // In-app notification for the other party
+    // In-app notification for the other party (i18n + fallback FR)
     if (targetUserId) {
-      await adminClient.from("notifications").insert({
+      const { insertNotification } = await import("../_shared/notifications.ts");
+      await insertNotification(adminClient, {
         user_id: targetUserId,
-        title: "⚠️ Litige ouvert",
-        message: `Un litige a été ouvert par ${targetLabel} pour ${itemLabel} (${itemRef}). Motif : ${reason}.`,
         type: "dispute_opened:" + dispute_id,
+        i18n_key: "notif.dispute_opened_other",
+        i18n_params: { by: targetLabel, label: itemLabel, ref: itemRef, reason },
+        fallback_title: "⚠️ Litige ouvert",
+        fallback_message: `Un litige a été ouvert par ${targetLabel} pour ${itemLabel} (${itemRef}). Motif : ${reason}.`,
       });
     }
 
