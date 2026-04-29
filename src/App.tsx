@@ -74,7 +74,7 @@ const PageLoader = () => (
 );
 
 const AutoLogoutWrapper = ({ children }: { children: ReactNode }) => {
-  useAutoLogout();
+  // Auto-logout désactivé sur demande utilisateur
   return <>{children}</>;
 };
 
