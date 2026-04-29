@@ -761,6 +761,7 @@ const Dashboard = () => {
               <div className="flex items-center gap-2">
                 <AdminQuickMenu />
                 <button
+                  data-coach="switch-role"
                   onClick={toggleRole}
                   className="group inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold text-foreground/80 bg-white/55 backdrop-blur-md border border-white/60 shadow-sm transition-all hover:bg-white/75 hover:text-primary hover:border-primary/30 active:scale-[0.97]"
                   aria-label={isVoyageur ? t("dashboard.switchToDemandeur") : t("dashboard.switchToVoyageur")}
@@ -922,7 +923,7 @@ const Dashboard = () => {
               t={t}
             />
 
-            <WalletCard compact />
+            <div data-coach="wallet"><WalletCard compact /></div>
 
             <FavoriteRoutes t={t} />
 
@@ -1619,7 +1620,7 @@ const Dashboard = () => {
             </motion.div>
 
             {/* Wallet card — bien mise en avant */}
-            <WalletCard compact />
+            <div data-coach="wallet"><WalletCard compact /></div>
 
             <FavoriteRoutes t={t} />
 
@@ -1756,6 +1757,7 @@ const Dashboard = () => {
 
             {/* Big CTA — très visible */}
             <motion.button
+              data-coach="create-shipment"
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/send-coly")}
