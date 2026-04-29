@@ -766,6 +766,8 @@ export type Database = {
       notifications: {
         Row: {
           created_at: string
+          i18n_key: string | null
+          i18n_params: Json
           id: string
           is_read: boolean
           message: string
@@ -775,6 +777,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          i18n_key?: string | null
+          i18n_params?: Json
           id?: string
           is_read?: boolean
           message: string
@@ -784,6 +788,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          i18n_key?: string | null
+          i18n_params?: Json
           id?: string
           is_read?: boolean
           message?: string
@@ -888,6 +894,7 @@ export type Database = {
           kyc_status: string
           last_seen_at: string | null
           phone: string | null
+          preferred_language: string
           preferred_transports: string[] | null
           referral_code: string | null
           referred_by: string | null
@@ -908,6 +915,7 @@ export type Database = {
           kyc_status?: string
           last_seen_at?: string | null
           phone?: string | null
+          preferred_language?: string
           preferred_transports?: string[] | null
           referral_code?: string | null
           referred_by?: string | null
@@ -928,6 +936,7 @@ export type Database = {
           kyc_status?: string
           last_seen_at?: string | null
           phone?: string | null
+          preferred_language?: string
           preferred_transports?: string[] | null
           referral_code?: string | null
           referred_by?: string | null
