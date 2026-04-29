@@ -509,6 +509,9 @@ const fr: TranslationDict = {
   "notif.examples": "Exemples de notifications à venir",
   "notif.markRead": "Marquer comme lu",
   "notif.delete": "Supprimer",
+  "notif.detail": "Détail",
+  "notif.viewAll": "Voir toutes les notifications",
+  "notif.markAllShort": "Tout lire",
 
   // ─── SendColis ───
   "sendcoly.title": "Envoyer un Colis",
