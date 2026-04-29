@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { MessageCircle, Send, X, Sparkles, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "@/hooks/use-toast";
@@ -21,8 +21,25 @@ const AiChatWidget = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const launcherRef = useRef<HTMLButtonElement | null>(null);
 
   const isHidden = !user || HIDDEN_PATHS.includes(location.pathname);
+
+  // Esc ferme le panel ; restaure le focus sur le launcher
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+        // Le launcher se remontera et reprendra le focus naturellement à la prochaine ouverture
+        setTimeout(() => launcherRef.current?.focus?.(), 60);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   useEffect(() => {
     if (open && scrollRef.current) {
