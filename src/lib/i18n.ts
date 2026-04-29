@@ -1150,6 +1150,39 @@ const fr: TranslationDict = {
   "notif.account_suspended.message": "Votre compte a été suspendu. Raison : {{reason}}.",
   "notif.system.title": "Notification",
   "notif.system.message": "{{message}}",
+  // Status change (voyageur → demandeur)
+  "notif.status_picked_up.title": "📦 Colis récupéré",
+  "notif.status_picked_up.message": "Le voyageur a récupéré {{label}}. Il est maintenant en sa possession.",
+  "notif.status_in_transit.title": "🚀 En transit",
+  "notif.status_in_transit.message": "{{label}} est en route vers vous !",
+  "notif.status_delivered.title": "✅ Livré avec succès",
+  "notif.status_delivered.message": "{{label}} a été livré avec succès ! N'oubliez pas de noter le voyageur.",
+  "notif.status_completed.title": "✅ Mission terminée",
+  "notif.status_completed.message": "{{label}} a été livré avec succès ! N'oubliez pas de noter le voyageur.",
+  // Match (NeedIt + voyage aggregate)
+  "notif.match_needit.title": "🎯 Match NeedIt !",
+  "notif.match_needit.message": "Un voyageur se rend à {{city}} et peut réaliser votre mission.",
+  "notif.match_voyage_demand.title": "🎯 Nouvelle demande match !",
+  "notif.match_voyage_demand.message": "Une nouvelle demande correspond à votre trajet vers {{city}}.",
+  "notif.match_voyage_aggregate.title": "🎯 Nouveaux matchs !",
+  "notif.match_voyage_aggregate.message": "{{count}} demande(s) correspondent à votre trajet vers {{city}}. Cliquez pour voir et accepter.",
+  "notif.match_demande_aggregate.title": "🎯 Match trouvé !",
+  "notif.match_demande_aggregate.message": "{{count}} voyageur(s) se rend(ent) vers {{city}}. Votre demande a des correspondances !",
+  // Voyage cutoff
+  "notif.voyage_cutoff_soon.title": "⏰ Voyage bientôt fermé",
+  "notif.voyage_cutoff_soon.message": "Votre voyage {{route}} se ferme aux nouveaux matchs dans ~{{hours}}h. Modifiez le délai si besoin.",
+  "notif.voyage_expired_no_match.title": "😕 Voyage expiré sans match",
+  "notif.voyage_expired_no_match.message": "Votre voyage {{route}} a expiré sans aucun colis ou mission accepté. Créez un nouveau voyage pour recevoir des demandes !",
+  "notif.voyage_completed.title": "✅ Voyage terminé",
+  "notif.voyage_completed.message": "Votre voyage {{route}} est maintenant terminé.",
+  // Dispute (other party)
+  "notif.dispute_opened_other.title": "⚠️ Litige ouvert",
+  "notif.dispute_opened_other.message": "Un litige a été ouvert par {{by}} pour {{label}} ({{ref}}). Motif : {{reason}}.",
+  // Support
+  "notif.support_reply.title": "Réponse du support 📩",
+  "notif.support_reply.message": "{{preview}}",
+  "notif.support_closed.title": "Ticket résolu ✅",
+  "notif.support_closed.message": "Votre ticket « {{subject}} » a été clôturé.",
 };
 
 const en: TranslationDict = {
