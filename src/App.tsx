@@ -108,6 +108,7 @@ const App = () => {
           {!splashDone && <SplashScreen onFinished={() => setSplashDone(true)} />}
           <BrowserRouter>
             <AuthProvider>
+              <PresenceTracker />
               <AutoLogoutWrapper>
               <FavoritesProvider>
                 <Suspense fallback={<PageLoader />}>
