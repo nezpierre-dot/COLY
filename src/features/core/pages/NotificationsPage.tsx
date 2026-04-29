@@ -1,10 +1,13 @@
-import { ArrowLeft, Check, Trash2, Info, CheckCircle2, AlertTriangle, XCircle, IdCard, Package, ShoppingCart, Bell, Star, ShoppingBag, ChevronRight } from "lucide-react";
+import { ArrowLeft, Check, Trash2, Info, CheckCircle2, AlertTriangle, XCircle, IdCard, Package, ShoppingCart, Bell, Star, ShoppingBag, ChevronRight, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import BottomNav from "@/components/BottomNav";
 import SwipeToDelete from "@/components/SwipeToDelete";
+import PullToRefresh from "@/components/PullToRefresh";
+import { NotificationSkeleton } from "@/components/Skeletons";
+import EmptyState from "@/components/EmptyState";
 import { ReactNode, useMemo, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useTranslation";
