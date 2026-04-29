@@ -6,10 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import BottomNav from "@/components/BottomNav";
+import { useTranslation } from "@/lib/i18n";
 
 const EmailPreferences = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [matchEmails, setMatchEmails] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,10 +44,10 @@ const EmailPreferences = () => {
 
     setSaving(false);
     if (error) {
-      toast.error("Erreur lors de la sauvegarde");
+      toast.error(t("emailPrefs.saveError"));
       setMatchEmails(!value);
     } else {
-      toast.success(value ? "Emails de matching activés" : "Emails de matching désactivés");
+      toast.success(value ? t("emailPrefs.matchOn") : t("emailPrefs.matchOff"));
     }
   };
 
@@ -56,10 +58,10 @@ const EmailPreferences = () => {
           <button onClick={() => navigate("/settings")} className="text-foreground">
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-[26px] font-bold text-foreground leading-tight">Préférences email</h1>
+          <h1 className="text-[26px] font-bold text-foreground leading-tight">{t("emailPrefs.title")}</h1>
         </div>
         <p className="text-sm text-muted-foreground mb-8 pl-10">
-          Gérez vos notifications par email
+          {t("emailPrefs.subtitle")}
         </p>
 
         {loading ? (
@@ -75,9 +77,9 @@ const EmailPreferences = () => {
                     <Mail size={20} className="text-primary" />
                   </div>
                   <div>
-                    <p className="text-foreground text-sm font-medium">Emails de matching</p>
+                    <p className="text-foreground text-sm font-medium">{t("emailPrefs.matchTitle")}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Recevez un email quand un voyageur correspond à votre colis ou mission
+                      {t("emailPrefs.matchDesc")}
                     </p>
                   </div>
                 </div>
@@ -91,8 +93,7 @@ const EmailPreferences = () => {
 
             <div className="bg-muted/50 rounded-xl p-4">
               <p className="text-xs text-muted-foreground leading-relaxed">
-                💡 Même si vous désactivez les emails, vous continuerez à recevoir les notifications 
-                dans l'application. Les emails de sécurité (mot de passe, connexion) ne peuvent pas être désactivés.
+                {t("emailPrefs.note")}
               </p>
             </div>
           </div>
