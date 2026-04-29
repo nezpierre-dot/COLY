@@ -447,13 +447,15 @@ const NewTrip = () => {
               </div>
 
               {/* Voyageur earnings estimate — appears once route is set */}
-              <VoyageurEarningsEstimate
-                departureCountry={departureCountry}
-                departureCity={departureCity}
-                arrivalCountry={arrivalCountry}
-                arrivalCity={arrivalCity}
-                departureDate={departureDate}
-              />
+              <div data-coach="trip-earnings">
+                <VoyageurEarningsEstimate
+                  departureCountry={departureCountry}
+                  departureCity={departureCity}
+                  arrivalCountry={arrivalCountry}
+                  arrivalCity={arrivalCity}
+                  departureDate={departureDate}
+                />
+              </div>
             </div>
           )}
 
@@ -555,7 +557,7 @@ const NewTrip = () => {
               </div>
 
               {/* Capacity section */}
-              <div className="space-y-3 pt-2 border-t border-border">
+              <div className="space-y-3 pt-2 border-t border-border" data-coach="trip-capacity">
                 <h3 className="text-sm font-semibold text-foreground">{t("trip.capacityTitle")}</h3>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("trip.maxWeight")}</Label>
