@@ -8,6 +8,7 @@ import NeeditPageHeader from "../components/NeeditPageHeader";
 import BrandImage from "../components/BrandImage";
 import { useBrands, useBrandProducts, type Brand, type BrandProduct } from "../hooks/useBrandCatalog";
 import { useNeeditDraft } from "../hooks/useNeeditDraft";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type Phase = "brands" | "products";
 
@@ -28,6 +29,7 @@ const NeeditBrandsPage = () => {
   const navigate = useNavigate();
   const { catKey } = useParams<{ catKey: CategoryKey }>();
   const { draft, update } = useNeeditDraft();
+  const { t } = useTranslation();
   const category = useMemo(() => CATEGORIES.find((c) => c.key === catKey), [catKey]);
 
   const [phase, setPhase] = useState<Phase>("brands");
@@ -97,11 +99,11 @@ const NeeditBrandsPage = () => {
   return (
     <div className="min-h-screen bg-gradient-soft flex flex-col">
       <NeeditPageHeader
-        title={phase === "brands" ? `Marques ${category.label}` : selectedBrand?.name ?? "Produits"}
+        title={phase === "brands" ? t("needit.brands.titlePrefix", { cat: category.label }) : selectedBrand?.name ?? t("needit.brands.products")}
         subtitle={
           phase === "brands"
-            ? "Étape 2 sur 3 — Marque"
-            : `Étape 2 sur 3 — ${category.label}`
+            ? t("needit.brands.stepBrand")
+            : t("needit.brands.stepProduct", { cat: category.label })
         }
         onBack={handleBack}
       />
