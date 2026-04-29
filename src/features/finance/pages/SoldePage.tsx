@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
 import CoachMarks, { walletCoachSteps } from "@/components/CoachMarks";
 
+// Mock transactions: type/ref kept as raw labels (sample data only).
 const MOCK_TRANSACTIONS = [
   { id: "1", type: "Mission NeedIt", ref: "N°224513", amount: 32.9, date: "30/01/2025", direction: "in" as const, icon: "needit" },
   { id: "2", type: "Réception", ref: "virement solde", amount: -500, date: "12/01/2025", direction: "out" as const, icon: "reception" },
@@ -47,13 +48,13 @@ export default function SoldePage() {
         </button>
         <div>
           <h1 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">{t("balance.title")}</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">au 03/02/2025 à 15h02</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("balance.asOf", { date: "03/02/2025 · 15:02" })}</p>
         </div>
       </div>
 
       <main className="page-content pt-5" id="main-content" role="main" aria-label={t("balance.title")}>
         <div className="card-future text-center mb-5" data-coach="wallet-balance">
-          <p className="text-xs uppercase tracking-wider font-bold text-muted-foreground mb-1">Solde disponible</p>
+          <p className="text-xs uppercase tracking-wider font-bold text-muted-foreground mb-1">{t("balance.available")}</p>
           <p className={`text-4xl font-black ${balance >= 0 ? "text-success" : "text-destructive"}`}>
             {balance >= 0 ? "+" : ""} {balance.toFixed(2)}{currencySymbol}
           </p>

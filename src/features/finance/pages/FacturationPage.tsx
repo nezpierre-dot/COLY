@@ -25,7 +25,7 @@ export default function FacturationPage() {
             <ArrowLeft size={20} />
           </button>
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">{t("billing.title")}</h1>
-          <p className="text-sm text-muted-foreground mt-2">Gérer la facturation et les paiements</p>
+          <p className="text-sm text-muted-foreground mt-2">{t("billing.subtitle")}</p>
         </div>
       </header>
 
