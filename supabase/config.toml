@@ -53,3 +53,12 @@ verify_jwt = false
 
 [functions.track-web-vitals]
 verify_jwt = false
+
+[functions.send-push]
+verify_jwt = false
+
+[functions.og-meta]
+verify_jwt = false
+
+[functions.og-image]
+verify_jwt = false
