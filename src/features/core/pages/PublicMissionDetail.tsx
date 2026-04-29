@@ -62,7 +62,7 @@ export default function PublicMissionDetail() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1 text-sm font-semibold text-muted-foreground">{m.ref_number}</div>
-          <ShareButton url={`/needit/${m.id}`} title={m.product_name} text={`NeedIt: ${m.product_name}`} />
+          <ShareButton url={`/needit/${m.id}`} title={m.product_name} text={`NeedIt: ${m.product_name}`} ogType="mission" ogId={m.id} />
         </div>
       </header>
 

@@ -67,6 +67,8 @@ export default function PublicShipmentDetail() {
             url={`/colis/${s.id}`}
             title={`Colis ${s.departure_city || "—"} → ${s.arrival_city}`}
             text={`Colis taille ${s.size} à transporter sur Nidit`}
+            ogType="colis"
+            ogId={s.id}
           />
         </div>
       </header>

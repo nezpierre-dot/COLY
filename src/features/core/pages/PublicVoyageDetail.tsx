@@ -73,6 +73,8 @@ export default function PublicVoyageDetail() {
             url={`/trajet/${v.id}`}
             title={`${v.departure_city} → ${v.arrival_city}`}
             text={`Trajet ${v.transport_method} disponible sur Nidit`}
+            ogType="voyage"
+            ogId={v.id}
           />
         </div>
       </header>
