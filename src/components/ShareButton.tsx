@@ -15,7 +15,14 @@ interface ShareButtonProps {
   variant?: "default" | "ghost" | "outline" | "secondary";
   size?: "default" | "sm" | "icon";
   label?: string;
+  /** When set, links shared on social use the og-meta edge function for rich previews. */
+  ogType?: "voyage" | "mission" | "colis";
+  ogId?: string;
 }
+
+const SUPABASE_PROJECT_ID =
+  (import.meta as any).env?.VITE_SUPABASE_PROJECT_ID || "hyvqqfmlhcjbwrbpmdwr";
+const OG_META_BASE = `https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1/og-meta`;
 
 export default function ShareButton({
   url,
@@ -24,9 +31,13 @@ export default function ShareButton({
   variant = "outline",
   size = "sm",
   label = "Partager",
+  ogType,
+  ogId,
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const fullUrl = url.startsWith("http") ? url : `${window.location.origin}${url}`;
+  // For social shares, use the og-meta endpoint so crawlers get rich previews.
+  const socialUrl = ogType && ogId ? `${OG_META_BASE}/${ogType}/${ogId}` : fullUrl;
 
   const handleNativeShare = async () => {
     if (navigator.share) {
