@@ -73,6 +73,13 @@ const dateLocaleOf = (lang: string) => {
 const BrowseMissions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const dateLocale = dateLocaleOf(language);
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
+  const formatDate = (d: string) => {
+    try { return new Date(d).toLocaleDateString(localeTag, { day: "numeric", month: "short" }); }
+    catch { return d; }
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [tab, setTab] = useState("shipments");
   const [filterCountry, setFilterCountry] = useState("");
