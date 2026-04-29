@@ -1,8 +1,7 @@
 // @ts-nocheck
-// Dynamic OG image generator (1200x630 SVG → PNG via headless approach not needed; SVG works).
-// Many crawlers (Facebook, Twitter) accept image/svg+xml only sometimes; we serve PNG via resvg.
+// Dynamic OG image generator using @resvg/resvg-wasm (edge-runtime compatible).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { Resvg } from "npm:@resvg/resvg-js@2.6.2";
+import { initWasm, Resvg } from "https://esm.sh/@resvg/resvg-wasm@2.6.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +12,18 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_ANON_KEY")!,
 );
+
+let wasmReady: Promise<void> | null = null;
+function ensureWasm() {
+  if (!wasmReady) {
+    wasmReady = (async () => {
+      const res = await fetch("https://esm.sh/@resvg/resvg-wasm@2.6.2/index_bg.wasm");
+      const wasm = await res.arrayBuffer();
+      await initWasm(wasm);
+    })();
+  }
+  return wasmReady;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,6 +38,7 @@ Deno.serve(async (req) => {
   const svg = renderSvg(type, data);
 
   try {
+    await ensureWasm();
     const resvg = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } });
     const png = resvg.render().asPng();
     return new Response(png, {
@@ -38,9 +50,13 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("og-image render error", e);
-    // Fallback: return SVG
+    // Fallback: SVG (most modern crawlers handle it; FB may not preview).
     return new Response(svg, {
-      headers: { ...corsHeaders, "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=300" },
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "image/svg+xml",
+        "Cache-Control": "public, max-age=300",
+      },
     });
   }
 });
@@ -70,7 +86,7 @@ function esc(s: any): string {
 function renderSvg(type: string, d: any): string {
   let title = "Nidit";
   let subtitle = "Voyageurs & colis du quotidien";
-  let badge = "Nidit";
+  let badge = "NIDIT";
   let big = "→";
 
   if (d) {
@@ -92,7 +108,6 @@ function renderSvg(type: string, d: any): string {
     }
   }
 
-  // Truncate
   if (title.length > 38) title = title.slice(0, 36) + "…";
   if (subtitle.length > 80) subtitle = subtitle.slice(0, 78) + "…";
 
@@ -110,17 +125,12 @@ function renderSvg(type: string, d: any): string {
   <rect width="1200" height="630" fill="url(#bg)"/>
   <circle cx="1050" cy="120" r="280" fill="#0060CC" opacity="0.18"/>
   <circle cx="120" cy="540" r="220" fill="#30D158" opacity="0.12"/>
-
-  <text x="80" y="120" font-family="-apple-system, BlinkMacSystemFont, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#30D158" letter-spacing="6">${esc(badge)}</text>
-
-  <text x="80" y="280" font-family="-apple-system, Helvetica, sans-serif" font-size="78" font-weight="800" fill="#FFFFFF">${title}</text>
-
-  <text x="80" y="350" font-family="-apple-system, Helvetica, sans-serif" font-size="34" font-weight="500" fill="#E2E8F0" opacity="0.92">${subtitle}</text>
-
+  <text x="80" y="120" font-family="Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#30D158" letter-spacing="6">${esc(badge)}</text>
+  <text x="80" y="280" font-family="Helvetica, Arial, sans-serif" font-size="78" font-weight="800" fill="#FFFFFF">${title}</text>
+  <text x="80" y="350" font-family="Helvetica, Arial, sans-serif" font-size="34" font-weight="500" fill="#E2E8F0" opacity="0.92">${subtitle}</text>
   <rect x="80" y="500" width="3" height="60" fill="url(#accent)"/>
-  <text x="110" y="530" font-family="-apple-system, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#FFFFFF">Nidit</text>
-  <text x="110" y="565" font-family="-apple-system, Helvetica, sans-serif" font-size="22" font-weight="400" fill="#E2E8F0">nidit.fr — Voyageurs &amp; colis du quotidien</text>
-
-  <text x="1080" y="560" font-family="-apple-system, Helvetica, sans-serif" font-size="160" text-anchor="middle" fill="#FFFFFF" opacity="0.85">${esc(big)}</text>
+  <text x="110" y="530" font-family="Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#FFFFFF">Nidit</text>
+  <text x="110" y="565" font-family="Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#E2E8F0">nidit.fr — Voyageurs &amp; colis du quotidien</text>
+  <text x="1080" y="560" font-family="Helvetica, Arial, sans-serif" font-size="160" text-anchor="middle" fill="#FFFFFF" opacity="0.85">${esc(big)}</text>
 </svg>`;
 }
