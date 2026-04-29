@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
+import PresenceBadge from "@/components/PresenceBadge";
 
 interface Message { id: string; sender_id: string; content: string; created_at: string; is_read: boolean; }
 interface ShipmentDetail { type: "shipment"; departure_city: string | null; arrival_city: string; arrival_country: string; departure_date: string; size: string; tarif: string; insured: boolean; departure_method: string; }
