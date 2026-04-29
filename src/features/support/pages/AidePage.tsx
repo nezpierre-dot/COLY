@@ -13,38 +13,38 @@ export default function AidePage() {
   const guides = [
     {
       icon: Zap,
-      title: "Démarrage rapide",
-      desc: "Créez votre premier envoi ou voyage en 2 minutes.",
+      title: t("help.guide.quickstart.title"),
+      desc: t("help.guide.quickstart.desc"),
       steps: [
-        "Inscrivez-vous et vérifiez votre identité (KYC)",
-        "Choisissez votre rôle : Voyageur ou Demandeur",
-        "Voyageur : publiez un voyage • Demandeur : envoyez un colis ou créez une mission NeedIt",
-        "Communiquez avec votre contact via la messagerie intégrée",
-        "Confirmez la livraison avec une preuve photo",
+        t("help.guide.quickstart.s1"),
+        t("help.guide.quickstart.s2"),
+        t("help.guide.quickstart.s3"),
+        t("help.guide.quickstart.s4"),
+        t("help.guide.quickstart.s5"),
       ],
     },
     {
       icon: Shield,
-      title: "Sécuriser mes envois",
-      desc: "Conseils pour protéger vos colis et transactions.",
+      title: t("help.guide.secure.title"),
+      desc: t("help.guide.secure.desc"),
       steps: [
-        "Vérifiez toujours le profil et les avis du voyageur / expéditeur",
-        "Activez l'option assurance pour les objets de valeur",
-        "Prenez des photos du colis avant et après remise",
-        "Utilisez uniquement la messagerie intégrée (traçabilité)",
-        "Ne partagez jamais vos identifiants de paiement",
+        t("help.guide.secure.s1"),
+        t("help.guide.secure.s2"),
+        t("help.guide.secure.s3"),
+        t("help.guide.secure.s4"),
+        t("help.guide.secure.s5"),
       ],
     },
     {
       icon: Clock,
-      title: "Suivi & livraison",
-      desc: "Comprendre chaque étape du suivi de votre colis.",
+      title: t("help.guide.tracking.title"),
+      desc: t("help.guide.tracking.desc"),
       steps: [
-        "En attente : votre colis attend un voyageur",
-        "Accepté : un voyageur a pris en charge votre colis",
-        "En transit : le colis voyage avec le voyageur",
-        "Livré : le destinataire a confirmé la réception (preuve photo)",
-        "Terminé : le paiement est libéré au voyageur",
+        t("help.guide.tracking.s1"),
+        t("help.guide.tracking.s2"),
+        t("help.guide.tracking.s3"),
+        t("help.guide.tracking.s4"),
+        t("help.guide.tracking.s5"),
       ],
     },
   ];
@@ -144,8 +144,8 @@ export default function AidePage() {
         </section>
 
         <div className="text-center pt-4">
-          <p className="text-xs text-muted-foreground">Nidit · Version 1.0.0</p>
-          <p className="text-xs text-muted-foreground mt-0.5">© 2026 Tous droits réservés</p>
+          <p className="text-xs text-muted-foreground">{t("help.appVersion")}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t("help.copyright")}</p>
         </div>
       </div>
       <BottomNav />

@@ -14,16 +14,8 @@ const Terms = () => {
     <AuthLayout title={t("terms.title")} subtitle={t("terms.subtitle")}>
       <div className="flex flex-col gap-6 flex-1">
         <div className="bg-rose-50 rounded-xl p-5 max-h-64 overflow-y-auto text-sm text-foreground leading-relaxed relative">
-          <p>
-            Les présentes Conditions Générales d'Utilisation (ci-après « CGU »)
-            régissent l'accès et l'utilisation de l'application Coly (ci-après « l'Application »),
-            qui permet la mise en relation entre les utilisateurs souhaitant partager de l'espace
-            de bagages avec d'autres utilisateurs. En accédant à l'Application ou en l'utilisant,
-            vous acceptez sans réserve les présentes CGU.
-          </p>
-          <p className="mt-2">
-            Si vous n'acceptez pas ces conditions, vous devez cesser d'utiliser l'Application.
-          </p>
+          <p>{t("terms.body.p1")}</p>
+          <p className="mt-2">{t("terms.body.p2")}</p>
           <div className="flex justify-center mt-2 text-foreground/50"><ChevronDown size={20} /></div>
         </div>
         <div className="flex items-start gap-3">

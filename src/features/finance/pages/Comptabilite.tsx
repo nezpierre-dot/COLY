@@ -33,8 +33,8 @@ export default function Comptabilite() {
             {t("compta.title")}
           </span>
           <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
-            Vos finances<br />
-            <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">en toute clarté.</span>
+            {t("compta.headline.l1")}<br />
+            <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">{t("compta.headline.l2")}</span>
           </h1>
           <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
             {t("compta.section")}
@@ -48,7 +48,7 @@ export default function Comptabilite() {
             <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center mb-4">
               <FileText size={28} className="text-primary" />
             </div>
-            <p className="text-muted-foreground text-sm font-medium">Aucun relevé pour le moment</p>
+            <p className="text-muted-foreground text-sm font-medium">{t("compta.empty")}</p>
           </div>
         )}
 
@@ -56,7 +56,7 @@ export default function Comptabilite() {
           onClick={() => navigate("/payment-methods")}
           className="w-full py-4 rounded-2xl bg-gradient-primary text-primary-foreground font-bold text-sm flex items-center justify-center gap-2 shadow-elevated hover:opacity-95 transition"
         >
-          <Plus size={18} /> Ajouter RIB
+          <Plus size={18} /> {t("compta.addRib")}
         </button>
 
         <div className="space-y-3">

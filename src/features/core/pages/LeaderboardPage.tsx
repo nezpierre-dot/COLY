@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const PODIUM_STYLES = [
   { bg: "bg-amber-400/10", border: "border-amber-400/30", text: "text-amber-500", icon: Crown, rank: "🥇" },
@@ -17,6 +18,8 @@ const PODIUM_STYLES = [
 const LeaderboardPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
 
   const { data: leaderboard = [], isLoading } = useQuery({
     queryKey: ["weekly-leaderboard"],
@@ -27,14 +30,17 @@ const LeaderboardPage = () => {
     },
   });
 
-  // Current week range display
   const now = new Date();
   const dayOfWeek = now.getDay();
   const monday = new Date(now);
   monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
   const sunday = new Date(monday);
   sunday.setDate(monday.getDate() + 6);
-  const weekLabel = `${monday.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} — ${sunday.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
+  const fmt = (d: Date) => {
+    try { return d.toLocaleDateString(localeTag, { day: "numeric", month: "short" }); }
+    catch { return d.toLocaleDateString("en-US", { day: "numeric", month: "short" }); }
+  };
+  const weekLabel = `${fmt(monday)} — ${fmt(sunday)}`;
 
   return (
     <PageTransition>
@@ -42,11 +48,11 @@ const LeaderboardPage = () => {
         className="min-h-screen bg-gradient-soft"
         style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px) + 16px)" }}
       >
-        {/* Header */}
         <div className="relative overflow-hidden px-6 pt-12 pb-8 bg-gradient-to-b from-amber-500/20 to-background">
           <button
             onClick={() => navigate(-1)}
             className="absolute top-4 left-4 z-20 w-9 h-9 rounded-xl bg-card/80 backdrop-blur-sm border border-border flex items-center justify-center"
+            aria-label={t("common.back")}
           >
             <ArrowLeft size={18} className="text-foreground" />
           </button>
@@ -60,7 +66,7 @@ const LeaderboardPage = () => {
             >
               <Trophy size={28} className="text-amber-500" />
             </motion.div>
-            <h1 className="text-xl font-bold text-foreground">Classement de la semaine</h1>
+            <h1 className="text-xl font-bold text-foreground">{t("leaderboard.title")}</h1>
             <p className="text-xs text-muted-foreground mt-1">{weekLabel}</p>
           </div>
         </div>
@@ -77,8 +83,8 @@ const LeaderboardPage = () => {
               className="text-center py-16"
             >
               <Trophy size={40} className="text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-foreground">Aucune livraison cette semaine</p>
-              <p className="text-xs text-muted-foreground mt-1">Le classement se met à jour chaque lundi</p>
+              <p className="text-sm font-semibold text-foreground">{t("leaderboard.empty.title")}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("leaderboard.empty.subtitle")}</p>
             </motion.div>
           ) : (
             <div className="space-y-2.5">
@@ -102,7 +108,6 @@ const LeaderboardPage = () => {
                           : "bg-card border-border"
                     }`}
                   >
-                    {/* Rank */}
                     <div className="w-8 text-center shrink-0">
                       {isPodium ? (
                         <span className="text-xl">{podium!.rank}</span>
@@ -111,7 +116,6 @@ const LeaderboardPage = () => {
                       )}
                     </div>
 
-                    {/* Avatar */}
                     <Avatar className="h-10 w-10 rounded-xl shrink-0">
                       <AvatarImage src={entry.avatar_url || undefined} className="object-cover" />
                       <AvatarFallback className="bg-muted text-foreground font-bold rounded-xl text-sm">
@@ -119,15 +123,14 @@ const LeaderboardPage = () => {
                       </AvatarFallback>
                     </Avatar>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-bold text-foreground truncate">
-                          {entry.full_name || "Voyageur"}
+                          {entry.full_name || t("leaderboard.defaultTraveler")}
                         </p>
                         {isCurrentUser && (
                           <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
-                            Vous
+                            {t("leaderboard.you")}
                           </span>
                         )}
                       </div>
@@ -141,7 +144,6 @@ const LeaderboardPage = () => {
                       )}
                     </div>
 
-                    {/* Delivery count */}
                     <div className="flex items-center gap-1.5 shrink-0">
                       <Package size={14} className={isPodium ? podium!.text : "text-primary"} />
                       <span className={`text-lg font-bold ${isPodium ? podium!.text : "text-foreground"}`}>
@@ -154,17 +156,13 @@ const LeaderboardPage = () => {
             </div>
           )}
 
-          {/* Info card */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
             className="mt-6 bg-muted/30 border border-border rounded-2xl p-4 text-center"
           >
-            <p className="text-xs text-muted-foreground">
-              Le classement se réinitialise chaque lundi à minuit.
-              Livrez des colis et complétez des missions pour grimper ! 🚀
-            </p>
+            <p className="text-xs text-muted-foreground">{t("leaderboard.info")}</p>
           </motion.div>
         </div>
 

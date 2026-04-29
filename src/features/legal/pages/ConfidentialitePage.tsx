@@ -6,30 +6,28 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
 
-const CATEGORIES = [
-  { name: "Marketing", enabled: true, desc: "Ces technologies sont utilisées par les annonceurs pour diffuser des publicités qui correspondent à vos intérêts." },
-  { name: "Fonctionnel", enabled: false, desc: "Ces technologies nous permettent d'analyser le comportement d'utilisation afin de mesurer et d'améliorer les performances." },
-  { name: "Essentiel", enabled: true, desc: "Ces technologies sont nécessaires pour activer les fonctionnalités de base de notre service." },
-];
-
 const SERVICES = [
-  { name: "Adjust", category: "Marketing", enabled: true },
-  { name: "Sendbird", category: "Essentiel", enabled: true },
-  { name: "Google Analytics for Firebase", category: "Marketing", enabled: false },
-  { name: "Google Maps", category: "Essentiel", enabled: true },
-];
-
-const POLICY_SECTIONS = [
-  { title: "1. Informations collectées", content: "Nous collectons des informations personnelles lorsque vous vous inscrivez sur l'application, lorsque vous utilisez nos services ou lorsque vous nous contactez." },
-  { title: "2. Utilisation des données", content: "Vos données sont utilisées pour fournir et améliorer nos services, personnaliser votre expérience, communiquer avec vous, et assurer la sécurité de votre compte." },
-  { title: "3. Partage des données", content: "Vos données ne sont jamais vendues. Elles peuvent être partagées avec nos partenaires de confiance uniquement dans le cadre de la prestation de service." },
-  { title: "4. Vos droits", content: "Conformément au RGPD, vous disposez de droits d'accès, de rectification, de suppression et de portabilité de vos données." },
+  { name: "Adjust", categoryKey: "privacy.cat.marketing", enabled: true },
+  { name: "Sendbird", categoryKey: "privacy.cat.essential", enabled: true },
+  { name: "Google Analytics for Firebase", categoryKey: "privacy.cat.marketing", enabled: false },
+  { name: "Google Maps", categoryKey: "privacy.cat.essential", enabled: true },
 ];
 
 export default function ConfidentialitePage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [receiveOffers, setReceiveOffers] = useState(true);
+  const CATEGORIES = [
+    { name: t("privacy.cat.marketing"), enabled: true,  desc: t("privacy.cat.marketing.desc") },
+    { name: t("privacy.cat.functional"), enabled: false, desc: t("privacy.cat.functional.desc") },
+    { name: t("privacy.cat.essential"), enabled: true,  desc: t("privacy.cat.essential.desc") },
+  ];
+  const POLICY_SECTIONS = [
+    { title: t("privacy.policy.s1.title"), content: t("privacy.policy.s1.content") },
+    { title: t("privacy.policy.s2.title"), content: t("privacy.policy.s2.content") },
+    { title: t("privacy.policy.s3.title"), content: t("privacy.policy.s3.content") },
+    { title: t("privacy.policy.s4.title"), content: t("privacy.policy.s4.content") },
+  ];
   const [categories, setCategories] = useState(CATEGORIES);
   const [services, setServices] = useState(SERVICES);
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
@@ -120,7 +118,7 @@ export default function ConfidentialitePage() {
               <div className="space-y-2">
                 {services.map((svc) => (
                   <div key={svc.name} className="bg-muted/50 rounded-xl px-4 py-3 flex items-center justify-between">
-                    <div><p className="text-sm font-medium text-foreground">{svc.name}</p><p className="text-xs text-muted-foreground">{svc.category}</p></div>
+                    <div><p className="text-sm font-medium text-foreground">{svc.name}</p><p className="text-xs text-muted-foreground">{t(svc.categoryKey)}</p></div>
                     <Switch checked={svc.enabled} onCheckedChange={() => toggleService(svc.name)} />
                   </div>
                 ))}
@@ -136,7 +134,7 @@ export default function ConfidentialitePage() {
 
         <div className="flex items-center justify-center gap-2 py-4 text-xs text-muted-foreground">
           <ShieldCheck size={12} className="text-emerald-500" />
-          <span>Protégé par AXA • Chiffrement AES-256 • RGPD</span>
+          <span>{t("privacy.footer")}</span>
         </div>
       </div>
       <BottomNav />
