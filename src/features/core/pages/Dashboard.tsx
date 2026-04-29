@@ -927,9 +927,19 @@ const Dashboard = () => {
               t={t}
             />
 
-            <div data-coach="wallet"><WalletCard compact /></div>
-
-            <FavoriteRoutes t={t} />
+            <motion.div
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="space-y-4"
+            >
+              <motion.div variants={staggerItem} data-coach="wallet">
+                <WalletCard compact />
+              </motion.div>
+              <motion.div variants={staggerItem}>
+                <FavoriteRoutes t={t} />
+              </motion.div>
+            </motion.div>
 
             <Tabs defaultValue="voyages" className="space-y-3">
               <TabsList className="w-full glass rounded-xl p-1 h-auto">
@@ -1624,9 +1634,19 @@ const Dashboard = () => {
             </motion.div>
 
             {/* Wallet card — bien mise en avant */}
-            <div data-coach="wallet"><WalletCard compact /></div>
-
-            <FavoriteRoutes t={t} />
+            <motion.div
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="space-y-4"
+            >
+              <motion.div variants={staggerItem} data-coach="wallet">
+                <WalletCard compact />
+              </motion.div>
+              <motion.div variants={staggerItem}>
+                <FavoriteRoutes t={t} />
+              </motion.div>
+            </motion.div>
 
             {/* "Mes envois" preview — timeline visuelle (top 2) */}
             {demandeurShipments.length > 0 && (
