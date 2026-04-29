@@ -4,6 +4,7 @@ import { ArrowLeft, Package, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import ShareButton from "@/components/ShareButton";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PublicShipment {
   id: string;
@@ -20,6 +21,7 @@ interface PublicShipment {
 export default function PublicShipmentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t, language } = useTranslation();
   const [s, setS] = useState<PublicShipment | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -49,11 +51,13 @@ export default function PublicShipmentDetail() {
   if (notFound || !s) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
-        <h1 className="text-2xl font-bold">Colis introuvable</h1>
-        <Button onClick={() => navigate("/explore")} className="mt-4">Explorer Nidit</Button>
+        <h1 className="text-2xl font-bold">{t("publicShipment.notFound")}</h1>
+        <Button onClick={() => navigate("/explore")} className="mt-4">{t("publicMission.exploreNidit")}</Button>
       </div>
     );
   }
+
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -80,7 +84,7 @@ export default function PublicShipmentDetail() {
           )}
           <div className="p-6">
             <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <Package className="h-3 w-3" /> Colis taille {s.size}
+              <Package className="h-3 w-3" /> {t("publicShipment.parcelSize", { size: s.size })}
             </div>
             <h1 className="text-3xl font-extrabold">
               {s.departure_city || "—"} → {s.arrival_city}
@@ -89,12 +93,12 @@ export default function PublicShipmentDetail() {
               <MapPin className="h-4 w-4" /> {s.arrival_country}
             </div>
             <div className="mt-4 text-lg font-semibold">
-              Tarif proposé : <span className="text-success">{s.tarif}</span>
+              {t("publicShipment.proposedRate")} <span className="text-success">{s.tarif}</span>
             </div>
             {s.departure_date && (
               <div className="mt-2 text-sm text-muted-foreground">
-                Disponible dès le{" "}
-                {new Date(s.departure_date).toLocaleDateString("fr-FR", {
+                {t("publicShipment.availableFrom")}{" "}
+                {new Date(s.departure_date).toLocaleDateString(localeTag, {
                   day: "2-digit", month: "long", year: "numeric",
                 })}
               </div>
@@ -103,19 +107,19 @@ export default function PublicShipmentDetail() {
         </div>
 
         <div className="mt-6 rounded-3xl border border-primary/30 bg-primary/5 p-6 text-center">
-          <h2 className="text-lg font-bold">Vous partez vers {s.arrival_country} ?</h2>
+          <h2 className="text-lg font-bold">{t("publicShipment.goingTo", { country: s.arrival_country })}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Inscrivez-vous pour accepter ce colis et gagner {s.tarif}.
+            {t("publicShipment.signupCta", { tarif: s.tarif })}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Button onClick={() => navigate("/signup")}>Créer un compte</Button>
-            <Button variant="outline" onClick={() => navigate("/login")}>Se connecter</Button>
+            <Button onClick={() => navigate("/signup")}>{t("publicCommon.createAccount")}</Button>
+            <Button variant="outline" onClick={() => navigate("/login")}>{t("publicCommon.signIn")}</Button>
           </div>
         </div>
 
         <div className="mt-6 text-center">
           <Link to="/explore" className="text-sm text-muted-foreground hover:underline">
-            ← Voir d'autres trajets
+            ← {t("publicShipment.seeOtherTrips")}
           </Link>
         </div>
       </div>

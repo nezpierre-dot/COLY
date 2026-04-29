@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
@@ -17,65 +17,54 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const SETUP_STEPS = [
-  {
-    icon: PackagePlus,
-    color: "from-primary to-primary/60",
-    title: "Décrivez votre colis",
-    desc: "Origine, destination, taille (S, M, L, XL), date souhaitée. Moins de 60 secondes.",
-  },
-  {
-    icon: Search,
-    color: "from-success to-success/60",
-    title: "On trouve un voyageur",
-    desc: "Notre matching intelligent vous propose les meilleurs voyageurs vérifiés sur votre route.",
-  },
-  {
-    icon: HandshakeIcon,
-    color: "from-amber-500 to-amber-300",
-    title: "Vous validez ensemble",
-    desc: "Échangez par chat sécurisé, fixez le prix, le point de remise et la livraison.",
-  },
-  {
-    icon: ShieldCheck,
-    color: "from-violet-500 to-violet-300",
-    title: "Paiement sous séquestre",
-    desc: "Votre argent est bloqué chez Nidit. Le voyageur n'est payé qu'à la livraison confirmée.",
-  },
-  {
-    icon: CheckCircle2,
-    color: "from-blue-500 to-cyan-400",
-    title: "Livraison & avis",
-    desc: "Code OTP + photo de remise. Vous notez votre voyageur, il note l'expérience.",
-  },
-];
-
-const TRUST_POINTS = [
-  { icon: Lock, t: "Paiement séquestre", d: "Argent bloqué jusqu'à la livraison effective." },
-  { icon: ShieldCheck, t: "KYC obligatoire", d: "Identité vérifiée pour tous les voyageurs." },
-  { icon: Star, t: "Notes communauté", d: "Système d'avis 5★ public et transparent." },
-  { icon: Wallet, t: "0€ d'abonnement", d: "Une commission de 15%, c'est tout." },
-];
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function HowItWorks() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { scrollYProgress } = useScroll();
   const lineProgress = useTransform(scrollYProgress, [0.1, 0.7], [0, 1]);
 
+  const SETUP_STEPS = useMemo(
+    () => [
+      { icon: PackagePlus, color: "from-primary to-primary/60", title: t("howItWorks.step1.title"), desc: t("howItWorks.step1.desc") },
+      { icon: Search, color: "from-success to-success/60", title: t("howItWorks.step2.title"), desc: t("howItWorks.step2.desc") },
+      { icon: HandshakeIcon, color: "from-amber-500 to-amber-300", title: t("howItWorks.step3.title"), desc: t("howItWorks.step3.desc") },
+      { icon: ShieldCheck, color: "from-violet-500 to-violet-300", title: t("howItWorks.step4.title"), desc: t("howItWorks.step4.desc") },
+      { icon: CheckCircle2, color: "from-blue-500 to-cyan-400", title: t("howItWorks.step5.title"), desc: t("howItWorks.step5.desc") },
+    ],
+    [t],
+  );
+
+  const TRUST_POINTS = useMemo(
+    () => [
+      { icon: Lock, t: t("howItWorks.trust1.t"), d: t("howItWorks.trust1.d") },
+      { icon: ShieldCheck, t: t("howItWorks.trust2.t"), d: t("howItWorks.trust2.d") },
+      { icon: Star, t: t("howItWorks.trust3.t"), d: t("howItWorks.trust3.d") },
+      { icon: Wallet, t: t("howItWorks.trust4.t"), d: t("howItWorks.trust4.d") },
+    ],
+    [t],
+  );
+
+  const TRAVELER_PERKS = useMemo(
+    () => [
+      t("howItWorks.travelerPerk1"),
+      t("howItWorks.travelerPerk2"),
+      t("howItWorks.travelerPerk3"),
+    ],
+    [t],
+  );
+
   useEffect(() => {
-    document.title = "Comment ça marche — Nidit";
+    document.title = `${t("howItWorks.metaTitle")} — Nidit`;
     let m = document.querySelector('meta[name="description"]');
     if (!m) {
       m = document.createElement("meta");
       m.setAttribute("name", "description");
       document.head.appendChild(m);
     }
-    m.setAttribute(
-      "content",
-      "Découvrez comment Nidit fonctionne : envoyez vos colis avec des voyageurs vérifiés en 5 étapes simples. Paiement sécurisé, KYC, OTP de remise.",
-    );
-  }, []);
+    m.setAttribute("content", t("howItWorks.metaDesc"));
+  }, [t]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -87,13 +76,13 @@ export default function HowItWorks() {
           </Link>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => navigate("/explore")}>
-              Explorer
+              {t("publicNav.explore")}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>
-              Connexion
+              {t("publicNav.login")}
             </Button>
             <Button size="sm" onClick={() => navigate("/signup")}>
-              S'inscrire
+              {t("publicCommon.signUp")}
             </Button>
           </div>
         </div>
@@ -110,23 +99,22 @@ export default function HowItWorks() {
           >
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Sparkles className="h-3 w-3" />
-              Comment ça marche
+              {t("howItWorks.badge")}
             </div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
-              Envoyez un colis en
+              {t("howItWorks.heroTitle1")}
               <br />
               <span className="bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
-                5 étapes simples.
+                {t("howItWorks.heroTitle2")}
               </span>
             </h1>
             <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-              De la création à la livraison, chaque étape est sécurisée. Vous gardez le contrôle, on s'occupe de la confiance.
+              {t("howItWorks.heroDesc")}
             </p>
           </motion.div>
 
           {/* Animated journey illustration */}
           <div className="relative mx-auto mt-14 h-32 max-w-3xl">
-            {/* Dashed route line */}
             <svg className="absolute inset-x-0 top-1/2 -translate-y-1/2" viewBox="0 0 600 40" preserveAspectRatio="none" width="100%" height="40">
               <motion.path
                 d="M 20 20 Q 200 -10 300 20 T 580 20"
@@ -139,14 +127,12 @@ export default function HowItWorks() {
                 transition={{ duration: 2.5, ease: "easeInOut", repeat: Infinity, repeatType: "loop", repeatDelay: 1 }}
               />
             </svg>
-            {/* Origin pin */}
             <div className="absolute left-0 top-1/2 flex -translate-y-1/2 flex-col items-center">
               <div className="rounded-full bg-primary p-2 text-primary-foreground shadow-lg">
                 <MapPin className="h-4 w-4" />
               </div>
               <span className="mt-1 text-xs font-semibold text-muted-foreground">Paris</span>
             </div>
-            {/* Plane */}
             <motion.div
               className="absolute top-1/2 -translate-y-1/2 text-primary"
               initial={{ left: "5%" }}
@@ -155,7 +141,6 @@ export default function HowItWorks() {
             >
               <Plane className="h-7 w-7 -rotate-12 drop-shadow-lg" />
             </motion.div>
-            {/* Destination pin */}
             <div className="absolute right-0 top-1/2 flex -translate-y-1/2 flex-col items-center">
               <div className="rounded-full bg-success p-2 text-white shadow-lg">
                 <MapPin className="h-4 w-4" />
@@ -168,7 +153,6 @@ export default function HowItWorks() {
 
       {/* Steps timeline */}
       <section className="relative mx-auto max-w-3xl px-4 py-16">
-        {/* Animated vertical progress line */}
         <div className="absolute bottom-0 left-8 top-0 hidden w-0.5 overflow-hidden rounded-full bg-border md:block">
           <motion.div
             className="h-full origin-top bg-gradient-to-b from-primary via-success to-blue-500"
@@ -213,10 +197,10 @@ export default function HowItWorks() {
             viewport={{ once: true }}
             className="mb-3 text-center text-3xl font-bold md:text-4xl"
           >
-            La confiance avant tout
+            {t("howItWorks.trustTitle")}
           </motion.h2>
           <p className="mx-auto mb-10 max-w-xl text-center text-muted-foreground">
-            Chaque transaction est protégée. Voici comment.
+            {t("howItWorks.trustDesc")}
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {TRUST_POINTS.map((b, i) => (
@@ -249,20 +233,16 @@ export default function HowItWorks() {
           >
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
               <Users className="h-3 w-3" />
-              Vous voyagez ?
+              {t("howItWorks.travelerBadge")}
             </div>
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              Rentabilisez vos trajets.
+              {t("howItWorks.travelerTitle")}
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Vous avez un voyage prévu ? Proposez vos kilos disponibles, choisissez vos colis, gagnez de l'argent. C'est aussi simple que ça.
+              {t("howItWorks.travelerDesc")}
             </p>
             <ul className="mt-5 space-y-2.5">
-              {[
-                "Vous fixez vos prix et capacités",
-                "Vous choisissez vos colis (jamais imposés)",
-                "Paiement automatique 48h après livraison",
-              ].map((p) => (
+              {TRAVELER_PERKS.map((p) => (
                 <li key={p} className="flex items-start gap-2 text-sm">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
                   <span>{p}</span>
@@ -270,11 +250,10 @@ export default function HowItWorks() {
               ))}
             </ul>
             <Button className="mt-6 gap-2" onClick={() => navigate("/signup")}>
-              Devenir voyageur <ArrowRight className="h-4 w-4" />
+              {t("howItWorks.becomeTraveler")} <ArrowRight className="h-4 w-4" />
             </Button>
           </motion.div>
 
-          {/* Animated card stack illustration */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -302,7 +281,7 @@ export default function HowItWorks() {
                   Paris → {["Dakar", "Abidjan", "Casablanca"][i]}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  {["3 kg", "5 kg", "2 kg"][i]} • {["Avion", "Avion", "Train"][i]}
+                  {["3 kg", "5 kg", "2 kg"][i]} • {[t("howItWorks.modeAir"), t("howItWorks.modeAir"), t("howItWorks.modeTrain")][i]}
                 </div>
                 <div className="mt-3 flex items-center gap-1">
                   {Array.from({ length: 5 }).map((_, k) => (
@@ -317,24 +296,24 @@ export default function HowItWorks() {
 
       {/* CTA */}
       <section className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h2 className="text-3xl font-bold md:text-4xl">Prêt à essayer ?</h2>
+        <h2 className="text-3xl font-bold md:text-4xl">{t("howItWorks.ctaTitle")}</h2>
         <p className="mt-3 text-muted-foreground">
-          Inscription gratuite en 30 secondes. Pas d'abonnement.
+          {t("howItWorks.ctaDesc")}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button size="lg" onClick={() => navigate("/signup")} className="gap-2">
-            Créer mon compte <ArrowRight className="h-4 w-4" />
+            {t("howItWorks.ctaPrimary")} <ArrowRight className="h-4 w-4" />
           </Button>
           <Button size="lg" variant="outline" onClick={() => navigate("/explore")}>
-            Voir les trajets
+            {t("howItWorks.ctaSecondary")}
           </Button>
         </div>
       </section>
 
       <footer className="border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
         © {new Date().getFullYear()} Nidit •{" "}
-        <Link to="/terms" className="hover:underline">Conditions</Link> •{" "}
-        <Link to="/confidentialite" className="hover:underline">Confidentialité</Link>
+        <Link to="/terms" className="hover:underline">{t("publicFooter.terms")}</Link> •{" "}
+        <Link to="/confidentialite" className="hover:underline">{t("publicFooter.privacy")}</Link>
       </footer>
     </div>
   );

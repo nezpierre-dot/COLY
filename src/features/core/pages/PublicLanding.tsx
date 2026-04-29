@@ -5,6 +5,7 @@ import { ArrowRight, Plane, Search, Sparkles, ShieldCheck, Globe2 } from "lucide
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import Testimonials from "@/components/Testimonials";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PopularRoute {
   departure_city: string;
@@ -25,22 +26,20 @@ interface PublicVoyage {
 
 export default function PublicLanding() {
   const navigate = useNavigate();
+  const { t, language } = useTranslation();
   const [routes, setRoutes] = useState<PopularRoute[]>([]);
   const [voyages, setVoyages] = useState<PublicVoyage[]>([]);
   const [stats, setStats] = useState({ voyages: 0 });
 
   useEffect(() => {
-    document.title = "Nidit — Envoyez vos colis avec des voyageurs de confiance";
+    document.title = `Nidit — ${t("publicLanding.metaTitle")}`;
     let m = document.querySelector('meta[name="description"]');
     if (!m) {
       m = document.createElement("meta");
       m.setAttribute("name", "description");
       document.head.appendChild(m);
     }
-    m.setAttribute(
-      "content",
-      "Nidit met en relation expéditeurs et voyageurs vérifiés. Envoyez vos colis partout dans le monde, ou gagnez de l'argent en transportant lors de vos trajets.",
-    );
+    m.setAttribute("content", t("publicLanding.metaDesc"));
 
     (async () => {
       const [{ data: r }, { data: v }] = await Promise.all([
@@ -53,7 +52,15 @@ export default function PublicLanding() {
         setStats({ voyages: v.length });
       }
     })();
-  }, []);
+  }, [t]);
+
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
+
+  const trustPoints = [
+    { icon: ShieldCheck, t: t("publicLanding.trust1.t"), d: t("publicLanding.trust1.d") },
+    { icon: Globe2, t: t("publicLanding.trust2.t"), d: t("publicLanding.trust2.d") },
+    { icon: Plane, t: t("publicLanding.trust3.t"), d: t("publicLanding.trust3.d") },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -65,16 +72,16 @@ export default function PublicLanding() {
           </Link>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => navigate("/comment-ca-marche")} className="hidden sm:inline-flex">
-              Comment ça marche
+              {t("publicNav.howItWorks")}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/explore")}>
-              Explorer
+              {t("publicNav.explore")}
             </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>
-              Connexion
+              {t("publicNav.login")}
             </Button>
             <Button size="sm" onClick={() => navigate("/signup")}>
-              S'inscrire
+              {t("publicCommon.signUp")}
             </Button>
           </div>
         </div>
@@ -92,24 +99,23 @@ export default function PublicLanding() {
           >
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Sparkles className="h-3 w-3" />
-              {stats.voyages > 0 ? `${stats.voyages}+ trajets actifs` : "Nouveaux trajets chaque jour"}
+              {stats.voyages > 0 ? t("publicLanding.activeTrips", { count: stats.voyages }) : t("publicLanding.newTripsDaily")}
             </div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
-              Envoyez vos colis<br />
+              {t("publicLanding.heroTitle1")}<br />
               <span className="bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
-                avec des voyageurs
+                {t("publicLanding.heroTitle2")}
               </span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-              Plus rapide, plus humain et souvent moins cher que la poste. Profitez des trajets
-              quotidiens des voyageurs Nidit pour livrer partout dans le monde.
+              {t("publicLanding.heroDesc")}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" onClick={() => navigate("/signup")} className="gap-2">
-                Commencer maintenant <ArrowRight className="h-4 w-4" />
+                {t("publicLanding.startNow")} <ArrowRight className="h-4 w-4" />
               </Button>
               <Button size="lg" variant="outline" onClick={() => navigate("/explore")}>
-                Voir les trajets disponibles
+                {t("publicLanding.seeTrips")}
               </Button>
             </div>
           </motion.div>
@@ -119,11 +125,7 @@ export default function PublicLanding() {
       {/* Trust */}
       <section className="border-y border-border/50 bg-card/50">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-10 md:grid-cols-3">
-          {[
-            { icon: ShieldCheck, t: "Voyageurs vérifiés", d: "KYC + notation communautaire" },
-            { icon: Globe2, t: "Partout dans le monde", d: "Couverture internationale" },
-            { icon: Plane, t: "Plusieurs modes", d: "Avion, train, voiture, bus" },
-          ].map((b) => (
+          {trustPoints.map((b) => (
             <div key={b.t} className="flex items-start gap-3">
               <div className="rounded-xl bg-primary/10 p-3 text-primary">
                 <b.icon className="h-6 w-6" />
@@ -141,11 +143,11 @@ export default function PublicLanding() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <h2 className="text-2xl font-bold md:text-3xl">Trajets populaires</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Les destinations les plus demandées par la communauté</p>
+            <h2 className="text-2xl font-bold md:text-3xl">{t("publicLanding.popularTitle")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("publicLanding.popularDesc")}</p>
           </div>
           <Button variant="ghost" size="sm" onClick={() => navigate("/explore")} className="gap-1">
-            Tout voir <ArrowRight className="h-4 w-4" />
+            {t("publicLanding.seeAll")} <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -168,7 +170,9 @@ export default function PublicLanding() {
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">{r.arrival_country}</div>
                 <div className="mt-2 text-xs font-semibold text-primary">
-                  {r.voyage_count} {r.voyage_count > 1 ? "voyageurs" : "voyageur"}
+                  {r.voyage_count > 1
+                    ? t("publicLanding.travelers_plural", { count: r.voyage_count })
+                    : t("publicLanding.travelers_one", { count: r.voyage_count })}
                 </div>
               </motion.button>
             ))
@@ -179,7 +183,7 @@ export default function PublicLanding() {
       {/* Recent voyages */}
       <section className="bg-card/30 py-16">
         <div className="mx-auto max-w-6xl px-4">
-          <h2 className="mb-6 text-2xl font-bold md:text-3xl">Trajets disponibles maintenant</h2>
+          <h2 className="mb-6 text-2xl font-bold md:text-3xl">{t("publicLanding.availableNow")}</h2>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             {voyages.map((v, i) => (
               <motion.div
@@ -194,7 +198,7 @@ export default function PublicLanding() {
                   {v.departure_city} → {v.arrival_city}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">
-                  {new Date(v.departure_date).toLocaleDateString("fr-FR", {
+                  {new Date(v.departure_date).toLocaleDateString(localeTag, {
                     day: "2-digit",
                     month: "long",
                     year: "numeric",
@@ -206,7 +210,7 @@ export default function PublicLanding() {
                   className="mt-3 w-full"
                   onClick={() => navigate(`/trajet/${v.id}`)}
                 >
-                  Voir le trajet
+                  {t("publicLanding.viewTrip")}
                 </Button>
               </motion.div>
             ))}
@@ -220,23 +224,23 @@ export default function PublicLanding() {
       {/* CTA */}
       <section className="mx-auto max-w-3xl px-4 py-20 text-center">
         <Search className="mx-auto mb-4 h-10 w-10 text-primary" />
-        <h2 className="text-3xl font-bold md:text-4xl">Prêt à envoyer ou voyager ?</h2>
+        <h2 className="text-3xl font-bold md:text-4xl">{t("publicLanding.ctaTitle")}</h2>
         <p className="mt-3 text-muted-foreground">
-          Inscription gratuite en 30 secondes. Pas d'abonnement, paiement sécurisé sous séquestre.
+          {t("publicLanding.ctaDesc")}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Button size="lg" onClick={() => navigate("/signup")}>
-            Créer mon compte
+            {t("publicLanding.createAccount")}
           </Button>
           <Button size="lg" variant="outline" onClick={() => navigate("/explore")}>
-            Continuer en visiteur
+            {t("publicLanding.continueAsGuest")}
           </Button>
         </div>
       </section>
 
       <footer className="border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Nidit • <Link to="/terms" className="hover:underline">Conditions</Link> •{" "}
-        <Link to="/confidentialite" className="hover:underline">Confidentialité</Link>
+        © {new Date().getFullYear()} Nidit • <Link to="/terms" className="hover:underline">{t("publicFooter.terms")}</Link> •{" "}
+        <Link to="/confidentialite" className="hover:underline">{t("publicFooter.privacy")}</Link>
       </footer>
     </div>
   );

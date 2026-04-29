@@ -4,6 +4,7 @@ import { ArrowLeft, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PublicVoyage {
   id: string;
@@ -19,13 +20,14 @@ interface PublicVoyage {
 
 export default function PublicExplore() {
   const navigate = useNavigate();
+  const { t, language } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [voyages, setVoyages] = useState<PublicVoyage[]>([]);
   const [loading, setLoading] = useState(true);
   const [country, setCountry] = useState(searchParams.get("to") || "");
 
   useEffect(() => {
-    document.title = "Explorer les trajets disponibles | Nidit";
+    document.title = `${t("publicExplore.metaTitle")} | Nidit`;
     const c = searchParams.get("to") || "";
     setCountry(c);
     setLoading(true);
@@ -35,12 +37,14 @@ export default function PublicExplore() {
         setVoyages((data as any) || []);
         setLoading(false);
       });
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   const applyFilter = () => {
     if (country) setSearchParams({ to: country });
     else setSearchParams({});
   };
+
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -49,9 +53,9 @@ export default function PublicExplore() {
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="flex-1 text-lg font-bold">Trajets disponibles</h1>
+          <h1 className="flex-1 text-lg font-bold">{t("publicExplore.title")}</h1>
           <Button size="sm" onClick={() => navigate("/signup")}>
-            S'inscrire
+            {t("publicCommon.signUp")}
           </Button>
         </div>
       </header>
@@ -60,14 +64,14 @@ export default function PublicExplore() {
         {/* Filter */}
         <div className="mb-6 flex gap-2">
           <Input
-            placeholder="Pays de destination (ex: France, Maroc...)"
+            placeholder={t("publicExplore.countryPlaceholder")}
             value={country}
             onChange={(e) => setCountry(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && applyFilter()}
           />
           <Button onClick={applyFilter} variant="outline" className="gap-2">
             <Filter className="h-4 w-4" />
-            Filtrer
+            {t("publicExplore.filter")}
           </Button>
         </div>
 
@@ -79,9 +83,9 @@ export default function PublicExplore() {
           </div>
         ) : voyages.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-10 text-center">
-            <p className="text-muted-foreground">Aucun trajet trouvé.</p>
+            <p className="text-muted-foreground">{t("publicExplore.noTrips")}</p>
             <Button onClick={() => setSearchParams({})} variant="outline" className="mt-4">
-              Tout afficher
+              {t("publicExplore.showAll")}
             </Button>
           </div>
         ) : (
@@ -106,14 +110,14 @@ export default function PublicExplore() {
                 </div>
                 <div className="mt-2 flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">
-                    {new Date(v.departure_date).toLocaleDateString("fr-FR", {
+                    {new Date(v.departure_date).toLocaleDateString(localeTag, {
                       day: "2-digit",
                       month: "long",
                       year: "numeric",
                     })}
                   </span>
                   {v.max_weight_kg && (
-                    <span className="font-semibold text-success">{v.max_weight_kg} kg max</span>
+                    <span className="font-semibold text-success">{t("publicVoyage.kgMax", { kg: v.max_weight_kg })}</span>
                   )}
                 </div>
               </Link>
@@ -122,11 +126,11 @@ export default function PublicExplore() {
         )}
 
         <div className="mt-8 rounded-2xl border border-primary/30 bg-primary/5 p-6 text-center">
-          <p className="font-semibold">Pour réserver un trajet ou contacter un voyageur,</p>
-          <p className="mt-1 text-sm text-muted-foreground">créez votre compte gratuit en 30 secondes.</p>
+          <p className="font-semibold">{t("publicExplore.ctaTitle")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("publicExplore.ctaDesc")}</p>
           <div className="mt-4 flex justify-center gap-2">
-            <Button onClick={() => navigate("/signup")}>S'inscrire</Button>
-            <Button variant="outline" onClick={() => navigate("/login")}>Se connecter</Button>
+            <Button onClick={() => navigate("/signup")}>{t("publicCommon.signUp")}</Button>
+            <Button variant="outline" onClick={() => navigate("/login")}>{t("publicCommon.signIn")}</Button>
           </div>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar, Plane, Package2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import ShareButton from "@/components/ShareButton";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PublicVoyageDetail {
   id: string;
@@ -23,6 +24,7 @@ interface PublicVoyageDetail {
 export default function PublicVoyageDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t, language } = useTranslation();
   const [v, setV] = useState<PublicVoyageDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -52,14 +54,16 @@ export default function PublicVoyageDetail() {
   if (notFound || !v) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
-        <h1 className="text-2xl font-bold">Trajet introuvable</h1>
-        <p className="mt-2 text-muted-foreground">Ce trajet n'est plus disponible.</p>
+        <h1 className="text-2xl font-bold">{t("publicVoyage.notFound")}</h1>
+        <p className="mt-2 text-muted-foreground">{t("publicVoyage.notFoundDesc")}</p>
         <Button onClick={() => navigate("/explore")} className="mt-4">
-          Voir les trajets disponibles
+          {t("publicVoyage.seeAvailable")}
         </Button>
       </div>
     );
   }
+
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -96,9 +100,9 @@ export default function PublicVoyageDetail() {
             <div className="flex items-center gap-3 rounded-xl bg-muted/40 p-3">
               <Calendar className="h-5 w-5 text-primary" />
               <div>
-                <div className="text-sm font-semibold">Départ</div>
+                <div className="text-sm font-semibold">{t("publicVoyage.departure")}</div>
                 <div className="text-xs text-muted-foreground">
-                  {new Date(v.departure_date).toLocaleDateString("fr-FR", {
+                  {new Date(v.departure_date).toLocaleDateString(localeTag, {
                     weekday: "long", day: "2-digit", month: "long", year: "numeric",
                   })}
                 </div>
@@ -108,9 +112,9 @@ export default function PublicVoyageDetail() {
               <div className="flex items-center gap-3 rounded-xl bg-muted/40 p-3">
                 <MapPin className="h-5 w-5 text-success" />
                 <div>
-                  <div className="text-sm font-semibold">Arrivée</div>
+                  <div className="text-sm font-semibold">{t("publicVoyage.arrival")}</div>
                   <div className="text-xs text-muted-foreground">
-                    {new Date(v.arrival_date).toLocaleDateString("fr-FR", {
+                    {new Date(v.arrival_date).toLocaleDateString(localeTag, {
                       weekday: "long", day: "2-digit", month: "long", year: "numeric",
                     })}
                   </div>
@@ -121,9 +125,9 @@ export default function PublicVoyageDetail() {
               <div className="flex items-center gap-3 rounded-xl bg-muted/40 p-3">
                 <Package2 className="h-5 w-5 text-primary" />
                 <div>
-                  <div className="text-sm font-semibold">Capacité</div>
+                  <div className="text-sm font-semibold">{t("publicVoyage.capacity")}</div>
                   <div className="text-xs text-muted-foreground">
-                    {v.max_weight_kg ? `${v.max_weight_kg} kg max` : ""}
+                    {v.max_weight_kg ? t("publicVoyage.kgMax", { kg: v.max_weight_kg }) : ""}
                     {v.max_weight_kg && v.capacity_dimensions ? " • " : ""}
                     {v.capacity_dimensions || ""}
                   </div>
@@ -134,19 +138,19 @@ export default function PublicVoyageDetail() {
         </div>
 
         <div className="mt-6 rounded-3xl border border-primary/30 bg-primary/5 p-6 text-center">
-          <h2 className="text-lg font-bold">Intéressé par ce trajet ?</h2>
+          <h2 className="text-lg font-bold">{t("publicVoyage.interestedTitle")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Connectez-vous ou créez un compte pour contacter le voyageur et lui confier votre colis.
+            {t("publicVoyage.interestedDesc")}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Button onClick={() => navigate("/signup")}>Créer un compte</Button>
-            <Button variant="outline" onClick={() => navigate("/login")}>Se connecter</Button>
+            <Button onClick={() => navigate("/signup")}>{t("publicCommon.createAccount")}</Button>
+            <Button variant="outline" onClick={() => navigate("/login")}>{t("publicCommon.signIn")}</Button>
           </div>
         </div>
 
         <div className="mt-6 text-center">
           <Link to="/explore" className="text-sm text-muted-foreground hover:underline">
-            ← Voir tous les trajets
+            ← {t("publicVoyage.seeAllTrips")}
           </Link>
         </div>
       </div>
