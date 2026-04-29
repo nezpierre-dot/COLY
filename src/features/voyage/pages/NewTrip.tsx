@@ -24,6 +24,7 @@ import SearchableSelect from "@/components/SearchableSelect";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 import { useFavorites } from "@/hooks/useFavorites";
 import VoyageurEarningsEstimate from "@/components/VoyageurEarningsEstimate";
+import CoachMarks, { newTripCoachSteps } from "@/components/CoachMarks";
 
 
 
