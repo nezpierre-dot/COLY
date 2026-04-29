@@ -257,6 +257,15 @@ const Welcome = () => {
               {t("welcome.haveAccount")}
             </button>
           </div>
+          <div className="mt-3 text-center">
+            <button
+              type="button"
+              onClick={() => navigate("/comment-ca-marche")}
+              className={`text-xs font-medium text-foreground/55 hover:text-foreground/80 underline-offset-4 hover:underline rounded-md px-1 ${focusRing}`}
+            >
+              Découvrir comment ça marche →
+            </button>
+          </div>
         </motion.div>
       </motion.div>
     </main>

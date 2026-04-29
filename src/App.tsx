@@ -13,6 +13,7 @@ import SplashScreen from "@/components/SplashScreen";
 import AiChatWidget from "@/components/AiChatWidget";
 import CommandPalette from "@/components/CommandPalette";
 import OfflineBanner from "@/components/OfflineBanner";
+import { useGlobalPresenceTracker } from "@/hooks/usePresence";
 
 // Lazy-loaded pages
 const Welcome = lazy(() => import("./features/core/pages/Welcome"));
@@ -70,6 +71,7 @@ const PublicExplore = lazy(() => import("./features/core/pages/PublicExplore"));
 const PublicVoyageDetail = lazy(() => import("./features/core/pages/PublicVoyageDetail"));
 const PublicMissionDetail = lazy(() => import("./features/core/pages/PublicMissionDetail"));
 const PublicShipmentDetail = lazy(() => import("./features/core/pages/PublicShipmentDetail"));
+const HowItWorks = lazy(() => import("./features/core/pages/HowItWorks"));
 
 const queryClient = new QueryClient();
 
@@ -82,6 +84,12 @@ const PageLoader = () => (
 const AutoLogoutWrapper = ({ children }: { children: ReactNode }) => {
   // Auto-logout désactivé sur demande utilisateur
   return <>{children}</>;
+};
+
+// Mounts the global Realtime presence tracker for the authenticated user.
+const PresenceTracker = () => {
+  useGlobalPresenceTracker();
+  return null;
 };
 
 const App = () => {
@@ -100,6 +108,7 @@ const App = () => {
           {!splashDone && <SplashScreen onFinished={() => setSplashDone(true)} />}
           <BrowserRouter>
             <AuthProvider>
+              <PresenceTracker />
               <AutoLogoutWrapper>
               <FavoritesProvider>
                 <Suspense fallback={<PageLoader />}>
@@ -155,6 +164,7 @@ const App = () => {
                     <Route path="/test-live-location" element={<ProtectedRoute><TestLiveLocation /></ProtectedRoute>} />
                     {/* --- Public guest mode (no login required) --- */}
                     <Route path="/decouvrir" element={<PublicLanding />} />
+                    <Route path="/comment-ca-marche" element={<HowItWorks />} />
                     <Route path="/explore" element={<PublicExplore />} />
                     <Route path="/trajet/:id" element={<PublicVoyageDetail />} />
                     <Route path="/needit/:id" element={<PublicMissionDetail />} />

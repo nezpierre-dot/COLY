@@ -9,6 +9,7 @@ import VerifiedBadges from "@/components/VerifiedBadges";
 import { motion } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import UserLevelBadge from "@/components/UserLevelBadge";
+import PresenceBadge from "@/components/PresenceBadge";
 
 const PublicProfile = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -100,16 +101,24 @@ const PublicProfile = () => {
         </button>
 
         <div className="relative z-10 flex items-start gap-4 mt-2">
-          <Avatar className="h-20 w-20 rounded-2xl">
-            <AvatarImage src={profile.avatar_url || undefined} className="object-cover" />
-            <AvatarFallback className="bg-white/20 text-white text-2xl font-bold rounded-2xl">
-              {profile.full_name?.[0]?.toUpperCase() || "V"}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-20 w-20 rounded-2xl">
+              <AvatarImage src={profile.avatar_url || undefined} className="object-cover" />
+              <AvatarFallback className="bg-white/20 text-white text-2xl font-bold rounded-2xl">
+                {profile.full_name?.[0]?.toUpperCase() || "V"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="absolute -bottom-1 -right-1">
+              <PresenceBadge userId={userId} variant="dot" />
+            </div>
+          </div>
 
           <div className="flex-1 min-w-0 pt-1">
             <h1 className="text-xl font-bold text-white truncate">{profile.full_name || userRef}</h1>
             <p className="text-white/70 text-xs mt-0.5">{userRef}</p>
+            <div className="mt-1.5">
+              <PresenceBadge userId={userId} variant="label" />
+            </div>
             <UserLevelBadge userId={userId} variant="compact" className="mt-1" />
 
             {profile.bio && (
