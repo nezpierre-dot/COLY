@@ -12,6 +12,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 import PullToRefresh from "@/components/PullToRefresh";
 import { useTranslation } from "@/hooks/useTranslation";
+import { ListItemSkeleton } from "@/components/Skeletons";
+import EmptyState from "@/components/EmptyState";
+import { Send, Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -637,17 +640,7 @@ const HistoryPage = () => {
 
         {/* Transaction list */}
         {loading ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-card rounded-xl border border-border p-3.5 animate-pulse flex gap-3">
-                <div className="w-10 h-10 bg-muted rounded-lg shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-muted rounded w-2/3" />
-                  <div className="h-3 bg-muted rounded w-1/3" />
-                </div>
-              </div>
-            ))}
-          </div>
+          <ListItemSkeleton count={4} />
         ) : (
           <motion.ul
             variants={staggerContainer}
@@ -658,8 +651,46 @@ const HistoryPage = () => {
             aria-label="Liste des transactions"
           >
             {filtered.length === 0 ? (
-              <li className="text-center py-12">
-                <p className="text-muted-foreground text-sm">{t("history.noResultFilter")}</p>
+              <li>
+                {allData.length === 0 ? (
+                  <EmptyState
+                    icon={Send}
+                    title="Aucun envoi pour le moment"
+                    description="Créez votre premier envoi ou mission NeedIt et suivez ici toutes vos transactions."
+                    action={
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <button
+                          onClick={() => navigate("/send-coly")}
+                          className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg inline-flex items-center justify-center gap-1.5"
+                        >
+                          <Plus size={16} /> Créer mon premier envoi
+                        </button>
+                        <button
+                          onClick={() => navigate("/needit-mission")}
+                          className="px-5 py-3 rounded-xl border border-border bg-card text-foreground text-sm font-semibold hover:bg-muted transition-colors inline-flex items-center justify-center gap-1.5"
+                        >
+                          <ShoppingBag size={16} /> Mission NeedIt
+                        </button>
+                      </div>
+                    }
+                  />
+                ) : (
+                  <EmptyState
+                    icon={Search}
+                    title="Aucun résultat"
+                    description={t("history.noResultFilter")}
+                    action={
+                      hasActiveFilters ? (
+                        <button
+                          onClick={clearAllFilters}
+                          className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg inline-flex items-center gap-1.5"
+                        >
+                          <X size={16} /> Effacer les filtres
+                        </button>
+                      ) : null
+                    }
+                  />
+                )}
               </li>
             ) : (
               filtered.map((item) => {

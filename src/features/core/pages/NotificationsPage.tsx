@@ -1,10 +1,13 @@
-import { ArrowLeft, Check, Trash2, Info, CheckCircle2, AlertTriangle, XCircle, IdCard, Package, ShoppingCart, Bell, Star, ShoppingBag, ChevronRight } from "lucide-react";
+import { ArrowLeft, Check, Trash2, Info, CheckCircle2, AlertTriangle, XCircle, IdCard, Package, ShoppingCart, Bell, Star, ShoppingBag, ChevronRight, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import BottomNav from "@/components/BottomNav";
 import SwipeToDelete from "@/components/SwipeToDelete";
+import PullToRefresh from "@/components/PullToRefresh";
+import { NotificationSkeleton } from "@/components/Skeletons";
+import EmptyState from "@/components/EmptyState";
 import { ReactNode, useMemo, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -110,7 +113,7 @@ const getNotifLink = (type: string): string | null => {
 export default function NotificationsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { notifications, loading, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const { notifications, loading, unreadCount, markAsRead, markAllAsRead, deleteNotification, refresh } = useNotifications();
 
   const [filter, setFilter] = useState<NotifFilter>("all");
   const [readFilter, setReadFilter] = useState<ReadFilter>("all");
@@ -194,6 +197,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="page-shell">
+      <PullToRefresh onRefresh={async () => { await refresh(); }}>
       <header className="page-header-soft">
         <div className="page-content">
           <div className="flex items-center justify-between mb-4">
@@ -308,9 +312,21 @@ export default function NotificationsPage() {
         )}
 
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (<div key={i} className="h-20 rounded-xl bg-muted animate-pulse" />))}
-          </div>
+          <NotificationSkeleton count={5} />
+        ) : filtered.length === 0 && notifications.length > 0 ? (
+          <EmptyState
+            icon={Bell}
+            title="Rien à afficher dans ce filtre"
+            description="Aucune notification ne correspond aux filtres sélectionnés. Réinitialisez pour voir tout."
+            action={
+              <button
+                onClick={() => { setFilter("all"); setReadFilter("all"); }}
+                className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity shadow-lg"
+              >
+                Réinitialiser les filtres
+              </button>
+            }
+          />
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
@@ -425,6 +441,7 @@ export default function NotificationsPage() {
           </div>
         )}
       </main>
+      </PullToRefresh>
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
