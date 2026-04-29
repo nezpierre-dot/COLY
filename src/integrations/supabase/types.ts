@@ -853,6 +853,7 @@ export type Database = {
           full_name: string | null
           id: string
           kyc_status: string
+          last_seen_at: string | null
           phone: string | null
           preferred_transports: string[] | null
           referral_code: string | null
@@ -872,6 +873,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           kyc_status?: string
+          last_seen_at?: string | null
           phone?: string | null
           preferred_transports?: string[] | null
           referral_code?: string | null
@@ -891,6 +893,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           kyc_status?: string
+          last_seen_at?: string | null
           phone?: string | null
           preferred_transports?: string[] | null
           referral_code?: string | null
@@ -1857,6 +1860,7 @@ export type Database = {
         Returns: boolean
       }
       toggle_user_role: { Args: { _user_id: string }; Returns: string }
+      touch_last_seen: { Args: never; Returns: undefined }
       validate_confirmation_code: {
         Args: { _code: string; _item_id: string; _item_type: string }
         Returns: boolean
