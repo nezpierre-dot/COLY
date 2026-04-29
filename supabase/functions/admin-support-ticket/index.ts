@@ -62,12 +62,15 @@ serve(async (req) => {
         })
         .eq("id", ticket_id);
 
-      // In-app notification
-      await supabaseAdmin.from("notifications").insert({
+      // In-app notification (i18n + fallback FR)
+      const { insertNotification } = await import("../_shared/notifications.ts");
+      await insertNotification(supabaseAdmin, {
         user_id: ticket.user_id,
-        title: "Réponse du support 📩",
-        message: safeReply.substring(0, 200),
         type: "support_reply:" + ticket_id,
+        i18n_key: "notif.support_reply",
+        i18n_params: { preview: safeReply.substring(0, 200) },
+        fallback_title: "Réponse du support 📩",
+        fallback_message: safeReply.substring(0, 200),
       });
 
       // Email notification
@@ -122,11 +125,15 @@ serve(async (req) => {
         })
         .eq("id", ticket_id);
 
-      await supabaseAdmin.from("notifications").insert({
+      const { insertNotification: insertNotifClose } = await import("../_shared/notifications.ts");
+      const subjectShort = (ticket.subject || "").substring(0, 60);
+      await insertNotifClose(supabaseAdmin, {
         user_id: ticket.user_id,
-        title: "Ticket résolu ✅",
-        message: `Votre ticket "${(ticket.subject || "").substring(0, 60)}" a été clôturé.`,
         type: "support_closed:" + ticket_id,
+        i18n_key: "notif.support_closed",
+        i18n_params: { subject: subjectShort },
+        fallback_title: "Ticket résolu ✅",
+        fallback_message: `Votre ticket "${subjectShort}" a été clôturé.`,
       });
 
       return new Response(JSON.stringify({ success: true, action: "close" }), {

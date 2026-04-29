@@ -278,23 +278,33 @@ Deno.serve(async (req) => {
         return !m.city || m.city.toLowerCase() === voyage.arrival_city.toLowerCase();
       });
 
-      let notifications: any[] = [];
+      const { insertNotifications } = await import("../_shared/notifications.ts");
+      const cityLabel = `${voyage.arrival_city}, ${voyage.arrival_country}`;
+      let notifications: Array<{
+        user_id: string; type: string; i18n_key: string;
+        i18n_params: Record<string, unknown>;
+        fallback_title: string; fallback_message: string;
+      }> = [];
 
       for (const s of matchedShipments) {
         notifications.push({
           user_id: s.user_id,
-          title: "🎯 Match trouvé !",
-          message: `Un voyageur se rend à ${voyage.arrival_city}, ${voyage.arrival_country} et peut transporter votre colis.`,
           type: `match:shipment:${s.id}`,
+          i18n_key: "notif.match_found",
+          i18n_params: { city: cityLabel },
+          fallback_title: "🎯 Match trouvé !",
+          fallback_message: `Un voyageur se rend à ${cityLabel} et peut transporter votre colis.`,
         });
       }
 
       for (const m of matchedMissions) {
         notifications.push({
           user_id: m.user_id,
-          title: "🎯 Match NeedIt !",
-          message: `Un voyageur se rend à ${voyage.arrival_city}, ${voyage.arrival_country} et peut réaliser votre mission.`,
           type: `match:needit:${m.id}`,
+          i18n_key: "notif.match_needit",
+          i18n_params: { city: cityLabel },
+          fallback_title: "🎯 Match NeedIt !",
+          fallback_message: `Un voyageur se rend à ${cityLabel} et peut réaliser votre mission.`,
         });
       }
 
@@ -302,9 +312,11 @@ Deno.serve(async (req) => {
         const total = matchedShipments.length + matchedMissions.length;
         notifications.push({
           user_id: voyage.user_id,
-          title: "🎯 Nouveaux matchs !",
-          message: `${total} demande(s) correspondent à votre trajet vers ${voyage.arrival_city}, ${voyage.arrival_country}. Cliquez pour voir et accepter.`,
           type: `match:voyage:${record_id}`,
+          i18n_key: "notif.match_voyage_aggregate",
+          i18n_params: { count: total, city: cityLabel },
+          fallback_title: "🎯 Nouveaux matchs !",
+          fallback_message: `${total} demande(s) correspondent à votre trajet vers ${cityLabel}. Cliquez pour voir et accepter.`,
         });
       }
 
@@ -313,7 +325,7 @@ Deno.serve(async (req) => {
       }
 
       if (notifications.length > 0) {
-        await supabase.from("notifications").insert(notifications);
+        await insertNotifications(supabase, notifications);
       }
 
       // ── Send emails to matched demandeurs ──
@@ -391,22 +403,32 @@ Deno.serve(async (req) => {
         return !destination_city || v.arrival_city.toLowerCase() === destination_city.toLowerCase();
       });
 
-      let notifications: any[] = [];
+      const { insertNotifications: insertNotifs2 } = await import("../_shared/notifications.ts");
+      const cityLabel2 = destination_city || destination_country;
+      let notifications: Array<{
+        user_id: string; type: string; i18n_key: string;
+        i18n_params: Record<string, unknown>;
+        fallback_title: string; fallback_message: string;
+      }> = [];
 
       if (matchedVoyages.length > 0) {
         notifications.push({
           user_id: demandeur_id,
-          title: "🎯 Match trouvé !",
-          message: `${matchedVoyages.length} voyageur(s) se rend(ent) vers ${destination_city || destination_country}. Votre demande a des correspondances !`,
           type: `match:${type === "shipment" ? "shipment" : "needit"}:${record_id}`,
+          i18n_key: "notif.match_demande_aggregate",
+          i18n_params: { count: matchedVoyages.length, city: cityLabel2 },
+          fallback_title: "🎯 Match trouvé !",
+          fallback_message: `${matchedVoyages.length} voyageur(s) se rend(ent) vers ${cityLabel2}. Votre demande a des correspondances !`,
         });
 
         for (const v of matchedVoyages) {
           notifications.push({
             user_id: v.user_id,
-            title: "🎯 Nouvelle demande match !",
-            message: `Une nouvelle demande correspond à votre trajet vers ${v.arrival_city}, ${v.arrival_country}.`,
             type: `match:voyage:${v.id}`,
+            i18n_key: "notif.match_voyage_demand",
+            i18n_params: { city: `${v.arrival_city}, ${v.arrival_country}` },
+            fallback_title: "🎯 Nouvelle demande match !",
+            fallback_message: `Une nouvelle demande correspond à votre trajet vers ${v.arrival_city}, ${v.arrival_country}.`,
           });
         }
       }
@@ -416,7 +438,7 @@ Deno.serve(async (req) => {
       }
 
       if (notifications.length > 0) {
-        await supabase.from("notifications").insert(notifications);
+        await insertNotifs2(supabase, notifications);
       }
 
       // ── Send emails to matched voyageurs ──
