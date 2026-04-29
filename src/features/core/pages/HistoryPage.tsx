@@ -640,17 +640,7 @@ const HistoryPage = () => {
 
         {/* Transaction list */}
         {loading ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-card rounded-xl border border-border p-3.5 animate-pulse flex gap-3">
-                <div className="w-10 h-10 bg-muted rounded-lg shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-muted rounded w-2/3" />
-                  <div className="h-3 bg-muted rounded w-1/3" />
-                </div>
-              </div>
-            ))}
-          </div>
+          <ListItemSkeleton count={4} />
         ) : (
           <motion.ul
             variants={staggerContainer}
