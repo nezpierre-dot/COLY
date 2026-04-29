@@ -8,6 +8,7 @@ import NeeditPageHeader from "../components/NeeditPageHeader";
 import BrandImage from "../components/BrandImage";
 import { useBrands, useBrandProducts, type Brand, type BrandProduct } from "../hooks/useBrandCatalog";
 import { useNeeditDraft } from "../hooks/useNeeditDraft";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type Phase = "brands" | "products";
 
@@ -28,6 +29,7 @@ const NeeditBrandsPage = () => {
   const navigate = useNavigate();
   const { catKey } = useParams<{ catKey: CategoryKey }>();
   const { draft, update } = useNeeditDraft();
+  const { t } = useTranslation();
   const category = useMemo(() => CATEGORIES.find((c) => c.key === catKey), [catKey]);
 
   const [phase, setPhase] = useState<Phase>("brands");
@@ -97,11 +99,11 @@ const NeeditBrandsPage = () => {
   return (
     <div className="min-h-screen bg-gradient-soft flex flex-col">
       <NeeditPageHeader
-        title={phase === "brands" ? `Marques ${category.label}` : selectedBrand?.name ?? "Produits"}
+        title={phase === "brands" ? t("needit.brands.titlePrefix", { cat: category.label }) : selectedBrand?.name ?? t("needit.brands.products")}
         subtitle={
           phase === "brands"
-            ? "Étape 2 sur 3 — Marque"
-            : `Étape 2 sur 3 — ${category.label}`
+            ? t("needit.brands.stepBrand")
+            : t("needit.brands.stepProduct", { cat: category.label })
         }
         onBack={handleBack}
       />
@@ -168,6 +170,7 @@ const BrandsView = ({
   onPick: (b: Brand) => void;
   onSkip: () => void;
 }) => {
+  const { t } = useTranslation();
   const { brands, loading } = useBrands(category.key);
   const q = search.trim().toLowerCase();
 
@@ -189,9 +192,9 @@ const BrandsView = ({
   if (!loading && brands.length === 0) {
     return (
       <EmptyCard
-        title="Aucune marque référencée"
-        description="Cette catégorie n'a pas encore de catalogue de marques. Décrivez librement le produit recherché à l'étape suivante."
-        cta="Continuer sans marque"
+        title={t("needit.brands.noBrands")}
+        description={t("needit.brands.noBrandsDesc")}
+        cta={t("needit.brands.continueNoBrand")}
         onClick={onSkip}
       />
     );
@@ -202,7 +205,7 @@ const BrandsView = ({
       <SearchBar
         value={search}
         onChange={setSearch}
-        placeholder="Rechercher une marque…"
+        placeholder={t("needit.brands.searchBrand")}
       />
 
       {loading ? (
@@ -211,23 +214,23 @@ const BrandsView = ({
         </div>
       ) : filtered.length === 0 ? (
         <EmptyCard
-          title="Aucune marque trouvée"
-          description={`Pour "${search}". Vous pouvez continuer sans marque et décrire le produit librement.`}
-          cta="Continuer sans marque"
+          title={t("needit.brands.noBrandFound")}
+          description={t("needit.brands.noBrandFoundDesc", { q: search })}
+          cta={t("needit.brands.continueNoBrand")}
           onClick={onSkip}
         />
       ) : (
         <>
           {popular.length > 0 && (
             <Section
-              title={q ? "Suggestions populaires" : "Populaires"}
+              title={q ? t("needit.brands.popularSugg") : t("needit.brands.popular")}
               icon={<Sparkles size={14} className="text-accent" />}
             >
               <BrandGrid brands={popular} onPick={onPick} />
             </Section>
           )}
           {others.length > 0 && (
-            <Section title={q ? "Résultats" : "Toutes les marques"}>
+            <Section title={q ? t("needit.brands.results") : t("needit.brands.allBrands")}>
               <BrandGrid brands={others} onPick={onPick} />
             </Section>
           )}
@@ -236,7 +239,7 @@ const BrandsView = ({
             onClick={onSkip}
             className="w-full mt-2 py-4 rounded-2xl bg-muted hover:bg-muted/70 text-foreground text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
           >
-            Ma marque n'est pas listée
+            {t("needit.brands.brandNotListed")}
             <ChevronRight size={16} />
           </button>
         </>
@@ -296,6 +299,7 @@ const ProductsView = ({
   onPick: (p: BrandProduct, v: string | null) => void;
   onSkip: () => void;
 }) => {
+  const { t } = useTranslation();
   const { products, loading } = useBrandProducts(brand.id);
   const [search, setSearch] = useState("");
   const q = search.trim().toLowerCase();
@@ -310,9 +314,9 @@ const ProductsView = ({
   if (!loading && products.length === 0) {
     return (
       <EmptyCard
-        title="Aucun produit référencé"
-        description={`${brand.name} n'a pas encore de catalogue de produits. Décrivez librement le produit recherché à l'étape suivante.`}
-        cta="Continuer sans produit"
+        title={t("needit.brands.noProducts")}
+        description={t("needit.brands.noProductsDesc", { brand: brand.name })}
+        cta={t("needit.brands.continueNoProduct")}
         onClick={onSkip}
       />
     );
@@ -323,7 +327,7 @@ const ProductsView = ({
       <SearchBar
         value={search}
         onChange={setSearch}
-        placeholder={`Rechercher dans ${brand.name}…`}
+        placeholder={t("needit.brands.searchProduct", { brand: brand.name })}
       />
 
       {loading ? (
@@ -332,9 +336,9 @@ const ProductsView = ({
         </div>
       ) : filtered.length === 0 ? (
         <EmptyCard
-          title="Aucun produit trouvé"
-          description={`Pour "${search}". Vous pouvez continuer sans produit précis.`}
-          cta="Continuer sans produit"
+          title={t("needit.brands.noProductFound")}
+          description={t("needit.brands.noProductFoundDesc", { q: search })}
+          cta={t("needit.brands.continueNoProduct")}
           onClick={onSkip}
         />
       ) : (
@@ -355,7 +359,7 @@ const ProductsView = ({
             onClick={onSkip}
             className="w-full mt-4 py-4 rounded-2xl bg-muted hover:bg-muted/70 text-foreground text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
           >
-            Mon produit n'est pas listé
+            {t("needit.brands.productNotListed")}
             <ChevronRight size={16} />
           </button>
         </>
@@ -375,6 +379,7 @@ const ProductRow = ({
   preselectedVariant?: string | null;
   onPick: (variant: string | null) => void;
 }) => {
+  const { t } = useTranslation();
   const hasVariants = product.variants.length > 0;
   return (
     <motion.div
@@ -398,7 +403,7 @@ const ProductRow = ({
           </p>
           {product.indicative_price && (
             <p className="text-sm text-muted-foreground">
-              Prix indicatif&nbsp;:{" "}
+              {t("needit.brands.indicativePrice")}{" "}
               <span className="font-semibold text-foreground">{product.indicative_price}</span>
             </p>
           )}
@@ -429,7 +434,7 @@ const ProductRow = ({
           onClick={() => onPick(null)}
           className="w-full mt-4 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
         >
-          Choisir ce produit
+          {t("needit.brands.choose")}
         </button>
       )}
     </motion.div>
@@ -448,7 +453,9 @@ const SearchBar = ({
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <div className="sticky top-[68px] z-20 -mx-4 sm:-mx-5 px-4 sm:px-5 py-3 bg-background/80 backdrop-blur-md mb-4">
     <label className="flex items-center gap-3 px-4 h-14 rounded-2xl bg-muted border border-border focus-within:border-primary focus-within:bg-card transition-all shadow-sm">
       <Search size={20} className="text-muted-foreground shrink-0" />
@@ -462,7 +469,7 @@ const SearchBar = ({
       {value && (
         <button
           onClick={() => onChange("")}
-          aria-label="Effacer la recherche"
+          aria-label={t("needit.brands.clearSearch")}
           className="shrink-0 w-8 h-8 rounded-full bg-muted-foreground/15 hover:bg-muted-foreground/25 flex items-center justify-center transition-colors"
         >
           <X size={14} className="text-foreground" />
@@ -470,7 +477,8 @@ const SearchBar = ({
       )}
     </label>
   </div>
-);
+  );
+};
 
 const Section = ({
   title,

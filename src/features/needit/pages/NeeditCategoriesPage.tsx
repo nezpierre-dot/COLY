@@ -6,19 +6,13 @@ import BottomNav from "@/components/BottomNav";
 import { CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey } from "@/lib/categoryIcons";
 import NeeditPageHeader from "../components/NeeditPageHeader";
 import { useNeeditDraft } from "../hooks/useNeeditDraft";
+import { useTranslation } from "@/hooks/useTranslation";
 import needitBagIllustration from "@/assets/illustrations/needit-bag.png";
 
-/**
- * Écran 1/3 — Catégories style Vinted.
- * - Header sticky avec retour clair
- * - Hero accueil ("Que cherchez-vous aujourd'hui ?")
- * - Barre de recherche large + bouton clear
- * - Section "Populaires" en haut, puis "Toutes les catégories"
- * - Grille 2 colonnes très spacieuse
- */
 const NeeditCategoriesPage = () => {
   const navigate = useNavigate();
   const { update, reset } = useNeeditDraft();
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
 
   const q = search.trim().toLowerCase();
@@ -35,13 +29,11 @@ const NeeditCategoriesPage = () => {
   const others = filtered.filter((c) => !c.popular).sort((a, b) => a.label.localeCompare(b.label));
 
   const handlePick = (key: CategoryKey, label: string) => {
-    // Reset draft and persist new category to keep navigation simple between pages.
     reset();
     update({ categoryKey: key, categoryLabel: label });
     if (BRAND_ENABLED_CATEGORIES.includes(key)) {
       navigate(`/needit/marques/${key}`);
     } else {
-      // No catalog → jump to free entry on the legacy flow
       navigate("/needit-mission");
     }
   };
@@ -49,22 +41,20 @@ const NeeditCategoriesPage = () => {
   return (
     <div className="min-h-screen bg-gradient-soft flex flex-col">
       <NeeditPageHeader
-        title="NeedIt"
-        subtitle="Étape 1 sur 3 — Catégorie"
+        title={t("needit.cat.title")}
+        subtitle={t("needit.cat.step")}
         onBack={() => navigate("/dashboard")}
       />
 
       <main className="flex-1 px-4 sm:px-5 pt-5 pb-32 max-w-2xl mx-auto w-full">
-        {/* Hero – avec illustration 3D */}
         <div className="mb-7 flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight tracking-tight">
-              Que cherchez-vous
-              <br />
-              aujourd&rsquo;hui&nbsp;?
-            </h2>
+            <h2
+              className="text-3xl sm:text-4xl font-extrabold text-foreground leading-tight tracking-tight"
+              dangerouslySetInnerHTML={{ __html: t("needit.cat.heroTitle") }}
+            />
             <p className="text-sm sm:text-base text-muted-foreground mt-3 leading-relaxed max-w-[34ch]">
-              Choisissez une catégorie pour commencer.
+              {t("needit.cat.heroSub")}
             </p>
           </div>
           <img
@@ -78,20 +68,19 @@ const NeeditCategoriesPage = () => {
           />
         </div>
 
-        {/* Search */}
         <div className="sticky top-[68px] z-20 -mx-4 sm:-mx-5 px-4 sm:px-5 py-3 bg-background/80 backdrop-blur-md mb-4">
           <label className="flex items-center gap-3 px-4 h-14 rounded-2xl bg-muted border border-border focus-within:border-primary focus-within:bg-card transition-all shadow-sm">
             <Search size={20} className="text-muted-foreground shrink-0" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher un produit ou une catégorie…"
+              placeholder={t("needit.cat.searchPh")}
               className="flex-1 bg-transparent text-base text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
             {search && (
               <button
                 onClick={() => setSearch("")}
-                aria-label="Effacer la recherche"
+                aria-label={t("needit.cat.clearSearch")}
                 className="shrink-0 w-8 h-8 rounded-full bg-muted-foreground/15 hover:bg-muted-foreground/25 flex items-center justify-center transition-colors"
               >
                 <X size={14} className="text-foreground" />
@@ -106,16 +95,16 @@ const NeeditCategoriesPage = () => {
           <>
             {!q && popular.length > 0 && (
               <Section
-                title="Populaires"
+                title={t("needit.cat.popular")}
                 icon={<Sparkles size={14} className="text-accent" />}
               >
-                <CategoryGrid items={popular} onPick={handlePick} accent />
+                <CategoryGrid items={popular} onPick={handlePick} accent topLabel={t("needit.cat.top")} />
               </Section>
             )}
 
             {others.length > 0 && (
-              <Section title={q ? "Résultats" : "Toutes les catégories"}>
-                <CategoryGrid items={others} onPick={handlePick} />
+              <Section title={q ? t("needit.cat.results") : t("needit.cat.all")}>
+                <CategoryGrid items={others} onPick={handlePick} topLabel={t("needit.cat.top")} />
               </Section>
             )}
           </>
@@ -149,10 +138,12 @@ const CategoryGrid = ({
   items,
   onPick,
   accent = false,
+  topLabel,
 }: {
   items: typeof CATEGORIES;
   onPick: (key: CategoryKey, label: string) => void;
   accent?: boolean;
+  topLabel: string;
 }) => (
   <div className="grid grid-cols-2 gap-4">
     {items.map((c, i) => (
@@ -170,7 +161,7 @@ const CategoryGrid = ({
         {c.popular && (
           <span className="absolute top-3 right-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-[10px] font-bold uppercase tracking-wide shadow-sm">
             <Sparkles size={9} />
-            Top
+            {topLabel}
           </span>
         )}
         <div className="flex-1 flex items-center justify-center w-full">
@@ -189,23 +180,26 @@ const CategoryGrid = ({
   </div>
 );
 
-const EmptyState = ({ search, onSkip }: { search: string; onSkip: () => void }) => (
-  <div className="text-center rounded-3xl border border-dashed border-border bg-muted/30 p-8 mt-4">
-    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/15 to-secondary/15 flex items-center justify-center">
-      <PenLine className="text-primary" size={28} />
+const EmptyState = ({ search, onSkip }: { search: string; onSkip: () => void }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="text-center rounded-3xl border border-dashed border-border bg-muted/30 p-8 mt-4">
+      <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/15 to-secondary/15 flex items-center justify-center">
+        <PenLine className="text-primary" size={28} />
+      </div>
+      <h3 className="text-base font-semibold text-foreground mb-1">
+        {t("needit.cat.emptyTitle")}
+      </h3>
+      <p className="text-sm text-muted-foreground mb-1">{t("needit.cat.emptyTo")}</p>
+      <p className="text-base font-semibold text-foreground mb-5">"{search}"</p>
+      <button
+        onClick={onSkip}
+        className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+      >
+        {t("needit.cat.describeFreely")}
+      </button>
     </div>
-    <h3 className="text-base font-semibold text-foreground mb-1">
-      Aucune catégorie ne correspond
-    </h3>
-    <p className="text-sm text-muted-foreground mb-1">à votre recherche</p>
-    <p className="text-base font-semibold text-foreground mb-5">"{search}"</p>
-    <button
-      onClick={onSkip}
-      className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-    >
-      Décrire ma demande librement
-    </button>
-  </div>
-);
+  );
+};
 
 export default NeeditCategoriesPage;
