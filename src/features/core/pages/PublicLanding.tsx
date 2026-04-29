@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Plane, Search, Sparkles, ShieldCheck, Globe2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import Testimonials from "@/components/Testimonials";
 
 interface PopularRoute {
   departure_city: string;
@@ -63,6 +64,9 @@ export default function PublicLanding() {
             Nidit
           </Link>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/comment-ca-marche")} className="hidden sm:inline-flex">
+              Comment ça marche
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate("/explore")}>
               Explorer
             </Button>
