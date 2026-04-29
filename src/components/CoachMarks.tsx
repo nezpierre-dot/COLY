@@ -27,14 +27,18 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
   const [visible, setVisible] = useState(false);
   const [stepIdx, setStepIdx] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const nextBtnRef = useRef<HTMLButtonElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   // Defer mount until target is in DOM
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (localStorage.getItem(storageKey) === "1") return;
-    const t = window.setTimeout(() => setVisible(true), delay);
+    const t = window.setTimeout(() => setVisible(true), prefersReducedMotion ? 0 : delay);
     return () => window.clearTimeout(t);
-  }, [storageKey, delay]);
+  }, [storageKey, delay, prefersReducedMotion]);
 
   const measure = useCallback(() => {
     if (!visible) return;
@@ -45,10 +49,12 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
       setRect(null);
       return;
     }
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    // Wait a tick for scroll then measure
-    window.setTimeout(() => setRect(el.getBoundingClientRect()), 280);
-  }, [visible, stepIdx, steps]);
+    el.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "center",
+    });
+    window.setTimeout(() => setRect(el.getBoundingClientRect()), prefersReducedMotion ? 0 : 280);
+  }, [visible, stepIdx, steps, prefersReducedMotion]);
 
   useLayoutEffect(() => {
     if (!visible) return;
@@ -61,16 +67,64 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
     };
   }, [measure, visible]);
 
-  const finish = () => {
+  const finish = useCallback(() => {
     localStorage.setItem(storageKey, "1");
     setVisible(false);
     onComplete?.();
-  };
+    previousFocusRef.current?.focus?.();
+  }, [storageKey, onComplete]);
 
-  const next = () => {
-    if (stepIdx < steps.length - 1) setStepIdx((i) => i + 1);
-    else finish();
-  };
+  const next = useCallback(() => {
+    setStepIdx((i) => {
+      if (i < steps.length - 1) return i + 1;
+      finish();
+      return i;
+    });
+  }, [steps.length, finish]);
+
+  const prev = useCallback(() => {
+    setStepIdx((i) => Math.max(0, i - 1));
+  }, []);
+
+  // Mémorise focus avant ouverture, focus auto sur "Suivant"
+  useEffect(() => {
+    if (!visible) return;
+    previousFocusRef.current = (document.activeElement as HTMLElement) ?? null;
+    const t = window.setTimeout(() => nextBtnRef.current?.focus(), 50);
+    return () => window.clearTimeout(t);
+  }, [visible]);
+
+  // Esc / flèches / Tab loop
+  useEffect(() => {
+    if (!visible) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        finish();
+      } else if (e.key === "ArrowRight" || e.key === "Enter") {
+        if ((e.target as HTMLElement)?.tagName === "INPUT" || (e.target as HTMLElement)?.tagName === "TEXTAREA") return;
+        e.preventDefault();
+        next();
+      } else if (e.key === "ArrowLeft") {
+        if ((e.target as HTMLElement)?.tagName === "INPUT" || (e.target as HTMLElement)?.tagName === "TEXTAREA") return;
+        e.preventDefault();
+        prev();
+      } else if (e.key === "Tab") {
+        const focusables = [nextBtnRef.current, closeBtnRef.current].filter(
+          Boolean,
+        ) as HTMLElement[];
+        if (focusables.length === 0) return;
+        const active = document.activeElement as HTMLElement | null;
+        const idx = active ? focusables.indexOf(active) : -1;
+        const dir = e.shiftKey ? -1 : 1;
+        const nextIdx = (idx + dir + focusables.length) % focusables.length;
+        e.preventDefault();
+        focusables[nextIdx]?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [visible, finish, next, prev]);
 
   if (!visible) return null;
   const current = steps[stepIdx];
