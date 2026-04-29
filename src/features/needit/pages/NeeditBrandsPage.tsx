@@ -299,6 +299,7 @@ const ProductsView = ({
   onPick: (p: BrandProduct, v: string | null) => void;
   onSkip: () => void;
 }) => {
+  const { t } = useTranslation();
   const { products, loading } = useBrandProducts(brand.id);
   const [search, setSearch] = useState("");
   const q = search.trim().toLowerCase();
@@ -313,9 +314,9 @@ const ProductsView = ({
   if (!loading && products.length === 0) {
     return (
       <EmptyCard
-        title="Aucun produit référencé"
-        description={`${brand.name} n'a pas encore de catalogue de produits. Décrivez librement le produit recherché à l'étape suivante.`}
-        cta="Continuer sans produit"
+        title={t("needit.brands.noProducts")}
+        description={t("needit.brands.noProductsDesc", { brand: brand.name })}
+        cta={t("needit.brands.continueNoProduct")}
         onClick={onSkip}
       />
     );
@@ -326,7 +327,7 @@ const ProductsView = ({
       <SearchBar
         value={search}
         onChange={setSearch}
-        placeholder={`Rechercher dans ${brand.name}…`}
+        placeholder={t("needit.brands.searchProduct", { brand: brand.name })}
       />
 
       {loading ? (
@@ -335,9 +336,9 @@ const ProductsView = ({
         </div>
       ) : filtered.length === 0 ? (
         <EmptyCard
-          title="Aucun produit trouvé"
-          description={`Pour "${search}". Vous pouvez continuer sans produit précis.`}
-          cta="Continuer sans produit"
+          title={t("needit.brands.noProductFound")}
+          description={t("needit.brands.noProductFoundDesc", { q: search })}
+          cta={t("needit.brands.continueNoProduct")}
           onClick={onSkip}
         />
       ) : (
@@ -358,7 +359,7 @@ const ProductsView = ({
             onClick={onSkip}
             className="w-full mt-4 py-4 rounded-2xl bg-muted hover:bg-muted/70 text-foreground text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
           >
-            Mon produit n'est pas listé
+            {t("needit.brands.productNotListed")}
             <ChevronRight size={16} />
           </button>
         </>
@@ -378,6 +379,7 @@ const ProductRow = ({
   preselectedVariant?: string | null;
   onPick: (variant: string | null) => void;
 }) => {
+  const { t } = useTranslation();
   const hasVariants = product.variants.length > 0;
   return (
     <motion.div
@@ -401,7 +403,7 @@ const ProductRow = ({
           </p>
           {product.indicative_price && (
             <p className="text-sm text-muted-foreground">
-              Prix indicatif&nbsp;:{" "}
+              {t("needit.brands.indicativePrice")}{" "}
               <span className="font-semibold text-foreground">{product.indicative_price}</span>
             </p>
           )}
@@ -432,7 +434,7 @@ const ProductRow = ({
           onClick={() => onPick(null)}
           className="w-full mt-4 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold hover:bg-primary/90 transition-colors"
         >
-          Choisir ce produit
+          {t("needit.brands.choose")}
         </button>
       )}
     </motion.div>
