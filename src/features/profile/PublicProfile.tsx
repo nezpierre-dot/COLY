@@ -32,7 +32,7 @@ const PublicProfile = () => {
       setLoading(true);
 
       const [profileRes, ratingRes, badgesRes, reviewsRes, repliesRes, voyagesRes, deliveredRes] = await Promise.all([
-        supabase.from("profiles").select("full_name, avatar_url, bio, trust_badges, kyc_status, phone, stripe_customer_id").eq("user_id", userId).single(),
+        supabase.from("profiles_public" as any).select("full_name, avatar_url, bio, trust_badges, kyc_status").eq("user_id", userId).single(),
         supabase.rpc("get_user_rating", { _user_id: userId }),
         supabase.rpc("compute_trust_badges", { _user_id: userId }),
         supabase.from("ratings").select("id, score, comment, rater_role, created_at, photo_urls").eq("rated_id", userId).order("created_at", { ascending: false }),
