@@ -42,7 +42,8 @@ export default function ShareButton({
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title, text, url: fullUrl });
+        // Use socialUrl so previews work in WhatsApp/Messenger/etc.
+        await navigator.share({ title, text, url: socialUrl });
         return true;
       } catch (_) {
         return false;
@@ -53,6 +54,7 @@ export default function ShareButton({
 
   const handleCopy = async () => {
     try {
+      // Copy the human-friendly URL (clean nidit.fr/... path).
       await navigator.clipboard.writeText(fullUrl);
       setCopied(true);
       toast({ title: "Lien copié ✅" });
@@ -67,7 +69,6 @@ export default function ShareButton({
     if (!ok) await handleCopy();
   };
 
-  // If native share is available (mobile mainly), trigger it directly
   if (typeof navigator !== "undefined" && (navigator as any).share) {
     return (
       <Button variant={variant} size={size} onClick={onClick} className="gap-2">
@@ -77,15 +78,15 @@ export default function ShareButton({
     );
   }
 
-  // Desktop fallback: popover with share targets
-  const encoded = encodeURIComponent(fullUrl);
+  // Desktop fallback: popover with share targets — uses socialUrl for crawlers.
+  const encodedSocial = encodeURIComponent(socialUrl);
   const encodedText = encodeURIComponent(text || title);
   const shareTargets = [
-    { name: "WhatsApp", url: `https://wa.me/?text=${encodedText}%20${encoded}` },
-    { name: "Twitter / X", url: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encoded}` },
-    { name: "Facebook", url: `https://www.facebook.com/sharer/sharer.php?u=${encoded}` },
-    { name: "LinkedIn", url: `https://www.linkedin.com/sharing/share-offsite/?url=${encoded}` },
-    { name: "Email", url: `mailto:?subject=${encodeURIComponent(title)}&body=${encodedText}%20${encoded}` },
+    { name: "WhatsApp", url: `https://wa.me/?text=${encodedText}%20${encodedSocial}` },
+    { name: "Twitter / X", url: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedSocial}` },
+    { name: "Facebook", url: `https://www.facebook.com/sharer/sharer.php?u=${encodedSocial}` },
+    { name: "LinkedIn", url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedSocial}` },
+    { name: "Email", url: `mailto:?subject=${encodeURIComponent(title)}&body=${encodedText}%20${encodedSocial}` },
   ];
 
   return (
