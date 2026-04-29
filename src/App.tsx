@@ -85,6 +85,14 @@ const AutoLogoutWrapper = ({ children }: { children: ReactNode }) => {
   return <>{children}</>;
 };
 
+// Mounts the global Realtime presence tracker for the authenticated user.
+const PresenceTracker = () => {
+  // Lazy import to avoid loading Realtime on guest pages
+  const { useGlobalPresenceTracker } = require("@/hooks/usePresence");
+  useGlobalPresenceTracker();
+  return null;
+};
+
 const App = () => {
   const [splashDone, setSplashDone] = useState(() => {
     if (sessionStorage.getItem("splash-shown")) return true;
