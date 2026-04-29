@@ -150,11 +150,14 @@ Deno.serve(async (req) => {
         if (!hasMatches) {
           // Notify: expired without any match
           const notifType = `voyage_expired_no_match:${v.id}`;
-          await supabase.from("notifications").insert({
+          const { insertNotification: insertNotifExp } = await import("../_shared/notifications.ts");
+          await insertNotifExp(supabase, {
             user_id: v.user_id,
-            title: "😕 Voyage expiré sans match",
-            message: `Votre voyage ${route} a expiré sans aucun colis ou mission accepté. Créez un nouveau voyage pour recevoir des demandes !`,
             type: notifType,
+            i18n_key: "notif.voyage_expired_no_match",
+            i18n_params: { route },
+            fallback_title: "😕 Voyage expiré sans match",
+            fallback_message: `Votre voyage ${route} a expiré sans aucun colis ou mission accepté. Créez un nouveau voyage pour recevoir des demandes !`,
           });
 
           // Send email
@@ -203,12 +206,15 @@ Deno.serve(async (req) => {
             }
           }
         } else {
-          // Standard completion notification
-          await supabase.from("notifications").insert({
+          // Standard completion notification (i18n + fallback FR)
+          const { insertNotification: insertNotifDone } = await import("../_shared/notifications.ts");
+          await insertNotifDone(supabase, {
             user_id: v.user_id,
-            title: "✅ Voyage terminé",
-            message: `Votre voyage ${route} est maintenant terminé.`,
             type: `voyage_completed:${v.id}`,
+            i18n_key: "notif.voyage_completed",
+            i18n_params: { route },
+            fallback_title: "✅ Voyage terminé",
+            fallback_message: `Votre voyage ${route} est maintenant terminé.`,
           });
         }
 
