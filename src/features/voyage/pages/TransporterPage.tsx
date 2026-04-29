@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import BottomNav from "@/components/BottomNav";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface AvailDay {
   id: string;
@@ -17,16 +18,27 @@ interface AvailDay {
   note: string | null;
 }
 
-const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-
 const TransporterPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
   const [availabilities, setAvailabilities] = useState<AvailDay[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
+
+  const WEEKDAYS = [
+    t("transporter.weekday.mon"),
+    t("transporter.weekday.tue"),
+    t("transporter.weekday.wed"),
+    t("transporter.weekday.thu"),
+    t("transporter.weekday.fri"),
+    t("transporter.weekday.sat"),
+    t("transporter.weekday.sun"),
+  ];
 
   const loadAvailabilities = async () => {
     if (!user) return;
@@ -47,7 +59,6 @@ const TransporterPage = () => {
     const month = currentMonth.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    // Monday = 0 in our grid
     let startOffset = (firstDay.getDay() + 6) % 7;
     const days: (Date | null)[] = [];
     for (let i = 0; i < startOffset; i++) days.push(null);
@@ -63,12 +74,11 @@ const TransporterPage = () => {
     if (dateKey < today) return;
 
     if (availSet.has(dateKey)) {
-      // Remove
       const item = availabilities.find(a => a.available_date === dateKey);
       if (item) {
         await supabase.from("voyageur_availability").delete().eq("id", item.id);
         setAvailabilities(prev => prev.filter(a => a.id !== item.id));
-        toast.success("Disponibilité retirée");
+        toast.success(t("transporter.removed"));
       }
     } else {
       setSelectedDate(dateKey);
@@ -86,7 +96,7 @@ const TransporterPage = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Disponibilité ajoutée ✅");
+      toast.success(t("transporter.added"));
       setSelectedDate(null);
       setCity("");
       await loadAvailabilities();
@@ -94,7 +104,7 @@ const TransporterPage = () => {
     setSaving(false);
   };
 
-  const monthLabel = currentMonth.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const monthLabel = currentMonth.toLocaleDateString(localeTag, { month: "long", year: "numeric" });
 
   return (
     <div className="page-shell">
@@ -104,9 +114,9 @@ const TransporterPage = () => {
         </button>
         <div>
           <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2">
-            <Calendar size={20} className="text-primary" /> Je transporte
+            <Calendar size={20} className="text-primary" /> {t("transporter.title")}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Indique tes journées de voyage 🌍</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{t("transporter.subtitle")}</p>
         </div>
       </div>
 
@@ -174,16 +184,16 @@ const TransporterPage = () => {
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-foreground">
-                  📅 {new Date(selectedDate).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
+                  📅 {new Date(selectedDate).toLocaleDateString(localeTag, { weekday: "long", day: "numeric", month: "long" })}
                 </h3>
                 <button onClick={() => setSelectedDate(null)} className="text-muted-foreground"><X size={16} /></button>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-muted-foreground">Ville de départ (optionnel)</label>
-                <Input value={city} onChange={e => setCity(e.target.value)} placeholder="Ex: Paris, Lyon..." className="rounded-xl" />
+                <label className="text-xs font-semibold text-muted-foreground">{t("transporter.cityLabel")}</label>
+                <Input value={city} onChange={e => setCity(e.target.value)} placeholder={t("transporter.cityPh")} className="rounded-xl" />
               </div>
               <Button onClick={handleAddAvailability} disabled={saving} className="w-full rounded-xl gap-2">
-                <Plus size={16} /> {saving ? "Ajout..." : "Marquer disponible"}
+                <Plus size={16} /> {saving ? t("transporter.adding") : t("transporter.markAvailable")}
               </Button>
             </motion.div>
           )}
@@ -192,11 +202,11 @@ const TransporterPage = () => {
         {/* Upcoming availabilities list */}
         <div className="space-y-2">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
-            Prochaines disponibilités
+            {t("transporter.upcomingTitle")}
           </h3>
           {availabilities.filter(a => a.available_date >= today).length === 0 ? (
             <div className="text-center py-8 text-sm text-muted-foreground">
-              Aucune disponibilité à venir. Tapez sur un jour du calendrier pour en ajouter.
+              {t("transporter.empty")}
             </div>
           ) : (
             availabilities.filter(a => a.available_date >= today).map(a => (
@@ -212,7 +222,7 @@ const TransporterPage = () => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">
-                      {new Date(a.available_date).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
+                      {new Date(a.available_date).toLocaleDateString(localeTag, { weekday: "short", day: "numeric", month: "short" })}
                     </p>
                     {a.city && (
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -225,7 +235,7 @@ const TransporterPage = () => {
                   onClick={async () => {
                     await supabase.from("voyageur_availability").delete().eq("id", a.id);
                     setAvailabilities(prev => prev.filter(x => x.id !== a.id));
-                    toast.success("Retiré");
+                    toast.success(t("transporter.removed_short"));
                   }}
                   className="text-muted-foreground hover:text-accent transition-colors"
                 >
