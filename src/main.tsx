@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "./i18n/config"; // Initialize i18next before any component renders
 import { initWebVitals } from "./lib/webVitals";
 
 // --- PWA Service Worker safety guard ---
