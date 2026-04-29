@@ -197,15 +197,13 @@ const PublicProfile = () => {
           </div>
         </div>
 
-        {/* Verified signals — KYC, email, phone, payment */}
+        {/* Verified signals — KYC, email */}
         <div className="mb-6">
           <VerifiedBadges
             variant="hero"
             signals={{
               kyc: profile.kyc_status === "verified" || profile.kyc_status === "approved",
               email: !!profile, // active account requires verified email
-              phone: !!profile.phone,
-              payment: !!profile.stripe_customer_id,
             }}
           />
         </div>
