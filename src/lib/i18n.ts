@@ -2611,7 +2611,7 @@ const de: TranslationDict = {
   "notif.level_up.title": "🏆 Stufe aufgestiegen!",
   "notif.level_up.message": "Glückwunsch, du hast Stufe {{level}} erreicht.",
   "notif.badge_unlocked.title": "🎖️ Abzeichen freigeschaltet",
-  "notif.badge_unlocked.message": "Du hast das Abzeichen „{{badge}}" freigeschaltet.",
+  "notif.badge_unlocked.message": "Du hast das Abzeichen „{{badge}}“ freigeschaltet.",
   "notif.account_suspended.title": "🚫 Konto gesperrt",
   "notif.account_suspended.message": "Dein Konto wurde gesperrt. Grund: {{reason}}.",
   "notif.system.title": "Benachrichtigung",
@@ -2643,7 +2643,7 @@ const de: TranslationDict = {
   "notif.support_reply.title": "Antwort vom Support 📩",
   "notif.support_reply.message": "{{preview}}",
   "notif.support_closed.title": "Ticket geschlossen ✅",
-  "notif.support_closed.message": "Dein Ticket „{{subject}}" wurde geschlossen.",
+  "notif.support_closed.message": "Dein Ticket „{{subject}}“ wurde geschlossen.",
 
 };
 
