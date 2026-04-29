@@ -120,9 +120,17 @@ const Settings = () => {
               {AVAILABLE_LANGUAGES.map((l) => (
                 <button
                   key={l.code}
-                  onClick={() => {
+                  onClick={async () => {
                     setLanguage(l.code);
                     toast.success(`${t("settings.language")} : ${l.label}`);
+                    // Persist preference to profile (server-side notifications etc.)
+                    if (user) {
+                      const { error } = await supabase
+                        .from("profiles")
+                        .update({ preferred_language: l.code })
+                        .eq("user_id", user.id);
+                      if (error) console.warn("preferred_language sync failed:", error);
+                    }
                   }}
                   className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all text-center ${
                     language === l.code
