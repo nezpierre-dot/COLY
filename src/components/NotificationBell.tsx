@@ -111,7 +111,7 @@ export default function NotificationBell() {
                   <button onClick={() => setSelectedNotif(null)} className="text-muted-foreground hover:text-foreground">
                     <ArrowLeft size={16} />
                   </button>
-                  <h3 className="font-bold text-foreground text-sm flex-1">Détail</h3>
+                  <h3 className="font-bold text-foreground text-sm flex-1">{t("notif.detail")}</h3>
                   <button onClick={() => { setOpen(false); setSelectedNotif(null); }} className="text-muted-foreground hover:text-foreground">
                     <X size={16} />
                   </button>
@@ -125,7 +125,7 @@ export default function NotificationBell() {
                     {selectedNotif.message}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
-                    {formatDistanceToNow(new Date(selectedNotif.created_at), { addSuffix: true, locale: fr })}
+                    {formatDistanceToNow(new Date(selectedNotif.created_at), { addSuffix: true, locale: dateLocale })}
                   </p>
                 </div>
               </div>
@@ -134,13 +134,13 @@ export default function NotificationBell() {
               <>
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                  <h3 className="font-bold text-foreground text-sm">Notifications</h3>
+                  <h3 className="font-bold text-foreground text-sm">{t("notif.title")}</h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={() => { hapticMedium(); markAllAsRead(); }}
                       className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
                     >
-                      <Check size={12} /> Tout lire
+                      <Check size={12} /> {t("notif.markAllShort")}
                     </button>
                   )}
                 </div>
@@ -149,7 +149,7 @@ export default function NotificationBell() {
                 <div className="max-h-72 overflow-y-auto">
                   {recent.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">
-                      Aucune notification
+                      {t("notif.empty")}
                     </p>
                   ) : (
                     recent.map((n) => (
@@ -167,7 +167,7 @@ export default function NotificationBell() {
                           </p>
                           <p className="text-xs text-muted-foreground truncate">{n.message}</p>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: fr })}
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: dateLocale })}
                           </p>
                         </div>
                         {!n.is_read && (
@@ -186,7 +186,7 @@ export default function NotificationBell() {
                   }}
                   className="w-full px-4 py-3 text-sm font-medium text-primary hover:bg-muted/60 transition-colors flex items-center justify-center gap-1 border-t border-border"
                 >
-                  Voir toutes les notifications <ChevronRight size={14} />
+                  {t("notif.viewAll")} <ChevronRight size={14} />
                 </button>
               </>
             )}
