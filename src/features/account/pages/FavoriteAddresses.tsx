@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { motion, AnimatePresence } from "framer-motion";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface FavAddress {
   id: string;
