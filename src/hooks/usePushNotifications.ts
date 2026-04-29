@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 // VAPID public key — safe to expose in the frontend (it's the public half).
 const VAPID_PUBLIC_KEY =
-  "BMifj6XRqHnnAngrcZCuA5uHY9RR6Id5bfC1vybzLbPT2EdOTBNZxTJt_D5hlQgNQFAGjrt7vWdOaH2DtRVB2AM";
+  "BAKkjAm8aQGL9rv3xMY0qNfiTV4hCYd-hyG061jsLeX2K_BNhvfqoV7BxH9m0qFMNVmTwSFWGy_XLQMl0fKEjKY";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
