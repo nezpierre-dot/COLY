@@ -64,6 +64,12 @@ const BrowseMissions = lazy(() => import("./features/matching/pages/BrowseMissio
 const EmailPreferences = lazy(() => import("./features/account/pages/EmailPreferences"));
 const ManageEanProducts = lazy(() => import("./features/account/pages/ManageEanProducts"));
 const TestLiveLocation = lazy(() => import("./pages/TestLiveLocation"));
+// --- Public (guest mode) pages ---
+const PublicLanding = lazy(() => import("./features/core/pages/PublicLanding"));
+const PublicExplore = lazy(() => import("./features/core/pages/PublicExplore"));
+const PublicVoyageDetail = lazy(() => import("./features/core/pages/PublicVoyageDetail"));
+const PublicMissionDetail = lazy(() => import("./features/core/pages/PublicMissionDetail"));
+const PublicShipmentDetail = lazy(() => import("./features/core/pages/PublicShipmentDetail"));
 
 const queryClient = new QueryClient();
 
@@ -147,6 +153,12 @@ const App = () => {
                     <Route path="/email-preferences" element={<ProtectedRoute><EmailPreferences /></ProtectedRoute>} />
                     <Route path="/manage-ean" element={<ProtectedRoute><ManageEanProducts /></ProtectedRoute>} />
                     <Route path="/test-live-location" element={<ProtectedRoute><TestLiveLocation /></ProtectedRoute>} />
+                    {/* --- Public guest mode (no login required) --- */}
+                    <Route path="/decouvrir" element={<PublicLanding />} />
+                    <Route path="/explore" element={<PublicExplore />} />
+                    <Route path="/trajet/:id" element={<PublicVoyageDetail />} />
+                    <Route path="/needit/:id" element={<PublicMissionDetail />} />
+                    <Route path="/colis/:id" element={<PublicShipmentDetail />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
