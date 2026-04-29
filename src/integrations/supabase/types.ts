@@ -1499,6 +1499,54 @@ export type Database = {
         }
         Relationships: []
       }
+      web_vitals: {
+        Row: {
+          connection_type: string | null
+          created_at: string
+          device_type: string | null
+          id: string
+          metric_id: string | null
+          metric_name: string
+          metric_rating: string | null
+          metric_value: number
+          navigation_type: string | null
+          page_url: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          connection_type?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          metric_id?: string | null
+          metric_name: string
+          metric_rating?: string | null
+          metric_value: number
+          navigation_type?: string | null
+          page_url?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          connection_type?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          metric_id?: string | null
+          metric_name?: string
+          metric_rating?: string | null
+          metric_value?: number
+          navigation_type?: string | null
+          page_url?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
