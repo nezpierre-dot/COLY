@@ -453,7 +453,9 @@ const SearchBar = ({
   value: string;
   onChange: (v: string) => void;
   placeholder: string;
-}) => (
+}) => {
+  const { t } = useTranslation();
+  return (
   <div className="sticky top-[68px] z-20 -mx-4 sm:-mx-5 px-4 sm:px-5 py-3 bg-background/80 backdrop-blur-md mb-4">
     <label className="flex items-center gap-3 px-4 h-14 rounded-2xl bg-muted border border-border focus-within:border-primary focus-within:bg-card transition-all shadow-sm">
       <Search size={20} className="text-muted-foreground shrink-0" />
@@ -467,7 +469,7 @@ const SearchBar = ({
       {value && (
         <button
           onClick={() => onChange("")}
-          aria-label="Effacer la recherche"
+          aria-label={t("needit.brands.clearSearch")}
           className="shrink-0 w-8 h-8 rounded-full bg-muted-foreground/15 hover:bg-muted-foreground/25 flex items-center justify-center transition-colors"
         >
           <X size={14} className="text-foreground" />
