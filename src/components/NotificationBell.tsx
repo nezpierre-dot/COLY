@@ -30,6 +30,8 @@ export default function NotificationBell() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { t, language } = useTranslation();
+  const dateLocale = useMemo(() => dateLocaleMap[language] ?? fr, [language]);
   const [pos, setPos] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
 
   // Position dropdown relative to button
