@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Star, MapPin, ArrowLeft, User, MessageSquare, Plane, Package, Shield, AlertTriangle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
+import VerifiedBadges from "@/components/VerifiedBadges";
 import { motion } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import UserLevelBadge from "@/components/UserLevelBadge";
@@ -30,10 +31,10 @@ const PublicProfile = () => {
       setLoading(true);
 
       const [profileRes, ratingRes, badgesRes, reviewsRes, repliesRes, voyagesRes, deliveredRes] = await Promise.all([
-        supabase.from("profiles").select("full_name, avatar_url, bio, trust_badges").eq("user_id", userId).single(),
+        supabase.from("profiles").select("full_name, avatar_url, bio, trust_badges, kyc_status, phone, stripe_customer_id").eq("user_id", userId).single(),
         supabase.rpc("get_user_rating", { _user_id: userId }),
         supabase.rpc("compute_trust_badges", { _user_id: userId }),
-        supabase.from("ratings").select("id, score, comment, rater_role, created_at").eq("rated_id", userId).order("created_at", { ascending: false }),
+        supabase.from("ratings").select("id, score, comment, rater_role, created_at, photo_urls").eq("rated_id", userId).order("created_at", { ascending: false }),
         supabase.from("rating_replies").select("rating_id, content").eq("user_id", userId),
         supabase.from("voyages").select("id", { count: "exact", head: true }).eq("user_id", userId),
         supabase.from("shipments").select("id", { count: "exact", head: true }).eq("voyageur_id", userId).eq("status", "delivered"),
@@ -187,6 +188,19 @@ const PublicProfile = () => {
           </div>
         </div>
 
+        {/* Verified signals — KYC, email, phone, payment */}
+        <div className="mb-6">
+          <VerifiedBadges
+            variant="hero"
+            signals={{
+              kyc: profile.kyc_status === "verified" || profile.kyc_status === "approved",
+              email: !!profile, // active account requires verified email
+              phone: !!profile.phone,
+              payment: !!profile.stripe_customer_id,
+            }}
+          />
+        </div>
+
         {/* Trust Badges */}
         {trustBadges.length > 0 && (
           <div className="mb-6">
@@ -231,6 +245,26 @@ const PublicProfile = () => {
                   </div>
                   {review.comment && (
                     <p className="text-sm text-foreground/80 italic">"{review.comment}"</p>
+                  )}
+                  {Array.isArray(review.photo_urls) && review.photo_urls.length > 0 && (
+                    <div className="mt-2 flex gap-1.5 flex-wrap">
+                      {review.photo_urls.map((url: string, i: number) => (
+                        <a
+                          key={i}
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="block w-16 h-16 rounded-lg overflow-hidden border border-border hover:opacity-80 transition"
+                        >
+                          <img
+                            src={url}
+                            alt={`Photo de l'avis ${i + 1}`}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        </a>
+                      ))}
+                    </div>
                   )}
                   <div className="flex items-center gap-1.5 mt-2">
                     <User size={12} className="text-muted-foreground" />

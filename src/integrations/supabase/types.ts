@@ -1010,6 +1010,7 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          photo_urls: string[]
           rated_id: string
           rater_id: string
           rater_role: string
@@ -1020,6 +1021,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          photo_urls?: string[]
           rated_id: string
           rater_id: string
           rater_role: string
@@ -1030,6 +1032,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          photo_urls?: string[]
           rated_id?: string
           rater_id?: string
           rater_role?: string
