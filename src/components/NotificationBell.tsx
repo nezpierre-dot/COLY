@@ -1,11 +1,16 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Bell, Check, ChevronRight, ArrowLeft, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications, type Notification } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS, es, de, pt, it, arSA } from "date-fns/locale";
 import { hapticLight, hapticMedium } from "@/lib/haptics";
+import { useTranslation } from "@/hooks/useTranslation";
+
+const dateLocaleMap: Record<string, Locale> = {
+  fr, en: enUS, es, de, pt, it, ar: arSA,
+} as unknown as Record<string, Locale>;
 
 const typeIcon: Record<string, string> = {
   info: "ℹ️",
