@@ -1615,7 +1615,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string | null
+          full_name: string | null
+          kyc_status: string | null
+          last_seen_at: string | null
+          preferred_transports: string[] | null
+          trust_badges: string[] | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          kyc_status?: string | null
+          last_seen_at?: string | null
+          preferred_transports?: string[] | null
+          trust_badges?: string[] | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          kyc_status?: string | null
+          last_seen_at?: string | null
+          preferred_transports?: string[] | null
+          trust_badges?: string[] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_needit_mission: { Args: { _mission_id: string }; Returns: string }

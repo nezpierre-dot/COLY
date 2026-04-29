@@ -116,8 +116,8 @@ const CommandPalette = () => {
             .or(`produit.ilike.${like},city.ilike.${like}`)
             .limit(5),
           supabase
-            .from("profiles")
-            .select("id, full_name")
+            .from("profiles_public" as any)
+            .select("user_id, full_name")
             .ilike("full_name", like)
             .limit(5),
         ]);
@@ -153,11 +153,11 @@ const CommandPalette = () => {
         );
         profiles.data?.forEach((p: any) =>
           out.push({
-            id: p.id,
+            id: p.user_id,
             type: "contact",
             label: p.full_name || "Utilisateur",
             sublabel: "Contact",
-            to: `/profile/${p.id}`,
+            to: `/profile/${p.user_id}`,
           })
         );
         setHits(out);
