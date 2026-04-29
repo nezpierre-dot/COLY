@@ -354,7 +354,7 @@ const NeeditCreatePage = () => {
   return (
     <div className="min-h-screen bg-gradient-soft flex flex-col">
       <NeeditPageHeader
-        title="Créer ma mission"
+        title={t("needit.create.title")}
         subtitle={productName}
         onBack={() => navigate(-1)}
       />
@@ -383,7 +383,7 @@ const NeeditCreatePage = () => {
               <Package size={56} className="text-muted-foreground/40" />
             )}
             <label className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border shadow-sm text-xs font-semibold text-foreground cursor-pointer hover:bg-muted transition-colors">
-              <Camera size={12} /> {photoPreview ? "Changer" : "Photo"}
+              <Camera size={12} /> {photoPreview ? t("needit.create.changePhoto") : t("needit.create.photo")}
               <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
             </label>
           </div>
@@ -394,14 +394,14 @@ const NeeditCreatePage = () => {
             </p>
           )}
           <h2 className="text-center text-2xl font-extrabold text-foreground leading-tight mb-2 tracking-tight">
-            {draft.brandProduct?.name ?? draft.categoryLabel ?? "Produit"}
+            {draft.brandProduct?.name ?? draft.categoryLabel ?? t("needit.create.product")}
           </h2>
 
           {/* Variant chips */}
           {draft.brandProduct && draft.brandProduct.variants.length > 0 && (
             <>
               <p className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-3 mb-2">
-                Volume / Référence
+                {t("needit.create.variant")}
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {draft.brandProduct.variants.map((v) => {
@@ -426,7 +426,7 @@ const NeeditCreatePage = () => {
 
           {draft.brandProduct?.indicative_price && (
             <p className="text-center text-sm text-muted-foreground mt-3">
-              Prix indicatif&nbsp;:{" "}
+              {t("needit.create.indicativePrice")}{" "}
               <span className="font-semibold text-foreground">
                 {draft.brandProduct.indicative_price}
               </span>
@@ -435,14 +435,14 @@ const NeeditCreatePage = () => {
         </section>
 
         {/* Ma demande */}
-        <SectionTitle>Ma demande</SectionTitle>
+        <SectionTitle>{t("needit.create.myRequest")}</SectionTitle>
         <div className="space-y-4 mb-8">
           {/* Quantity */}
           <Field
-            label="Quantité souhaitée"
+            label={t("needit.create.qty")}
             icon={<Hash size={14} className="text-primary" />}
             error={showErr("quantity")}
-            hint="Entre 1 et 99"
+            hint={t("needit.create.qtyHint")}
           >
             <div
               className={`inline-flex items-center rounded-2xl border bg-card overflow-hidden shadow-sm ${
@@ -456,7 +456,7 @@ const NeeditCreatePage = () => {
                   setQuantity((q) => String(Math.max(1, parseInt(q || "1") - 1)));
                 }}
                 className="w-12 h-12 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
-                aria-label="Diminuer"
+                aria-label={t("needit.create.decrease")}
               >
                 −
               </button>
@@ -469,7 +469,7 @@ const NeeditCreatePage = () => {
                 onBlur={() => markTouched("quantity")}
                 aria-invalid={!!showErr("quantity")}
                 className="w-16 h-12 text-center bg-transparent text-base font-semibold text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                aria-label="Quantité"
+                aria-label={t("needit.create.qtyAria")}
               />
               <button
                 type="button"
@@ -478,7 +478,7 @@ const NeeditCreatePage = () => {
                   setQuantity((q) => String(Math.min(99, parseInt(q || "1") + 1)));
                 }}
                 className="w-12 h-12 flex items-center justify-center text-foreground hover:bg-muted transition-colors text-lg font-bold"
-                aria-label="Augmenter"
+                aria-label={t("needit.create.increase")}
               >
                 +
               </button>
@@ -489,14 +489,14 @@ const NeeditCreatePage = () => {
           <Field
             label={
               <span className="flex items-center gap-1.5">
-                Budget maximum <span className="text-destructive">*</span>
+                {t("needit.create.budget")} <span className="text-destructive">*</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info size={12} className="text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-[250px] text-xs">
-                      Vous ne paierez jamais plus que ce montant. Le voyageur peut proposer moins.
+                      {t("needit.create.budgetTip")}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -514,7 +514,7 @@ const NeeditCreatePage = () => {
                       : "bg-card text-foreground border-border hover:border-primary/40"
                   }`}
                 >
-                  Tarif fixe
+                  {t("needit.create.fixed")}
                 </button>
                 <button
                   onClick={() => setBudgetMode("devis")}
@@ -524,7 +524,7 @@ const NeeditCreatePage = () => {
                       : "bg-card text-foreground border-border hover:border-primary/40"
                   }`}
                 >
-                  Sur devis
+                  {t("needit.create.devis")}
                 </button>
               </div>
               {budgetMode === "fixed" && (
@@ -553,10 +553,10 @@ const NeeditCreatePage = () => {
 
           {/* Comments */}
           <Field
-            label="Commentaires / Instructions"
+            label={t("needit.create.comments")}
             icon={<MessageSquare size={14} className="text-primary" />}
             error={showErr("comments")}
-            hint={`${comments.length}/${COMMENTS_MAX} caractères`}
+            hint={t("needit.create.charsCount", { count: comments.length, max: COMMENTS_MAX })}
           >
             <div className="relative">
               <textarea
@@ -565,7 +565,7 @@ const NeeditCreatePage = () => {
                 onBlur={() => markTouched("comments")}
                 aria-invalid={!!showErr("comments")}
                 maxLength={COMMENTS_MAX}
-                placeholder="Ex : emballage renforcé, livraison en main propre, alternative si rupture…"
+                placeholder={t("needit.create.commentsPh")}
                 rows={4}
                 className={`w-full rounded-2xl border bg-card px-4 py-3 pr-3 pb-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 resize-none transition-colors ${
                   showErr("comments") ? "border-destructive" : "border-border"
@@ -576,12 +576,12 @@ const NeeditCreatePage = () => {
                 onClick={generateDescription}
                 disabled={generatingDesc}
                 className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-primary text-primary-foreground text-[11px] font-bold shadow-soft hover:shadow-glow active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                aria-label="Générer une description avec l'IA"
+                aria-label={t("needit.create.aiAria")}
               >
                 {generatingDesc ? (
-                  <><Loader2 size={11} className="animate-spin" /> Génération…</>
+                  <><Loader2 size={11} className="animate-spin" /> {t("needit.create.generating")}</>
                 ) : (
-                  <><Sparkles size={11} /> {comments.trim() ? "Améliorer ✨" : "Générer ✨"}</>
+                  <><Sparkles size={11} /> {comments.trim() ? t("needit.create.improve") : t("needit.create.generate")}</>
                 )}
               </button>
             </div>
@@ -589,29 +589,29 @@ const NeeditCreatePage = () => {
         </div>
 
         {/* Localisation */}
-        <SectionTitle>Lieu de récupération</SectionTitle>
+        <SectionTitle>{t("needit.create.pickup")}</SectionTitle>
         <div className="space-y-4 mb-8">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Pays *" error={showErr("pays")}>
+            <Field label={t("needit.create.country")} error={showErr("pays")}>
               <Input
                 value={pays}
                 onChange={(e) => setPays(e.target.value)}
                 onBlur={() => markTouched("pays")}
                 aria-invalid={!!showErr("pays")}
-                placeholder="Ex : France"
+                placeholder={t("needit.create.countryPh")}
                 maxLength={60}
                 className={`h-12 rounded-2xl bg-card focus-visible:ring-2 focus-visible:ring-primary/30 ${
                   showErr("pays") ? "border-destructive" : "border-border"
                 }`}
               />
             </Field>
-            <Field label="Ville *" error={showErr("ville")}>
+            <Field label={t("needit.create.city")} error={showErr("ville")}>
               <Input
                 value={ville}
                 onChange={(e) => setVille(e.target.value)}
                 onBlur={() => markTouched("ville")}
                 aria-invalid={!!showErr("ville")}
-                placeholder="Ex : Paris"
+                placeholder={t("needit.create.cityPh")}
                 maxLength={80}
                 className={`h-12 rounded-2xl bg-card focus-visible:ring-2 focus-visible:ring-primary/30 ${
                   showErr("ville") ? "border-destructive" : "border-border"
@@ -621,7 +621,7 @@ const NeeditCreatePage = () => {
           </div>
 
           <Field
-            label="Adresse précise (optionnel)"
+            label={t("needit.create.address")}
             icon={<MapPin size={14} className="text-primary" />}
             error={showErr("pickupAddress")}
           >
@@ -630,7 +630,7 @@ const NeeditCreatePage = () => {
               onChange={(e) => setPickupAddress(e.target.value)}
               onBlur={() => markTouched("pickupAddress")}
               aria-invalid={!!showErr("pickupAddress")}
-              placeholder="Ex : Carrefour Champs-Élysées"
+              placeholder={t("needit.create.addressPh")}
               maxLength={PICKUP_MAX}
               className={`h-12 rounded-2xl bg-card focus-visible:ring-2 focus-visible:ring-primary/30 ${
                 showErr("pickupAddress") ? "border-destructive" : "border-border"
@@ -643,18 +643,17 @@ const NeeditCreatePage = () => {
         <div className="flex items-center justify-between rounded-2xl bg-muted/40 border border-border p-4 mb-4">
           <div className="flex-1 mr-3">
             <p className="text-sm font-bold text-foreground flex items-center gap-1.5">
-              <Sparkles size={14} className="text-accent" /> Acceptation automatique
+              <Sparkles size={14} className="text-accent" /> {t("needit.create.autoAccept")}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Le premier voyageur qualifié sera assigné sans validation.
+              {t("needit.create.autoAcceptDesc")}
             </p>
           </div>
           <Switch checked={autoAccept} onCheckedChange={setAutoAccept} />
         </div>
 
         <p className="text-xs text-muted-foreground leading-relaxed mb-6">
-          Vous serez débité uniquement à la livraison. Aucun engagement avant qu'un voyageur
-          accepte votre mission.
+          {t("needit.create.payNotice")}
         </p>
       </main>
 
@@ -673,7 +672,7 @@ const NeeditCreatePage = () => {
               <X size={12} className="opacity-60" />
               <span>
                 {budgetMode === "devis"
-                  ? "Sur devis"
+                  ? t("needit.create.devis")
                   : !Number.isNaN(budgetNum) && budgetNum > 0
                   ? `${budgetNum.toFixed(2)} ${currency.symbol}`
                   : "—"}
@@ -681,13 +680,13 @@ const NeeditCreatePage = () => {
             </div>
             <div className="text-right">
               <p className="text-[11px] text-muted-foreground leading-none mb-0.5">
-                Total estimé
+                {t("needit.create.totalEst")}
               </p>
               <p className="text-base font-extrabold text-foreground tabular-nums leading-none">
                 {totalEstimate !== null
                   ? `${totalEstimate.toFixed(2)} ${currency.symbol}`
                   : budgetMode === "devis"
-                  ? "Sur devis"
+                  ? t("needit.create.devis")
                   : "—"}
               </p>
             </div>
@@ -702,7 +701,7 @@ const NeeditCreatePage = () => {
               <Loader2 size={20} className="animate-spin" />
             ) : (
               <>
-                Publier ma mission <ChevronRight size={20} />
+                {t("needit.create.publish")} <ChevronRight size={20} />
               </>
             )}
           </button>
