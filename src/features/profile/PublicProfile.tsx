@@ -34,7 +34,7 @@ const PublicProfile = () => {
         supabase.from("profiles").select("full_name, avatar_url, bio, trust_badges, kyc_status, phone, stripe_customer_id").eq("user_id", userId).single(),
         supabase.rpc("get_user_rating", { _user_id: userId }),
         supabase.rpc("compute_trust_badges", { _user_id: userId }),
-        supabase.from("ratings").select("id, score, comment, rater_role, created_at").eq("rated_id", userId).order("created_at", { ascending: false }),
+        supabase.from("ratings").select("id, score, comment, rater_role, created_at, photo_urls").eq("rated_id", userId).order("created_at", { ascending: false }),
         supabase.from("rating_replies").select("rating_id, content").eq("user_id", userId),
         supabase.from("voyages").select("id", { count: "exact", head: true }).eq("user_id", userId),
         supabase.from("shipments").select("id", { count: "exact", head: true }).eq("voyageur_id", userId).eq("status", "delivered"),
