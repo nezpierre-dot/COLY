@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { getCurrencyForCountry } from "@/hooks/useLocaleUnits";
 import { successFeedback } from "@/lib/successFeedback";
+import { useTranslation } from "@/hooks/useTranslation";
 import NeeditPageHeader from "../components/NeeditPageHeader";
 import BrandImage from "../components/BrandImage";
 import { clearNeeditDraft, useNeeditDraft } from "../hooks/useNeeditDraft";
@@ -117,6 +118,7 @@ const NeeditCreatePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { draft, reset } = useNeeditDraft();
+  const { t } = useTranslation();
 
   const last = useMemo(() => readLastLocation(), []);
 
@@ -151,7 +153,7 @@ const NeeditCreatePage = () => {
   const currency = getCurrencyForCountry(pays);
 
   const productName =
-    draft.brandProduct?.name ?? draft.categoryLabel ?? "Produit";
+    draft.brandProduct?.name ?? draft.categoryLabel ?? t("needit.create.product");
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -222,13 +224,13 @@ const NeeditCreatePage = () => {
       if (typeof description === "string" && description.trim()) {
         setComments(description.trim().slice(0, COMMENTS_MAX));
         setTouched((t) => ({ ...t, comments: true }));
-        toast.success("Description générée ✨");
+        toast.success(t("needit.create.descGenerated"));
       } else {
         throw new Error("Empty");
       }
     } catch (e) {
       console.error("AI description failed", e);
-      toast.error("Impossible de générer la description. Réessayez.");
+      toast.error(t("needit.create.descError"));
     } finally {
       setGeneratingDesc(false);
     }
@@ -236,7 +238,7 @@ const NeeditCreatePage = () => {
 
   const handleSubmit = async () => {
     if (!user) {
-      toast.error("Vous devez être connecté.");
+      toast.error(t("needit.create.notLogged"));
       return;
     }
     // Mark all fields as touched and run full validation
@@ -265,7 +267,7 @@ const NeeditCreatePage = () => {
       }
       setErrors(next);
       const first = Object.values(next)[0];
-      toast.error(first ?? "Veuillez corriger les champs en rouge.");
+      toast.error(first ?? t("needit.create.fixErrors"));
       return;
     }
 
@@ -294,7 +296,7 @@ const NeeditCreatePage = () => {
       if (draft.brandProduct?.name) pathLabels.push(draft.brandProduct.name);
 
       // Compose product name with brand + variant
-      const baseName = [draft.brand?.name, draft.brandProduct?.name ?? draft.categoryLabel ?? "Produit"]
+      const baseName = [draft.brand?.name, draft.brandProduct?.name ?? draft.categoryLabel ?? t("needit.create.product")]
         .filter(Boolean)
         .join(" ");
       const variantSuffix = variant ? ` – ${variant}` : "";
@@ -336,14 +338,14 @@ const NeeditCreatePage = () => {
           .catch(() => {});
       }
 
-      successFeedback("Mission publiée !", {
-        description: "Les voyageurs disponibles ont été prévenus.",
+      successFeedback(t("needit.create.published"), {
+        description: t("needit.create.publishedDesc"),
       });
       reset();
       clearNeeditDraft();
       navigate("/mes-missions-needit");
     } catch (err) {
-      toast.error("Impossible de publier la mission. Réessayez.");
+      toast.error(t("needit.create.publishError"));
     } finally {
       setSubmitting(false);
     }
