@@ -4,7 +4,8 @@ import { ArrowLeft, Search, MapPin, Package, ShoppingBag, Calendar, ArrowRight, 
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS, es, de, pt, it, arSA } from "date-fns/locale";
+import { useTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,12 +56,19 @@ interface PendingMission {
   created_at: string;
 }
 
-const formatDate = (d: string) => {
-  try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); }
-  catch { return d; }
-};
-
 const PAGE_SIZE = 10;
+
+const dateLocaleOf = (lang: string) => {
+  switch (lang) {
+    case "en": return enUS;
+    case "es": return es;
+    case "de": return de;
+    case "pt": return pt;
+    case "it": return it;
+    case "ar": return arSA;
+    default: return fr;
+  }
+};
 
 const BrowseMissions = () => {
   const navigate = useNavigate();
