@@ -170,6 +170,7 @@ const BrandsView = ({
   onPick: (b: Brand) => void;
   onSkip: () => void;
 }) => {
+  const { t } = useTranslation();
   const { brands, loading } = useBrands(category.key);
   const q = search.trim().toLowerCase();
 
@@ -191,9 +192,9 @@ const BrandsView = ({
   if (!loading && brands.length === 0) {
     return (
       <EmptyCard
-        title="Aucune marque référencée"
-        description="Cette catégorie n'a pas encore de catalogue de marques. Décrivez librement le produit recherché à l'étape suivante."
-        cta="Continuer sans marque"
+        title={t("needit.brands.noBrands")}
+        description={t("needit.brands.noBrandsDesc")}
+        cta={t("needit.brands.continueNoBrand")}
         onClick={onSkip}
       />
     );
@@ -204,7 +205,7 @@ const BrandsView = ({
       <SearchBar
         value={search}
         onChange={setSearch}
-        placeholder="Rechercher une marque…"
+        placeholder={t("needit.brands.searchBrand")}
       />
 
       {loading ? (
@@ -213,23 +214,23 @@ const BrandsView = ({
         </div>
       ) : filtered.length === 0 ? (
         <EmptyCard
-          title="Aucune marque trouvée"
-          description={`Pour "${search}". Vous pouvez continuer sans marque et décrire le produit librement.`}
-          cta="Continuer sans marque"
+          title={t("needit.brands.noBrandFound")}
+          description={t("needit.brands.noBrandFoundDesc", { q: search })}
+          cta={t("needit.brands.continueNoBrand")}
           onClick={onSkip}
         />
       ) : (
         <>
           {popular.length > 0 && (
             <Section
-              title={q ? "Suggestions populaires" : "Populaires"}
+              title={q ? t("needit.brands.popularSugg") : t("needit.brands.popular")}
               icon={<Sparkles size={14} className="text-accent" />}
             >
               <BrandGrid brands={popular} onPick={onPick} />
             </Section>
           )}
           {others.length > 0 && (
-            <Section title={q ? "Résultats" : "Toutes les marques"}>
+            <Section title={q ? t("needit.brands.results") : t("needit.brands.allBrands")}>
               <BrandGrid brands={others} onPick={onPick} />
             </Section>
           )}
@@ -238,7 +239,7 @@ const BrandsView = ({
             onClick={onSkip}
             className="w-full mt-2 py-4 rounded-2xl bg-muted hover:bg-muted/70 text-foreground text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
           >
-            Ma marque n'est pas listée
+            {t("needit.brands.brandNotListed")}
             <ChevronRight size={16} />
           </button>
         </>
