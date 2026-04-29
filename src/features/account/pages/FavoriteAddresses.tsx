@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { motion, AnimatePresence } from "framer-motion";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface FavAddress {
   id: string;
@@ -19,6 +20,7 @@ interface FavAddress {
 const FavoriteAddresses = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [addresses, setAddresses] = useState<FavAddress[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -54,7 +56,7 @@ const FavoriteAddresses = () => {
 
   const saveEdit = async () => {
     if (!editAddress.trim()) {
-      toast.error("L'adresse ne peut pas être vide");
+      toast.error(t("favAddr.errEmpty"));
       return;
     }
     const { error } = await supabase
@@ -67,7 +69,7 @@ const FavoriteAddresses = () => {
       .eq("id", editingId!);
 
     if (error) {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t("favAddr.errUpdate"));
       return;
     }
 
@@ -80,7 +82,7 @@ const FavoriteAddresses = () => {
     );
     setEditingId(null);
     hapticSuccess();
-    toast.success("Adresse mise à jour");
+    toast.success(t("favAddr.updated"));
   };
 
   const deleteAddress = async (id: string) => {
@@ -90,14 +92,14 @@ const FavoriteAddresses = () => {
       .eq("id", id);
 
     if (error) {
-      toast.error("Erreur lors de la suppression");
+      toast.error(t("favAddr.errDelete"));
       return;
     }
 
     setAddresses((prev) => prev.filter((a) => a.id !== id));
     setDeletingId(null);
     hapticSuccess();
-    toast.success("Adresse supprimée");
+    toast.success(t("favAddr.deleted"));
   };
 
   return (
@@ -107,7 +109,7 @@ const FavoriteAddresses = () => {
         <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft size={18} className="text-foreground" />
         </button>
-        <h1 className="text-lg font-bold text-foreground">Adresses favorites</h1>
+        <h1 className="text-lg font-bold text-foreground">{t("favAddr.title")}</h1>
       </div>
 
       <div className="px-4 py-6 space-y-3">
@@ -122,9 +124,9 @@ const FavoriteAddresses = () => {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
               <MapPin size={28} className="text-muted-foreground" />
             </div>
-            <p className="text-muted-foreground text-sm">Aucune adresse favorite enregistrée</p>
+            <p className="text-muted-foreground text-sm">{t("favAddr.empty")}</p>
             <p className="text-muted-foreground/60 text-xs">
-              Ajoutez des adresses en favoris lors de la création d'un envoi
+              {t("favAddr.emptyHint")}
             </p>
           </div>
         ) : (
@@ -142,16 +144,16 @@ const FavoriteAddresses = () => {
                   /* Edit mode */
                   <div className="space-y-3">
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Nom / Label (optionnel)</label>
+                      <label className="text-xs text-muted-foreground mb-1 block">{t("favAddr.labelOptional")}</label>
                       <input
                         className="w-full border border-border rounded-xl px-3 py-2 text-sm text-foreground bg-background focus:outline-none focus:border-primary"
-                        placeholder="Ex : Maison, Bureau..."
+                        placeholder={t("favAddr.labelPlaceholder")}
                         value={editLabel}
                         onChange={(e) => setEditLabel(e.target.value)}
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Adresse <span className="text-destructive">*</span></label>
+                      <label className="text-xs text-muted-foreground mb-1 block">{t("favAddr.address")} <span className="text-destructive">*</span></label>
                       <input
                         className="w-full border border-border rounded-xl px-3 py-2 text-sm text-foreground bg-background focus:outline-none focus:border-primary"
                         value={editAddress}
@@ -159,7 +161,7 @@ const FavoriteAddresses = () => {
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Code d'accès (optionnel)</label>
+                      <label className="text-xs text-muted-foreground mb-1 block">{t("favAddr.accessCode")}</label>
                       <input
                         className="w-full border border-border rounded-xl px-3 py-2 text-sm text-foreground bg-background focus:outline-none focus:border-primary"
                         value={editCode}
@@ -171,7 +173,7 @@ const FavoriteAddresses = () => {
                         onClick={saveEdit}
                         className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5"
                       >
-                        <Save size={14} /> Enregistrer
+                        <Save size={14} /> {t("favAddr.save")}
                       </button>
                       <button
                         onClick={cancelEdit}
@@ -225,18 +227,18 @@ const FavoriteAddresses = () => {
                           className="overflow-hidden"
                         >
                           <div className="flex items-center gap-2 pt-2 border-t border-border mt-2">
-                            <p className="text-xs text-destructive flex-1">Supprimer cette adresse ?</p>
+                            <p className="text-xs text-destructive flex-1">{t("favAddr.confirmDelete")}</p>
                             <button
                               onClick={() => deleteAddress(addr.id)}
                               className="px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-xs font-medium"
                             >
-                              Supprimer
+                              {t("favAddr.delete")}
                             </button>
                             <button
                               onClick={() => setDeletingId(null)}
                               className="px-3 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs font-medium"
                             >
-                              Annuler
+                              {t("favAddr.cancel")}
                             </button>
                           </div>
                         </motion.div>
