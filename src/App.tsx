@@ -13,6 +13,7 @@ import SplashScreen from "@/components/SplashScreen";
 import AiChatWidget from "@/components/AiChatWidget";
 import CommandPalette from "@/components/CommandPalette";
 import OfflineBanner from "@/components/OfflineBanner";
+import { useGlobalPresenceTracker } from "@/hooks/usePresence";
 
 // Lazy-loaded pages
 const Welcome = lazy(() => import("./features/core/pages/Welcome"));
@@ -87,8 +88,6 @@ const AutoLogoutWrapper = ({ children }: { children: ReactNode }) => {
 
 // Mounts the global Realtime presence tracker for the authenticated user.
 const PresenceTracker = () => {
-  // Lazy import to avoid loading Realtime on guest pages
-  const { useGlobalPresenceTracker } = require("@/hooks/usePresence");
   useGlobalPresenceTracker();
   return null;
 };
