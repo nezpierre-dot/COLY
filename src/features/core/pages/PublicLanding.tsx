@@ -214,6 +214,9 @@ export default function PublicLanding() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <Testimonials />
+
       {/* CTA */}
       <section className="mx-auto max-w-3xl px-4 py-20 text-center">
         <Search className="mx-auto mb-4 h-10 w-10 text-primary" />
