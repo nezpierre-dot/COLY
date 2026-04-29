@@ -246,6 +246,26 @@ const PublicProfile = () => {
                   {review.comment && (
                     <p className="text-sm text-foreground/80 italic">"{review.comment}"</p>
                   )}
+                  {Array.isArray(review.photo_urls) && review.photo_urls.length > 0 && (
+                    <div className="mt-2 flex gap-1.5 flex-wrap">
+                      {review.photo_urls.map((url: string, i: number) => (
+                        <a
+                          key={i}
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="block w-16 h-16 rounded-lg overflow-hidden border border-border hover:opacity-80 transition"
+                        >
+                          <img
+                            src={url}
+                            alt={`Photo de l'avis ${i + 1}`}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-center gap-1.5 mt-2">
                     <User size={12} className="text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">{review.rater_role === "demandeur" ? "Demandeur" : "Voyageur"}</span>
