@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface UserShipment {
   id: string;
@@ -27,46 +28,39 @@ interface DisputeMessage {
   created_at: string;
 }
 
-const DEMANDEUR_REASONS = [
-  { value: "damaged", label: "Colis endommagé" },
-  { value: "missing", label: "Colis non reçu" },
-  { value: "wrong_item", label: "Mauvais article" },
-  { value: "partial", label: "Contenu incomplet" },
-  { value: "other", label: "Autre" },
-];
-
-const VOYAGEUR_REASONS = [
-  { value: "absent_recipient", label: "Destinataire absent au RDV" },
-  { value: "wrong_package", label: "Colis non conforme à la description" },
-  { value: "overweight", label: "Colis trop lourd / hors gabarit" },
-  { value: "unreachable", label: "Demandeur injoignable" },
-  { value: "other", label: "Autre" },
-];
-
-const ALL_REASONS = [...DEMANDEUR_REASONS, ...VOYAGEUR_REASONS];
-
-const statusLabel = (s: string) => {
-  const map: Record<string, { label: string; cls: string }> = {
-    open: { label: "En attente", cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
-    investigating: { label: "En cours", cls: "bg-primary/10 text-primary" },
-    escalated: { label: "Escaladé", cls: "bg-destructive/10 text-destructive" },
-    resolved: { label: "Résolu", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
-    refunded: { label: "Remboursé", cls: "bg-accent/10 text-accent-foreground" },
-  };
-  const c = map[s] || { label: s, cls: "bg-muted text-muted-foreground" };
-  return <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${c.cls}`}>{c.label}</span>;
-};
-
-const formatTime = (d: string) => {
-  try {
-    return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-  } catch { return d; }
-};
+// Reason values used as keys; labels resolved via t() inside component
+const DEMANDEUR_REASON_VALUES = ["damaged", "missing", "wrong_item", "partial", "other"] as const;
+const VOYAGEUR_REASON_VALUES = ["absent_recipient", "wrong_package", "overweight", "unreachable", "other"] as const;
 
 const DisputesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
+
+  const DEMANDEUR_REASONS = DEMANDEUR_REASON_VALUES.map(v => ({ value: v, label: t(`disputes.reason.${v}`) }));
+  const VOYAGEUR_REASONS = VOYAGEUR_REASON_VALUES.map(v => ({ value: v, label: t(`disputes.reason.${v}`) }));
+  const ALL_REASONS = [...DEMANDEUR_REASONS, ...VOYAGEUR_REASONS];
+
+  const formatTime = (d: string) => {
+    try {
+      return new Date(d).toLocaleDateString(localeTag, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    } catch { return d; }
+  };
+
+  const statusLabel = (s: string) => {
+    const map: Record<string, { key: string; cls: string }> = {
+      open: { key: "disputes.dStatus.open", cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
+      investigating: { key: "disputes.dStatus.investigating", cls: "bg-primary/10 text-primary" },
+      escalated: { key: "disputes.dStatus.escalated", cls: "bg-destructive/10 text-destructive" },
+      resolved: { key: "disputes.dStatus.resolved", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" },
+      refunded: { key: "disputes.dStatus.refunded", cls: "bg-accent/10 text-accent-foreground" },
+    };
+    const c = map[s] || { key: "", cls: "bg-muted text-muted-foreground" };
+    return <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${c.cls}`}>{c.key ? t(c.key) : s}</span>;
+  };
+
   const [shipments, setShipments] = useState<UserShipment[]>([]);
   const [selectedShipment, setSelectedShipment] = useState("");
   const [reason, setReason] = useState("");

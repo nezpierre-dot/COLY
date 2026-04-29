@@ -4,7 +4,8 @@ import { ArrowLeft, Search, MapPin, Package, ShoppingBag, Calendar, ArrowRight, 
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS, es, de, pt, it, arSA } from "date-fns/locale";
+import { useTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,16 +56,30 @@ interface PendingMission {
   created_at: string;
 }
 
-const formatDate = (d: string) => {
-  try { return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }); }
-  catch { return d; }
-};
-
 const PAGE_SIZE = 10;
+
+const dateLocaleOf = (lang: string) => {
+  switch (lang) {
+    case "en": return enUS;
+    case "es": return es;
+    case "de": return de;
+    case "pt": return pt;
+    case "it": return it;
+    case "ar": return arSA;
+    default: return fr;
+  }
+};
 
 const BrowseMissions = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
+  const dateLocale = dateLocaleOf(language);
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
+  const formatDate = (d: string) => {
+    try { return new Date(d).toLocaleDateString(localeTag, { day: "numeric", month: "short" }); }
+    catch { return d; }
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [tab, setTab] = useState("shipments");
   const [filterCountry, setFilterCountry] = useState("");
@@ -245,8 +260,8 @@ const BrowseMissions = () => {
                 <ArrowLeft size={24} />
               </button>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-foreground">Missions disponibles</h1>
-                <p className="text-xs text-muted-foreground mt-0.5">Acceptez une demande et créez votre trajet</p>
+                <h1 className="text-2xl font-bold text-foreground">{t("browse.title")}</h1>
+                <p className="text-xs text-muted-foreground mt-0.5">{t("browse.subtitle")}</p>
               </div>
             </div>
 
@@ -256,7 +271,7 @@ const BrowseMissions = () => {
                 <Search size={16} className="text-muted-foreground shrink-0" />
                 <input
                   className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                  placeholder="Ville, pays ou produit..."
+                  placeholder={t("browse.searchPh")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -291,10 +306,10 @@ const BrowseMissions = () => {
                 className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-4"
               >
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-foreground">Filtres avancés</p>
+                  <p className="text-xs font-semibold text-foreground">{t("browse.advancedFilters")}</p>
                   {activeFiltersCount > 0 && (
                     <button onClick={resetFilters} className="text-xs text-primary font-medium">
-                      Réinitialiser
+                      {t("browse.reset")}
                     </button>
                   )}
                 </div>
@@ -302,7 +317,7 @@ const BrowseMissions = () => {
                 {/* Country filter */}
                 <div>
                   <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                    <Globe size={12} /> Pays de destination
+                    <Globe size={12} /> {t("browse.destCountry")}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     <button
@@ -312,7 +327,7 @@ const BrowseMissions = () => {
                         !filterCountry ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/80"
                       )}
                     >
-                      Tous
+                      {t("browse.all")}
                     </button>
                     {allCountries.map(c => (
                       <button
@@ -332,14 +347,14 @@ const BrowseMissions = () => {
                 {/* Date range filter */}
                 <div>
                   <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                    <Calendar size={12} /> Période
+                    <Calendar size={12} /> {t("browse.period")}
                   </p>
                   <div className="flex gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className={cn("flex-1 justify-start text-xs gap-1.5", !filterDateFrom && "text-muted-foreground")}>
                           <Calendar size={12} />
-                          {filterDateFrom ? format(filterDateFrom, "d MMM", { locale: fr }) : "Du"}
+                          {filterDateFrom ? format(filterDateFrom, "d MMM", { locale: dateLocale }) : t("browse.from")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -356,7 +371,7 @@ const BrowseMissions = () => {
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className={cn("flex-1 justify-start text-xs gap-1.5", !filterDateTo && "text-muted-foreground")}>
                           <Calendar size={12} />
-                          {filterDateTo ? format(filterDateTo, "d MMM", { locale: fr }) : "Au"}
+                          {filterDateTo ? format(filterDateTo, "d MMM", { locale: dateLocale }) : t("browse.to")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -385,13 +400,13 @@ const BrowseMissions = () => {
                 )}
                 {filterDateFrom && (
                   <span className="flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full">
-                    Dès {format(filterDateFrom, "d MMM", { locale: fr })}
+                    {t("browse.startingFrom", { date: format(filterDateFrom, "d MMM", { locale: dateLocale }) })}
                     <button onClick={() => setFilterDateFrom(undefined)}><X size={10} /></button>
                   </span>
                 )}
                 {filterDateTo && (
                   <span className="flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full">
-                    Jusqu'au {format(filterDateTo, "d MMM", { locale: fr })}
+                    {t("browse.until", { date: format(filterDateTo, "d MMM", { locale: dateLocale }) })}
                     <button onClick={() => setFilterDateTo(undefined)}><X size={10} /></button>
                   </span>
                 )}
@@ -402,11 +417,11 @@ const BrowseMissions = () => {
             <div className="flex items-center gap-1.5 mb-3 overflow-x-auto no-scrollbar">
               <ArrowUpDown size={13} className="text-muted-foreground shrink-0" />
               {([
-                { value: "recent", label: "Récents" },
-                { value: "date_asc", label: "Date ↑" },
-                { value: "price_asc", label: "Prix ↑" },
-                { value: "price_desc", label: "Prix ↓" },
-                { value: "voyageurs", label: "Voyageurs ↓" },
+                { value: "recent", label: t("browse.sort.recent") },
+                { value: "date_asc", label: t("browse.sort.dateAsc") },
+                { value: "price_asc", label: t("browse.sort.priceAsc") },
+                { value: "price_desc", label: t("browse.sort.priceDesc") },
+                { value: "voyageurs", label: t("browse.sort.travelers") },
               ] as const).map(opt => (
                 <button
                   key={opt.value}
@@ -424,10 +439,10 @@ const BrowseMissions = () => {
             <Tabs value={tab} onValueChange={setTab}>
               <TabsList className="w-full bg-muted/70 rounded-xl p-1 mb-4">
                 <TabsTrigger value="shipments" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  <Package size={13} className="mr-1" /> Colis ({filteredShipments.length})
+                  <Package size={13} className="mr-1" /> {t("browse.tabShipments", { count: filteredShipments.length })}
                 </TabsTrigger>
                 <TabsTrigger value="missions" className="flex-1 rounded-lg py-2 text-xs font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                  <ShoppingBag size={13} className="mr-1" /> NeedIt ({filteredMissions.length})
+                  <ShoppingBag size={13} className="mr-1" /> {t("browse.tabMissions", { count: filteredMissions.length })}
                 </TabsTrigger>
               </TabsList>
 
@@ -435,7 +450,7 @@ const BrowseMissions = () => {
                 {loading ? (
                   <ListItemSkeleton count={4} />
                 ) : filteredShipments.length === 0 ? (
-                  <EmptyState icon={Package} title="Aucun colis en attente" description="Revenez plus tard ou ajustez vos filtres" />
+                  <EmptyState icon={Package} title={t("browse.emptyShipments")} description={t("browse.emptyDesc")} />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
                     {paginatedShipments.map((s) => (
@@ -455,11 +470,11 @@ const BrowseMissions = () => {
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3 flex-wrap">
                           <span className="flex items-center gap-1"><Calendar size={12} /> {formatDate(s.departure_date)}</span>
                           <span className="bg-muted px-2 py-0.5 rounded-full text-[10px] font-semibold">{s.size}</span>
-                          {s.insured && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] font-semibold">Assuré</span>}
+                          {s.insured && <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] font-semibold">{t("browse.insured")}</span>}
                           <VoyageurAvailability country={s.arrival_country} city={s.arrival_city} variant="compact" />
                         </div>
                         <Button size="sm" className="w-full gap-2" onClick={() => handleAcceptShipment(s)}>
-                          Accepter & Créer mon trajet <ArrowRight size={14} />
+                          {t("browse.acceptCreate")} <ArrowRight size={14} />
                         </Button>
                       </motion.div>
                     ))}
@@ -469,7 +484,7 @@ const BrowseMissions = () => {
                         className="w-full"
                         onClick={() => setShipmentsPage(p => p + 1)}
                       >
-                        Voir plus ({filteredShipments.length - paginatedShipments.length} restants)
+                        {t("browse.seeMore", { count: filteredShipments.length - paginatedShipments.length })}
                       </Button>
                     )}
                   </motion.div>
@@ -480,7 +495,7 @@ const BrowseMissions = () => {
                 {loading ? (
                   <ListItemSkeleton count={4} />
                 ) : filteredMissions.length === 0 ? (
-                  <EmptyState icon={ShoppingBag} title="Aucune mission NeedIt" description="Revenez plus tard ou ajustez vos filtres" />
+                  <EmptyState icon={ShoppingBag} title={t("browse.emptyMissions")} description={t("browse.emptyDesc")} />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
                     {paginatedMissions.map((m) => (
@@ -493,25 +508,25 @@ const BrowseMissions = () => {
                               <CategoryIcon category={m.category_path} size={40} />
                             )}
                             <div>
-                              <p className="text-sm font-semibold text-foreground">{m.product_name || m.category_path?.[m.category_path.length - 1] || "Mission NeedIt"}</p>
+                              <p className="text-sm font-semibold text-foreground">{m.product_name || m.category_path?.[m.category_path.length - 1] || t("browse.missionFallback")}</p>
                               <p className="text-xs text-muted-foreground flex items-center gap-1">
                                 <MapPin size={10} /> {m.city || m.country}
                               </p>
                             </div>
                           </div>
-                          {m.prix_max && <span className="text-xs font-bold text-primary">Max {m.prix_max}</span>}
+                          {m.prix_max && <span className="text-xs font-bold text-primary">{t("browse.maxPrice", { price: m.prix_max })}</span>}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3 flex-wrap">
                           <span className="bg-muted px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize">{m.timing}</span>
                           {m.poids && <span>{m.poids}</span>}
-                          {m.is_unlisted && <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-[10px] font-semibold">Hors catalogue</span>}
+                          {m.is_unlisted && <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-[10px] font-semibold">{t("browse.unlisted")}</span>}
                           <VoyageurAvailability country={m.country} city={m.city} variant="compact" />
                         </div>
                         {m.unlisted_description && (
                           <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{m.unlisted_description}</p>
                         )}
                         <Button size="sm" className="w-full gap-2" onClick={() => handleAcceptMission(m)}>
-                          Accepter & Créer mon trajet <ArrowRight size={14} />
+                          {t("browse.acceptCreate")} <ArrowRight size={14} />
                         </Button>
                       </motion.div>
                     ))}
@@ -521,7 +536,7 @@ const BrowseMissions = () => {
                         className="w-full"
                         onClick={() => setMissionsPage(p => p + 1)}
                       >
-                        Voir plus ({filteredMissions.length - paginatedMissions.length} restants)
+                        {t("browse.seeMore", { count: filteredMissions.length - paginatedMissions.length })}
                       </Button>
                     )}
                   </motion.div>

@@ -7,19 +7,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
-
-const CATEGORIES = [
-  { value: "general", label: "Question générale" },
-  { value: "account", label: "Mon compte" },
-  { value: "payment", label: "Paiement / Wallet" },
-  { value: "bug", label: "Bug / Problème technique" },
-  { value: "suggestion", label: "Suggestion" },
-  { value: "other", label: "Autre" },
-];
+import { useTranslation } from "@/hooks/useTranslation";
 
 const SupportContactPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useTranslation();
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [category, setCategory] = useState("general");
@@ -28,6 +21,17 @@ const SupportContactPage = () => {
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
+
+  const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
+
+  const CATEGORIES = [
+    { value: "general", label: t("support.cat.general") },
+    { value: "account", label: t("support.cat.account") },
+    { value: "payment", label: t("support.cat.payment") },
+    { value: "bug", label: t("support.cat.bug") },
+    { value: "suggestion", label: t("support.cat.suggestion") },
+    { value: "other", label: t("support.cat.other") },
+  ];
 
   useEffect(() => {
     if (!user) return;
@@ -48,15 +52,15 @@ const SupportContactPage = () => {
   const handleSubmit = async () => {
     if (!user) return;
     if (!subject.trim() || !message.trim()) {
-      toast.error("Veuillez remplir tous les champs");
+      toast.error(t("support.fillFields"));
       return;
     }
     if (subject.trim().length > 100) {
-      toast.error("Le sujet ne doit pas dépasser 100 caractères");
+      toast.error(t("support.subjectMax"));
       return;
     }
     if (message.trim().length > 2000) {
-      toast.error("Le message ne doit pas dépasser 2000 caractères");
+      toast.error(t("support.messageMax"));
       return;
     }
 
@@ -69,10 +73,10 @@ const SupportContactPage = () => {
     });
 
     if (error) {
-      toast.error("Erreur lors de l'envoi");
+      toast.error(t("support.errSend"));
     } else {
       hapticSuccess();
-      toast.success("Message envoyé au support !");
+      toast.success(t("support.sent"));
       setSubject("");
       setMessage("");
       setCategory("general");
@@ -83,9 +87,9 @@ const SupportContactPage = () => {
   };
 
   const statusConfig: Record<string, { icon: typeof Clock; label: string; color: string }> = {
-    open: { icon: Clock, label: "En attente", color: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
-    replied: { icon: CheckCircle, label: "Répondu", color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
-    closed: { icon: CheckCircle, label: "Résolu", color: "text-muted-foreground bg-muted/50 border-border" },
+    open: { icon: Clock, label: t("support.status.open"), color: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
+    replied: { icon: CheckCircle, label: t("support.status.replied"), color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
+    closed: { icon: CheckCircle, label: t("support.status.closed"), color: "text-muted-foreground bg-muted/50 border-border" },
   };
 
   const openTickets = tickets.filter((t) => t.status === "open" || t.status === "replied");
@@ -103,8 +107,8 @@ const SupportContactPage = () => {
             <Headphones size={24} className="text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Contacter le support</h1>
-            <p className="text-sm text-muted-foreground">Une question ? Écrivez-nous !</p>
+            <h1 className="text-2xl font-bold text-foreground">{t("support.title")}</h1>
+            <p className="text-sm text-muted-foreground">{t("support.subtitle")}</p>
           </div>
         </div>
 
@@ -115,7 +119,7 @@ const SupportContactPage = () => {
           className="w-full py-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-base flex items-center justify-center gap-2 shadow-[0_4px_16px_hsl(var(--primary)/0.3)] mb-6"
         >
           <MessageSquarePlus size={20} />
-          Nouveau message
+          {t("support.newMessage")}
         </motion.button>
 
         {/* Form */}
@@ -128,11 +132,11 @@ const SupportContactPage = () => {
               className="overflow-hidden mb-6"
             >
               <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
-                <h3 className="text-base font-semibold text-foreground">Votre message</h3>
+                <h3 className="text-base font-semibold text-foreground">{t("support.yourMessage")}</h3>
 
                 {/* Category */}
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Catégorie</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("support.category")}</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
@@ -146,25 +150,25 @@ const SupportContactPage = () => {
 
                 {/* Subject */}
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Sujet</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("support.subject")}</label>
                   <input
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     maxLength={100}
-                    placeholder="Ex: Problème de connexion"
+                    placeholder={t("support.subjectPh")}
                     className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                   />
                 </div>
 
                 {/* Message */}
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Message</label>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("support.message")}</label>
                   <textarea
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     maxLength={2000}
                     rows={4}
-                    placeholder="Décrivez votre problème ou question en détail..."
+                    placeholder={t("support.messagePh")}
                     className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
                   />
                   <p className="text-xs text-muted-foreground text-right mt-0.5">{message.length}/2000</p>
@@ -177,7 +181,7 @@ const SupportContactPage = () => {
                   className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Send size={16} />
-                  {sending ? "Envoi en cours..." : "Envoyer"}
+                  {sending ? t("support.sending") : t("support.send")}
                 </motion.button>
               </div>
             </motion.div>
@@ -192,8 +196,8 @@ const SupportContactPage = () => {
         ) : tickets.length === 0 && !showForm ? (
           <div className="text-center py-16">
             <Headphones size={48} className="text-muted-foreground/30 mx-auto mb-4" />
-            <p className="text-muted-foreground text-sm">Aucun message envoyé</p>
-            <p className="text-muted-foreground/60 text-xs mt-1">Cliquez sur "Nouveau message" pour nous contacter</p>
+            <p className="text-muted-foreground text-sm">{t("support.empty")}</p>
+            <p className="text-muted-foreground/60 text-xs mt-1">{t("support.emptyHint")}</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -201,7 +205,7 @@ const SupportContactPage = () => {
             {openTickets.length > 0 && (
               <div>
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-3">
-                  <AlertTriangle size={13} /> En cours ({openTickets.length})
+                  <AlertTriangle size={13} /> {t("support.inProgress")} ({openTickets.length})
                 </h3>
                 <div className="space-y-3">
                   {openTickets.map((ticket) => {
@@ -227,7 +231,7 @@ const SupportContactPage = () => {
                             <p className="text-sm font-semibold text-foreground truncate">{ticket.subject}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">
                               {CATEGORIES.find((c) => c.value === ticket.category)?.label || ticket.category} ·{" "}
-                              {new Date(ticket.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                              {new Date(ticket.created_at).toLocaleDateString(localeTag, { day: "numeric", month: "short" })}
                             </p>
                           </div>
                           <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} className="shrink-0 mt-1">
@@ -244,16 +248,16 @@ const SupportContactPage = () => {
                             >
                               <div className="px-4 pb-4 border-t border-border pt-3 space-y-3">
                                 <div>
-                                  <p className="text-xs font-medium text-muted-foreground mb-1">Votre message</p>
+                                  <p className="text-xs font-medium text-muted-foreground mb-1">{t("support.yourMessage")}</p>
                                   <p className="text-sm text-foreground/80 whitespace-pre-wrap">{ticket.message}</p>
                                 </div>
                                 {ticket.admin_reply && (
                                   <div className="bg-primary/5 border border-primary/10 rounded-xl p-3">
-                                    <p className="text-xs font-semibold text-primary mb-1">Réponse du support</p>
+                                    <p className="text-xs font-semibold text-primary mb-1">{t("support.adminReply")}</p>
                                     <p className="text-sm text-foreground/80 whitespace-pre-wrap">{ticket.admin_reply}</p>
                                     {ticket.replied_at && (
                                       <p className="text-xs text-muted-foreground mt-2">
-                                        {new Date(ticket.replied_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                        {new Date(ticket.replied_at).toLocaleDateString(localeTag, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                                       </p>
                                     )}
                                   </div>
@@ -273,7 +277,7 @@ const SupportContactPage = () => {
             {closedTickets.length > 0 && (
               <div>
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 mb-3">
-                  <CheckCircle size={13} /> Résolus ({closedTickets.length})
+                  <CheckCircle size={13} /> {t("support.resolved")} ({closedTickets.length})
                 </h3>
                 <div className="space-y-3">
                   {closedTickets.map((ticket) => {
@@ -298,7 +302,7 @@ const SupportContactPage = () => {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-foreground truncate">{ticket.subject}</p>
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              {new Date(ticket.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                              {new Date(ticket.created_at).toLocaleDateString(localeTag, { day: "numeric", month: "short" })}
                             </p>
                           </div>
                           <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} className="shrink-0 mt-1">
@@ -317,7 +321,7 @@ const SupportContactPage = () => {
                                 <p className="text-sm text-foreground/80 whitespace-pre-wrap">{ticket.message}</p>
                                 {ticket.admin_reply && (
                                   <div className="bg-primary/5 border border-primary/10 rounded-xl p-3">
-                                    <p className="text-xs font-semibold text-primary mb-1">Réponse du support</p>
+                                    <p className="text-xs font-semibold text-primary mb-1">{t("support.adminReply")}</p>
                                     <p className="text-sm text-foreground/80 whitespace-pre-wrap">{ticket.admin_reply}</p>
                                   </div>
                                 )}
