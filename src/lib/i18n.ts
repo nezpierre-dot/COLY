@@ -1961,6 +1961,17 @@ const en: TranslationDict = {
   "sendWizard.err.destCountryBad": "Invalid characters in country.",
   "sendWizard.err.destCityBad": "Invalid characters in city.",
   "sendWizard.err.sameAsOrigin": "Destination must differ from origin.",
+  // SendWizard — assisted input
+  "sendWizard.autocomplete.label": "Address suggestions",
+  "sendWizard.autocomplete.empty": "No match.",
+  "sendWizard.autocomplete.loading": "Searching…",
+  "sendWizard.autocomplete.hint": "Type at least 2 letters to see suggestions.",
+  "sendWizard.useLocation": "Use my current location",
+  "sendWizard.useLocationLoading": "Locating…",
+  "sendWizard.useLocationOk": "Location detected: {{label}}",
+  "sendWizard.useLocationDenied": "Location access denied.",
+  "sendWizard.useLocationUnavailable": "Geolocation unavailable on this device.",
+  "sendWizard.useLocationFailed": "Couldn't fetch your location.",
   // NeeditCategoriesPage — fallbacks
   "needit.cat.loading": "Loading categories…",
   "needit.cat.errorTitle": "Categories unavailable",
