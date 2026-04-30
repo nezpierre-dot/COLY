@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, X, Sparkles, PenLine, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
+import { Search, X, Sparkles, PenLine, AlertTriangle, RefreshCw, History, TrendingUp, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
-import { CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey } from "@/lib/categoryIcons";
+import { CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey, type CategoryDef } from "@/lib/categoryIcons";
 import NeeditPageHeader from "../components/NeeditPageHeader";
 import { useNeeditDraft } from "../hooks/useNeeditDraft";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -12,14 +13,37 @@ import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import needitBagIllustration from "@/assets/illustrations/needit-bag.png";
 
+type SuggestionReason = "recent" | "popular";
+type Suggestion = { cat: CategoryDef; reason: SuggestionReason; count?: number };
+
+const DISMISSED_KEY = "nidit:needit:dismissedSuggestions";
+const readDismissed = (): CategoryKey[] => {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as CategoryKey[]) : [];
+  } catch {
+    return [];
+  }
+};
+const writeDismissed = (keys: CategoryKey[]) => {
+  try {
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(keys));
+  } catch {
+    /* quota / private mode */
+  }
+};
+
 const NeeditCategoriesPage = () => {
   const navigate = useNavigate();
   const { update, reset } = useNeeditDraft();
   const { t } = useTranslation();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
-  const [recentKeys, setRecentKeys] = useState<CategoryKey[]>([]);
+  const [recentCounts, setRecentCounts] = useState<Map<CategoryKey, number>>(new Map());
   const [recentLoading, setRecentLoading] = useState(true);
+  const [dismissed, setDismissed] = useState<CategoryKey[]>(() => readDismissed());
 
   // Sécurise l'import (si pour une raison quelconque CATEGORIES est vide, on bascule en erreur)
   const categoriesLoaded = Array.isArray(CATEGORIES) && CATEGORIES.length > 0;
@@ -28,7 +52,7 @@ const NeeditCategoriesPage = () => {
     trackEvent("needit_categories_view", "navigation");
   }, []);
 
-  // Récupère les 3 dernières catégories utilisées par le user (pour suggestions)
+  // Récupère l'historique du user pour construire des suggestions explicables
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -42,14 +66,17 @@ const NeeditCategoriesPage = () => {
           .select("category_key")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
-          .limit(10);
+          .limit(30);
         if (cancelled) return;
-        const keys = Array.from(
-          new Set(((data as any[]) || []).map((r) => r.category_key).filter(Boolean))
-        ).slice(0, 3) as CategoryKey[];
-        setRecentKeys(keys);
+        const counts = new Map<CategoryKey, number>();
+        for (const row of (data as any[]) || []) {
+          const k = row?.category_key as CategoryKey | undefined;
+          if (!k) continue;
+          counts.set(k, (counts.get(k) || 0) + 1);
+        }
+        setRecentCounts(counts);
       } catch {
-        if (!cancelled) setRecentKeys([]);
+        if (!cancelled) setRecentCounts(new Map());
       } finally {
         if (!cancelled) setRecentLoading(false);
       }
@@ -74,15 +101,26 @@ const NeeditCategoriesPage = () => {
   const popular = filtered.filter((c) => c.popular);
   const others = filtered.filter((c) => !c.popular).sort((a, b) => a.label.localeCompare(b.label));
 
-  // Suggestions = catégories récemment utilisées, à défaut les 3 plus populaires
-  const suggestions = useMemo(() => {
+  // Suggestions explicables : 1) historique trié par fréquence, 2) populaires en complément
+  // Toujours filtrées par les "ignorées" (persistées localement)
+  const suggestions = useMemo<Suggestion[]>(() => {
     if (!categoriesLoaded || q) return [];
-    const fromRecent = recentKeys
-      .map((k) => CATEGORIES.find((c) => c.key === k))
-      .filter(Boolean) as typeof CATEGORIES;
-    if (fromRecent.length > 0) return fromRecent;
-    return CATEGORIES.filter((c) => c.popular).slice(0, 3);
-  }, [categoriesLoaded, q, recentKeys]);
+    const dismissedSet = new Set(dismissed);
+
+    const fromRecent: Suggestion[] = [];
+    for (const [key, count] of Array.from(recentCounts.entries()).sort((a, b) => b[1] - a[1])) {
+      if (dismissedSet.has(key)) continue;
+      const cat = CATEGORIES.find((c) => c.key === key);
+      if (cat) fromRecent.push({ cat, reason: "recent", count });
+    }
+
+    const recentKeysSet = new Set(fromRecent.map((s) => s.cat.key));
+    const fromPopular: Suggestion[] = CATEGORIES.filter(
+      (c) => c.popular && !recentKeysSet.has(c.key) && !dismissedSet.has(c.key)
+    ).map((cat) => ({ cat, reason: "popular" }));
+
+    return [...fromRecent, ...fromPopular].slice(0, 3);
+  }, [categoriesLoaded, q, recentCounts, dismissed]);
 
   const handlePick = (key: CategoryKey, label: string, source: string) => {
     trackEvent("needit_categories_pick", "engagement", { key, source });
@@ -93,6 +131,35 @@ const NeeditCategoriesPage = () => {
     } else {
       navigate("/needit-mission");
     }
+  };
+
+  const dismissSuggestion = (key: CategoryKey, reason: SuggestionReason) => {
+    setDismissed((prev) => {
+      if (prev.includes(key)) return prev;
+      const next = [...prev, key];
+      writeDismissed(next);
+      return next;
+    });
+    trackEvent("needit_suggestion_dismiss", "engagement", { key, reason });
+    toast(t("needit.cat.suggestionDismissed"), {
+      action: {
+        label: t("needit.cat.undo"),
+        onClick: () => {
+          setDismissed((prev) => {
+            const next = prev.filter((k) => k !== key);
+            writeDismissed(next);
+            return next;
+          });
+          trackEvent("needit_suggestion_dismiss_undo", "engagement", { key });
+        },
+      },
+    });
+  };
+
+  const resetDismissed = () => {
+    setDismissed([]);
+    writeDismissed([]);
+    trackEvent("needit_suggestion_dismiss_reset", "engagement");
   };
 
   // -------- Fallback : catégories indisponibles -----------------------------
@@ -186,22 +253,35 @@ const NeeditCategoriesPage = () => {
           </label>
         </div>
 
-        {/* Suggestions personnalisées */}
+        {/* Suggestions personnalisées — explicables et ignorables */}
         {!q && (
           <Section
             title={t("needit.cat.suggestionsTitle")}
             icon={<Sparkles size={14} className="text-accent" />}
+            action={
+              dismissed.length > 0 ? (
+                <button
+                  onClick={resetDismissed}
+                  className="text-[11px] font-semibold text-primary hover:underline focus-visible:underline focus-visible:outline-none"
+                >
+                  {t("needit.cat.restoreAll")}
+                </button>
+              ) : null
+            }
           >
             {recentLoading ? (
               <SuggestionsSkeleton />
             ) : suggestions.length > 0 ? (
-              <CategoryGrid
+              <SuggestionList
                 items={suggestions}
                 onPick={(k, l) => handlePick(k, l, "suggestion")}
-                accent
-                topLabel={t("needit.cat.top")}
+                onDismiss={dismissSuggestion}
               />
-            ) : null}
+            ) : (
+              <p className="text-xs text-muted-foreground italic px-1">
+                {t("needit.cat.noSuggestions")}
+              </p>
+            )}
           </Section>
         )}
 
@@ -244,20 +324,106 @@ const NeeditCategoriesPage = () => {
 const Section = ({
   title,
   icon,
+  action,
   children,
 }: {
   title: string;
   icon?: React.ReactNode;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) => (
   <section className="mb-8">
-    <h3 className="flex items-center gap-2 text-sm font-bold text-foreground/80 uppercase tracking-wider mb-3 px-1">
-      {icon}
-      {title}
-    </h3>
+    <div className="flex items-center justify-between mb-3 px-1">
+      <h3 className="flex items-center gap-2 text-sm font-bold text-foreground/80 uppercase tracking-wider">
+        {icon}
+        {title}
+      </h3>
+      {action}
+    </div>
     {children}
   </section>
 );
+
+const SuggestionList = ({
+  items,
+  onPick,
+  onDismiss,
+}: {
+  items: Suggestion[];
+  onPick: (key: CategoryKey, label: string) => void;
+  onDismiss: (key: CategoryKey, reason: SuggestionReason) => void;
+}) => {
+  const { t } = useTranslation();
+  const reasonMeta = (s: Suggestion) => {
+    if (s.reason === "recent") {
+      return {
+        Icon: History,
+        // count > 1 → "Commandé X fois", sinon "Déjà commandé"
+        label:
+          s.count && s.count > 1
+            ? t("needit.cat.reason.recentN", { count: String(s.count) })
+            : t("needit.cat.reason.recent"),
+        cls: "bg-primary/10 text-primary",
+      };
+    }
+    return {
+      Icon: TrendingUp,
+      label: t("needit.cat.reason.popular"),
+      cls: "bg-accent/15 text-accent",
+    };
+  };
+
+  return (
+    <ul className="space-y-2.5" role="list">
+      {items.map((s, i) => {
+        const meta = reasonMeta(s);
+        const ReasonIcon = meta.Icon;
+        const dismissAria = t("needit.cat.dismissAria", { label: s.cat.label });
+        return (
+          <motion.li
+            key={s.cat.key}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: Math.min(i * 0.04, 0.2) }}
+            className="relative flex items-center gap-3 p-3 rounded-2xl bg-card border border-border shadow-sm hover:shadow-md transition-all"
+          >
+            <button
+              type="button"
+              onClick={() => onPick(s.cat.key, s.cat.label)}
+              aria-label={s.cat.label}
+              className="flex-1 flex items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl p-1 -m-1"
+            >
+              <img
+                src={s.cat.icon}
+                alt=""
+                aria-hidden="true"
+                className="w-12 h-12 object-contain shrink-0 drop-shadow-sm"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">{s.cat.label}</p>
+                <span
+                  className={`mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.cls}`}
+                >
+                  <ReasonIcon size={10} aria-hidden="true" />
+                  {meta.label}
+                </span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDismiss(s.cat.key, s.reason)}
+              aria-label={dismissAria}
+              title={t("needit.cat.dismiss")}
+              className="shrink-0 w-9 h-9 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <EyeOff size={16} aria-hidden="true" />
+            </button>
+          </motion.li>
+        );
+      })}
+    </ul>
+  );
+};
 
 const CategoryGrid = ({
   items,
