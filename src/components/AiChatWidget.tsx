@@ -1,39 +1,228 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { MessageCircle, Send, X, Sparkles, Loader2 } from "lucide-react";
+import { MessageCircle, X, Sparkles, Loader2, ChevronLeft, ArrowRight, RotateCcw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 const HIDDEN_PATHS = ["/", "/signup", "/login", "/reset-password"];
 
+// ---------------- Guided questions catalog ----------------
+type GuidedQuestion = {
+  id: string;
+  label: string;
+  prompt: string;
+  link?: { to: string; label: string };
+};
+type GuidedCategory = {
+  id: string;
+  label: string;
+  emoji: string;
+  questions: GuidedQuestion[];
+};
+
+const CATEGORIES: GuidedCategory[] = [
+  {
+    id: "envoi",
+    label: "Envoyer un colis",
+    emoji: "📦",
+    questions: [
+      {
+        id: "envoi-comment",
+        label: "Comment envoyer un colis ?",
+        prompt:
+          "Explique-moi étape par étape comment envoyer un colis sur Nidit (les 4 étapes), de manière simple et concise.",
+        link: { to: "/send-coly", label: "Créer un envoi" },
+      },
+      {
+        id: "envoi-prix",
+        label: "Comment est calculé le prix ?",
+        prompt:
+          "Explique-moi comment est calculé le prix d'un envoi sur Nidit (distance, taille, urgence) et la commission de 15%.",
+      },
+      {
+        id: "envoi-suivi",
+        label: "Comment suivre mon colis ?",
+        prompt:
+          "Comment puis-je suivre mon colis en temps réel sur Nidit ? Parle-moi du suivi GPS et des notifications.",
+      },
+      {
+        id: "envoi-modif",
+        label: "Puis-je modifier mon envoi ?",
+        prompt:
+          "Puis-je modifier ou annuler mon envoi après création ? Quelles sont les règles avant et après acceptation par un voyageur ?",
+      },
+    ],
+  },
+  {
+    id: "voyage",
+    label: "Devenir voyageur",
+    emoji: "✈️",
+    questions: [
+      {
+        id: "voyage-comment",
+        label: "Comment devenir voyageur ?",
+        prompt:
+          "Comment puis-je devenir voyageur sur Nidit et publier un trajet pour transporter des colis ?",
+        link: { to: "/voyageur-search", label: "Espace voyageur" },
+      },
+      {
+        id: "voyage-gains",
+        label: "Combien je peux gagner ?",
+        prompt:
+          "Combien un voyageur peut-il gagner sur Nidit ? Comment sont calculés les revenus par trajet ?",
+      },
+      {
+        id: "voyage-cutoff",
+        label: "C'est quoi le cutoff ?",
+        prompt:
+          "Explique-moi le cutoff d'un trajet sur Nidit (entre 6h et 72h avant départ) et ce qui se passe ensuite.",
+      },
+    ],
+  },
+  {
+    id: "needit",
+    label: "Missions NeedIt",
+    emoji: "🛒",
+    questions: [
+      {
+        id: "needit-quoi",
+        label: "C'est quoi une mission NeedIt ?",
+        prompt:
+          "Explique-moi simplement ce qu'est une mission NeedIt sur Nidit et en quoi c'est différent d'un envoi de colis classique.",
+      },
+      {
+        id: "needit-creer",
+        label: "Comment créer une mission ?",
+        prompt:
+          "Détaille les étapes pour créer une mission NeedIt (catégorie → marque → produit → détails).",
+      },
+      {
+        id: "needit-scan",
+        label: "Le scanner code-barres",
+        prompt:
+          "Comment fonctionne le scanner de code-barres EAN dans les missions NeedIt ?",
+      },
+    ],
+  },
+  {
+    id: "paiement",
+    label: "Paiement & Wallet",
+    emoji: "💳",
+    questions: [
+      {
+        id: "pay-escrow",
+        label: "Comment fonctionne l'escrow ?",
+        prompt:
+          "Explique-moi le système d'escrow (paiement sécurisé) de Nidit et le délai de 48h après livraison.",
+      },
+      {
+        id: "pay-wallet",
+        label: "C'est quoi le wallet ?",
+        prompt:
+          "C'est quoi le wallet Nidit ? Comment recharger mon solde et retirer mes gains ?",
+        link: { to: "/solde", label: "Mon solde" },
+      },
+      {
+        id: "pay-commission",
+        label: "Quelle est la commission ?",
+        prompt:
+          "Quelle commission Nidit prend-elle sur chaque transaction ? Comment est-elle répartie ?",
+      },
+    ],
+  },
+  {
+    id: "remise",
+    label: "Remise & OTP",
+    emoji: "🔐",
+    questions: [
+      {
+        id: "remise-otp",
+        label: "Comment marche le code OTP ?",
+        prompt:
+          "Comment fonctionne le système de double OTP à la remise et à la livraison sur Nidit ?",
+      },
+      {
+        id: "remise-photo",
+        label: "Pourquoi des photos ?",
+        prompt:
+          "Pourquoi les photos de pick-up et de livraison sont-elles obligatoires sur Nidit ?",
+      },
+    ],
+  },
+  {
+    id: "kyc",
+    label: "Vérification (KYC)",
+    emoji: "🪪",
+    questions: [
+      {
+        id: "kyc-quoi",
+        label: "C'est quoi le KYC ?",
+        prompt:
+          "C'est quoi le KYC sur Nidit ? Pourquoi dois-je vérifier mon identité et quand ?",
+      },
+      {
+        id: "kyc-quand",
+        label: "Quand dois-je le faire ?",
+        prompt:
+          "À quel moment dois-je faire mon KYC sur Nidit ? Est-il obligatoire dès l'inscription ?",
+      },
+    ],
+  },
+  {
+    id: "compte",
+    label: "Compte & Sécurité",
+    emoji: "👤",
+    questions: [
+      {
+        id: "compte-litiges",
+        label: "Comment ouvrir un litige ?",
+        prompt:
+          "Comment ouvrir un litige sur Nidit ? Quel est le délai d'escalade de 72h ?",
+        link: { to: "/litiges", label: "Mes litiges" },
+      },
+      {
+        id: "compte-fidelite",
+        label: "Le programme de fidélité",
+        prompt:
+          "Explique-moi le programme de fidélité Nidit (Green → Diamant) et comment gagner des points.",
+      },
+      {
+        id: "compte-notation",
+        label: "Comment fonctionne la notation ?",
+        prompt:
+          "Comment fonctionnent les notes et avis sur Nidit (1-5 étoiles, réponse publique, rappel 24h) ?",
+      },
+    ],
+  },
+];
+
 const AiChatWidget = () => {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [lastQuestion, setLastQuestion] = useState<GuidedQuestion | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const prefersReducedMotion = useReducedMotion();
   const launcherRef = useRef<HTMLButtonElement | null>(null);
 
   const isHidden = !user || HIDDEN_PATHS.includes(location.pathname);
 
-  // Esc ferme le panel ; restaure le focus sur le launcher
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
         setOpen(false);
-        // Le launcher se remontera et reprendra le focus naturellement à la prochaine ouverture
         setTimeout(() => launcherRef.current?.focus?.(), 60);
       }
     };
@@ -45,25 +234,18 @@ const AiChatWidget = () => {
     if (open && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, open]);
+  }, [messages, open, activeCategory]);
 
-  useEffect(() => {
-    if (open) {
-      requestAnimationFrame(() => inputRef.current?.focus());
-    }
-  }, [open]);
-
-  // Cleanup on unmount
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  const send = async () => {
-    const text = input.trim();
-    if (!text || isStreaming) return;
+  const askQuestion = async (q: GuidedQuestion) => {
+    if (isStreaming) return;
+    setLastQuestion(q);
+    setActiveCategory(null);
 
-    const userMsg: Msg = { role: "user", content: text };
-    const next = [...messages, userMsg];
+    const userMsg: Msg = { role: "user", content: q.label };
+    const next: Msg[] = [...messages, userMsg, { role: "assistant", content: "" }];
     setMessages(next);
-    setInput("");
     setIsStreaming(true);
 
     const controller = new AbortController();
@@ -72,23 +254,22 @@ const AiChatWidget = () => {
     let assistantSoFar = "";
     const upsertAssistant = (chunk: string) => {
       assistantSoFar += chunk;
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant") {
-          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
-        }
-        return [...prev, { role: "assistant", content: assistantSoFar }];
-      });
+      setMessages((prev) =>
+        prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m)),
+      );
     };
 
     try {
+      // Send the rich prompt to the AI but display the friendly label to the user
+      const apiMessages = [...messages, { role: "user" as const, content: q.prompt }];
+
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: apiMessages }),
         signal: controller.signal,
       });
 
@@ -101,6 +282,8 @@ const AiChatWidget = () => {
           if (data?.error) errMsg = data.error;
         } catch { /* keep default */ }
         toast({ title: "Erreur", description: errMsg, variant: "destructive" });
+        // Remove the empty assistant placeholder
+        setMessages((prev) => prev.slice(0, -1));
         setIsStreaming(false);
         return;
       }
@@ -137,7 +320,6 @@ const AiChatWidget = () => {
         }
       }
 
-      // Flush leftover
       if (buffer.trim()) {
         for (let raw of buffer.split("\n")) {
           if (!raw) continue;
@@ -160,24 +342,32 @@ const AiChatWidget = () => {
         description: "Vérifie ta connexion internet et réessaie.",
         variant: "destructive",
       });
+      setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsStreaming(false);
       abortRef.current = null;
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
+  const resetConversation = () => {
+    abortRef.current?.abort();
+    setMessages([]);
+    setActiveCategory(null);
+    setLastQuestion(null);
+    setIsStreaming(false);
+  };
+
+  const goToLink = (to: string) => {
+    setOpen(false);
+    navigate(to);
   };
 
   if (isHidden) return null;
 
+  const activeCat = CATEGORIES.find((c) => c.id === activeCategory);
+
   return (
     <>
-      {/* Floating launcher button */}
       <AnimatePresence>
         {!open && (
           <motion.button
@@ -205,7 +395,6 @@ const AiChatWidget = () => {
         )}
       </AnimatePresence>
 
-      {/* Chat panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -227,43 +416,40 @@ const AiChatWidget = () => {
                 </div>
                 <div className="min-w-0">
                   <h2 className="font-bold text-foreground text-base leading-tight">Assistant Nidit</h2>
-                  <p className="text-xs text-muted-foreground">Posez vos questions, je suis là 👋</p>
+                  <p className="text-xs text-muted-foreground truncate">Choisis une question 👇</p>
                 </div>
               </div>
-              <button
-                onClick={() => setOpen(false)}
-                aria-label="Fermer l'assistant"
-                className="h-9 w-9 rounded-full hover:bg-muted/60 flex items-center justify-center transition-colors"
-              >
-                <X size={18} className="text-foreground" />
-              </button>
+              <div className="flex items-center gap-1">
+                {messages.length > 0 && !isStreaming && (
+                  <button
+                    onClick={resetConversation}
+                    aria-label="Nouvelle conversation"
+                    className="h-9 w-9 rounded-full hover:bg-muted/60 flex items-center justify-center transition-colors"
+                  >
+                    <RotateCcw size={16} className="text-foreground" />
+                  </button>
+                )}
+                <button
+                  onClick={() => setOpen(false)}
+                  aria-label="Fermer l'assistant"
+                  className="h-9 w-9 rounded-full hover:bg-muted/60 flex items-center justify-center transition-colors"
+                >
+                  <X size={18} className="text-foreground" />
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gradient-soft">
-              {messages.length === 0 && (
-                <div className="text-center py-6 px-2">
-                  <p className="text-sm font-semibold text-foreground mb-2">Bienvenue ! 🎒</p>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    Je peux t'aider sur l'envoi de colis, les missions NeedIt, le paiement, le KYC…
+              {messages.length === 0 && !activeCat && (
+                <div className="text-center pt-2 pb-1 px-2">
+                  <p className="text-sm font-semibold text-foreground mb-1">Bienvenue ! 🎒</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Sélectionne un sujet pour obtenir une réponse instantanée.
                   </p>
-                  <div className="flex flex-col gap-2">
-                    {[
-                      "Comment envoyer un colis ?",
-                      "C'est quoi une mission NeedIt ?",
-                      "Comment fonctionne l'escrow ?",
-                    ].map((q) => (
-                      <button
-                        key={q}
-                        onClick={() => setInput(q)}
-                        className="px-3 py-2 rounded-xl bg-card border border-border text-xs text-foreground text-left hover:bg-muted/60 transition-colors"
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
                 </div>
               )}
+
               {messages.map((m, i) => (
                 <div
                   key={i}
@@ -277,48 +463,87 @@ const AiChatWidget = () => {
                     }`}
                   >
                     {m.role === "assistant" ? (
-                      <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-1.5 prose-strong:text-foreground prose-a:text-primary">
-                        <ReactMarkdown>{m.content || "…"}</ReactMarkdown>
-                      </div>
+                      m.content ? (
+                        <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-1.5 prose-strong:text-foreground prose-a:text-primary">
+                          <ReactMarkdown>{m.content}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <Loader2 size={16} className="animate-spin text-muted-foreground" />
+                      )
                     ) : (
                       <p className="whitespace-pre-wrap">{m.content}</p>
                     )}
                   </div>
                 </div>
               ))}
-              {isStreaming && messages[messages.length - 1]?.role === "user" && (
+
+              {/* Quick action link after answer */}
+              {!isStreaming && lastQuestion?.link && messages[messages.length - 1]?.role === "assistant" && (
                 <div className="flex justify-start">
-                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-3.5 py-2.5">
-                    <Loader2 size={16} className="animate-spin text-muted-foreground" />
-                  </div>
+                  <button
+                    onClick={() => goToLink(lastQuestion.link!.to)}
+                    className="text-xs px-3 py-2 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 transition-colors flex items-center gap-1.5 font-medium"
+                  >
+                    {lastQuestion.link.label}
+                    <ArrowRight size={12} />
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* Input */}
-            <div className="border-t border-border bg-card px-3 py-3">
-              <div className="flex items-end gap-2">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Pose ta question…"
-                  rows={1}
-                  maxLength={1000}
-                  disabled={isStreaming}
-                  aria-label="Votre question"
-                  className="flex-1 resize-none rounded-2xl border border-input bg-background px-4 py-2.5 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-h-32"
-                />
-                <button
-                  onClick={send}
-                  disabled={!input.trim() || isStreaming}
-                  aria-label="Envoyer le message"
-                  className="h-11 w-11 shrink-0 rounded-2xl bg-gradient-primary text-primary-foreground shadow-soft hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all flex items-center justify-center"
-                >
-                  {isStreaming ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-                </button>
-              </div>
+            {/* Guided question picker */}
+            <div className="border-t border-border bg-card px-3 py-3 max-h-[45%] overflow-y-auto">
+              {!activeCat ? (
+                <>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold px-1 mb-2">
+                    {messages.length === 0 ? "Choisis un sujet" : "Une autre question ?"}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setActiveCategory(cat.id)}
+                        disabled={isStreaming}
+                        className="px-3 py-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 disabled:opacity-50 disabled:cursor-not-allowed text-left transition-colors flex items-center gap-2"
+                      >
+                        <span className="text-base shrink-0">{cat.emoji}</span>
+                        <span className="text-xs font-medium text-foreground leading-tight">
+                          {cat.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <button
+                      onClick={() => setActiveCategory(null)}
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                    >
+                      <ChevronLeft size={14} />
+                      Retour
+                    </button>
+                    <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1">
+                      <span>{activeCat.emoji}</span>
+                      {activeCat.label}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    {activeCat.questions.map((q) => (
+                      <button
+                        key={q.id}
+                        onClick={() => askQuestion(q)}
+                        disabled={isStreaming}
+                        className="px-3 py-2.5 rounded-xl bg-muted/40 hover:bg-primary/10 hover:border-primary/30 border border-transparent text-left transition-colors text-xs text-foreground disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between gap-2 group"
+                      >
+                        <span className="leading-snug">{q.label}</span>
+                        <ArrowRight size={12} className="text-muted-foreground group-hover:text-primary shrink-0 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
         )}
