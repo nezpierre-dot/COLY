@@ -493,7 +493,7 @@ const SendColy = () => {
                   <CreditCard size={20} className="text-primary" />
                   <div>
                     <p className="font-medium text-foreground">Tarif fixe</p>
-                    <p className="text-xs text-muted-foreground">Vous définissez le prix de l'envoi</p>
+                    <p className="text-xs text-muted-foreground">Tu définis le prix de l'envoi</p>
                   </div>
                 </div>
               </button>

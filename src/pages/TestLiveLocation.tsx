@@ -48,8 +48,8 @@ const TestLiveLocation = () => {
         </div>
         <p className="text-xs text-muted-foreground">
           {viewAs === "voyageur"
-            ? "En tant que voyageur, vous pouvez activer/désactiver le partage de position."
-            : "En tant que demandeur, vous voyez la position du voyageur en temps réel."}
+            ? "En tant que voyageur, tu peux activer/désactiver le partage de position."
+            : "En tant que membre, tu vois la position du voyageur en temps réel."}
         </p>
       </div>
 

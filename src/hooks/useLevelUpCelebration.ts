@@ -47,7 +47,7 @@ export const useLevelUpCelebration = () => {
     setShowConfetti(true);
     successFeedback(
       `🎉 Niveau ${LEVEL_LABELS[level] || level} atteint !`,
-      { description: "Félicitations ! Vous débloquez de nouveaux avantages.", duration: 6000 }
+      { description: "Félicitations ! tu débloques de nouveaux avantages.", duration: 6000 }
     );
     setTimeout(() => setShowConfetti(false), 4000);
   };

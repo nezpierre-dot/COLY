@@ -541,7 +541,7 @@ const MyAccount = () => {
                             type="text"
                             value={replyText}
                             onChange={(e) => setReplyText(e.target.value)}
-                            placeholder="Votre réponse..."
+                            placeholder="Ta réponse..."
                             maxLength={300}
                             className="flex-1 text-sm border border-border rounded-xl px-3 py-2 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
                           />
@@ -561,8 +561,8 @@ const MyAccount = () => {
                               if (review.rater_id) {
                                 await supabase.from("notifications").insert({
                                   user_id: review.rater_id,
-                                  title: "Réponse à votre avis 💬",
-                                  message: `${fullName || "L'utilisateur"} a répondu à votre avis.`,
+                                  title: "Réponse à ton avis 💬",
+                                  message: `${fullName || "L'utilisateur"} a répondu à ton avis.`,
                                   type: `reply:rating:${review.id}`,
                                 } as any);
                               }
@@ -587,7 +587,7 @@ const MyAccount = () => {
                     <div className="mt-3 pl-3 border-l-2 border-primary/30">
                       <div className="flex items-center gap-1 mb-1">
                         <MessageSquare size={11} className="text-primary" />
-                        <span className="text-xs font-semibold text-primary">Votre réponse</span>
+                        <span className="text-xs font-semibold text-primary">Ta réponse</span>
                       </div>
                       <p className="text-sm text-foreground/80">"{replies[review.id]}"</p>
                     </div>

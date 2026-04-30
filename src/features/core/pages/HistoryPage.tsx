@@ -435,7 +435,7 @@ const HistoryPage = () => {
               {t("history.title")}
             </span>
             <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
-              Toutes vos<br />
+              Toutes tes<br />
               <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">transactions.</span>
             </h1>
             <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
@@ -656,7 +656,7 @@ const HistoryPage = () => {
                   <EmptyState
                     icon={Send}
                     title="Aucun envoi pour le moment"
-                    description="Créez votre premier envoi ou mission NeedIt et suivez ici toutes vos transactions."
+                    description="Crée ton premier envoi ou mission NeedIt et suis ici toutes tes transactions."
                     action={
                       <div className="flex flex-col sm:flex-row gap-2">
                         <button

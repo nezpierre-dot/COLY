@@ -273,8 +273,8 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
 export const dashboardCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='wallet']",
-    title: "Votre portefeuille",
-    description: "Suivez votre solde, rechargez en un clin d'œil et gérez vos paiements depuis ici.",
+    title: "Ton portefeuille",
+    description: "Suis ton solde, recharge en un clin d'œil et gère tes paiements depuis ici.",
     icon: <Wallet size={18} />,
   },
   {
@@ -286,7 +286,7 @@ export const dashboardCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='switch-role']",
     title: "Devenez voyageur",
-    description: "Basculez vers le mode Voyageur Nidit pour gagner de l'argent en transportant des colis sur vos trajets.",
+    description: "Bascule vers le mode Voyageur Nidit pour gagner de l'argent en transportant des colis sur tes trajets.",
     icon: <Repeat size={18} />,
   },
 ];
@@ -295,20 +295,20 @@ export const dashboardCoachSteps: CoachStep[] = [
 export const newTripCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='trip-route']",
-    title: "Définissez votre trajet",
-    description: "Renseignez vos villes de départ et d'arrivée. Plus c'est précis, mieux les demandeurs vous trouvent.",
+    title: "Définis ton trajet",
+    description: "Renseigne tes villes de départ et d'arrivée. Plus c'est précis, mieux les membres te trouvent.",
     icon: <Plane size={18} />,
   },
   {
     selector: "[data-coach='trip-capacity']",
-    title: "Votre capacité",
-    description: "Indiquez le poids et le nombre de colis que vous pouvez transporter. Vous recevrez les demandes correspondantes.",
+    title: "Ta capacité",
+    description: "Indique le poids et le nombre de colis que tu peux transporter. Tu recevras les demandes correspondantes.",
     icon: <ListChecks size={18} />,
   },
   {
     selector: "[data-coach='trip-earnings']",
     title: "Estimation des gains",
-    description: "Une estimation de revenus est calculée selon votre trajet et la capacité disponible.",
+    description: "Une estimation de revenus est calculée selon ton trajet et la capacité disponible.",
     icon: <Euro size={18} />,
   },
 ];
@@ -317,14 +317,14 @@ export const newTripCoachSteps: CoachStep[] = [
 export const walletCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='wallet-balance']",
-    title: "Votre solde",
-    description: "C'est l'argent disponible : gains de transport encaissés moins vos dépenses d'envoi.",
+    title: "Ton solde",
+    description: "C'est l'argent disponible : gains de transport encaissés moins tes dépenses d'envoi.",
     icon: <Coins size={18} />,
   },
   {
     selector: "[data-coach='wallet-history']",
     title: "Historique des transactions",
-    description: "Toutes vos opérations passées sont listées ici. Cliquez pour voir le détail de chaque ligne.",
+    description: "Toutes tes opérations passées sont listées ici. Clique pour voir le détail de chaque ligne.",
     icon: <History size={18} />,
   },
 ];
@@ -333,14 +333,14 @@ export const walletCoachSteps: CoachStep[] = [
 export const leaderboardCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='leaderboard-rank']",
-    title: "Votre classement",
-    description: "Plus vous transportez et plus votre note grimpe, plus vous montez dans le classement Voyageurs.",
+    title: "Ton classement",
+    description: "Plus tu transportes et plus ta note grimpe, plus tu montes dans le classement Voyageurs.",
     icon: <Trophy size={18} />,
   },
   {
     selector: "[data-coach='leaderboard-badges']",
     title: "Badges & succès",
-    description: "Débloquez des badges en accomplissant des missions : ils renforcent votre crédibilité.",
+    description: "Débloque des badges en accomplissant des missions : ils renforcent ta crédibilité.",
     icon: <Sparkles size={18} />,
   },
 ];
@@ -349,14 +349,14 @@ export const leaderboardCoachSteps: CoachStep[] = [
 export const loyaltyCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='loyalty-tier']",
-    title: "Votre niveau de fidélité",
+    title: "Ton niveau de fidélité",
     description: "Vert, Bronze, Argent, Or, Diamant : chaque niveau débloque des avantages (priorité, frais réduits…).",
     icon: <Star size={18} />,
   },
   {
     selector: "[data-coach='loyalty-points']",
     title: "Points & avantages",
-    description: "Gagnez des points à chaque mission et conversion de note. Ils accélèrent votre passage de niveau.",
+    description: "Gagne des points à chaque mission et conversion de note. Ils accélèrent ton passage de niveau.",
     icon: <Sparkles size={18} />,
   },
 ];
@@ -365,8 +365,8 @@ export const loyaltyCoachSteps: CoachStep[] = [
 export const favoritesCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='favorites-list']",
-    title: "Vos favoris",
-    description: "Retrouvez ici vos trajets et produits NeedIt favoris. Un tap pour relancer une recherche similaire.",
+    title: "Tes favoris",
+    description: "Retrouve ici tes trajets et produits NeedIt favoris. Un tap pour relancer une recherche similaire.",
     icon: <Heart size={18} />,
   },
 ];
@@ -376,7 +376,7 @@ export const disputesCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='disputes-list']",
     title: "Litiges & escalade",
-    description: "Si quelque chose tourne mal, ouvrez un litige depuis la mission. Vous avez 72h pour escalader si besoin.",
+    description: "Si quelque chose tourne mal, ouvre un litige depuis la mission. Tu as 72h pour escalader si besoin.",
     icon: <Scale size={18} />,
   },
 ];

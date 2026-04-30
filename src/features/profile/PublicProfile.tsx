@@ -157,16 +157,16 @@ const PublicProfile = () => {
               <div className="flex-1">
                 {user?.id === userId ? (
                   <>
-                    <p className="text-sm font-semibold text-destructive">Votre note est basse ({rating.average_score}★)</p>
+                    <p className="text-sm font-semibold text-destructive">Ta note est basse ({rating.average_score}★)</p>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                      Votre moyenne est en dessous de 3★. Soignez la communication, respectez les délais et livrez avec soin pour remonter votre score et débloquer plus d'opportunités ! 💪
+                      Ta moyenne est en dessous de 3★. Soigne la communication, respecte les délais et livre avec soin pour remonter ton score et débloquer plus d'opportunités ! 💪
                     </p>
                   </>
                 ) : (
                   <>
                     <p className="text-sm font-semibold text-destructive">Note moyenne basse ({rating.average_score}★)</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Ce profil a une note moyenne inférieure à 3★. Vérifiez les avis avant de vous engager.
+                      Ce profil a une note moyenne inférieure à 3★. Vérifie les avis avant de t'engager.
                     </p>
                   </>
                 )}

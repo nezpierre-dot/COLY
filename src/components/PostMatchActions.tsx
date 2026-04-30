@@ -469,7 +469,7 @@ const PostMatchActions = ({
         </div>
       )}
 
-      {/* ─── ACCEPTED: Expéditeur generates pickup OTP ─── */}
+      {/* ─── ACCEPTED: Membre generates pickup OTP ─── */}
       {normalizedStatus === "accepted" && isSender && !pickupOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -495,7 +495,7 @@ const PostMatchActions = ({
         </motion.div>
       )}
 
-      {/* ─── ACCEPTED: Expéditeur shows pickup OTP ─── */}
+      {/* ─── ACCEPTED: Membre shows pickup OTP ─── */}
       {normalizedStatus === "accepted" && isSender && pickupOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -617,7 +617,7 @@ const PostMatchActions = ({
             <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/20 rounded-xl p-3">
               <CameraIcon size={14} className="text-destructive shrink-0" />
               <p className="text-xs text-destructive font-medium">
-                Vous devez d'abord envoyer une preuve photo de récupération avant de générer le code de livraison.
+                Tu dois d'abord envoyer une preuve photo de récupération avant de générer le code de livraison.
               </p>
             </div>
           )}

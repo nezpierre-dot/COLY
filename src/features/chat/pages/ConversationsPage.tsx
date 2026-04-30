@@ -348,11 +348,11 @@ const ConversationsPage = () => {
               Messages
             </span>
             <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
-              Vos échanges<br />
+              Tes échanges<br />
               <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">en un clin d'œil.</span>
             </h1>
             <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
-              Retrouvez toutes vos conversations avec vos demandeurs et voyageurs ✨
+              Retrouve toutes tes conversations avec tes membres et voyageurs ✨
             </p>
           </div>
         </header>

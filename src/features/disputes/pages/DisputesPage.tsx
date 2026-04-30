@@ -205,7 +205,7 @@ const DisputesPage = () => {
             return { ...prev, [newMsg.dispute_id]: [...existing, newMsg] };
           });
           if (newMsg.sender_role === "admin" && newMsg.sender_id !== user.id) {
-            toast.info("📩 Nouvelle réponse du support sur votre litige");
+            toast.info("📩 Nouvelle réponse du support sur ton litige");
           }
         }
       )
@@ -248,7 +248,7 @@ const DisputesPage = () => {
 
   const handleSubmit = async () => {
     if (!user || !selectedShipment || !reason || !description.trim()) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
+      toast.error("Merci de remplir tous les champs obligatoires");
       return;
     }
     setSubmitting(true);
@@ -389,7 +389,7 @@ const DisputesPage = () => {
       setMyRatings(prev => ({ ...prev, [disputeId]: score }));
       setRatingDisputeId(null);
       setRatingComment("");
-      toast.success("Merci pour votre évaluation !");
+      toast.success("Merci pour ton évaluation !");
     } catch {
       toast.error("Erreur lors de l'envoi");
     } finally {
@@ -446,7 +446,7 @@ const DisputesPage = () => {
                 className="h-7 rounded-xl gap-1.5 text-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
                 disabled={closingDispute === d.id}
                 onClick={() => {
-                  if (confirm("Êtes-vous sûr de vouloir clôturer ce litige à l'amiable ? Cette action est irréversible.")) {
+                  if (confirm("Es-tu sûr de vouloir clôturer ce litige à l'amiable ? Cette action est irréversible.")) {
                     handleAmicableClosure(d.id);
                   }
                 }}
@@ -501,7 +501,7 @@ const DisputesPage = () => {
         )}
         {(d.status === "resolved" || d.status === "refunded") && myRatings[d.id] && (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Star size={12} className="text-amber-500" fill="currentColor" /> Votre note : {myRatings[d.id]}/5
+            <Star size={12} className="text-amber-500" fill="currentColor" /> Ta note : {myRatings[d.id]}/5
           </div>
         )}
 
@@ -531,7 +531,7 @@ const DisputesPage = () => {
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className={`font-semibold ${msg.sender_role === "admin" ? "text-primary" : msg.sender_role === "voyageur" ? "text-accent-foreground" : "text-foreground"}`}>
-                            {msg.sender_role === "admin" ? "🛡️ Support Nidit" : msg.sender_role === "voyageur" ? "🚀 Voyageur Nidit" : (d.user_id === user?.id ? "Vous" : "Membre")}
+                            {msg.sender_role === "admin" ? "🛡️ Support Nidit" : msg.sender_role === "voyageur" ? "🚀 Voyageur Nidit" : (d.user_id === user?.id ? "Toi" : "Membre")}
                           </span>
                           <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                             <Clock size={9} /> {formatTime(msg.created_at)}
@@ -742,7 +742,7 @@ const DisputesPage = () => {
           <EmptyState
             icon={<ShieldAlert size={28} className="text-muted-foreground" />}
             title="Aucun litige"
-            desc="Vous n'avez ouvert aucun litige pour le moment. Utilisez le bouton ci-dessus si besoin."
+            desc="Tu n'as ouvert aucun litige pour le moment. Utilise le bouton ci-dessus si besoin."
           />
         ) : (
           <Tabs defaultValue="active" className="w-full">
@@ -772,7 +772,7 @@ const DisputesPage = () => {
                 <EmptyState
                   icon={<CheckCircle size={28} className="text-emerald-500" />}
                   title="Aucun litige en cours"
-                  desc="Tous vos litiges ont été résolus. 🎉"
+                  desc="Tous tes litiges ont été résolus. 🎉"
                 />
               ) : (
                 activeDisputes.map(renderDisputeCard)
@@ -784,7 +784,7 @@ const DisputesPage = () => {
                 <EmptyState
                   icon={<Clock size={28} className="text-muted-foreground" />}
                   title="Aucun litige traité"
-                  desc="Vos litiges résolus apparaîtront ici."
+                  desc="Tes litiges résolus apparaîtront ici."
                 />
               ) : (
                 resolvedDisputes.map(renderDisputeCard)

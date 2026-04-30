@@ -597,7 +597,7 @@ const ChatPage = () => {
               if (shipmentStatus === "picked_up") quickReplies.push({ icon: <Truck size={12} />, label: t("chat.inTransit"), message: "Le colis est en transit" }, { icon: <Camera size={12} />, label: "Photo colis", message: "Voici une photo du colis" });
               if (shipmentStatus === "in_transit") quickReplies.push({ icon: <PackageCheck size={12} />, label: "Colis remis", message: "Le colis a été remis au destinataire" }, { icon: <Navigation size={12} />, label: "Lieu de remise", message: "Je suis arrivé au lieu de remise" });
             } else {
-              if (shipmentStatus === "pending") quickReplies.push({ icon: <CalendarDays size={12} />, label: "Dispo quand ?", message: "Quand êtes-vous disponible pour récupérer ?" });
+              if (shipmentStatus === "pending") quickReplies.push({ icon: <CalendarDays size={12} />, label: "Dispo quand ?", message: "Quand es-tu disponible pour récupérer ?" });
               if (shipmentStatus === "accepted" || shipmentStatus === "picked_up") quickReplies.push({ icon: <MapPinned size={12} />, label: "Où en est-on ?", message: "Où en est le colis ?" });
               if (shipmentStatus === "in_transit") quickReplies.push({ icon: <Clock size={12} />, label: "ETA ?", message: "Heure d'arrivée estimée ?" });
             }

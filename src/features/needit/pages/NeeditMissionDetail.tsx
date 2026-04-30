@@ -539,7 +539,7 @@ const NeeditMissionDetail = () => {
             <AlertDialogTitle>{isAccepted ? "Annuler la mission" : t("dashboard.cancelMission")}</AlertDialogTitle>
             <AlertDialogDescription>
               {isAccepted
-                ? "Voulez-vous vraiment annuler ? Le voyageur sera notifié et le budget remboursé."
+                ? "Veux-tu vraiment annuler ? Le voyageur sera notifié et le budget remboursé."
                 : t("dashboard.cancelMissionDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>

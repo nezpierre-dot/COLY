@@ -250,7 +250,7 @@ export default function NotificationsPage() {
             <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">à chaque instant.</span>
           </h1>
           <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
-            Toutes vos alertes, matchs et mises à jour réunies ✨
+            Toutes tes alertes, mises en relation et mises à jour réunies ✨
           </p>
         </div>
       </header>
@@ -346,7 +346,7 @@ export default function NotificationsPage() {
                 if ('Notification' in window) {
                   const permission = await Notification.requestPermission();
                   if (permission === 'granted') {
-                    new Notification('Rappels activés', { body: 'Vous recevrez désormais des notifications push.' });
+                    new Notification('Rappels activés', { body: 'Tu recevras désormais des notifications push.' });
                   }
                 }
               }}
@@ -358,10 +358,10 @@ export default function NotificationsPage() {
             <div className="mt-8 w-full max-w-sm space-y-2.5">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-left">{t("notif.examples")}</p>
               {[
-                { icon: <CheckCircle2 size={16} className="text-emerald-400" />, title: "Voyageur Nidit accepté !", desc: "Un voyageur Nidit a pris en charge votre colis Paris → Dakar" },
-                { icon: <Package size={16} className="text-primary" />, title: "Colis en transit", desc: "Votre envoi est en route vers sa destination" },
-                { icon: <ShoppingBag size={16} className="text-accent" />, title: "Mission NeedIt disponible", desc: "Une nouvelle mission correspond à votre trajet" },
-                { icon: <Star size={16} className="text-amber-400" />, title: "Nouvel avis reçu", desc: "Un demandeur vous a noté 5/5 — bravo !" },
+                { icon: <CheckCircle2 size={16} className="text-emerald-400" />, title: "Voyageur Nidit accepté !", desc: "Un voyageur Nidit a pris en charge ton colis Paris → Dakar" },
+                { icon: <Package size={16} className="text-primary" />, title: "Colis en transit", desc: "Ton envoi est en route vers sa destination" },
+                { icon: <ShoppingBag size={16} className="text-accent" />, title: "Mission NeedIt disponible", desc: "Une nouvelle mission correspond à ton trajet" },
+                { icon: <Star size={16} className="text-amber-400" />, title: "Nouvel avis reçu", desc: "Un membre t'a noté 5/5 — bravo !" },
               ].map((notif, i) => (
                 <div key={i} className="flex items-start gap-3 rounded-xl px-4 py-3 bg-muted/40 border border-border/60 opacity-60">
                   <span className="mt-0.5 shrink-0">{notif.icon}</span>

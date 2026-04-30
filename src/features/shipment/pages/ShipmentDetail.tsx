@@ -455,7 +455,7 @@ const ShipmentDetail = () => {
             <AlertDialogTitle>{isAccepted ? "Annuler l'envoi" : t("dashboard.cancelShipment")}</AlertDialogTitle>
             <AlertDialogDescription>
               {isAccepted
-                ? "Voulez-vous vraiment annuler ? Le voyageur sera notifié et le budget remboursé."
+                ? "Veux-tu vraiment annuler ? Le voyageur sera notifié et le budget remboursé."
                 : t("dashboard.cancelShipmentDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>

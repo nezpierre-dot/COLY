@@ -56,7 +56,7 @@ describe("Welcome page – i18n (FR / EN)", () => {
       const heading = screen.getByRole("heading", { level: 1 });
       const text = heading.textContent ?? "";
       expect(text).toMatch(/Partagez le trajet/i);
-      expect(text).toMatch(/facilitez vos/i);
+      expect(text).toMatch(/facilite tes/i);
       expect(text).toMatch(/échanges/i);
     });
 

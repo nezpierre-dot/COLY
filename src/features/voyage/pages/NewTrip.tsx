@@ -233,7 +233,7 @@ const NewTrip = () => {
 
       // If redirected from unmatched accept flow, go straight back to dashboard
       if (searchParams.get("arrival_country")) {
-        toast.success(t("dashboard.voyageCreatedNowAccept") || "Voyage créé ! Vous pouvez maintenant accepter l'élément matché.");
+        toast.success(t("dashboard.voyageCreatedNowAccept") || "Voyage créé ! Tu peux maintenant accepter l'élément matché.");
         navigate("/dashboard");
         return;
       }
@@ -634,8 +634,8 @@ const NewTrip = () => {
               <div className="bg-muted/50 rounded-xl p-4 text-xs text-muted-foreground leading-relaxed">
                 <p className="font-semibold text-foreground mb-1">*Needit : Recevoir des ordres de Missions</p>
                 <p>
-                  Vous recevrez des demandes d'achat de produits. Vous devrez acheter le ou les produits
-                  et vous recevrez le remboursement ainsi que la commission dès la remise du ou des produits.
+                  Tu recevras des demandes d'achat de produits. Tu devras acheter le ou les produits
+                  et tu recevras le remboursement ainsi que la commission dès la remise du ou des produits.
                 </p>
               </div>
 

@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6 text-center">
           <h1 className="text-2xl font-semibold text-foreground">Une erreur est survenue</h1>
           <p className="max-w-md text-sm text-muted-foreground">
-            Notre équipe a été informée du problème. Vous pouvez recharger la page pour continuer.
+            Notre équipe a été informée du problème. Tu peux recharger la page pour continuer.
           </p>
           <button
             type="button"
