@@ -1,0 +1,10 @@
+{
+  "_comment": "Exceptions approuvées par l'équipe pour le linter de tutoiement. Format: { file: { line: 'snippet attendu' } }. Ajout via: node scripts/check-tutoiement.mjs --approve <file>:<line>",
+  "approved": {},
+  "approvedPatterns": [
+    "Rendez-vous",
+    "Au-dessus",
+    "Au-dessous",
+    "Vous-même"
+  ]
+}
