@@ -13,7 +13,7 @@ interface EmptyStateProps {
   nido?: NidoPose;
 }
 
-const EmptyState = ({ icon: Icon, title, description, action, illustration }: EmptyStateProps) => (
+const EmptyState = ({ icon: Icon, title, description, action, illustration, nido }: EmptyStateProps) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -26,7 +26,9 @@ const EmptyState = ({ icon: Icon, title, description, action, illustration }: Em
       transition={{ delay: 0.15, duration: 0.5, type: "spring", stiffness: 180 }}
       className="mb-5"
     >
-      {illustration ? (
+      {nido ? (
+        <Nido pose={nido} size="lg" animate="float" />
+      ) : illustration ? (
         <img
           src={illustration}
           alt=""
