@@ -212,7 +212,7 @@ const ReferralSection = () => {
                 <span className="text-xs">Filleul inscrit</span>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-bold ${r.status === "credited" ? "text-success" : "text-amber-500"}`}>
-                    {r.status === "credited" ? `+${REFERRER_BONUS}€` : "En attente"}
+                    {r.status === "credited" ? `+${REFERRER_POINTS} pts` : "En attente"}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
                     {new Date(r.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
