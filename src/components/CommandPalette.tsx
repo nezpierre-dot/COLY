@@ -25,6 +25,7 @@ import {
   Map,
   HelpCircle,
   Shield,
+  BarChart3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -72,10 +73,11 @@ const CommandPalette = () => {
       { icon: ShoppingBag, label: "NeedIt", to: "/needit/categories" },
       { icon: MessageCircle, label: t("nav.messages") || "Messages", to: "/conversations" },
       { icon: Bell, label: "Notifications", to: "/notifications" },
-      { icon: Wallet, label: "Solde / Wallet", to: "/solde" },
+      { icon: Wallet, label: "Portefeuille (solde, transactions, factures)", to: "/wallet" },
+      { icon: BarChart3, label: "Mon activité (historique, favoris)", to: "/activity" },
+      { icon: Trophy, label: "Progression (stats, classement, badges)", to: "/progression" },
       { icon: Map, label: "Tracking", to: "/dashboard" },
       { icon: Heart, label: "Favoris", to: "/favorites" },
-      { icon: Trophy, label: "Classement", to: "/leaderboard" },
       { icon: User, label: "Mon compte", to: "/my-account" },
       { icon: SettingsIcon, label: "Paramètres", to: "/settings" },
       { icon: Shield, label: "Litiges", to: "/litiges" },
