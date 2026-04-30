@@ -1184,6 +1184,7 @@ const fr: TranslationDict = {
   "notif.support_closed.title": "Ticket résolu ✅",
   "notif.support_closed.message": "Votre ticket « {{subject}} » a été clôturé.",
   "notFound.title": "Oups ! Page introuvable",
+  "notFound.flewAway": "Cette page s'est envolée avec Nido. Vérifions ensemble si elle est ailleurs.",
   "notFound.home": "Retour à l'accueil",
   "publicCommon.createAccount": "Créer un compte",
   "publicCommon.signIn": "Se connecter",
@@ -2787,6 +2788,7 @@ const en: TranslationDict = {
   "notif.support_closed.title": "Ticket closed ✅",
   "notif.support_closed.message": "Your ticket \"{{subject}}\" has been closed.",
   "notFound.title": "Oops! Page not found",
+  "notFound.flewAway": "This page flew away with Nido. Let's see if we can find it elsewhere.",
   "notFound.home": "Return to Home",
   "publicCommon.createAccount": "Create an account",
   "publicCommon.signIn": "Sign in",
@@ -3431,6 +3433,7 @@ const es: TranslationDict = {
   "notif.support_closed.message": "Tu ticket «{{subject}}» ha sido cerrado.",
 
   "notFound.title": "¡Vaya! Página no encontrada",
+  "notFound.flewAway": "Esta página se fue volando con Nido. Veamos si está en otro lugar.",
   "notFound.home": "Volver al inicio",
   "publicCommon.createAccount": "Crear una cuenta",
   "publicCommon.signIn": "Iniciar sesión",
@@ -4025,6 +4028,7 @@ const de: TranslationDict = {
   "notif.support_closed.message": "Dein Ticket „{{subject}}“ wurde geschlossen.",
 
   "notFound.title": "Hoppla! Seite nicht gefunden",
+  "notFound.flewAway": "Diese Seite ist mit Nido davongeflogen. Schauen wir, ob sie woanders ist.",
   "notFound.home": "Zurück zur Startseite",
   "publicCommon.createAccount": "Konto erstellen",
   "publicCommon.signIn": "Anmelden",
@@ -4581,6 +4585,7 @@ const pt: TranslationDict = {
   "notif.support_closed.message": "O seu ticket «{{subject}}» foi fechado.",
 
   "notFound.title": "Ops! Página não encontrada",
+  "notFound.flewAway": "Esta página voou com o Nido. Vamos ver se está noutro sítio.",
   "notFound.home": "Voltar ao início",
   "publicCommon.createAccount": "Criar conta",
   "publicCommon.signIn": "Entrar",
@@ -5136,6 +5141,7 @@ const it: TranslationDict = {
   "notif.support_closed.message": "Il tuo ticket «{{subject}}» è stato chiuso.",
 
   "notFound.title": "Ops! Pagina non trovata",
+  "notFound.flewAway": "Questa pagina è volata via con Nido. Vediamo se si trova altrove.",
   "notFound.home": "Torna alla home",
   "publicCommon.createAccount": "Crea un account",
   "publicCommon.signIn": "Accedi",
@@ -5691,6 +5697,7 @@ const ar: TranslationDict = {
   "notif.support_closed.message": "تم إغلاق تذكرتك «{{subject}}».",
 
   "notFound.title": "عذرًا! الصفحة غير موجودة",
+  "notFound.flewAway": "هذه الصفحة طارت مع نيدو. لنبحث عنها في مكان آخر.",
   "notFound.home": "العودة إلى الرئيسية",
   "publicCommon.createAccount": "إنشاء حساب",
   "publicCommon.signIn": "تسجيل الدخول",
