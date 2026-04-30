@@ -1,0 +1,17 @@
+{
+  "_comment": "Exceptions approuvées par l'équipe pour le linter de tutoiement. Format: { file: { line: 'snippet attendu' } }. Ajout via: node scripts/check-tutoiement.mjs --approve <file>:<line>",
+  "approved": {
+    "src/lib/i18n.ts": {
+      "71": "\"login.resetSent\": \"Un email de réinitialisation t'a été envoyé !\","
+    },
+    "src/components/AiChatWidget.tsx": {
+      "39": "3. **Tarif & options** — fixe ton prix, active l'assurance si tu le souhaites."
+    }
+  },
+  "approvedPatterns": [
+    "Rendez-vous",
+    "Au-dessus",
+    "Au-dessous",
+    "Vous-même"
+  ]
+}
