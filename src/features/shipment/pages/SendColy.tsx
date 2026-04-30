@@ -255,6 +255,8 @@ const SendColy = () => {
       }
       supabase.functions.invoke("notify-match", { body: { type: "shipment", record_id: inserted.id } }).catch(() => {});
       successFeedback(t("sendcoly.createdSuccess"), { description: t("sendcoly.createdDesc") });
+      // Brouillon consommé : on le supprime pour éviter une "reprise" fantôme
+      draft.clear();
       setCreatedReminderInfo({
         itemType: "shipment",
         itemId: inserted.id,
@@ -273,7 +275,16 @@ const SendColy = () => {
       return;
     }
     setDirection(1);
-    if (step < totalSteps) setStep(step + 1); else submitShipment();
+    if (step < totalSteps) {
+      setStep(step + 1);
+    } else {
+      // Final submission: gate KYC right before payment.
+      if (needsKyc) {
+        setShowKycGate(true);
+        return;
+      }
+      submitShipment();
+    }
   };
 
   const stepVariants = {
