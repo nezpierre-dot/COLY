@@ -41,8 +41,9 @@ const NeeditCategoriesPage = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
-  const [recentKeys, setRecentKeys] = useState<CategoryKey[]>([]);
+  const [recentCounts, setRecentCounts] = useState<Map<CategoryKey, number>>(new Map());
   const [recentLoading, setRecentLoading] = useState(true);
+  const [dismissed, setDismissed] = useState<CategoryKey[]>(() => readDismissed());
 
   // Sécurise l'import (si pour une raison quelconque CATEGORIES est vide, on bascule en erreur)
   const categoriesLoaded = Array.isArray(CATEGORIES) && CATEGORIES.length > 0;
@@ -51,7 +52,7 @@ const NeeditCategoriesPage = () => {
     trackEvent("needit_categories_view", "navigation");
   }, []);
 
-  // Récupère les 3 dernières catégories utilisées par le user (pour suggestions)
+  // Récupère l'historique du user pour construire des suggestions explicables
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -65,14 +66,17 @@ const NeeditCategoriesPage = () => {
           .select("category_key")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
-          .limit(10);
+          .limit(30);
         if (cancelled) return;
-        const keys = Array.from(
-          new Set(((data as any[]) || []).map((r) => r.category_key).filter(Boolean))
-        ).slice(0, 3) as CategoryKey[];
-        setRecentKeys(keys);
+        const counts = new Map<CategoryKey, number>();
+        for (const row of (data as any[]) || []) {
+          const k = row?.category_key as CategoryKey | undefined;
+          if (!k) continue;
+          counts.set(k, (counts.get(k) || 0) + 1);
+        }
+        setRecentCounts(counts);
       } catch {
-        if (!cancelled) setRecentKeys([]);
+        if (!cancelled) setRecentCounts(new Map());
       } finally {
         if (!cancelled) setRecentLoading(false);
       }
@@ -97,15 +101,27 @@ const NeeditCategoriesPage = () => {
   const popular = filtered.filter((c) => c.popular);
   const others = filtered.filter((c) => !c.popular).sort((a, b) => a.label.localeCompare(b.label));
 
-  // Suggestions = catégories récemment utilisées, à défaut les 3 plus populaires
-  const suggestions = useMemo(() => {
+  // Suggestions explicables : 1) historique trié par fréquence, 2) populaires en complément
+  // Toujours filtrées par les "ignorées" (persistées localement)
+  const suggestions = useMemo<Suggestion[]>(() => {
     if (!categoriesLoaded || q) return [];
-    const fromRecent = recentKeys
-      .map((k) => CATEGORIES.find((c) => c.key === k))
-      .filter(Boolean) as typeof CATEGORIES;
-    if (fromRecent.length > 0) return fromRecent;
-    return CATEGORIES.filter((c) => c.popular).slice(0, 3);
-  }, [categoriesLoaded, q, recentKeys]);
+    const dismissedSet = new Set(dismissed);
+
+    const fromRecent: Suggestion[] = Array.from(recentCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([key, count]) => {
+        const cat = CATEGORIES.find((c) => c.key === key);
+        return cat ? { cat, reason: "recent" as const, count } : null;
+      })
+      .filter((s): s is Suggestion => s !== null && !dismissedSet.has(s.cat.key));
+
+    const recentKeys = new Set(fromRecent.map((s) => s.cat.key));
+    const fromPopular: Suggestion[] = CATEGORIES.filter(
+      (c) => c.popular && !recentKeys.has(c.key) && !dismissedSet.has(c.key)
+    ).map((cat) => ({ cat, reason: "popular" as const }));
+
+    return [...fromRecent, ...fromPopular].slice(0, 3);
+  }, [categoriesLoaded, q, recentCounts, dismissed]);
 
   const handlePick = (key: CategoryKey, label: string, source: string) => {
     trackEvent("needit_categories_pick", "engagement", { key, source });
