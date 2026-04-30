@@ -36,6 +36,7 @@ import {
   Calendar,
   CheckCircle2,
   SkipForward,
+  AlertCircle,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticLight } from "@/lib/haptics";
@@ -48,24 +49,52 @@ type SendType = "parcel" | "needit";
 const STORAGE_PREFIX = "nidit:draft:";
 const SEND_COLY_KEY = STORAGE_PREFIX + "send-coly";
 
-// Schéma Zod par étape — utilisé pour la validation live
+// ---- Validation Zod -------------------------------------------------------
+// Règles :
+//  - trim systématique (anti-espaces invisibles)
+//  - longueur min 2 / max 80 (pays/ville) — protège DB et anti-spam
+//  - regex permissive Unicode : lettres, espaces, tirets, apostrophes, points
+//    (compatible "Saint-Étienne", "L'Île-d'Yeu", "Côte d'Ivoire", "São Paulo")
+//  - rejet caractères de contrôle / chevrons (anti-injection basique)
+//  - date : ISO YYYY-MM-DD, aujourd'hui ≤ d ≤ aujourd'hui + 365j
+//  - cross-validation : origine ville+pays ≠ destination ville+pays
+const NAME_REGEX = /^[\p{L}\p{M}0-9 ,.'’\-]+$/u;
+const FORBIDDEN_REGEX = /[<>{}\\^`|\u0000-\u001F\u007F]/;
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+const placeField = (errReq: string, errFmt: string, errBad: string) =>
+  z
+    .string()
+    .trim()
+    .min(2, errReq)
+    .max(80, errFmt)
+    .refine((v) => !FORBIDDEN_REGEX.test(v), errBad)
+    .refine((v) => NAME_REGEX.test(v), errFmt);
+
 const stepSchemas = {
   origin: z.object({
-    departCountry: z.string().trim().min(2, "originCountryReq"),
-    departCity: z.string().trim().min(2, "originCityReq"),
+    departCountry: placeField("originCountryReq", "originCountryFmt", "originCountryBad"),
+    departCity: placeField("originCityReq", "originCityFmt", "originCityBad"),
   }),
   destination: z.object({
-    arrCountry: z.string().trim().min(2, "destCountryReq"),
-    arrCity: z.string().trim().min(2, "destCityReq"),
+    arrCountry: placeField("destCountryReq", "destCountryFmt", "destCountryBad"),
+    arrCity: placeField("destCityReq", "destCityFmt", "destCityBad"),
   }),
   date: z.object({
     date: z
       .string()
       .min(1, "dateReq")
-      .refine(
-        (v) => new Date(v) >= new Date(new Date().toDateString()),
-        "dateFuture"
-      ),
+      .regex(ISO_DATE_REGEX, "dateFmt")
+      .refine((v) => {
+        const d = new Date(v);
+        return !isNaN(d.getTime()) && d >= new Date(new Date().toDateString());
+      }, "dateFuture")
+      .refine((v) => {
+        const d = new Date(v);
+        const max = new Date();
+        max.setDate(max.getDate() + 365);
+        return d <= max;
+      }, "dateTooFar"),
   }),
 };
 
@@ -114,10 +143,20 @@ const SendWizard = () => {
       4: { date },
     } as const;
     const result = schemaMap[target].safeParse(dataMap[target]);
-    if (result.success) return {};
     const next: FieldErrors = {};
-    for (const issue of result.error.issues) {
-      next[String(issue.path[0])] = issue.message;
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const key = String(issue.path[0]);
+        // Garde la 1ʳᵉ erreur par champ (ordre des refinements = ordre de priorité)
+        if (!next[key]) next[key] = issue.message;
+      }
+    }
+    // Cross-validation à l'étape 3 : origine ≠ destination
+    if (target === 3 && departCity.trim() && arrCity.trim() && departCountry.trim() && arrCountry.trim()) {
+      const same =
+        departCity.trim().toLowerCase() === arrCity.trim().toLowerCase() &&
+        departCountry.trim().toLowerCase() === arrCountry.trim().toLowerCase();
+      if (same && !next.arrCity) next.arrCity = "sameAsOrigin";
     }
     return next;
   };
@@ -496,28 +535,49 @@ const Field = ({
   error,
   children,
   htmlFor,
+  hintId,
+  hint,
 }: {
   label: string;
   required?: boolean;
   error?: string | null;
   children: React.ReactNode;
   htmlFor: string;
-}) => (
-  <div>
-    <label htmlFor={htmlFor} className="block text-sm font-semibold text-foreground mb-1.5">
-      {label} {required && <span className="text-destructive">*</span>}
-    </label>
-    {children}
-    {error && (
-      <p
-        className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1 duration-200"
-        role="alert"
-      >
-        {error}
-      </p>
-    )}
-  </div>
-);
+  hintId?: string;
+  hint?: string;
+}) => {
+  const errorId = `${htmlFor}-err`;
+  return (
+    <div>
+      <label htmlFor={htmlFor} className="block text-sm font-semibold text-foreground mb-1.5">
+        {label}{" "}
+        {required && (
+          <span className="text-destructive" aria-hidden="true">
+            *
+          </span>
+        )}
+        {required && <span className="sr-only"> (obligatoire)</span>}
+      </label>
+      {children}
+      {hint && !error && (
+        <p id={hintId} className="text-xs text-muted-foreground mt-1">
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p
+          id={errorId}
+          className="text-xs text-destructive mt-1 flex items-start gap-1 animate-in fade-in slide-in-from-top-1 duration-200"
+          role="alert"
+          aria-live="polite"
+        >
+          <AlertCircle size={12} aria-hidden="true" className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </p>
+      )}
+    </div>
+  );
+};
 
 const inputBase = (hasErr: boolean) =>
   `w-full border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground bg-background focus:outline-none transition-all ${
@@ -554,7 +614,7 @@ const CityCountryStep = ({
   <div className="space-y-4">
     <Field label={countryLabel} required error={countryErr} htmlFor="wiz-country">
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true">
           {icon}
         </span>
         <input
@@ -565,6 +625,11 @@ const CityCountryStep = ({
           placeholder={countryPh}
           className={inputBase(!!countryErr) + " pl-10"}
           aria-invalid={!!countryErr}
+          aria-required="true"
+          aria-describedby={countryErr ? "wiz-country-err" : undefined}
+          autoComplete="country-name"
+          maxLength={80}
+          enterKeyHint="next"
         />
       </div>
     </Field>
@@ -576,6 +641,11 @@ const CityCountryStep = ({
         placeholder={cityPh}
         className={inputBase(!!cityErr)}
         aria-invalid={!!cityErr}
+        aria-required="true"
+        aria-describedby={cityErr ? "wiz-city-err" : undefined}
+        autoComplete="address-level2"
+        maxLength={80}
+        enterKeyHint="next"
       />
     </Field>
   </div>
@@ -592,13 +662,24 @@ const DateStep = ({
 }) => {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
+  const max = new Date();
+  max.setDate(max.getDate() + 365);
+  const maxIso = max.toISOString().slice(0, 10);
   return (
     <div className="space-y-4">
-      <Field label={t("sendWizard.label.date")} required error={err} htmlFor="wiz-date">
+      <Field
+        label={t("sendWizard.label.date")}
+        required
+        error={err}
+        htmlFor="wiz-date"
+        hintId="wiz-date-hint"
+        hint={t("sendWizard.hint.dateNote")}
+      >
         <div className="relative">
           <Calendar
             size={18}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
           />
           <input
             id="wiz-date"
@@ -606,13 +687,16 @@ const DateStep = ({
             type="date"
             value={value}
             min={today}
+            max={maxIso}
             onChange={(e) => onChange(e.target.value)}
             className={inputBase(!!err) + " pl-10"}
             aria-invalid={!!err}
+            aria-required="true"
+            aria-describedby={err ? "wiz-date-err" : "wiz-date-hint"}
+            enterKeyHint="done"
           />
         </div>
       </Field>
-      <p className="text-xs text-muted-foreground">{t("sendWizard.hint.dateNote")}</p>
     </div>
   );
 };
