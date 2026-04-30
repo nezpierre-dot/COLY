@@ -1803,6 +1803,16 @@ export type Database = {
         Returns: string
       }
       get_admin_stats: { Args: never; Returns: Json }
+      get_landing_live_stats: {
+        Args: never
+        Returns: {
+          active_travelers: number
+          countries_covered: number
+          delivered_today: number
+          delivered_total: number
+          shipments_in_transit: number
+        }[]
+      }
       get_matching_voyageurs: {
         Args: {
           _departure_date?: string
