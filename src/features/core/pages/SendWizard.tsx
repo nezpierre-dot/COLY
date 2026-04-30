@@ -48,24 +48,52 @@ type SendType = "parcel" | "needit";
 const STORAGE_PREFIX = "nidit:draft:";
 const SEND_COLY_KEY = STORAGE_PREFIX + "send-coly";
 
-// Schéma Zod par étape — utilisé pour la validation live
+// ---- Validation Zod -------------------------------------------------------
+// Règles :
+//  - trim systématique (anti-espaces invisibles)
+//  - longueur min 2 / max 80 (pays/ville) — protège DB et anti-spam
+//  - regex permissive Unicode : lettres, espaces, tirets, apostrophes, points
+//    (compatible "Saint-Étienne", "L'Île-d'Yeu", "Côte d'Ivoire", "São Paulo")
+//  - rejet caractères de contrôle / chevrons (anti-injection basique)
+//  - date : ISO YYYY-MM-DD, aujourd'hui ≤ d ≤ aujourd'hui + 365j
+//  - cross-validation : origine ville+pays ≠ destination ville+pays
+const NAME_REGEX = /^[\p{L}\p{M}0-9 ,.'’\-]+$/u;
+const FORBIDDEN_REGEX = /[<>{}\\^`|\u0000-\u001F\u007F]/;
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+const placeField = (errReq: string, errFmt: string, errBad: string) =>
+  z
+    .string()
+    .trim()
+    .min(2, errReq)
+    .max(80, errFmt)
+    .refine((v) => !FORBIDDEN_REGEX.test(v), errBad)
+    .refine((v) => NAME_REGEX.test(v), errFmt);
+
 const stepSchemas = {
   origin: z.object({
-    departCountry: z.string().trim().min(2, "originCountryReq"),
-    departCity: z.string().trim().min(2, "originCityReq"),
+    departCountry: placeField("originCountryReq", "originCountryFmt", "originCountryBad"),
+    departCity: placeField("originCityReq", "originCityFmt", "originCityBad"),
   }),
   destination: z.object({
-    arrCountry: z.string().trim().min(2, "destCountryReq"),
-    arrCity: z.string().trim().min(2, "destCityReq"),
+    arrCountry: placeField("destCountryReq", "destCountryFmt", "destCountryBad"),
+    arrCity: placeField("destCityReq", "destCityFmt", "destCityBad"),
   }),
   date: z.object({
     date: z
       .string()
       .min(1, "dateReq")
-      .refine(
-        (v) => new Date(v) >= new Date(new Date().toDateString()),
-        "dateFuture"
-      ),
+      .regex(ISO_DATE_REGEX, "dateFmt")
+      .refine((v) => {
+        const d = new Date(v);
+        return !isNaN(d.getTime()) && d >= new Date(new Date().toDateString());
+      }, "dateFuture")
+      .refine((v) => {
+        const d = new Date(v);
+        const max = new Date();
+        max.setDate(max.getDate() + 365);
+        return d <= max;
+      }, "dateTooFar"),
   }),
 };
 
