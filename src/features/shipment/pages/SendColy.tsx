@@ -129,7 +129,56 @@ const SendColy = () => {
   
 
   useEffect(() => { if (!user) return; const check = async () => { const [profileRes, shipmentsRes] = await Promise.all([supabase.from("profiles").select("kyc_status").eq("user_id", user.id).maybeSingle(), supabase.from("shipments").select("id").eq("user_id", user.id).limit(1)]); setKycStatus(profileRes.data?.kyc_status || "pending"); setHasExistingShipments((shipmentsRes.data?.length || 0) > 0); setKycChecked(true); }; check(); }, [user]);
-  useEffect(() => { if (kycChecked && !hasExistingShipments && kycStatus !== "submitted" && kycStatus !== "verified") navigate("/kyc", { state: { returnTo: "/send-coly" } }); }, [kycChecked, hasExistingShipments, kycStatus, navigate]);
+  // KYC déféré : on ne redirige plus à l'entrée. La vérification se fait juste avant la soumission finale (étape 4).
+  const [showKycGate, setShowKycGate] = useState(false);
+  const needsKyc = kycChecked && kycStatus !== "submitted" && kycStatus !== "verified";
+
+  // Brouillon auto-sauvegardé
+  const draft = useDraft<Record<string, any>>("send-coly");
+  const draftRestoredRef = useRef(false);
+  useEffect(() => {
+    if (!user || draftRestoredRef.current) return;
+    const existing = draft.read();
+    if (existing?.data) {
+      const d = existing.data;
+      if (d.date) setDate(d.date);
+      if (d.departMethod) setDepartMethod(d.departMethod);
+      if (d.departCountry) setDepartCountry(d.departCountry);
+      if (d.departCity) setDepartCity(d.departCity);
+      if (d.relayPoint) setRelayPoint(d.relayPoint);
+      if (d.departAddress) setDepartAddress(d.departAddress);
+      if (d.departAccessCode) setDepartAccessCode(d.departAccessCode);
+      if (d.arrCity) setArrCity(d.arrCity);
+      if (d.arrCountry) setArrCountry(d.arrCountry);
+      if (d.contactNom) setContactNom(d.contactNom);
+      if (d.contactPrenom) setContactPrenom(d.contactPrenom);
+      if (d.contactTel) setContactTel(d.contactTel);
+      if (d.contactMail) setContactMail(d.contactMail);
+      if (d.pickupAddress) setPickupAddress(d.pickupAddress);
+      if (d.pickupAccessCode) setPickupAccessCode(d.pickupAccessCode);
+      if (d.size) setSize(d.size);
+      if (d.tarif) setTarif(d.tarif);
+      if (d.tarifFixe) setTarifFixe(d.tarifFixe);
+      if (typeof d.insured === "boolean") setInsured(d.insured);
+      if (typeof d.step === "number" && d.step >= 1 && d.step <= 4) setStep(d.step);
+    }
+    draftRestoredRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+  useEffect(() => {
+    if (!user || !draftRestoredRef.current) return;
+    draft.save({
+      step, date, departMethod, departCountry, departCity, relayPoint,
+      departAddress, departAccessCode, arrCity, arrCountry,
+      contactNom, contactPrenom, contactTel, contactMail,
+      pickupAddress, pickupAccessCode, size, tarif, tarifFixe, insured,
+    });
+  }, [
+    user, step, date, departMethod, departCountry, departCity, relayPoint,
+    departAddress, departAccessCode, arrCity, arrCountry,
+    contactNom, contactPrenom, contactTel, contactMail,
+    pickupAddress, pickupAccessCode, size, tarif, tarifFixe, insured,
+  ]);
   
   useEffect(() => { if (step === 2 && isInternational && !customsShown) setTimeout(() => { setShowCustomsDialog(true); setCustomsShown(true); }, 500); }, [step, isInternational, customsShown]);
 
