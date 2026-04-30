@@ -35,7 +35,7 @@ interface NidoProps {
   priority?: boolean;
 }
 
-const ANIMATIONS = {
+const ANIMATIONS: Record<string, { animate: any; transition: any }> = {
   float: {
     animate: { y: [0, -6, 0] },
     transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
@@ -49,7 +49,7 @@ const ANIMATIONS = {
     transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
   },
   none: { animate: {}, transition: {} },
-} as const;
+};
 
 const Nido = ({
   pose = "hello",
