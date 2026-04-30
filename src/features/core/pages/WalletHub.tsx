@@ -5,6 +5,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
+import { trackEvent } from "@/lib/analytics";
+import { WalletHubSkeleton } from "@/features/core/hubs/HubSkeletons";
 
 // Lazy-load underlying pages so each tab is fetched on demand
 const SoldePage = lazy(() => import("@/features/finance/pages/SoldePage"));
