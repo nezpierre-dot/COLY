@@ -166,7 +166,7 @@ const PublicProfile = () => {
                   <>
                     <p className="text-sm font-semibold text-destructive">Note moyenne basse ({rating.average_score}★)</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Ce profil a une note moyenne inférieure à 3★. Vérifiez les avis avant de vous engager.
+                      Ce profil a une note moyenne inférieure à 3★. Vérifie les avis avant de t'engager.
                     </p>
                   </>
                 )}

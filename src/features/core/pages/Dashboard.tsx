@@ -825,7 +825,7 @@ const Dashboard = () => {
                     transition={{ duration: 0.45, delay: 0.1 }}
                     className="text-[clamp(1.7rem,5.6vw,2.4rem)] font-extrabold leading-[1.08] tracking-tight text-foreground"
                   >
-                    Suivez vos envois{" "}
+                    Suis tes envois{" "}
                     <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">en un coup d'œil.</span>
                   </motion.h1>
                   <motion.p
@@ -2247,7 +2247,7 @@ const Dashboard = () => {
               {t("dashboard.createVoyageFirstDesc") || "Pour accepter"}{" "}
               <span className="font-semibold text-foreground">{createVoyageDialog?.label}</span>
               {", "}
-              {t("dashboard.createVoyageFirstDesc2") || "vous devez d'abord enregistrer un voyage vers cette destination. Cela permet de vérifier votre capacité d'emport et votre budget."}
+              {t("dashboard.createVoyageFirstDesc2") || "tu dois d'abord enregistrer un voyage vers cette destination. Cela permet de vérifier ta capacité d'emport et votre budget."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -561,8 +561,8 @@ const MyAccount = () => {
                               if (review.rater_id) {
                                 await supabase.from("notifications").insert({
                                   user_id: review.rater_id,
-                                  title: "Réponse à votre avis 💬",
-                                  message: `${fullName || "L'utilisateur"} a répondu à votre avis.`,
+                                  title: "Réponse à ton avis 💬",
+                                  message: `${fullName || "L'utilisateur"} a répondu à ton avis.`,
                                   type: `reply:rating:${review.id}`,
                                 } as any);
                               }

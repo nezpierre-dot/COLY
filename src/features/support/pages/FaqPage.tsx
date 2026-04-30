@@ -29,16 +29,16 @@ export default function FaqPage() {
       items: [
         { q: "Comment envoyer un colis ?", a: "Rendez-vous dans ton espace, cliquez sur 'Envoyer un coly', remplissez les informations (destination, taille, tarif proposé) et attendez qu'un voyageur Nidit accepte votre envoi." },
         { q: "Quelle taille de colis puis-je envoyer ?", a: "Les tailles vont de S (petit, type enveloppe) à XL (grand, type valise). Chaque voyageur décide des tailles qu'il peut transporter selon son espace disponible." },
-        { q: "Que se passe-t-il si mon colis est endommagé ?", a: "Si vous avez souscrit l'option d'assurance lors de l'envoi, vous êtes couvert. Contactez notre support avec la preuve de livraison et les photos du dommage pour lancer une réclamation." },
+        { q: "Que se passe-t-il si mon colis est endommagé ?", a: "Si tu as souscrit l'option d'assurance lors de l'envoi, tu es couvert. Contactez notre support avec la preuve de livraison et les photos du dommage pour lancer une réclamation." },
         { q: "Comment suivre mon colis ?", a: "Chaque envoi dispose d'un suivi en temps réel. Tu reçois des notifications à chaque étape : acceptation, prise en charge, en transit, et livraison avec preuve photo." },
       ],
     },
     {
       id: "voyages", icon: Plane, label: t("faq.cat.voyages"),
       items: [
-        { q: "Comment proposer un voyage ?", a: "Dans ton espace voyage, cliquez sur 'Ajouter un voyage'. Indiquez votre trajet (départ, arrivée), les dates, le moyen de transport et vos préférences." },
+        { q: "Comment proposer un voyage ?", a: "Dans ton espace voyage, clique sur 'Ajouter un voyage'. Indique ton trajet (départ, arrivée), les dates, le moyen de transport et vos préférences." },
         { q: "Combien puis-je gagner en tant que voyageur Nidit ?", a: "Les gains dépendent du tarif que tu proposes. En moyenne, un voyageur Nidit gagne entre 10€ et 80€ par colis transporté, selon la distance et la taille." },
-        { q: "Puis-je annuler un voyage ?", a: "Oui, vous pouvez annuler un voyage tant qu'aucun colis n'a été pris en charge." },
+        { q: "Puis-je annuler un voyage ?", a: "Oui, tu peux annuler un voyage tant qu'aucun colis n'a été pris en charge." },
       ],
     },
     {
@@ -46,7 +46,7 @@ export default function FaqPage() {
       items: [
         { q: "Qu'est-ce qu'une mission NeedIt ?", a: "NeedIt permet de demander à un voyageur d'acheter un produit spécifique à l'étranger." },
         { q: "Comment fixer le prix maximum ?", a: "Le prix max inclut le prix du produit + la commission du voyageur. Tu peux scanner le code-barres (EAN) pour vérifier le prix." },
-        { q: "Et si le produit n'est pas disponible ?", a: "Le voyageur vous contactera via la messagerie intégrée pour proposer une alternative ou annuler la mission." },
+        { q: "Et si le produit n'est pas disponible ?", a: "Le voyageur te contactera via la messagerie intégrée pour proposer une alternative ou annuler la mission." },
       ],
     },
     {

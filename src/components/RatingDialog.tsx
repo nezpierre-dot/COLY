@@ -109,7 +109,7 @@ const RatingDialog = ({ open, onClose, shipmentId, ratedUserId, raterRole }: Rat
       setSubmitted(true);
       setTimeout(() => {
         setSubmitted(false);
-        toast.success("Merci pour votre évaluation !");
+        toast.success("Merci pour ton évaluation !");
         reset();
         onClose();
       }, 1200);

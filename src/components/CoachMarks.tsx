@@ -274,7 +274,7 @@ export const dashboardCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='wallet']",
     title: "Ton portefeuille",
-    description: "Suivez votre solde, rechargez en un clin d'œil et gérez vos paiements depuis ici.",
+    description: "Suis ton solde, recharge en un clin d'œil et gère tes paiements depuis ici.",
     icon: <Wallet size={18} />,
   },
   {
@@ -286,7 +286,7 @@ export const dashboardCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='switch-role']",
     title: "Devenez voyageur",
-    description: "Basculez vers le mode Voyageur Nidit pour gagner de l'argent en transportant des colis sur vos trajets.",
+    description: "Bascule vers le mode Voyageur Nidit pour gagner de l'argent en transportant des colis sur tes trajets.",
     icon: <Repeat size={18} />,
   },
 ];
@@ -295,8 +295,8 @@ export const dashboardCoachSteps: CoachStep[] = [
 export const newTripCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='trip-route']",
-    title: "Définissez votre trajet",
-    description: "Renseignez vos villes de départ et d'arrivée. Plus c'est précis, mieux les demandeurs vous trouvent.",
+    title: "Définis ton trajet",
+    description: "Renseigne tes villes de départ et d'arrivée. Plus c'est précis, mieux les membres te trouvent.",
     icon: <Plane size={18} />,
   },
   {
@@ -308,7 +308,7 @@ export const newTripCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='trip-earnings']",
     title: "Estimation des gains",
-    description: "Une estimation de revenus est calculée selon votre trajet et la capacité disponible.",
+    description: "Une estimation de revenus est calculée selon ton trajet et la capacité disponible.",
     icon: <Euro size={18} />,
   },
 ];
@@ -318,13 +318,13 @@ export const walletCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='wallet-balance']",
     title: "Ton solde",
-    description: "C'est l'argent disponible : gains de transport encaissés moins vos dépenses d'envoi.",
+    description: "C'est l'argent disponible : gains de transport encaissés moins tes dépenses d'envoi.",
     icon: <Coins size={18} />,
   },
   {
     selector: "[data-coach='wallet-history']",
     title: "Historique des transactions",
-    description: "Toutes vos opérations passées sont listées ici. Cliquez pour voir le détail de chaque ligne.",
+    description: "Toutes tes opérations passées sont listées ici. Clique pour voir le détail de chaque ligne.",
     icon: <History size={18} />,
   },
 ];
@@ -334,13 +334,13 @@ export const leaderboardCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='leaderboard-rank']",
     title: "Ton classement",
-    description: "Plus vous transportez et plus votre note grimpe, plus vous montez dans le classement Voyageurs.",
+    description: "Plus tu transportes et plus ta note grimpe, plus tu montes dans le classement Voyageurs.",
     icon: <Trophy size={18} />,
   },
   {
     selector: "[data-coach='leaderboard-badges']",
     title: "Badges & succès",
-    description: "Débloquez des badges en accomplissant des missions : ils renforcent votre crédibilité.",
+    description: "Débloque des badges en accomplissant des missions : ils renforcent ta crédibilité.",
     icon: <Sparkles size={18} />,
   },
 ];
@@ -356,7 +356,7 @@ export const loyaltyCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='loyalty-points']",
     title: "Points & avantages",
-    description: "Gagnez des points à chaque mission et conversion de note. Ils accélèrent votre passage de niveau.",
+    description: "Gagne des points à chaque mission et conversion de note. Ils accélèrent ton passage de niveau.",
     icon: <Sparkles size={18} />,
   },
 ];
@@ -366,7 +366,7 @@ export const favoritesCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='favorites-list']",
     title: "Tes favoris",
-    description: "Retrouvez ici vos trajets et produits NeedIt favoris. Un tap pour relancer une recherche similaire.",
+    description: "Retrouve ici tes trajets et produits NeedIt favoris. Un tap pour relancer une recherche similaire.",
     icon: <Heart size={18} />,
   },
 ];

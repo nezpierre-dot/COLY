@@ -427,7 +427,7 @@ const NeeditMission = () => {
                     {/* Premium hero header */}
                     <div className="text-center mb-5">
                       <h3 className="text-2xl font-bold text-foreground mb-1">
-                        Que cherchez-vous aujourd'hui ?
+                        Que cherches-tu aujourd'hui ?
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         Choisissez une catégorie pour commencer
@@ -723,7 +723,7 @@ const NeeditMission = () => {
               <>
                 <div className="mb-6">
                   <h3 className="text-xl font-bold text-foreground mb-1">Détails de ma demande</h3>
-                  <p className="text-sm text-muted-foreground">Précisez vos attentes pour le voyageur</p>
+                  <p className="text-sm text-muted-foreground">Précise tes attentes pour le voyageur</p>
                 </div>
 
                 {/* Compact product summary header */}

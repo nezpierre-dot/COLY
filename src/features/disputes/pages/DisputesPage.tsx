@@ -205,7 +205,7 @@ const DisputesPage = () => {
             return { ...prev, [newMsg.dispute_id]: [...existing, newMsg] };
           });
           if (newMsg.sender_role === "admin" && newMsg.sender_id !== user.id) {
-            toast.info("📩 Nouvelle réponse du support sur votre litige");
+            toast.info("📩 Nouvelle réponse du support sur ton litige");
           }
         }
       )
@@ -389,7 +389,7 @@ const DisputesPage = () => {
       setMyRatings(prev => ({ ...prev, [disputeId]: score }));
       setRatingDisputeId(null);
       setRatingComment("");
-      toast.success("Merci pour votre évaluation !");
+      toast.success("Merci pour ton évaluation !");
     } catch {
       toast.error("Erreur lors de l'envoi");
     } finally {
@@ -446,7 +446,7 @@ const DisputesPage = () => {
                 className="h-7 rounded-xl gap-1.5 text-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
                 disabled={closingDispute === d.id}
                 onClick={() => {
-                  if (confirm("Êtes-vous sûr de vouloir clôturer ce litige à l'amiable ? Cette action est irréversible.")) {
+                  if (confirm("Es-tu sûr de vouloir clôturer ce litige à l'amiable ? Cette action est irréversible.")) {
                     handleAmicableClosure(d.id);
                   }
                 }}
@@ -772,7 +772,7 @@ const DisputesPage = () => {
                 <EmptyState
                   icon={<CheckCircle size={28} className="text-emerald-500" />}
                   title="Aucun litige en cours"
-                  desc="Tous vos litiges ont été résolus. 🎉"
+                  desc="Tous tes litiges ont été résolus. 🎉"
                 />
               ) : (
                 activeDisputes.map(renderDisputeCard)

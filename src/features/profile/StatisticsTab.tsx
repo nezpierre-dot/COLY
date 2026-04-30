@@ -196,7 +196,7 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
     const destinations = voyages.map(v => v.arrival_country?.toLowerCase()).filter(Boolean);
     const uniqueDestinations = new Set(destinations);
     if (uniqueDestinations.size <= 1 && voyages.length >= 2) {
-      tips.push({ icon: Globe, text: "Diversifiez vos destinations — les trajets vers l'Afrique du Nord et l'Afrique subsaharienne ont une forte demande." });
+      tips.push({ icon: Globe, text: "Diversifie tes destinations — les trajets vers l'Afrique du Nord et l'Afrique subsaharienne ont une forte demande." });
     }
 
     // Analyze timing patterns
@@ -214,12 +214,12 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
     });
     const avgNotice = advanceNotice.length > 0 ? advanceNotice.reduce((a, b) => a + b, 0) / advanceNotice.length : 0;
     if (avgNotice < 5) {
-      tips.push({ icon: Clock, text: "Publiez vos voyages au moins 7 jours à l'avance pour laisser le temps aux demandeurs de vous trouver." });
+      tips.push({ icon: Clock, text: "Publie tes voyages au moins 7 jours à l'avance pour laisser le temps aux membres de te trouver." });
     }
 
     // Generic tip if no specific ones
     if (tips.length === 0) {
-      tips.push({ icon: Lightbulb, text: "Activez l'option NeedIt sur vos voyages pour accepter aussi les missions d'achat et augmenter vos chances de match." });
+      tips.push({ icon: Lightbulb, text: "Active l'option NeedIt sur tes voyages pour accepter aussi les missions d'achat et augmenter tes chances de match." });
     }
 
     return tips.slice(0, 3);
@@ -474,8 +474,8 @@ const StatisticsTab = ({ compact = false }: StatisticsTabProps) => {
               <Lightbulb size={16} className="text-amber-500" />
             </div>
             <div>
-              <span className="text-sm font-semibold text-foreground">Conseils pour améliorer votre taux de match</span>
-              <p className="text-xs text-muted-foreground">Basés sur l'analyse de vos voyages</p>
+              <span className="text-sm font-semibold text-foreground">Conseils pour améliorer ton taux de mise en relation</span>
+              <p className="text-xs text-muted-foreground">Basés sur l'analyse de tes voyages</p>
             </div>
           </div>
           <div className="space-y-2.5">

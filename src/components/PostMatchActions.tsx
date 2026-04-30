@@ -469,7 +469,7 @@ const PostMatchActions = ({
         </div>
       )}
 
-      {/* ─── ACCEPTED: Expéditeur generates pickup OTP ─── */}
+      {/* ─── ACCEPTED: Membre generates pickup OTP ─── */}
       {normalizedStatus === "accepted" && isSender && !pickupOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -495,7 +495,7 @@ const PostMatchActions = ({
         </motion.div>
       )}
 
-      {/* ─── ACCEPTED: Expéditeur shows pickup OTP ─── */}
+      {/* ─── ACCEPTED: Membre shows pickup OTP ─── */}
       {normalizedStatus === "accepted" && isSender && pickupOtp && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}

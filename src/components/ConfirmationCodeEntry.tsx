@@ -64,7 +64,7 @@ const ConfirmationCodeEntry = ({ itemId, itemType, onConfirmed }: ConfirmationCo
         <h3 className="text-sm font-bold text-foreground">Finaliser la mission</h3>
       </div>
       <p className="text-xs text-muted-foreground">
-        Demandez le code de confirmation au destinataire pour finaliser la livraison et débloquer votre paiement.
+        Demande le code de confirmation au destinataire pour finaliser la livraison et débloquer ton paiement.
       </p>
       <Input
         value={code}

@@ -63,7 +63,7 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
               transition={{ delay: 0.5, duration: 0.5 }}
               className="text-muted-foreground text-sm font-medium text-center max-w-[260px] leading-relaxed"
             >
-              Partagez vos trajets, économisez &amp; protégez la planète 🌍
+              Partage tes trajets, économise &amp; protège la planète 🌍
             </motion.p>
           </div>
 

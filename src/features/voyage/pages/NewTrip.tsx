@@ -635,7 +635,7 @@ const NewTrip = () => {
                 <p className="font-semibold text-foreground mb-1">*Needit : Recevoir des ordres de Missions</p>
                 <p>
                   Tu recevras des demandes d'achat de produits. Tu devras acheter le ou les produits
-                  et vous recevrez le remboursement ainsi que la commission dès la remise du ou des produits.
+                  et tu recevras le remboursement ainsi que la commission dès la remise du ou des produits.
                 </p>
               </div>
 
