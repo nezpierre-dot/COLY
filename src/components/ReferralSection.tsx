@@ -172,9 +172,9 @@ const ReferralSection = () => {
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Validés</p>
         </div>
         <div className="rounded-2xl bg-card border border-border p-3 text-center">
-          <Trophy size={16} className="text-amber-500 mx-auto mb-1" />
-          <p className="text-lg font-bold">{totalBonus}€</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Gagnés</p>
+          <Star size={16} className="text-amber-500 mx-auto mb-1 fill-amber-500" />
+          <p className="text-lg font-bold">{validatedCount * REFERRER_POINTS}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Points</p>
         </div>
       </div>
 
