@@ -13,12 +13,6 @@ const SoldePage = lazy(() => import("@/features/finance/pages/SoldePage"));
 const HistoryPage = lazy(() => import("@/features/core/pages/HistoryPage"));
 const FacturationPage = lazy(() => import("@/features/finance/pages/FacturationPage"));
 
-const TabFallback = () => (
-  <div className="flex items-center justify-center py-20">
-    <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-  </div>
-);
-
 /**
  * Hub Portefeuille : regroupe Solde, Transactions et Factures.
  * Les anciennes routes (/solde, /history/:type, /facturation) restent fonctionnelles.
