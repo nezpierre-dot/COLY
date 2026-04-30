@@ -286,7 +286,7 @@ export const dashboardCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='switch-role']",
     title: "Devenez voyageur",
-    description: "Basculez vers le mode Voyageur pour gagner de l'argent en transportant des colis sur vos trajets.",
+    description: "Basculez vers le mode Transporteur pour gagner de l'argent en transportant des colis sur vos trajets.",
     icon: <Repeat size={18} />,
   },
 ];

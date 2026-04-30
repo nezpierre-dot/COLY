@@ -329,7 +329,7 @@ const ShipmentDetail = () => {
           )}
           {shipment.voyageur_id && (
             <div className="bg-card border border-border rounded-2xl p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">🚀 Voyageur assigné</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">🚀 Transporteur assigné</p>
               <button
                 onClick={() => navigate(`/profile/${shipment.voyageur_id}`)}
                 className="flex items-center gap-2 text-primary font-semibold text-sm hover:underline"

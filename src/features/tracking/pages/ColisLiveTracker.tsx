@@ -438,7 +438,7 @@ const ColisLiveTracker = () => {
               <div className="flex items-center gap-2">
                 <div className={`w-2.5 h-2.5 rounded-full ${isSharing ? "bg-green-500 animate-pulse" : "bg-muted-foreground/40"}`} />
                 <span className="text-sm font-semibold text-foreground">
-                  {isSharing ? "Voyageur en mouvement" : "Position non partagée"}
+                  {isSharing ? "Transporteur en mouvement" : "Position non partagée"}
                 </span>
               </div>
               {timeSinceUpdate && isSharing && (

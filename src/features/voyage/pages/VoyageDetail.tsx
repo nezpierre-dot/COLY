@@ -432,7 +432,7 @@ const VoyageDetail = () => {
               html += `<p class="info"><strong>Statut:</strong> ${statusMap[voyage.status] || voyage.status}</p>`;
 
               if (acceptedColis.length > 0) {
-                html += `<h2>📦 Colis (${acceptedColis.length})</h2><table><tr><th>Trajet</th><th>Taille</th><th>Tarif</th><th>Statut</th><th>Demandeur</th></tr>`;
+                html += `<h2>📦 Colis (${acceptedColis.length})</h2><table><tr><th>Trajet</th><th>Taille</th><th>Tarif</th><th>Statut</th><th>Expéditeur</th></tr>`;
                 acceptedColis.forEach(s => {
                   const cls = s.status === "delivered" ? "delivered" : s.status === "in_transit" ? "transit" : s.status === "picked_up" ? "pickup" : "accepted";
                   html += `<tr><td>${s.departure_city || "—"} → ${s.arrival_city}</td><td>${s.size || "—"}</td><td>${s.tarif || "—"} €</td><td><span class="badge ${cls}">${statusMap[s.status] || s.status}</span></td><td>${demandeurNames[s.user_id] || "—"}</td></tr>`;
@@ -441,7 +441,7 @@ const VoyageDetail = () => {
               }
 
               if (acceptedMissions.length > 0) {
-                html += `<h2>🛒 Missions NeedIt (${acceptedMissions.length})</h2><table><tr><th>Produit</th><th>Destination</th><th>Budget max</th><th>Statut</th><th>Demandeur</th></tr>`;
+                html += `<h2>🛒 Missions NeedIt (${acceptedMissions.length})</h2><table><tr><th>Produit</th><th>Destination</th><th>Budget max</th><th>Statut</th><th>Expéditeur</th></tr>`;
                 acceptedMissions.forEach(m => {
                   const cls = m.status === "completed" ? "delivered" : m.status === "in_transit" ? "transit" : m.status === "picked_up" ? "pickup" : "accepted";
                   html += `<tr><td>${m.product_name || "—"}</td><td>${m.city || m.country}</td><td>${m.prix_max || "—"} €</td><td><span class="badge ${cls}">${statusMap[m.status] || m.status}</span></td><td>${demandeurNames[m.user_id] || "—"}</td></tr>`;
@@ -769,7 +769,7 @@ const VoyageDetail = () => {
                               {mission.product_name || "Mission NeedIt"}
                             </p>
                             <p className="text-[11px] text-muted-foreground">
-                              {demandeurNames[mission.user_id] || "Demandeur"}{mission.prix_max ? ` · ${mission.prix_max} €` : ""}
+                              {demandeurNames[mission.user_id] || "Expéditeur"}{mission.prix_max ? ` · ${mission.prix_max} €` : ""}
                             </p>
                           </div>
                           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${badge.cls}`}>

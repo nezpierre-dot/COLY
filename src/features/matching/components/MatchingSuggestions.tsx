@@ -153,7 +153,7 @@ const MatchingSuggestions = ({
             <div className="flex items-start gap-3">
               {/* Avatar */}
               <Avatar className={compact ? "h-9 w-9" : "h-11 w-11"}>
-                <AvatarImage src={v.avatar_url || undefined} alt="Voyageur" />
+                <AvatarImage src={v.avatar_url || undefined} alt="Transporteur" />
                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                   {v.full_name ? v.full_name.charAt(0).toUpperCase() : "V"}
                 </AvatarFallback>
