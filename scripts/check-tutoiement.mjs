@@ -64,6 +64,19 @@ function isApproved(file, line, value) {
   return false;
 }
 
+/**
+ * Pré-nettoie une ligne avant matching pour neutraliser les faux-positifs
+ * lexicaux (mots composés contenant "vous" comme "rendez-vous", "au-dessous").
+ */
+function neutralize(text) {
+  return text
+    .replace(/\brendez-vous\b/gi, "RDV")
+    .replace(/\brendezvous\b/gi, "RDV")
+    .replace(/\bau-dessous\b/gi, "DESSOUS")
+    .replace(/\bau-dessus\b/gi, "DESSUS")
+    .replace(/\bvous-même\b/gi, "SOIMEME");
+}
+
 // ---- Patterns HARD (violations bloquantes) ---------------------------------
 const HARD_VOUVOIEMENT = [
   /\bVous\b/,
