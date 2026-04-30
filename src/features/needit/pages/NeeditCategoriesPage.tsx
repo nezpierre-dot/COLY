@@ -107,18 +107,17 @@ const NeeditCategoriesPage = () => {
     if (!categoriesLoaded || q) return [];
     const dismissedSet = new Set(dismissed);
 
-    const fromRecent: Suggestion[] = Array.from(recentCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([key, count]) => {
-        const cat = CATEGORIES.find((c) => c.key === key);
-        return cat ? { cat, reason: "recent" as const, count } : null;
-      })
-      .filter((s): s is Suggestion => s !== null && !dismissedSet.has(s.cat.key));
+    const fromRecent: Suggestion[] = [];
+    for (const [key, count] of Array.from(recentCounts.entries()).sort((a, b) => b[1] - a[1])) {
+      if (dismissedSet.has(key)) continue;
+      const cat = CATEGORIES.find((c) => c.key === key);
+      if (cat) fromRecent.push({ cat, reason: "recent", count });
+    }
 
-    const recentKeys = new Set(fromRecent.map((s) => s.cat.key));
+    const recentKeysSet = new Set(fromRecent.map((s) => s.cat.key));
     const fromPopular: Suggestion[] = CATEGORIES.filter(
-      (c) => c.popular && !recentKeys.has(c.key) && !dismissedSet.has(c.key)
-    ).map((cat) => ({ cat, reason: "popular" as const }));
+      (c) => c.popular && !recentKeysSet.has(c.key) && !dismissedSet.has(c.key)
+    ).map((cat) => ({ cat, reason: "popular" }));
 
     return [...fromRecent, ...fromPopular].slice(0, 3);
   }, [categoriesLoaded, q, recentCounts, dismissed]);
