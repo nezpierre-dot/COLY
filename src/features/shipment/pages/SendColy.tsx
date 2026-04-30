@@ -23,6 +23,8 @@ import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import SearchableSelect from "@/components/SearchableSelect";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 import ShareWhatsAppButton from "@/components/ShareWhatsAppButton";
+import { useDraft } from "@/hooks/useDraft";
+import KycPaymentGate from "@/components/KycPaymentGate";
 
 const SIZES_BASE = [{ id: "S", label: "S — Max 1kg", dim: "217×150×50", Icon: Package }, { id: "M", label: "M — Max 3kg", dim: "230×130×100", Icon: Package }, { id: "L", label: "L — Max 5kg", dim: "315×210×157", Icon: Package }, { id: "XL", label: "XL — Max 7kg", dim: "383×250×195", Icon: Package }, { id: "XXL", label: "XXL — Max 10kg", dim: "400×425×200", Icon: Package }, { id: "other", label: "Autres dimensions", dim: "", Icon: Ruler }];
 const getSizes = (country: string) => SIZES_BASE.map((s) => ({ ...s, label: formatSizeLabel(s.label, country), dim: s.dim ? formatSizeLabel(s.dim, country) : "" }));
