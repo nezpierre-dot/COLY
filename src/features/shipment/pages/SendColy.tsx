@@ -654,6 +654,17 @@ const SendColy = () => {
           </button>
         </DialogContent>
       </Dialog>
+
+      {/* KYC déféré : se déclenche uniquement à la soumission finale (étape 4).
+          Le brouillon reste sauvegardé pour reprise après vérification. */}
+      <KycPaymentGate
+        open={showKycGate}
+        onClose={() => setShowKycGate(false)}
+        onContinue={() => {
+          setShowKycGate(false);
+          navigate("/kyc", { state: { returnTo: "/send-coly" } });
+        }}
+      />
     </div>
   );
 };
