@@ -137,7 +137,7 @@ const ShipmentDetail = () => {
       await supabase.from("notifications").insert({
         user_id: shipment.voyageur_id,
         title: "Envoi annulé ❌",
-        message: `L'envoi NIDIT-${shipment.id.slice(0, 8).toUpperCase()} a été annulé par l'expéditeur. Le budget sera remboursé si déjà payé.`,
+        message: `L'envoi NIDIT-${shipment.id.slice(0, 8).toUpperCase()} a été annulé par le client. Le budget sera remboursé si déjà payé.`,
         type: "shipment_cancelled:" + id,
       });
     }
@@ -329,7 +329,7 @@ const ShipmentDetail = () => {
           )}
           {shipment.voyageur_id && (
             <div className="bg-card border border-border rounded-2xl p-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">🚀 Transporteur assigné</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">🚀 Voyageur Nidit assigné</p>
               <button
                 onClick={() => navigate(`/profile/${shipment.voyageur_id}`)}
                 className="flex items-center gap-2 text-primary font-semibold text-sm hover:underline"

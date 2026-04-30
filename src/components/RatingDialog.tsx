@@ -32,7 +32,7 @@ const RatingDialog = ({ open, onClose, shipmentId, ratedUserId, raterRole }: Rat
 
   const label = raterRole === "demandeur"
     ? "Comment s'est passée la livraison par le voyageur ?"
-    : "Comment s'est passée l'expérience avec l'expéditeur ?";
+    : "Comment s'est passée l'expérience avec ce membre ?";
 
   const scoreLabels = ["", "Mauvais", "Passable", "Bien", "Très bien", "Excellent"];
 

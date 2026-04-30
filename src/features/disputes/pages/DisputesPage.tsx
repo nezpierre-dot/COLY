@@ -420,7 +420,7 @@ const DisputesPage = () => {
               LIT-{d.id.slice(0, 8).toUpperCase()}
             </span>
             {d.user_id !== user?.id && (
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-accent/10 text-accent-foreground shrink-0">Transporteur</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-accent/10 text-accent-foreground shrink-0">Voyageur Nidit</span>
             )}
           </div>
           {statusLabel(d.status)}
@@ -531,7 +531,7 @@ const DisputesPage = () => {
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className={`font-semibold ${msg.sender_role === "admin" ? "text-primary" : msg.sender_role === "voyageur" ? "text-accent-foreground" : "text-foreground"}`}>
-                            {msg.sender_role === "admin" ? "🛡️ Support Nidit" : msg.sender_role === "voyageur" ? "🚀 Transporteur" : (d.user_id === user?.id ? "Vous" : "Expéditeur")}
+                            {msg.sender_role === "admin" ? "🛡️ Support Nidit" : msg.sender_role === "voyageur" ? "🚀 Voyageur Nidit" : (d.user_id === user?.id ? "Vous" : "Membre")}
                           </span>
                           <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                             <Clock size={9} /> {formatTime(msg.created_at)}

@@ -76,7 +76,7 @@ export const GAMIFIED_BADGES: BadgeDef[] = [
   },
   {
     id: "10_deliveries",
-    label: "Transporteur Pro",
+    label: "Voyageur Nidit Pro",
     description: "Réaliser 10 livraisons",
     icon: Zap,
     tier: "silver",
@@ -92,7 +92,7 @@ export const GAMIFIED_BADGES: BadgeDef[] = [
   },
   {
     id: "kyc_verified",
-    label: "Transporteur Vérifié",
+    label: "Voyageur Nidit Vérifié",
     description: "Vérifier son identité (KYC)",
     icon: ShieldCheck,
     tier: "bronze",
