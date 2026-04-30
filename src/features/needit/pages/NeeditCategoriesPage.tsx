@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, X, Sparkles, PenLine, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
+import { Search, X, Sparkles, PenLine, AlertTriangle, RefreshCw, Loader2, History, TrendingUp, EyeOff, Info } from "lucide-react";
+import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
-import { CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey } from "@/lib/categoryIcons";
+import { CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey, type CategoryDef } from "@/lib/categoryIcons";
 import NeeditPageHeader from "../components/NeeditPageHeader";
 import { useNeeditDraft } from "../hooks/useNeeditDraft";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -11,6 +12,28 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import needitBagIllustration from "@/assets/illustrations/needit-bag.png";
+
+type SuggestionReason = "recent" | "popular";
+type Suggestion = { cat: CategoryDef; reason: SuggestionReason; count?: number };
+
+const DISMISSED_KEY = "nidit:needit:dismissedSuggestions";
+const readDismissed = (): CategoryKey[] => {
+  try {
+    const raw = localStorage.getItem(DISMISSED_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as CategoryKey[]) : [];
+  } catch {
+    return [];
+  }
+};
+const writeDismissed = (keys: CategoryKey[]) => {
+  try {
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(keys));
+  } catch {
+    /* quota / private mode */
+  }
+};
 
 const NeeditCategoriesPage = () => {
   const navigate = useNavigate();
