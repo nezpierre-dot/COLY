@@ -11,6 +11,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
+import DraftResumeBanner from "@/components/DraftResumeBanner";
+import { useDraft } from "@/hooks/useDraft";
 import NotificationBell from "@/components/NotificationBell";
 import AdminQuickMenu from "@/components/AdminQuickMenu";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -889,6 +891,9 @@ const Dashboard = () => {
         </motion.div>
 
         <div className="px-5 pt-4 sm:px-8 relative z-10 space-y-5">
+
+        {/* Brouillon d'envoi en cours — reprise en 1 clic */}
+        <SendDraftResumeSlot onResume={() => navigate("/send-coly")} />
 
         {/* PWA Install Banner */}
         <AnimatePresence>

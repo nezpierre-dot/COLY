@@ -23,6 +23,8 @@ import ReminderDialog, { type ReminderInfo } from "@/components/ReminderDialog";
 import SearchableSelect from "@/components/SearchableSelect";
 import { useRecentLocations, POPULAR_COUNTRIES } from "@/hooks/useRecentLocations";
 import ShareWhatsAppButton from "@/components/ShareWhatsAppButton";
+import { useDraft } from "@/hooks/useDraft";
+import KycPaymentGate from "@/components/KycPaymentGate";
 
 const SIZES_BASE = [{ id: "S", label: "S — Max 1kg", dim: "217×150×50", Icon: Package }, { id: "M", label: "M — Max 3kg", dim: "230×130×100", Icon: Package }, { id: "L", label: "L — Max 5kg", dim: "315×210×157", Icon: Package }, { id: "XL", label: "XL — Max 7kg", dim: "383×250×195", Icon: Package }, { id: "XXL", label: "XXL — Max 10kg", dim: "400×425×200", Icon: Package }, { id: "other", label: "Autres dimensions", dim: "", Icon: Ruler }];
 const getSizes = (country: string) => SIZES_BASE.map((s) => ({ ...s, label: formatSizeLabel(s.label, country), dim: s.dim ? formatSizeLabel(s.dim, country) : "" }));
@@ -127,7 +129,56 @@ const SendColy = () => {
   
 
   useEffect(() => { if (!user) return; const check = async () => { const [profileRes, shipmentsRes] = await Promise.all([supabase.from("profiles").select("kyc_status").eq("user_id", user.id).maybeSingle(), supabase.from("shipments").select("id").eq("user_id", user.id).limit(1)]); setKycStatus(profileRes.data?.kyc_status || "pending"); setHasExistingShipments((shipmentsRes.data?.length || 0) > 0); setKycChecked(true); }; check(); }, [user]);
-  useEffect(() => { if (kycChecked && !hasExistingShipments && kycStatus !== "submitted" && kycStatus !== "verified") navigate("/kyc", { state: { returnTo: "/send-coly" } }); }, [kycChecked, hasExistingShipments, kycStatus, navigate]);
+  // KYC déféré : on ne redirige plus à l'entrée. La vérification se fait juste avant la soumission finale (étape 4).
+  const [showKycGate, setShowKycGate] = useState(false);
+  const needsKyc = kycChecked && kycStatus !== "submitted" && kycStatus !== "verified";
+
+  // Brouillon auto-sauvegardé
+  const draft = useDraft<Record<string, any>>("send-coly");
+  const draftRestoredRef = useRef(false);
+  useEffect(() => {
+    if (!user || draftRestoredRef.current) return;
+    const existing = draft.read();
+    if (existing?.data) {
+      const d = existing.data;
+      if (d.date) setDate(d.date);
+      if (d.departMethod) setDepartMethod(d.departMethod);
+      if (d.departCountry) setDepartCountry(d.departCountry);
+      if (d.departCity) setDepartCity(d.departCity);
+      if (d.relayPoint) setRelayPoint(d.relayPoint);
+      if (d.departAddress) setDepartAddress(d.departAddress);
+      if (d.departAccessCode) setDepartAccessCode(d.departAccessCode);
+      if (d.arrCity) setArrCity(d.arrCity);
+      if (d.arrCountry) setArrCountry(d.arrCountry);
+      if (d.contactNom) setContactNom(d.contactNom);
+      if (d.contactPrenom) setContactPrenom(d.contactPrenom);
+      if (d.contactTel) setContactTel(d.contactTel);
+      if (d.contactMail) setContactMail(d.contactMail);
+      if (d.pickupAddress) setPickupAddress(d.pickupAddress);
+      if (d.pickupAccessCode) setPickupAccessCode(d.pickupAccessCode);
+      if (d.size) setSize(d.size);
+      if (d.tarif) setTarif(d.tarif);
+      if (d.tarifFixe) setTarifFixe(d.tarifFixe);
+      if (typeof d.insured === "boolean") setInsured(d.insured);
+      if (typeof d.step === "number" && d.step >= 1 && d.step <= 4) setStep(d.step);
+    }
+    draftRestoredRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+  useEffect(() => {
+    if (!user || !draftRestoredRef.current) return;
+    draft.save({
+      step, date, departMethod, departCountry, departCity, relayPoint,
+      departAddress, departAccessCode, arrCity, arrCountry,
+      contactNom, contactPrenom, contactTel, contactMail,
+      pickupAddress, pickupAccessCode, size, tarif, tarifFixe, insured,
+    });
+  }, [
+    user, step, date, departMethod, departCountry, departCity, relayPoint,
+    departAddress, departAccessCode, arrCity, arrCountry,
+    contactNom, contactPrenom, contactTel, contactMail,
+    pickupAddress, pickupAccessCode, size, tarif, tarifFixe, insured,
+  ]);
   
   useEffect(() => { if (step === 2 && isInternational && !customsShown) setTimeout(() => { setShowCustomsDialog(true); setCustomsShown(true); }, 500); }, [step, isInternational, customsShown]);
 
@@ -204,6 +255,8 @@ const SendColy = () => {
       }
       supabase.functions.invoke("notify-match", { body: { type: "shipment", record_id: inserted.id } }).catch(() => {});
       successFeedback(t("sendcoly.createdSuccess"), { description: t("sendcoly.createdDesc") });
+      // Brouillon consommé : on le supprime pour éviter une "reprise" fantôme
+      draft.clear();
       setCreatedReminderInfo({
         itemType: "shipment",
         itemId: inserted.id,
@@ -222,7 +275,16 @@ const SendColy = () => {
       return;
     }
     setDirection(1);
-    if (step < totalSteps) setStep(step + 1); else submitShipment();
+    if (step < totalSteps) {
+      setStep(step + 1);
+    } else {
+      // Final submission: gate KYC right before payment.
+      if (needsKyc) {
+        setShowKycGate(true);
+        return;
+      }
+      submitShipment();
+    }
   };
 
   const stepVariants = {
@@ -592,6 +654,17 @@ const SendColy = () => {
           </button>
         </DialogContent>
       </Dialog>
+
+      {/* KYC déféré : se déclenche uniquement à la soumission finale (étape 4).
+          Le brouillon reste sauvegardé pour reprise après vérification. */}
+      <KycPaymentGate
+        open={showKycGate}
+        onClose={() => setShowKycGate(false)}
+        onContinue={() => {
+          setShowKycGate(false);
+          navigate("/kyc", { state: { returnTo: "/send-coly" } });
+        }}
+      />
     </div>
   );
 };
