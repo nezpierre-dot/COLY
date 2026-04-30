@@ -420,7 +420,7 @@ const DisputesPage = () => {
               LIT-{d.id.slice(0, 8).toUpperCase()}
             </span>
             {d.user_id !== user?.id && (
-              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-accent/10 text-accent-foreground shrink-0">Voyageur</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-accent/10 text-accent-foreground shrink-0">Transporteur</span>
             )}
           </div>
           {statusLabel(d.status)}
