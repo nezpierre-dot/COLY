@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import Testimonials from "@/components/Testimonials";
 import Nido from "@/components/Nido";
+import GlossaryButton from "@/components/GlossaryButton";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface PopularRoute {
