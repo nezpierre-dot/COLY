@@ -769,7 +769,7 @@ const VoyageDetail = () => {
                               {mission.product_name || "Mission NeedIt"}
                             </p>
                             <p className="text-[11px] text-muted-foreground">
-                              {demandeurNames[mission.user_id] || "Demandeur"}{mission.prix_max ? ` · ${mission.prix_max} €` : ""}
+                              {demandeurNames[mission.user_id] || "Expéditeur"}{mission.prix_max ? ` · ${mission.prix_max} €` : ""}
                             </p>
                           </div>
                           <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 ${badge.cls}`}>
