@@ -534,28 +534,49 @@ const Field = ({
   error,
   children,
   htmlFor,
+  hintId,
+  hint,
 }: {
   label: string;
   required?: boolean;
   error?: string | null;
   children: React.ReactNode;
   htmlFor: string;
-}) => (
-  <div>
-    <label htmlFor={htmlFor} className="block text-sm font-semibold text-foreground mb-1.5">
-      {label} {required && <span className="text-destructive">*</span>}
-    </label>
-    {children}
-    {error && (
-      <p
-        className="text-xs text-destructive mt-1 animate-in fade-in slide-in-from-top-1 duration-200"
-        role="alert"
-      >
-        {error}
-      </p>
-    )}
-  </div>
-);
+  hintId?: string;
+  hint?: string;
+}) => {
+  const errorId = `${htmlFor}-err`;
+  return (
+    <div>
+      <label htmlFor={htmlFor} className="block text-sm font-semibold text-foreground mb-1.5">
+        {label}{" "}
+        {required && (
+          <span className="text-destructive" aria-hidden="true">
+            *
+          </span>
+        )}
+        {required && <span className="sr-only"> (obligatoire)</span>}
+      </label>
+      {children}
+      {hint && !error && (
+        <p id={hintId} className="text-xs text-muted-foreground mt-1">
+          {hint}
+        </p>
+      )}
+      {error && (
+        <p
+          id={errorId}
+          className="text-xs text-destructive mt-1 flex items-start gap-1 animate-in fade-in slide-in-from-top-1 duration-200"
+          role="alert"
+          aria-live="polite"
+        >
+          <AlertCircle size={12} aria-hidden="true" className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </p>
+      )}
+    </div>
+  );
+};
 
 const inputBase = (hasErr: boolean) =>
   `w-full border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground bg-background focus:outline-none transition-all ${
@@ -592,7 +613,7 @@ const CityCountryStep = ({
   <div className="space-y-4">
     <Field label={countryLabel} required error={countryErr} htmlFor="wiz-country">
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true">
           {icon}
         </span>
         <input
@@ -603,6 +624,11 @@ const CityCountryStep = ({
           placeholder={countryPh}
           className={inputBase(!!countryErr) + " pl-10"}
           aria-invalid={!!countryErr}
+          aria-required="true"
+          aria-describedby={countryErr ? "wiz-country-err" : undefined}
+          autoComplete="country-name"
+          maxLength={80}
+          enterKeyHint="next"
         />
       </div>
     </Field>
@@ -614,6 +640,11 @@ const CityCountryStep = ({
         placeholder={cityPh}
         className={inputBase(!!cityErr)}
         aria-invalid={!!cityErr}
+        aria-required="true"
+        aria-describedby={cityErr ? "wiz-city-err" : undefined}
+        autoComplete="address-level2"
+        maxLength={80}
+        enterKeyHint="next"
       />
     </Field>
   </div>
@@ -630,13 +661,24 @@ const DateStep = ({
 }) => {
   const { t } = useTranslation();
   const today = new Date().toISOString().slice(0, 10);
+  const max = new Date();
+  max.setDate(max.getDate() + 365);
+  const maxIso = max.toISOString().slice(0, 10);
   return (
     <div className="space-y-4">
-      <Field label={t("sendWizard.label.date")} required error={err} htmlFor="wiz-date">
+      <Field
+        label={t("sendWizard.label.date")}
+        required
+        error={err}
+        htmlFor="wiz-date"
+        hintId="wiz-date-hint"
+        hint={t("sendWizard.hint.dateNote")}
+      >
         <div className="relative">
           <Calendar
             size={18}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
           />
           <input
             id="wiz-date"
@@ -644,13 +686,16 @@ const DateStep = ({
             type="date"
             value={value}
             min={today}
+            max={maxIso}
             onChange={(e) => onChange(e.target.value)}
             className={inputBase(!!err) + " pl-10"}
             aria-invalid={!!err}
+            aria-required="true"
+            aria-describedby={err ? "wiz-date-err" : "wiz-date-hint"}
+            enterKeyHint="done"
           />
         </div>
       </Field>
-      <p className="text-xs text-muted-foreground">{t("sendWizard.hint.dateNote")}</p>
     </div>
   );
 };
