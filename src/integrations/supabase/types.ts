@@ -80,6 +80,39 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_events: {
+        Row: {
+          category: string | null
+          created_at: string
+          event_name: string
+          id: string
+          platform: string | null
+          properties: Json | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          event_name: string
+          id?: string
+          platform?: string | null
+          properties?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          event_name?: string
+          id?: string
+          platform?: string | null
+          properties?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       brand_products: {
         Row: {
           brand_id: string
@@ -1665,6 +1698,7 @@ export type Database = {
       accept_needit_mission: { Args: { _mission_id: string }; Returns: string }
       accept_shipment: { Args: { _shipment_id: string }; Returns: string }
       admin_check_thresholds: { Args: never; Returns: Json }
+      admin_get_analytics_overview: { Args: never; Returns: Json }
       admin_get_audit_log: {
         Args: { _limit?: number }
         Returns: {

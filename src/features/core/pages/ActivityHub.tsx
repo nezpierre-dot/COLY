@@ -5,20 +5,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 import { useTranslation } from "@/hooks/useTranslation";
+import { trackEvent } from "@/lib/analytics";
+import { ActivityHubSkeleton } from "@/features/core/hubs/HubSkeletons";
 
 const HistoryPage = lazy(() => import("@/features/core/pages/HistoryPage"));
 const FavoritesPage = lazy(() => import("@/features/core/pages/FavoritesPage"));
 
-const TabFallback = () => (
-  <div className="flex items-center justify-center py-20">
-    <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-  </div>
-);
-
-/**
- * Hub Activité : regroupe Historique et Favoris.
- * Les anciennes routes (/history/:type, /favorites) restent fonctionnelles.
- */
 const ActivityHub = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -26,9 +18,15 @@ const ActivityHub = () => {
   const [tab, setTab] = useState(() => params.get("tab") || "history");
 
   useEffect(() => {
+    trackEvent("hub_click", "navigation", { hub: "activity" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     const next = new URLSearchParams(params);
     next.set("tab", tab);
     setParams(next, { replace: true });
+    trackEvent("hub_tab_change", "navigation", { hub: "activity", tab });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -51,12 +49,12 @@ const ActivityHub = () => {
           </div>
 
           <Tabs value={tab} onValueChange={setTab} className="w-full">
-            <TabsList className="w-full justify-start gap-1 px-3 pb-2 bg-transparent">
+            <TabsList className="w-full justify-start gap-1 px-3 pb-2 bg-transparent" aria-label={t("hub.activity.title") || "Mon activité"}>
               <TabsTrigger value="history" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-                <History size={14} /> {t("hub.activity.history") || "Historique"}
+                <History size={14} aria-hidden="true" /> {t("hub.activity.history") || "Historique"}
               </TabsTrigger>
               <TabsTrigger value="favorites" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-                <Heart size={14} /> {t("hub.activity.favorites") || "Favoris"}
+                <Heart size={14} aria-hidden="true" /> {t("hub.activity.favorites") || "Favoris"}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -64,12 +62,12 @@ const ActivityHub = () => {
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsContent value="history" className="mt-0">
-            <Suspense fallback={<TabFallback />}>
+            <Suspense fallback={<ActivityHubSkeleton />}>
               <HistoryPage />
             </Suspense>
           </TabsContent>
           <TabsContent value="favorites" className="mt-0">
-            <Suspense fallback={<TabFallback />}>
+            <Suspense fallback={<ActivityHubSkeleton />}>
               <FavoritesPage />
             </Suspense>
           </TabsContent>

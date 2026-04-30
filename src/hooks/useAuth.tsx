@@ -41,6 +41,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        // Stamp analytics with current user id (RLS still enforces auth.uid() = user_id)
+        import("@/lib/analytics").then(({ setAnalyticsUser }) => setAnalyticsUser(session?.user?.id ?? null));
         if (session?.user) {
           setTimeout(() => fetchRoles(session.user.id), 0);
         } else {
@@ -53,6 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      import("@/lib/analytics").then(({ setAnalyticsUser }) => setAnalyticsUser(session?.user?.id ?? null));
       if (session?.user) {
         fetchRoles(session.user.id);
       }
