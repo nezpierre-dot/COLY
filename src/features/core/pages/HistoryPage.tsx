@@ -369,7 +369,7 @@ const HistoryPage = () => {
     const needitTotal = allData.filter((i) => i.category === "needit").reduce((s, i) => s + Math.abs(i.amount), 0);
     return [
       { name: "Voyageur", value: voyTotal },
-      { name: "Coly", value: colyTotal },
+      { name: "Colis", value: colyTotal },
       { name: "NeedIt", value: needitTotal },
     ].filter(d => d.value > 0);
   }, [allData]);
