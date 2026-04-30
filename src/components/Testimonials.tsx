@@ -24,7 +24,7 @@ const TESTIMONIALS: Testimonial[] = [
   {
     name: "Karim B.",
     initials: "KB",
-    role: "Voyageur",
+    role: "Transporteur",
     city: "Lyon → Casablanca",
     rating: 5,
     text: "Je voyage tous les mois pour le boulot. Avec Nidit je rentabilise mes 10 kg de bagages libres et je rends service. Le paiement séquestre rassure tout le monde.",
@@ -42,7 +42,7 @@ const TESTIMONIALS: Testimonial[] = [
   {
     name: "Mohamed T.",
     initials: "MT",
-    role: "Voyageur",
+    role: "Transporteur",
     city: "Marseille → Tunis",
     rating: 5,
     text: "L'app est ultra fluide, le chat sécurisé est top, et le paiement arrive bien sous 48h après livraison. Plus de 30 colis transportés, jamais le moindre souci.",
@@ -60,7 +60,7 @@ const TESTIMONIALS: Testimonial[] = [
   {
     name: "Yacine R.",
     initials: "YR",
-    role: "Voyageur",
+    role: "Transporteur",
     city: "Toulouse → Bamako",
     rating: 5,
     text: "Je gagne en moyenne 80€ par trajet. C'est devenu un vrai complément de revenu, sans contrainte puisque je voyageais déjà. Recommandé à tous mes proches.",

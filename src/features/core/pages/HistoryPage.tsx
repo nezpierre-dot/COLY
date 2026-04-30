@@ -82,7 +82,7 @@ type StatusMeta = {
 const getStatusMeta = (status: string, category: HistoryType): StatusMeta => {
   const map: Record<string, StatusMeta> = {
     pending: { label: "En attente d'un voyageur", progress: 15, tone: "pending" },
-    accepted: { label: "Voyageur trouvé", progress: 40, tone: "active" },
+    accepted: { label: "Transporteur trouvé", progress: 40, tone: "active" },
     picked_up: { label: "Récupéré", progress: 60, tone: "active" },
     in_transit: { label: "En transit", progress: 75, tone: "active" },
     active: { label: "En cours", progress: 60, tone: "active" },
@@ -368,7 +368,7 @@ const HistoryPage = () => {
     const colyTotal = allData.filter((i) => i.category === "coly").reduce((s, i) => s + Math.abs(i.amount), 0);
     const needitTotal = allData.filter((i) => i.category === "needit").reduce((s, i) => s + Math.abs(i.amount), 0);
     return [
-      { name: "Voyageur", value: voyTotal },
+      { name: "Transporteur", value: voyTotal },
       { name: "Colis", value: colyTotal },
       { name: "NeedIt", value: needitTotal },
     ].filter(d => d.value > 0);

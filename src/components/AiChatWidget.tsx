@@ -172,7 +172,7 @@ Disponible directement dans le formulaire de création NeedIt.`,
     questions: [
       {
         id: "pay-escrow",
-        label: "Comment fonctionne l'escrow ?",
+        label: "Comment fonctionne le paiement protégé ?",
         answer: `L'**escrow** est notre système de **paiement sécurisé** :
 
 1. 💳 Tu paies à la création de l'envoi

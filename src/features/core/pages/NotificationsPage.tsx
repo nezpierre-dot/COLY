@@ -41,7 +41,7 @@ const getNotifCategory = (type: string): NotifFilter => {
 
 const filterLabels: { key: NotifFilter; label: string; icon: ReactNode }[] = [
   { key: "all", label: "Tout", icon: <Bell size={14} /> },
-  { key: "match", label: "Match", icon: <Star size={14} /> },
+  { key: "match", label: "Mises en relation", icon: <Star size={14} /> },
   { key: "proof", label: "Preuve", icon: <ShoppingBag size={14} /> },
   { key: "status", label: "Statut", icon: <Package size={14} /> },
   { key: "reminder", label: "Rappel", icon: <Bell size={14} /> },
@@ -358,7 +358,7 @@ export default function NotificationsPage() {
             <div className="mt-8 w-full max-w-sm space-y-2.5">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-left">{t("notif.examples")}</p>
               {[
-                { icon: <CheckCircle2 size={16} className="text-emerald-400" />, title: "Voyageur accepté !", desc: "Un voyageur a pris en charge votre colis Paris → Dakar" },
+                { icon: <CheckCircle2 size={16} className="text-emerald-400" />, title: "Transporteur accepté !", desc: "Un transporteur a pris en charge votre colis Paris → Dakar" },
                 { icon: <Package size={16} className="text-primary" />, title: "Colis en transit", desc: "Votre envoi est en route vers sa destination" },
                 { icon: <ShoppingBag size={16} className="text-accent" />, title: "Mission NeedIt disponible", desc: "Une nouvelle mission correspond à votre trajet" },
                 { icon: <Star size={16} className="text-amber-400" />, title: "Nouvel avis reçu", desc: "Un demandeur vous a noté 5/5 — bravo !" },

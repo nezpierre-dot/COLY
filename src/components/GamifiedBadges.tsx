@@ -92,7 +92,7 @@ export const GAMIFIED_BADGES: BadgeDef[] = [
   },
   {
     id: "kyc_verified",
-    label: "Voyageur Vérifié",
+    label: "Transporteur Vérifié",
     description: "Vérifier son identité (KYC)",
     icon: ShieldCheck,
     tier: "bronze",
