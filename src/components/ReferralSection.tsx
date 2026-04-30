@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Gift, Users, CheckCircle, Share2, Sparkles, Trophy, ArrowRight, Mail, MessageCircle } from "lucide-react";
+import { Copy, Gift, Users, CheckCircle, Share2, Sparkles, Trophy, ArrowRight, Mail, MessageCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -15,8 +15,8 @@ interface Referral {
   created_at: string;
 }
 
-const REFERRER_BONUS = 10;
-const REFEREE_BONUS = 10;
+const REFERRER_POINTS = 100;
+const REFEREE_POINTS = 50;
 
 const ReferralSection = () => {
   const { user } = useAuth();
