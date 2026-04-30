@@ -36,6 +36,7 @@ import {
   Calendar,
   CheckCircle2,
   SkipForward,
+  AlertCircle,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticLight } from "@/lib/haptics";
