@@ -33,10 +33,11 @@ export function prefetchHub(hub: HubKey): void {
 export function prefetchHubOnIdle(hub: HubKey, timeoutMs = 2500): void {
   if (typeof window === "undefined") return;
   const cb = () => prefetchHub(hub);
-  // @ts-expect-error not in lib.dom for older targets
-  if (typeof window.requestIdleCallback === "function") {
-    // @ts-expect-error
-    window.requestIdleCallback(cb, { timeout: timeoutMs });
+  const ric = (window as any).requestIdleCallback as
+    | ((handler: () => void, options?: { timeout?: number }) => number)
+    | undefined;
+  if (typeof ric === "function") {
+    ric(cb, { timeout: timeoutMs });
   } else {
     setTimeout(cb, timeoutMs);
   }
