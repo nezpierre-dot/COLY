@@ -10,6 +10,7 @@ interface AuthContextType {
   roles: AppRole[];
   loading: boolean;
   signOut: () => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType>({
   roles: [],
   loading: true,
   signOut: async () => {},
+  refresh: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -70,8 +72,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRoles([]);
   };
 
+  // Permet de re-fetch les rôles après un toggle_user_role sans reload complet
+  const refresh = async () => {
+    if (user) await fetchRoles(user.id);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, roles, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, roles, loading, signOut, refresh }}>
       {children}
     </AuthContext.Provider>
   );

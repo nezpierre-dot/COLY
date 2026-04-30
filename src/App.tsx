@@ -22,6 +22,7 @@ const Login = lazy(() => import("./features/auth/pages/Login"));
 const ResetPassword = lazy(() => import("./features/auth/pages/ResetPassword"));
 const Terms = lazy(() => import("./features/legal/pages/Terms"));
 const Dashboard = lazy(() => import("./features/core/pages/Dashboard"));
+const HomePage = lazy(() => import("./features/core/pages/HomePage"));
 const SendColy = lazy(() => import("./features/shipment/pages/SendColy"));
 const Settings = lazy(() => import("./features/account/pages/Settings"));
 const MyAccount = lazy(() => import("./features/account/pages/MyAccount"));
@@ -122,7 +123,8 @@ const App = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/terms" element={<Terms />} />
-                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                    <Route path="/dashboard" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path="/dashboard-classic" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                     <Route path="/send-coly" element={<ProtectedRoute><SendColy /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                     <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
