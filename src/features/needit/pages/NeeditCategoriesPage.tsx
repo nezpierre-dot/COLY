@@ -253,22 +253,35 @@ const NeeditCategoriesPage = () => {
           </label>
         </div>
 
-        {/* Suggestions personnalisées */}
+        {/* Suggestions personnalisées — explicables et ignorables */}
         {!q && (
           <Section
             title={t("needit.cat.suggestionsTitle")}
             icon={<Sparkles size={14} className="text-accent" />}
+            action={
+              dismissed.length > 0 ? (
+                <button
+                  onClick={resetDismissed}
+                  className="text-[11px] font-semibold text-primary hover:underline focus-visible:underline focus-visible:outline-none"
+                >
+                  {t("needit.cat.restoreAll")}
+                </button>
+              ) : null
+            }
           >
             {recentLoading ? (
               <SuggestionsSkeleton />
             ) : suggestions.length > 0 ? (
-              <CategoryGrid
+              <SuggestionList
                 items={suggestions}
                 onPick={(k, l) => handlePick(k, l, "suggestion")}
-                accent
-                topLabel={t("needit.cat.top")}
+                onDismiss={dismissSuggestion}
               />
-            ) : null}
+            ) : (
+              <p className="text-xs text-muted-foreground italic px-1">
+                {t("needit.cat.noSuggestions")}
+              </p>
+            )}
           </Section>
         )}
 
