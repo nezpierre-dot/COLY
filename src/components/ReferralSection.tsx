@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Gift, Users, CheckCircle, Share2, Sparkles, Trophy, ArrowRight, Mail, MessageCircle, Star } from "lucide-react";
+import { Copy, Gift, Users, CheckCircle, Share2, Sparkles, ArrowRight, Mail, MessageCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
