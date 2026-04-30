@@ -183,8 +183,9 @@ function checkI18n() {
     const [, key, value] = m;
     if (ALLOWED_KEYS.has(key)) continue;
 
+    const cleaned = neutralize(value);
     for (const re of HARD_VOUVOIEMENT) {
-      if (re.test(value)) {
+      if (re.test(cleaned)) {
         pushViolation(hardViolations, {
           file: "src/lib/i18n.ts", line: i + 1, value,
           reason: `vouvoiement (${re})`, key,
@@ -193,14 +194,14 @@ function checkI18n() {
       }
     }
     for (const { re, msg } of FORBIDDEN_TERMS) {
-      if (re.test(value)) {
+      if (re.test(cleaned)) {
         pushViolation(hardViolations, {
           file: "src/lib/i18n.ts", line: i + 1, value, reason: msg, key,
         });
       }
     }
     for (const { re, msg, name } of AMBIGUOUS_PATTERNS) {
-      if (re.test(value)) {
+      if (re.test(cleaned)) {
         pushViolation(ambiguousViolations, {
           file: "src/lib/i18n.ts", line: i + 1, value,
           reason: `[${name}] ${msg}`, key,
