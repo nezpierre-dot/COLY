@@ -201,6 +201,9 @@ export default function PublicLanding() {
         </div>
       </section>
 
+      {/* Live stats — social proof */}
+      <LiveStatsBar />
+
       {/* Trust */}
       <section className="border-y border-border/50 bg-card/50">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-10 md:grid-cols-3">
