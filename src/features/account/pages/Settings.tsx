@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight, DollarSign, BookOpen, Mail, ScanBarcode } from "lucide-react";
+import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight, DollarSign, BookOpen, Mail, ScanBarcode, HelpCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import BottomNav from "@/components/BottomNav";
+import GlossaryDialog from "@/components/GlossaryDialog";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useCurrencyPreference, AVAILABLE_CURRENCIES } from "@/hooks/useCurrencyPreference";
@@ -30,6 +31,7 @@ const Settings = () => {
   const [showItinerary, setShowItinerary] = useState(true);
   const [trackingAlerts, setTrackingAlerts] = useState(true);
   const [publicRequests, setPublicRequests] = useState(false);
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
