@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, ShieldCheck, Clock, Award } from "lucide-react";
 import Nido from "@/components/Nido";
+import GlossaryButton from "@/components/GlossaryButton";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface KycPaymentGateProps {
@@ -82,6 +83,10 @@ const KycPaymentGate = ({ open, onClose, onContinue }: KycPaymentGateProps) => {
               <p className="mt-4 text-[11px] text-muted-foreground/70">
                 {t("kycGate.savedHint")}
               </p>
+
+              <div className="mt-3">
+                <GlossaryButton variant="link" label={t("kycGate.whatIsKyc")} />
+              </div>
             </div>
           </motion.div>
         </motion.div>

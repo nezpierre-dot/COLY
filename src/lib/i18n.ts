@@ -1681,6 +1681,17 @@ const fr: TranslationDict = {
   "draft.resumeCta": "Continuer",
   "draft.defaultLabel": "brouillon",
   "draft.sendColyLabel": "envoi",
+
+  // ─── KYC Payment Gate ───
+  "kycGate.title": "Une dernière étape 🪺",
+  "kycGate.subtitle": "Avant le paiement, je vérifie votre identité. C'est rapide, sécurisé, et c'est la seule fois.",
+  "kycGate.point1": "5 minutes, une seule fois",
+  "kycGate.point2": "Sécurité de tous, paiement protégé",
+  "kycGate.point3": "Débloque le badge identité vérifiée",
+  "kycGate.cta": "Vérifier mon identité",
+  "kycGate.later": "Plus tard",
+  "kycGate.savedHint": "Votre brouillon est sauvegardé, vous reprendrez ici.",
+  "kycGate.whatIsKyc": "C'est quoi le KYC ?",
 };
 
 const en: TranslationDict = {
@@ -3330,6 +3341,17 @@ const en: TranslationDict = {
   "draft.resumeCta": "Continue",
   "draft.defaultLabel": "draft",
   "draft.sendColyLabel": "shipment",
+
+  // ─── KYC Payment Gate ───
+  "kycGate.title": "One last step 🪺",
+  "kycGate.subtitle": "Before payment, I verify your identity. It's quick, secure, and only happens once.",
+  "kycGate.point1": "5 minutes, just once",
+  "kycGate.point2": "Safe for everyone, protected payment",
+  "kycGate.point3": "Unlocks the verified-identity badge",
+  "kycGate.cta": "Verify my identity",
+  "kycGate.later": "Later",
+  "kycGate.savedHint": "Your draft is saved — you'll resume right here.",
+  "kycGate.whatIsKyc": "What is KYC?",
 };
 
 const es: TranslationDict = {

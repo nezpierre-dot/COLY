@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import Testimonials from "@/components/Testimonials";
 import Nido from "@/components/Nido";
+import GlossaryButton from "@/components/GlossaryButton";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface PopularRoute {
@@ -384,6 +385,9 @@ export default function PublicLanding() {
         <Link to="/confidentialite" className="hover:underline">
           {t("publicFooter.privacy")}
         </Link>
+        <div className="mt-3 flex justify-center">
+          <GlossaryButton variant="subtle" />
+        </div>
       </footer>
     </div>
   );
