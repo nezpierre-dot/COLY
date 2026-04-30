@@ -95,27 +95,33 @@ const ReferralSection = () => {
             <div className="rounded-xl bg-primary/20 p-2 text-primary">
               <Gift size={18} />
             </div>
-            <h3 className="text-base font-bold">Parraine & gagne</h3>
+            <h3 className="text-base font-bold">Parraine & monte en niveau</h3>
             <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
-              <Sparkles size={10} /> Double bonus
+              <Sparkles size={10} /> Programme fidélité
             </span>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-background/60 p-3 backdrop-blur">
               <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tu reçois</div>
-              <div className="mt-1 text-2xl font-extrabold text-success">+{REFERRER_BONUS}€</div>
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-2xl font-extrabold text-success">+{REFERRER_POINTS}</span>
+                <span className="text-xs font-semibold text-success">pts</span>
+              </div>
               <div className="mt-0.5 text-[11px] text-muted-foreground">par filleul actif</div>
             </div>
             <div className="rounded-2xl bg-background/60 p-3 backdrop-blur">
               <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Ton ami reçoit</div>
-              <div className="mt-1 text-2xl font-extrabold text-primary">+{REFEREE_BONUS}€</div>
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-2xl font-extrabold text-primary">+{REFEREE_POINTS}</span>
+                <span className="text-xs font-semibold text-primary">pts</span>
+              </div>
               <div className="mt-0.5 text-[11px] text-muted-foreground">à l'inscription</div>
             </div>
           </div>
 
           <p className="mt-3 text-xs text-muted-foreground">
-            🚀 <span className="font-semibold text-foreground">Sans plafond.</span> Plus tu parraines, plus tu gagnes — utilisable sur tes envois ou retirable.
+            🚀 <span className="font-semibold text-foreground">Sans plafond.</span> Tes points débloquent des badges, priorité de matching et le statut Diamant.
           </p>
         </div>
       </div>
