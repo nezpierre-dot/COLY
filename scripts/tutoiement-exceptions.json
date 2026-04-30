@@ -1,5 +1,5 @@
 {
-  "_comment": "Exceptions approuvées par l'équipe pour le linter de tutoiement. Format: { file: { line: 'snippet attendu' } }. Ajout via: node scripts/check-tutoiement.mjs --approve <file>:<line>",
+  "_comment": "Exceptions approuvées par l'équipe pour le linter de tutoiement. Format: { approved: { file: { line: 'snippet' } }, approvedPatterns: [ ... globaux ], resourceNeutralize: [ { match: 'glob/regex', patterns: ['rendez-vous', ...] } ], maxAmbiguous: N }",
   "approved": {
     "src/lib/i18n.ts": {
       "71": "\"login.resetSent\": \"Un email de réinitialisation t'a été envoyé !\","
@@ -9,9 +9,24 @@
     }
   },
   "approvedPatterns": [
-    "Rendez-vous",
-    "Au-dessus",
-    "Au-dessous",
     "Vous-même"
-  ]
+  ],
+  "resourceNeutralize": [
+    {
+      "_comment": "Pages traitant explicitement de RDV / handover : on neutralise 'rendez-vous' uniquement ici",
+      "match": "src/features/(shipment|voyage|tracking|chat|support)/.*\\.tsx$",
+      "patterns": ["rendez-vous", "rendezvous"]
+    },
+    {
+      "_comment": "Glossaire & onboarding peuvent expliquer 'au-dessus/au-dessous' (positionnel)",
+      "match": "src/components/(GlossaryDialog|CoachMarks|OnboardingFlow|DemandeurOnboarding|VoyageurOnboarding)\\.tsx$",
+      "patterns": ["au-dessus", "au-dessous"]
+    },
+    {
+      "_comment": "i18n peut contenir tous les composés lexicaux légitimes",
+      "match": "src/lib/i18n\\.ts$",
+      "patterns": ["rendez-vous", "rendezvous", "au-dessus", "au-dessous"]
+    }
+  ],
+  "maxAmbiguous": 0
 }

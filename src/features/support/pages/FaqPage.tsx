@@ -27,9 +27,9 @@ export default function FaqPage() {
     {
       id: "envois", icon: Package, label: t("faq.cat.envois"),
       items: [
-        { q: "Comment envoyer un colis ?", a: "Rendez-vous dans ton espace, cliquez sur 'Envoyer un coly', remplissez les informations (destination, taille, tarif proposé) et attendez qu'un voyageur Nidit accepte votre envoi." },
+        { q: "Comment envoyer un colis ?", a: "Rendez-vous dans ton espace, clique sur 'Envoyer un coly', remplis les informations (destination, taille, tarif proposé) et attends qu'un voyageur Nidit accepte ton envoi." },
         { q: "Quelle taille de colis puis-je envoyer ?", a: "Les tailles vont de S (petit, type enveloppe) à XL (grand, type valise). Chaque voyageur décide des tailles qu'il peut transporter selon son espace disponible." },
-        { q: "Que se passe-t-il si mon colis est endommagé ?", a: "Si tu as souscrit l'option d'assurance lors de l'envoi, tu es couvert. Contactez notre support avec la preuve de livraison et les photos du dommage pour lancer une réclamation." },
+        { q: "Que se passe-t-il si mon colis est endommagé ?", a: "Si tu as souscrit l'option d'assurance lors de l'envoi, tu es couvert. Contacte notre support avec la preuve de livraison et les photos du dommage pour lancer une réclamation." },
         { q: "Comment suivre mon colis ?", a: "Chaque envoi dispose d'un suivi en temps réel. Tu reçois des notifications à chaque étape : acceptation, prise en charge, en transit, et livraison avec preuve photo." },
       ],
     },

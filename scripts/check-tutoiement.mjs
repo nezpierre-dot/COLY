@@ -5,25 +5,24 @@
  * Vérifie qu'aucune chaîne user-facing en français n'utilise le vouvoiement
  * et signale les expressions ambiguës en mode "warning" (non bloquant sauf --strict).
  *
- * Couvre :
- *   1. Le bloc FR de src/lib/i18n.ts (détection dynamique)
- *   2. Les chaînes hardcodées (JSX/TSX) hors src/integrations, src/features/admin, i18n.ts
- *
  * Catégories :
  *   - HARD       : violations bloquantes (Vous/Votre/Vos/Veuillez/Transporteur/Expéditeur)
  *   - AMBIGUOUS  : warnings contextuels (ton/ta/t'a/tu as suivi d'article suspect, etc.)
  *
- * Système d'exceptions :
- *   - scripts/tutoiement-exceptions.json
- *   - { approved: { "path/to/file.tsx": { "42": "snippet" } }, approvedPatterns: [...] }
+ * Système d'exceptions (scripts/tutoiement-exceptions.json) :
+ *   - approved              : exceptions ligne par ligne
+ *   - approvedPatterns      : patterns globaux neutralisés partout
+ *   - resourceNeutralize    : whitelist scopée par fichier (regex match → patterns à neutraliser)
+ *   - maxAmbiguous          : seuil par défaut d'ambigus tolérés (0 = aucun)
  *
  * Usage :
- *   node scripts/check-tutoiement.mjs                  # exit 1 sur HARD ou ambigu non approuvé
- *   node scripts/check-tutoiement.mjs --warn-ambiguous # n'échoue que sur HARD
- *   node scripts/check-tutoiement.mjs --strict         # échoue aussi sur ambigus
- *   node scripts/check-tutoiement.mjs --list-ambiguous # affiche uniquement les ambigus
- *   node scripts/check-tutoiement.mjs --approve src/foo.tsx:42  # ajoute aux exceptions
- *   node scripts/check-tutoiement.mjs --fix-list       # liste sans exit code
+ *   node scripts/check-tutoiement.mjs                       # exit 1 sur HARD ou seuil dépassé
+ *   node scripts/check-tutoiement.mjs --warn-ambiguous      # n'échoue que sur HARD
+ *   node scripts/check-tutoiement.mjs --strict              # échoue dès 1 ambigu
+ *   node scripts/check-tutoiement.mjs --max-ambiguous=5     # tolère jusqu'à 5 ambigus
+ *   node scripts/check-tutoiement.mjs --list-ambiguous      # affiche uniquement les ambigus
+ *   node scripts/check-tutoiement.mjs --approve src/foo.tsx:42
+ *   node scripts/check-tutoiement.mjs --fix-list            # liste sans exit code
  */
 
 import fs from "node:fs";
@@ -57,6 +56,15 @@ const approvedPatternRes = (exceptions.approvedPatterns || []).map(
   (p) => new RegExp(p, "i"),
 );
 
+// Whitelist par ressource : { matchRe, patternRes[] }
+const resourceNeutralize = (exceptions.resourceNeutralize || []).map((r) => ({
+  matchRe: new RegExp(r.match),
+  patternRes: (r.patterns || []).map((p) => ({
+    re: new RegExp(`\\b${p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "gi"),
+    token: `__NEUTRALIZED_${p.replace(/[^a-z0-9]/gi, "_").toUpperCase()}__`,
+  })),
+}));
+
 function isApproved(file, line, value) {
   const fileEntry = exceptions.approved?.[file];
   if (fileEntry && (fileEntry[line] || fileEntry[String(line)])) return true;
@@ -65,16 +73,21 @@ function isApproved(file, line, value) {
 }
 
 /**
- * Pré-nettoie une ligne avant matching pour neutraliser les faux-positifs
- * lexicaux (mots composés contenant "vous" comme "rendez-vous", "au-dessous").
+ * Neutralise les faux-positifs lexicaux. Les patterns globaux ("vous-même")
+ * s'appliquent partout ; les patterns scopés (resourceNeutralize) ne s'appliquent
+ * qu'aux fichiers dont le chemin matche le regex `match`.
  */
-function neutralize(text) {
-  return text
-    .replace(/\brendez-vous\b/gi, "RDV")
-    .replace(/\brendezvous\b/gi, "RDV")
-    .replace(/\bau-dessous\b/gi, "DESSOUS")
-    .replace(/\bau-dessus\b/gi, "DESSUS")
-    .replace(/\bvous-même\b/gi, "SOIMEME");
+const GLOBAL_NEUTRALIZE = [
+  { re: /\bvous-même(s)?\b/gi, token: "SOIMEME" },
+];
+function neutralize(text, file = "") {
+  let out = text;
+  for (const { re, token } of GLOBAL_NEUTRALIZE) out = out.replace(re, token);
+  for (const { matchRe, patternRes } of resourceNeutralize) {
+    if (!matchRe.test(file)) continue;
+    for (const { re, token } of patternRes) out = out.replace(re, token);
+  }
+  return out;
 }
 
 // ---- Patterns HARD (violations bloquantes) ---------------------------------
@@ -183,7 +196,7 @@ function checkI18n() {
     const [, key, value] = m;
     if (ALLOWED_KEYS.has(key)) continue;
 
-    const cleaned = neutralize(value);
+    const cleaned = neutralize(value, "src/lib/i18n.ts");
     for (const re of HARD_VOUVOIEMENT) {
       if (re.test(cleaned)) {
         pushViolation(hardViolations, {
@@ -250,7 +263,7 @@ function checkComponents() {
 
       const snippet = trimmed.slice(0, 160);
 
-      const cleaned = neutralize(ln);
+      const cleaned = neutralize(ln, rel);
       for (const re of HARD_VOUVOIEMENT) {
         if (re.test(cleaned)) {
           pushViolation(hardViolations, {
@@ -284,6 +297,23 @@ const flagWarnOnly = args.includes("--warn-ambiguous");
 const flagStrict = args.includes("--strict");
 const flagListAmb = args.includes("--list-ambiguous");
 const approveArg = args.find((a) => a.startsWith("--approve"));
+
+// --max-ambiguous=N : seuil d'ambigus toléré. CLI > exceptions.maxAmbiguous > 0.
+function parseMaxAmbiguous() {
+  const cliArg = args.find((a) => a.startsWith("--max-ambiguous"));
+  if (cliArg) {
+    const raw = cliArg.includes("=")
+      ? cliArg.split("=")[1]
+      : args[args.indexOf(cliArg) + 1];
+    const n = parseInt(raw, 10);
+    if (!Number.isNaN(n) && n >= 0) return n;
+  }
+  if (typeof exceptions.maxAmbiguous === "number" && exceptions.maxAmbiguous >= 0) {
+    return exceptions.maxAmbiguous;
+  }
+  return 0;
+}
+const maxAmbiguous = parseMaxAmbiguous();
 
 // ---- Mode: approve une exception -------------------------------------------
 if (approveArg) {
@@ -354,9 +384,15 @@ if (totalAmb > 0) {
   console.log(`  node scripts/check-tutoiement.mjs --approve <file>:<line>`);
 }
 
-console.log(`\n→ Règle : mem://style/user-facing-wording`);
+const overThreshold = totalAmb > maxAmbiguous;
+console.log(
+  `\nℹ️  Ambigus : ${totalAmb} / seuil ${maxAmbiguous}` +
+    (overThreshold ? "  ❌ seuil dépassé" : "  ✅"),
+);
+console.log(`→ Règle : mem://style/user-facing-wording`);
 
 if (flagFixList) process.exit(0);
 if (totalHard > 0) process.exit(1);
 if (flagStrict && totalAmb > 0) process.exit(1);
+if (!flagWarnOnly && overThreshold) process.exit(1);
 process.exit(0);
