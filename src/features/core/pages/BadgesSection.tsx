@@ -21,16 +21,18 @@ const BadgesSection = () => {
         supabase.from("voyages").select("id", { count: "exact", head: true }).eq("user_id", uid),
         supabase.from("shipments").select("id", { count: "exact", head: true }).eq("voyageur_id", uid).eq("status", "delivered"),
         supabase.from("needit_missions").select("id", { count: "exact", head: true }).eq("voyageur_id", uid).eq("status", "delivered"),
-        supabase.from("ratings_aggregate").select("average_score,total_ratings").eq("user_id", uid).maybeSingle(),
+        supabase.rpc("get_user_rating", { _user_id: uid }),
         supabase.from("profiles").select("kyc_status").eq("id", uid).maybeSingle(),
         supabase.from("referrals").select("id", { count: "exact", head: true }).eq("referrer_id", uid),
       ]);
 
+      const ratingRow = Array.isArray(ratingRes.data) && ratingRes.data.length > 0 ? ratingRes.data[0] : null;
+
       return {
         totalVoyages: voyagesRes.count || 0,
         deliveredCount: shipsRes.count || 0,
-        totalRatings: ratingRes.data?.total_ratings || 0,
-        averageScore: ratingRes.data?.average_score || 0,
+        totalRatings: ratingRow?.total_ratings || 0,
+        averageScore: ratingRow?.average_score || 0,
         kycVerified: profileRes.data?.kyc_status === "verified",
         totalDistance: 0,
         totalMissions: missionsRes.count || 0,
