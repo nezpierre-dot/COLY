@@ -9,6 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import { ListItemSkeleton } from "@/components/Skeletons";
+import CoachMarks, { favoritesCoachSteps } from "@/components/CoachMarks";
 import { toast } from "sonner";
 
 const FavoritesPage = () => {
@@ -63,7 +64,7 @@ const FavoritesPage = () => {
       </header>
 
       <main className="page-content pt-6">
-        <Tabs value={tab} onValueChange={setTab} className="mb-4">
+        <Tabs value={tab} onValueChange={setTab} className="mb-4" data-coach="favorites-list">
           <TabsList className="w-full">
             <TabsTrigger value="routes" className="flex-1 text-xs gap-1"><MapPin size={14} />{t("favorites.tabRoutes")}</TabsTrigger>
             <TabsTrigger value="products" className="flex-1 text-xs gap-1"><Package size={14} />{t("favorites.tabProducts")}</TabsTrigger>
@@ -140,6 +141,7 @@ const FavoritesPage = () => {
         </Tabs>
       </main>
       <BottomNav />
+      <CoachMarks steps={favoritesCoachSteps} storageKey="coach-favorites-done" />
     </div>
   );
 };
