@@ -27,7 +27,7 @@ export default function FaqPage() {
     {
       id: "envois", icon: Package, label: t("faq.cat.envois"),
       items: [
-        { q: "Comment envoyer un colis ?", a: "Rendez-vous dans l'espace Expéditeur, cliquez sur 'Envoyer un coly', remplissez les informations (destination, taille, tarif proposé) et attendez qu'un transporteur accepte votre envoi." },
+        { q: "Comment envoyer un colis ?", a: "Rendez-vous dans ton espace, cliquez sur 'Envoyer un coly', remplissez les informations (destination, taille, tarif proposé) et attendez qu'un voyageur Nidit accepte votre envoi." },
         { q: "Quelle taille de colis puis-je envoyer ?", a: "Les tailles vont de S (petit, type enveloppe) à XL (grand, type valise). Chaque voyageur décide des tailles qu'il peut transporter selon son espace disponible." },
         { q: "Que se passe-t-il si mon colis est endommagé ?", a: "Si vous avez souscrit l'option d'assurance lors de l'envoi, vous êtes couvert. Contactez notre support avec la preuve de livraison et les photos du dommage pour lancer une réclamation." },
         { q: "Comment suivre mon colis ?", a: "Chaque envoi dispose d'un suivi en temps réel. Vous recevez des notifications à chaque étape : acceptation, prise en charge, en transit, et livraison avec preuve photo." },
@@ -36,8 +36,8 @@ export default function FaqPage() {
     {
       id: "voyages", icon: Plane, label: t("faq.cat.voyages"),
       items: [
-        { q: "Comment proposer un voyage ?", a: "Dans l'espace Transporteur, cliquez sur 'Ajouter un voyage'. Indiquez votre trajet (départ, arrivée), les dates, le moyen de transport et vos préférences." },
-        { q: "Combien puis-je gagner en tant que voyageur ?", a: "Les gains dépendent du tarif proposé par l'expéditeur. En moyenne, un voyageur gagne entre 10€ et 80€ par colis transporté, selon la distance et la taille." },
+        { q: "Comment proposer un voyage ?", a: "Dans ton espace voyage, cliquez sur 'Ajouter un voyage'. Indiquez votre trajet (départ, arrivée), les dates, le moyen de transport et vos préférences." },
+        { q: "Combien puis-je gagner en tant que voyageur Nidit ?", a: "Les gains dépendent du tarif que tu proposes. En moyenne, un voyageur Nidit gagne entre 10€ et 80€ par colis transporté, selon la distance et la taille." },
         { q: "Puis-je annuler un voyage ?", a: "Oui, vous pouvez annuler un voyage tant qu'aucun colis n'a été pris en charge." },
       ],
     },
@@ -52,7 +52,7 @@ export default function FaqPage() {
     {
       id: "paiement", icon: CreditCard, label: t("faq.cat.paiement"),
       items: [
-        { q: "Quand suis-je payé en tant que voyageur ?", a: "Le paiement est déclenché après la confirmation de livraison par le destinataire (preuve photo)." },
+        { q: "Quand suis-je payé en tant que voyageur Nidit ?", a: "Le paiement est déclenché après la confirmation de livraison par le destinataire (preuve photo)." },
         { q: "Quels moyens de paiement sont acceptés ?", a: "Nous acceptons les cartes bancaires (Visa, Mastercard), Apple Pay et les virements SEPA." },
         { q: "Y a-t-il des frais de service ?", a: "Une commission de service est appliquée sur chaque transaction. Le montant exact est indiqué avant validation." },
       ],

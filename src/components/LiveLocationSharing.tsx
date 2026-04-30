@@ -149,7 +149,7 @@ const LiveLocationSharing = ({
 
   // Proximity notification thresholds in km
   const PROXIMITY_THRESHOLDS = [
-    { km: 5, title: "📍 Transporteur à proximité", message: "Votre transporteur est à moins de 5 km de la destination !" },
+    { km: 5, title: "📍 Voyageur Nidit à proximité", message: "Ton voyageur Nidit est à moins de 5 km de la destination !" },
     { km: 1, title: "🏁 Arrivée imminente", message: "Le voyageur est à moins de 1 km — préparez-vous !" },
   ];
 

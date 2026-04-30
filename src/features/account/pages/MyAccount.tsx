@@ -515,7 +515,7 @@ const MyAccount = () => {
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-1.5">
                       <User size={12} className="text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">{review.rater_role === "demandeur" ? "Expéditeur" : "Transporteur"}</span>
+                      <span className="text-xs text-muted-foreground">{review.rater_role === "demandeur" ? "Membre" : "Voyageur Nidit"}</span>
                     </div>
                     {!replies[review.id] && replyingTo !== review.id && (
                       <button
