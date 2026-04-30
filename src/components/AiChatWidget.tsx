@@ -1,22 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { MessageCircle, X, Sparkles, Loader2, ChevronLeft, ArrowRight, RotateCcw } from "lucide-react";
+import { MessageCircle, X, Sparkles, ChevronLeft, ArrowRight, RotateCcw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 const HIDDEN_PATHS = ["/", "/signup", "/login", "/reset-password"];
 
 // ---------------- Guided questions catalog ----------------
 type GuidedQuestion = {
   id: string;
   label: string;
-  prompt: string;
+  answer: string; // markdown response, served from frontend (no AI cost)
   link?: { to: string; label: string };
 };
 type GuidedCategory = {
@@ -35,27 +32,50 @@ const CATEGORIES: GuidedCategory[] = [
       {
         id: "envoi-comment",
         label: "Comment envoyer un colis ?",
-        prompt:
-          "Explique-moi étape par étape comment envoyer un colis sur Nidit (les 4 étapes), de manière simple et concise.",
+        answer: `Envoyer un colis sur **Nidit** se fait en **4 étapes** :
+
+1. **Trajet** — indique l'adresse de départ et d'arrivée (précises, avec code d'accès si besoin).
+2. **Colis** — choisis la taille (S, M, L, XL) et ajoute une photo.
+3. **Tarif & options** — fixe ton prix, active l'assurance si tu le souhaites.
+4. **Récap & paiement** — vérifie, paie, et c'est lancé ! 🚀
+
+Le paiement est sécurisé en **escrow** : le voyageur est rémunéré 48h après livraison confirmée.`,
         link: { to: "/send-coly", label: "Créer un envoi" },
       },
       {
         id: "envoi-prix",
         label: "Comment est calculé le prix ?",
-        prompt:
-          "Explique-moi comment est calculé le prix d'un envoi sur Nidit (distance, taille, urgence) et la commission de 15%.",
+        answer: `Le **prix d'un envoi** est libre et fixé par toi, mais Nidit te suggère un tarif basé sur :
+
+- 📏 **La distance** entre départ et arrivée
+- 📦 **La taille du colis** (S, M, L, XL)
+- ⏱️ **L'urgence** (date de livraison souhaitée)
+- 🛡️ **L'assurance** (option)
+
+**Commission Nidit : 15%** prélevée sur le voyageur (incluse dans son revenu net affiché).`,
       },
       {
         id: "envoi-suivi",
         label: "Comment suivre mon colis ?",
-        prompt:
-          "Comment puis-je suivre mon colis en temps réel sur Nidit ? Parle-moi du suivi GPS et des notifications.",
+        answer: `Tu suis ton colis **en temps réel** via :
+
+- 🗺️ **Carte GPS** Mapbox sur la page de suivi
+- 🔔 **Notifications push** à chaque étape (accepté → récupéré → en transit → livré)
+- 📍 **Alertes de proximité** à 5 km puis 1 km de la livraison
+- 📸 **Preuves photo** au pick-up et à la remise
+
+Tu retrouves tout ça dans **Mes envois** > sélectionne ton colis.`,
       },
       {
         id: "envoi-modif",
         label: "Puis-je modifier mon envoi ?",
-        prompt:
-          "Puis-je modifier ou annuler mon envoi après création ? Quelles sont les règles avant et après acceptation par un voyageur ?",
+        answer: `**Avant acceptation** par un voyageur ✅ : tu peux modifier ou annuler librement depuis Mes envois.
+
+**Après acceptation** ❌ : l'envoi est **verrouillé** pour protéger le voyageur.
+
+- Annulation possible **uniquement avant le pick-up**
+- Après pick-up → tu dois **ouvrir un litige** (/litiges)
+- Délai d'escalade : **72h**`,
       },
     ],
   },
@@ -67,21 +87,38 @@ const CATEGORIES: GuidedCategory[] = [
       {
         id: "voyage-comment",
         label: "Comment devenir voyageur ?",
-        prompt:
-          "Comment puis-je devenir voyageur sur Nidit et publier un trajet pour transporter des colis ?",
+        answer: `Pour **devenir voyageur** sur Nidit :
+
+1. Bascule ton rôle dans **Réglages > Mode Voyageur**
+2. Publie un **trajet** (départ, arrivée, date, capacité disponible)
+3. Reçois des **propositions de colis** correspondant à ton trajet
+4. Accepte, récupère, livre — et reçois ton paiement 48h après remise ✅
+
+Le **KYC** (vérification d'identité) est obligatoire avant ton premier colis.`,
         link: { to: "/voyageur-search", label: "Espace voyageur" },
       },
       {
         id: "voyage-gains",
         label: "Combien je peux gagner ?",
-        prompt:
-          "Combien un voyageur peut-il gagner sur Nidit ? Comment sont calculés les revenus par trajet ?",
+        answer: `Tes **revenus voyageur** dépendent de :
+
+- 🛣️ La **distance** parcourue
+- 📦 La **taille** des colis transportés
+- 🌍 **National vs International** (les trajets internationaux paient plus)
+- ⭐ Ton **niveau de fidélité** (Green → Diamant) qui débloque des bonus
+
+Tu touches **85% du tarif fixé** par le demandeur (commission Nidit : 15%). Paiement automatique vers ton wallet 48h après livraison.`,
       },
       {
         id: "voyage-cutoff",
         label: "C'est quoi le cutoff ?",
-        prompt:
-          "Explique-moi le cutoff d'un trajet sur Nidit (entre 6h et 72h avant départ) et ce qui se passe ensuite.",
+        answer: `Le **cutoff** est le délai avant départ à partir duquel ton trajet **n'accepte plus de nouveaux colis**.
+
+- ⏱️ Configurable entre **6h et 72h** avant départ
+- 🚪 Passé ce délai, le trajet est **fermé automatiquement** aux nouveaux matchs
+- ✅ Les colis déjà acceptés restent valides
+
+Cela t'évite d'être sollicité au dernier moment.`,
       },
     ],
   },
@@ -93,20 +130,38 @@ const CATEGORIES: GuidedCategory[] = [
       {
         id: "needit-quoi",
         label: "C'est quoi une mission NeedIt ?",
-        prompt:
-          "Explique-moi simplement ce qu'est une mission NeedIt sur Nidit et en quoi c'est différent d'un envoi de colis classique.",
+        answer: `Une **mission NeedIt** = tu demandes à un voyageur d'**acheter ET rapporter** un produit pour toi.
+
+Différence avec un envoi classique :
+- 📦 **Colis** : tu envoies un objet que tu possèdes déjà
+- 🛒 **NeedIt** : le voyageur **achète** le produit sur place puis te le livre
+
+Idéal pour des produits introuvables chez toi (spécialités locales, éditions limitées, etc.).`,
       },
       {
         id: "needit-creer",
         label: "Comment créer une mission ?",
-        prompt:
-          "Détaille les étapes pour créer une mission NeedIt (catégorie → marque → produit → détails).",
+        answer: `Création d'une mission NeedIt :
+
+1. **Catégorie** → choisis le type de produit
+2. **Marque** → précise si pertinent
+3. **Produit** → nom exact (ou scan du code-barres EAN 📷)
+4. **Détails** → quantité, budget max, photo de référence
+5. **Adresse de livraison** + date souhaitée
+6. **Paiement** sécurisé en escrow
+
+Le voyageur achète, scanne le ticket de caisse comme preuve, te livre.`,
       },
       {
         id: "needit-scan",
         label: "Le scanner code-barres",
-        prompt:
-          "Comment fonctionne le scanner de code-barres EAN dans les missions NeedIt ?",
+        answer: `Le **scanner EAN** te permet d'identifier précisément un produit :
+
+- 📷 Scanne le code-barres avec ton téléphone
+- 🔍 Récupération automatique du nom, marque, photo via **Open Food Facts** + cache interne Nidit
+- ✅ Aucune ambiguïté pour le voyageur — il sait exactement quoi acheter
+
+Disponible directement dans le formulaire de création NeedIt.`,
       },
     ],
   },
@@ -118,21 +173,40 @@ const CATEGORIES: GuidedCategory[] = [
       {
         id: "pay-escrow",
         label: "Comment fonctionne l'escrow ?",
-        prompt:
-          "Explique-moi le système d'escrow (paiement sécurisé) de Nidit et le délai de 48h après livraison.",
+        answer: `L'**escrow** est notre système de **paiement sécurisé** :
+
+1. 💳 Tu paies à la création de l'envoi
+2. 🔒 L'argent est **bloqué** sur un compte Stripe Connect
+3. 📦 Le voyageur livre + tu confirmes via **code OTP**
+4. ⏱️ **48h** après livraison → paiement libéré au voyageur
+5. ⚖️ Pendant ces 48h, tu peux **ouvrir un litige** si problème
+
+Aucun paiement direct entre utilisateurs : Nidit fait l'intermédiaire.`,
       },
       {
         id: "pay-wallet",
         label: "C'est quoi le wallet ?",
-        prompt:
-          "C'est quoi le wallet Nidit ? Comment recharger mon solde et retirer mes gains ?",
+        answer: `Le **wallet Nidit** est ton portefeuille interne :
+
+- 💰 **Recharger** : par carte bancaire (Stripe) ou SEPA
+- 💸 **Retirer** tes gains de voyageur vers ton compte bancaire
+- 📊 **Historique** complet des transactions
+- 🎁 Utilise ton solde pour payer tes futurs envois
+
+Les retraits sont traités sous 1 à 3 jours ouvrés.`,
         link: { to: "/solde", label: "Mon solde" },
       },
       {
         id: "pay-commission",
         label: "Quelle est la commission ?",
-        prompt:
-          "Quelle commission Nidit prend-elle sur chaque transaction ? Comment est-elle répartie ?",
+        answer: `**Commission Nidit : 15%** sur chaque transaction.
+
+Répartition :
+- 👤 **Demandeur** paie le tarif affiché (TTC, sans frais cachés)
+- ✈️ **Voyageur** reçoit **85%** du tarif
+- 🏢 **Nidit** garde **15%** pour : assurance, support, infrastructure, escrow Stripe
+
+Aucun frais d'inscription, aucun abonnement.`,
       },
     ],
   },
@@ -144,14 +218,24 @@ const CATEGORIES: GuidedCategory[] = [
       {
         id: "remise-otp",
         label: "Comment marche le code OTP ?",
-        prompt:
-          "Comment fonctionne le système de double OTP à la remise et à la livraison sur Nidit ?",
+        answer: `Le **double OTP** sécurise les échanges physiques :
+
+🔐 **OTP de pick-up** : le demandeur donne un code au voyageur quand il récupère le colis.
+🔐 **OTP de livraison** : le destinataire donne un code au voyageur à la remise.
+
+Sans ces codes, le statut ne peut pas avancer. Cela garantit que **le bon colis** est remis à la **bonne personne**.`,
       },
       {
         id: "remise-photo",
         label: "Pourquoi des photos ?",
-        prompt:
-          "Pourquoi les photos de pick-up et de livraison sont-elles obligatoires sur Nidit ?",
+        answer: `Les **photos de pick-up et livraison** sont **obligatoires** car elles :
+
+- 📸 Servent de **preuve** en cas de litige
+- 🛡️ Protègent le voyageur (prouve qu'il a bien remis le colis)
+- 🛡️ Protègent le demandeur (prouve l'état du colis à la remise)
+- 🔍 Sont analysées automatiquement par notre système anti-fraude
+
+Sans photo → impossible de valider l'étape.`,
       },
     ],
   },
@@ -163,14 +247,27 @@ const CATEGORIES: GuidedCategory[] = [
       {
         id: "kyc-quoi",
         label: "C'est quoi le KYC ?",
-        prompt:
-          "C'est quoi le KYC sur Nidit ? Pourquoi dois-je vérifier mon identité et quand ?",
+        answer: `**KYC = Know Your Customer** (vérification d'identité).
+
+Sur Nidit, le KYC est **obligatoire** pour :
+- ✈️ Devenir voyageur (transporter des colis)
+- 📦 Envoyer ton **premier** colis (demandeur)
+
+Pourquoi ? Pour **lutter contre la fraude**, respecter la **réglementation** (paiements, douanes) et **rassurer** la communauté.`,
       },
       {
         id: "kyc-quand",
         label: "Quand dois-je le faire ?",
-        prompt:
-          "À quel moment dois-je faire mon KYC sur Nidit ? Est-il obligatoire dès l'inscription ?",
+        answer: `Le KYC est demandé **uniquement au premier envoi** ou à l'activation du mode voyageur — pas à l'inscription.
+
+Processus en **5 étapes** rapides (~3 min) :
+1. Pièce d'identité (carte / passeport)
+2. Selfie de vérification
+3. Adresse postale
+4. Numéro de téléphone
+5. Validation automatique (souvent <1h)
+
+Une fois validé, tu n'as plus jamais à le refaire ✅`,
       },
     ],
   },
@@ -182,21 +279,41 @@ const CATEGORIES: GuidedCategory[] = [
       {
         id: "compte-litiges",
         label: "Comment ouvrir un litige ?",
-        prompt:
-          "Comment ouvrir un litige sur Nidit ? Quel est le délai d'escalade de 72h ?",
+        answer: `Si un problème survient (colis abîmé, non remis, etc.) :
+
+1. Va dans **Mes litiges** depuis ton envoi concerné
+2. Décris le problème + ajoute des **photos**
+3. Notre équipe te répond sous **24h**
+4. Délai d'escalade : **72h** pour fournir tous les éléments
+
+Pendant le litige, le **paiement reste bloqué** en escrow jusqu'à résolution.`,
         link: { to: "/litiges", label: "Mes litiges" },
       },
       {
         id: "compte-fidelite",
         label: "Le programme de fidélité",
-        prompt:
-          "Explique-moi le programme de fidélité Nidit (Green → Diamant) et comment gagner des points.",
+        answer: `**4 niveaux** de fidélité Nidit :
+
+- 🟢 **Green** (départ)
+- 🟡 **Gold** — bonus matchs prioritaires
+- 💎 **Platine** — commission réduite, support prioritaire
+- 💠 **Diamant** — visibilité max, badges exclusifs
+
+**Gagner des points** : livrer des colis, recevoir 5⭐, parrainer des amis, compléter ton profil.
+
+**Perdre des points** : annulations tardives, mauvaises notes, litiges perdus.`,
       },
       {
         id: "compte-notation",
         label: "Comment fonctionne la notation ?",
-        prompt:
-          "Comment fonctionnent les notes et avis sur Nidit (1-5 étoiles, réponse publique, rappel 24h) ?",
+        answer: `Après chaque livraison, **chacun note l'autre** :
+
+- ⭐ **1 à 5 étoiles** + commentaire optionnel
+- 💬 **Réponse publique** possible aux avis reçus
+- 🔔 **Rappel automatique** 24h après livraison si tu n'as pas noté
+- 📊 Ta moyenne est visible sur ton profil
+
+Les notes impactent ton **niveau de fidélité** et ta **visibilité** dans les matchs.`,
       },
     ],
   },
@@ -208,11 +325,9 @@ const AiChatWidget = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [lastQuestion, setLastQuestion] = useState<GuidedQuestion | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
   const prefersReducedMotion = useReducedMotion();
   const launcherRef = useRef<HTMLButtonElement | null>(null);
 
@@ -237,136 +352,20 @@ const AiChatWidget = () => {
     }
   }, [messages, open, activeCategory]);
 
-  useEffect(() => () => abortRef.current?.abort(), []);
-
-  const askQuestion = async (q: GuidedQuestion) => {
-    if (isStreaming) return;
+  const askQuestion = (q: GuidedQuestion) => {
     setLastQuestion(q);
     setActiveCategory(null);
-
-    const userMsg: Msg = { role: "user", content: q.label };
-    const next: Msg[] = [...messages, userMsg, { role: "assistant", content: "" }];
-    setMessages(next);
-    setIsStreaming(true);
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    let assistantSoFar = "";
-    const upsertAssistant = (chunk: string) => {
-      assistantSoFar += chunk;
-      setMessages((prev) =>
-        prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m)),
-      );
-    };
-
-    try {
-      // Send the rich prompt to the AI but display the friendly label to the user
-      const apiMessages = [...messages, { role: "user" as const, content: q.prompt }];
-
-      // Get the current user's access token (NOT the anon publishable key)
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!accessToken) {
-        toast({ title: "Session expirée", description: "Reconnecte-toi pour utiliser l'assistant.", variant: "destructive" });
-        setMessages((prev) => prev.slice(0, -1));
-        setIsStreaming(false);
-        return;
-      }
-
-      const resp = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ messages: apiMessages }),
-        signal: controller.signal,
-      });
-
-      if (!resp.ok) {
-        let errMsg = "Une erreur est survenue. Réessaie dans un instant.";
-        if (resp.status === 429) errMsg = "Trop de messages. Patiente quelques secondes.";
-        else if (resp.status === 402) errMsg = "Crédits IA épuisés. Contacte le support.";
-        try {
-          const data = await resp.json();
-          if (data?.error) errMsg = data.error;
-        } catch { /* keep default */ }
-        toast({ title: "Erreur", description: errMsg, variant: "destructive" });
-        // Remove the empty assistant placeholder
-        setMessages((prev) => prev.slice(0, -1));
-        setIsStreaming(false);
-        return;
-      }
-
-      if (!resp.body) throw new Error("Réponse sans corps");
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let done = false;
-
-      while (!done) {
-        const { done: streamDone, value } = await reader.read();
-        if (streamDone) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        let nl: number;
-        while ((nl = buffer.indexOf("\n")) !== -1) {
-          let line = buffer.slice(0, nl);
-          buffer = buffer.slice(nl + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-          const json = line.slice(6).trim();
-          if (json === "[DONE]") { done = true; break; }
-          try {
-            const parsed = JSON.parse(json);
-            const content: string | undefined = parsed.choices?.[0]?.delta?.content;
-            if (content) upsertAssistant(content);
-          } catch {
-            buffer = line + "\n" + buffer;
-            break;
-          }
-        }
-      }
-
-      if (buffer.trim()) {
-        for (let raw of buffer.split("\n")) {
-          if (!raw) continue;
-          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
-          if (raw.startsWith(":") || raw.trim() === "" || !raw.startsWith("data: ")) continue;
-          const json = raw.slice(6).trim();
-          if (json === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(json);
-            const content: string | undefined = parsed.choices?.[0]?.delta?.content;
-            if (content) upsertAssistant(content);
-          } catch { /* ignore */ }
-        }
-      }
-    } catch (e) {
-      if ((e as { name?: string }).name === "AbortError") return;
-      console.error("AI chat error:", e);
-      toast({
-        title: "Connexion impossible",
-        description: "Vérifie ta connexion internet et réessaie.",
-        variant: "destructive",
-      });
-      setMessages((prev) => prev.slice(0, -1));
-    } finally {
-      setIsStreaming(false);
-      abortRef.current = null;
-    }
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: q.label },
+      { role: "assistant", content: q.answer },
+    ]);
   };
 
   const resetConversation = () => {
-    abortRef.current?.abort();
     setMessages([]);
     setActiveCategory(null);
     setLastQuestion(null);
-    setIsStreaming(false);
   };
 
   const goToLink = (to: string) => {
@@ -432,7 +431,7 @@ const AiChatWidget = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                {messages.length > 0 && !isStreaming && (
+                {messages.length > 0 && (
                   <button
                     onClick={resetConversation}
                     aria-label="Nouvelle conversation"
@@ -475,13 +474,9 @@ const AiChatWidget = () => {
                     }`}
                   >
                     {m.role === "assistant" ? (
-                      m.content ? (
-                        <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-1.5 prose-strong:text-foreground prose-a:text-primary">
-                          <ReactMarkdown>{m.content}</ReactMarkdown>
-                        </div>
-                      ) : (
-                        <Loader2 size={16} className="animate-spin text-muted-foreground" />
-                      )
+                      <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-headings:my-1.5 prose-strong:text-foreground prose-a:text-primary">
+                        <ReactMarkdown>{m.content}</ReactMarkdown>
+                      </div>
                     ) : (
                       <p className="whitespace-pre-wrap">{m.content}</p>
                     )}
@@ -490,7 +485,7 @@ const AiChatWidget = () => {
               ))}
 
               {/* Quick action link after answer */}
-              {!isStreaming && lastQuestion?.link && messages[messages.length - 1]?.role === "assistant" && (
+              {lastQuestion?.link && messages[messages.length - 1]?.role === "assistant" && (
                 <div className="flex justify-start">
                   <button
                     onClick={() => goToLink(lastQuestion.link!.to)}
@@ -515,8 +510,7 @@ const AiChatWidget = () => {
                       <button
                         key={cat.id}
                         onClick={() => setActiveCategory(cat.id)}
-                        disabled={isStreaming}
-                        className="px-3 py-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 disabled:opacity-50 disabled:cursor-not-allowed text-left transition-colors flex items-center gap-2"
+                        className="px-3 py-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 text-left transition-colors flex items-center gap-2"
                       >
                         <span className="text-base shrink-0">{cat.emoji}</span>
                         <span className="text-xs font-medium text-foreground leading-tight">
@@ -546,8 +540,7 @@ const AiChatWidget = () => {
                       <button
                         key={q.id}
                         onClick={() => askQuestion(q)}
-                        disabled={isStreaming}
-                        className="px-3 py-2.5 rounded-xl bg-muted/40 hover:bg-primary/10 hover:border-primary/30 border border-transparent text-left transition-colors text-xs text-foreground disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between gap-2 group"
+                        className="px-3 py-2.5 rounded-xl bg-muted/40 hover:bg-primary/10 hover:border-primary/30 border border-transparent text-left transition-colors text-xs text-foreground flex items-center justify-between gap-2 group"
                       >
                         <span className="leading-snug">{q.label}</span>
                         <ArrowRight size={12} className="text-muted-foreground group-hover:text-primary shrink-0 transition-colors" />
