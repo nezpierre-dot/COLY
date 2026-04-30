@@ -114,6 +114,17 @@ const fr: TranslationDict = {
   "sendWizard.err.destCountryBad": "Caractères non autorisés dans le pays.",
   "sendWizard.err.destCityBad": "Caractères non autorisés dans la ville.",
   "sendWizard.err.sameAsOrigin": "La destination doit être différente du départ.",
+  // SendWizard — saisie assistée
+  "sendWizard.autocomplete.label": "Suggestions d'adresses",
+  "sendWizard.autocomplete.empty": "Aucune correspondance.",
+  "sendWizard.autocomplete.loading": "Recherche en cours…",
+  "sendWizard.autocomplete.hint": "Tape au moins 2 lettres pour voir des suggestions.",
+  "sendWizard.useLocation": "Utiliser ma position actuelle",
+  "sendWizard.useLocationLoading": "Localisation en cours…",
+  "sendWizard.useLocationOk": "Position détectée : {{label}}",
+  "sendWizard.useLocationDenied": "Accès à la position refusé.",
+  "sendWizard.useLocationUnavailable": "Localisation indisponible sur cet appareil.",
+  "sendWizard.useLocationFailed": "Impossible de récupérer ta position.",
   // NeeditCategoriesPage — fallbacks
   "needit.cat.loading": "Chargement des catégories…",
   "needit.cat.errorTitle": "Catégories indisponibles",
