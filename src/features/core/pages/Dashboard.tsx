@@ -11,6 +11,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
+import DraftResumeBanner from "@/components/DraftResumeBanner";
+import { useDraft } from "@/hooks/useDraft";
 import NotificationBell from "@/components/NotificationBell";
 import AdminQuickMenu from "@/components/AdminQuickMenu";
 import { Checkbox } from "@/components/ui/checkbox";
