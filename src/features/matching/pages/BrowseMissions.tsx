@@ -450,7 +450,7 @@ const BrowseMissions = () => {
                 {loading ? (
                   <ListItemSkeleton count={4} />
                 ) : filteredShipments.length === 0 ? (
-                  <EmptyState icon={Package} title={t("browse.emptyShipments")} description={t("browse.emptyDesc")} />
+                  <EmptyState icon={Package} nido="search" title={t("browse.emptyShipments")} description={t("browse.emptyDesc")} />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
                     {paginatedShipments.map((s) => (
@@ -495,7 +495,7 @@ const BrowseMissions = () => {
                 {loading ? (
                   <ListItemSkeleton count={4} />
                 ) : filteredMissions.length === 0 ? (
-                  <EmptyState icon={ShoppingBag} title={t("browse.emptyMissions")} description={t("browse.emptyDesc")} />
+                  <EmptyState icon={ShoppingBag} nido="search" title={t("browse.emptyMissions")} description={t("browse.emptyDesc")} />
                 ) : (
                   <motion.div variants={staggerContainer} initial="initial" animate="animate" className="space-y-3">
                     {paginatedMissions.map((m) => (
