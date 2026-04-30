@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Check, Clock, Truck, Package, MapPin, XCircle } from "lucide-react";
+import Nido from "@/components/Nido";
 
 interface TrackingEvent {
   id: string;
