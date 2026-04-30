@@ -324,20 +324,106 @@ const NeeditCategoriesPage = () => {
 const Section = ({
   title,
   icon,
+  action,
   children,
 }: {
   title: string;
   icon?: React.ReactNode;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) => (
   <section className="mb-8">
-    <h3 className="flex items-center gap-2 text-sm font-bold text-foreground/80 uppercase tracking-wider mb-3 px-1">
-      {icon}
-      {title}
-    </h3>
+    <div className="flex items-center justify-between mb-3 px-1">
+      <h3 className="flex items-center gap-2 text-sm font-bold text-foreground/80 uppercase tracking-wider">
+        {icon}
+        {title}
+      </h3>
+      {action}
+    </div>
     {children}
   </section>
 );
+
+const SuggestionList = ({
+  items,
+  onPick,
+  onDismiss,
+}: {
+  items: Suggestion[];
+  onPick: (key: CategoryKey, label: string) => void;
+  onDismiss: (key: CategoryKey, reason: SuggestionReason) => void;
+}) => {
+  const { t } = useTranslation();
+  const reasonMeta = (s: Suggestion) => {
+    if (s.reason === "recent") {
+      return {
+        Icon: History,
+        // count > 1 → "Commandé X fois", sinon "Déjà commandé"
+        label:
+          s.count && s.count > 1
+            ? t("needit.cat.reason.recentN", { count: String(s.count) })
+            : t("needit.cat.reason.recent"),
+        cls: "bg-primary/10 text-primary",
+      };
+    }
+    return {
+      Icon: TrendingUp,
+      label: t("needit.cat.reason.popular"),
+      cls: "bg-accent/15 text-accent",
+    };
+  };
+
+  return (
+    <ul className="space-y-2.5" role="list">
+      {items.map((s, i) => {
+        const meta = reasonMeta(s);
+        const ReasonIcon = meta.Icon;
+        const dismissAria = t("needit.cat.dismissAria", { label: s.cat.label });
+        return (
+          <motion.li
+            key={s.cat.key}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: Math.min(i * 0.04, 0.2) }}
+            className="relative flex items-center gap-3 p-3 rounded-2xl bg-card border border-border shadow-sm hover:shadow-md transition-all"
+          >
+            <button
+              type="button"
+              onClick={() => onPick(s.cat.key, s.cat.label)}
+              aria-label={s.cat.label}
+              className="flex-1 flex items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl p-1 -m-1"
+            >
+              <img
+                src={s.cat.icon}
+                alt=""
+                aria-hidden="true"
+                className="w-12 h-12 object-contain shrink-0 drop-shadow-sm"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">{s.cat.label}</p>
+                <span
+                  className={`mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.cls}`}
+                >
+                  <ReasonIcon size={10} aria-hidden="true" />
+                  {meta.label}
+                </span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDismiss(s.cat.key, s.reason)}
+              aria-label={dismissAria}
+              title={t("needit.cat.dismiss")}
+              className="shrink-0 w-9 h-9 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              <EyeOff size={16} aria-hidden="true" />
+            </button>
+          </motion.li>
+        );
+      })}
+    </ul>
+  );
+};
 
 const CategoryGrid = ({
   items,
