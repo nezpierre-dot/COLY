@@ -13,6 +13,7 @@ import PageTransition, { staggerContainer, staggerItem } from "@/components/Page
 import EmptyState from "@/components/EmptyState";
 import DraftResumeBanner from "@/components/DraftResumeBanner";
 import SendDraftResumeSlot from "@/components/SendDraftResumeSlot";
+import GettingStartedChecklist from "@/components/GettingStartedChecklist";
 import { useDraft } from "@/hooks/useDraft";
 import NotificationBell from "@/components/NotificationBell";
 import AdminQuickMenu from "@/components/AdminQuickMenu";
