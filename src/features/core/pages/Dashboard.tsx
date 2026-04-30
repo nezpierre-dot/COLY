@@ -896,6 +896,9 @@ const Dashboard = () => {
         {/* Brouillon d'envoi en cours — reprise en 1 clic */}
         <SendDraftResumeSlot onResume={() => navigate("/send-coly")} />
 
+        {/* Checklist de démarrage pour nouveaux users (auto-hide quand complétée) */}
+        <GettingStartedChecklist />
+
         {/* PWA Install Banner */}
         <AnimatePresence>
           {showInstallBanner && (
