@@ -36,7 +36,7 @@ export default function FaqPage() {
     {
       id: "voyages", icon: Plane, label: t("faq.cat.voyages"),
       items: [
-        { q: "Comment proposer un voyage ?", a: "Dans ton espace voyage, clique sur 'Ajouter un voyage'. Indique ton trajet (départ, arrivée), les dates, le moyen de transport et vos préférences." },
+        { q: "Comment proposer un voyage ?", a: "Dans ton espace voyage, clique sur 'Ajouter un voyage'. Indique ton trajet (départ, arrivée), les dates, le moyen de transport et tes préférences." },
         { q: "Combien puis-je gagner en tant que voyageur Nidit ?", a: "Les gains dépendent du tarif que tu proposes. En moyenne, un voyageur Nidit gagne entre 10€ et 80€ par colis transporté, selon la distance et la taille." },
         { q: "Puis-je annuler un voyage ?", a: "Oui, tu peux annuler un voyage tant qu'aucun colis n'a été pris en charge." },
       ],

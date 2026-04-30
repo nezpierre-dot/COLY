@@ -2247,7 +2247,7 @@ const Dashboard = () => {
               {t("dashboard.createVoyageFirstDesc") || "Pour accepter"}{" "}
               <span className="font-semibold text-foreground">{createVoyageDialog?.label}</span>
               {", "}
-              {t("dashboard.createVoyageFirstDesc2") || "tu dois d'abord enregistrer un voyage vers cette destination. Cela permet de vérifier ta capacité d'emport et votre budget."}
+              {t("dashboard.createVoyageFirstDesc2") || "tu dois d'abord enregistrer un voyage vers cette destination. Cela permet de vérifier ta capacité d'emport et ton budget."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
