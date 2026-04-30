@@ -278,6 +278,20 @@ const Settings = () => {
           </Row>
         </Section>
 
+        <Section title={t("settings.help") || "Aide"}>
+          <button
+            type="button"
+            onClick={() => setGlossaryOpen(true)}
+            className="w-full flex items-center justify-between px-4 py-4 hover:bg-muted/40 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <HelpCircle size={22} className="text-foreground" />
+              <span className="text-foreground text-sm font-medium">{t("glossary.title")}</span>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </button>
+        </Section>
+
         <button
           onClick={handleLogout}
           className="w-full py-4 rounded-2xl border border-destructive/30 bg-card text-destructive font-semibold text-sm hover:bg-destructive/10 transition-colors mt-4 shadow-soft"
@@ -285,6 +299,8 @@ const Settings = () => {
           {t("common.logout")}
         </button>
       </main>
+
+      <GlossaryDialog open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
 
       <BottomNav />
     </div>
