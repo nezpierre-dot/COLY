@@ -1,6 +1,6 @@
 import { useEffect, useState, useLayoutEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ArrowRight, ArrowLeft, X, Wallet, Send, Repeat, Sparkles, Plane, Euro, ListChecks, Coins, History } from "lucide-react";
+import { ArrowRight, ArrowLeft, X, Wallet, Send, Repeat, Sparkles, Plane, Euro, ListChecks, Coins, History, Trophy, Heart, Star, Scale } from "lucide-react";
 import { createPortal } from "react-dom";
 
 export interface CoachStep {
@@ -326,6 +326,58 @@ export const walletCoachSteps: CoachStep[] = [
     title: "Historique des transactions",
     description: "Toutes vos opérations passées sont listées ici. Cliquez pour voir le détail de chaque ligne.",
     icon: <History size={18} />,
+  },
+];
+
+// Leaderboard / Gamification coach steps
+export const leaderboardCoachSteps: CoachStep[] = [
+  {
+    selector: "[data-coach='leaderboard-rank']",
+    title: "Votre classement",
+    description: "Plus vous transportez et plus votre note grimpe, plus vous montez dans le classement Voyageurs.",
+    icon: <Trophy size={18} />,
+  },
+  {
+    selector: "[data-coach='leaderboard-badges']",
+    title: "Badges & succès",
+    description: "Débloquez des badges en accomplissant des missions : ils renforcent votre crédibilité.",
+    icon: <Sparkles size={18} />,
+  },
+];
+
+// Loyalty program coach steps
+export const loyaltyCoachSteps: CoachStep[] = [
+  {
+    selector: "[data-coach='loyalty-tier']",
+    title: "Votre niveau de fidélité",
+    description: "Vert, Bronze, Argent, Or, Diamant : chaque niveau débloque des avantages (priorité, frais réduits…).",
+    icon: <Star size={18} />,
+  },
+  {
+    selector: "[data-coach='loyalty-points']",
+    title: "Points & avantages",
+    description: "Gagnez des points à chaque mission et conversion de note. Ils accélèrent votre passage de niveau.",
+    icon: <Sparkles size={18} />,
+  },
+];
+
+// Favorites coach steps
+export const favoritesCoachSteps: CoachStep[] = [
+  {
+    selector: "[data-coach='favorites-list']",
+    title: "Vos favoris",
+    description: "Retrouvez ici vos trajets et produits NeedIt favoris. Un tap pour relancer une recherche similaire.",
+    icon: <Heart size={18} />,
+  },
+];
+
+// Disputes coach steps
+export const disputesCoachSteps: CoachStep[] = [
+  {
+    selector: "[data-coach='disputes-list']",
+    title: "Litiges & escalade",
+    description: "Si quelque chose tourne mal, ouvrez un litige depuis la mission. Vous avez 72h pour escalader si besoin.",
+    icon: <Scale size={18} />,
   },
 ];
 

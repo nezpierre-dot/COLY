@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight, DollarSign, BookOpen, Mail, ScanBarcode } from "lucide-react";
+import { ArrowLeft, User, Bell, BellRing, Shield, Globe, CreditCard, Plane, Package, Sun, Moon, Monitor, Download, ChevronRight, DollarSign, BookOpen, Mail, ScanBarcode, HelpCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import BottomNav from "@/components/BottomNav";
+import GlossaryDialog from "@/components/GlossaryDialog";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useCurrencyPreference, AVAILABLE_CURRENCIES } from "@/hooks/useCurrencyPreference";
@@ -30,6 +31,7 @@ const Settings = () => {
   const [showItinerary, setShowItinerary] = useState(true);
   const [trackingAlerts, setTrackingAlerts] = useState(true);
   const [publicRequests, setPublicRequests] = useState(false);
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -276,6 +278,20 @@ const Settings = () => {
           </Row>
         </Section>
 
+        <Section title={t("settings.help") || "Aide"}>
+          <button
+            type="button"
+            onClick={() => setGlossaryOpen(true)}
+            className="w-full flex items-center justify-between px-4 py-4 hover:bg-muted/40 transition-colors text-left"
+          >
+            <div className="flex items-center gap-3">
+              <HelpCircle size={22} className="text-foreground" />
+              <span className="text-foreground text-sm font-medium">{t("glossary.title")}</span>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </button>
+        </Section>
+
         <button
           onClick={handleLogout}
           className="w-full py-4 rounded-2xl border border-destructive/30 bg-card text-destructive font-semibold text-sm hover:bg-destructive/10 transition-colors mt-4 shadow-soft"
@@ -283,6 +299,8 @@ const Settings = () => {
           {t("common.logout")}
         </button>
       </main>
+
+      <GlossaryDialog open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
 
       <BottomNav />
     </div>

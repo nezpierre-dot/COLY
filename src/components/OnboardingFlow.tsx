@@ -1,13 +1,28 @@
 import { useState, useId, useRef, useEffect } from "react";
 import { motion, AnimatePresence, PanInfo, useReducedMotion } from "framer-motion";
-import { Package, Globe, ShieldCheck, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "@/hooks/useTranslation";
+import Nido, { NidoPose } from "@/components/Nido";
 
 const swipeThreshold = 50;
 
 interface OnboardingFlowProps { onComplete: () => void; }
 
+interface Slide {
+  pose: NidoPose;
+  animate: "float" | "bounce" | "wiggle" | "none";
+  badge: string; // role / concept tag
+  title: string;
+  description: string;
+  accent: string; // Tailwind gradient classes (semantic tokens)
+}
+
+/**
+ * Onboarding storytellé en 3 écrans avec Nido.
+ * Chaque écran présente un concept-clé du vocabulaire Nidit pour réduire
+ * la charge cognitive : Demandeur → Voyageur → NeedIt.
+ */
 const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -18,16 +33,35 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
   const descId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Move focus into the dialog when it mounts so screen readers announce it
-  // and keyboard users land inside.
   useEffect(() => {
     dialogRef.current?.focus();
   }, []);
 
-  const slides = [
-    { icon: <Package size={48} />, title: t("onboarding.slide1Title"), description: t("onboarding.slide1Desc"), accent: "from-primary to-primary/70" },
-    { icon: <Globe size={48} />, title: t("onboarding.slide2Title"), description: t("onboarding.slide2Desc"), accent: "from-secondary to-secondary/70" },
-    { icon: <ShieldCheck size={48} />, title: t("onboarding.slide3Title"), description: t("onboarding.slide3Desc"), accent: "from-accent to-accent/70" },
+  const slides: Slide[] = [
+    {
+      pose: "hello",
+      animate: "wiggle",
+      badge: t("onboarding.badge.demandeur"),
+      title: t("onboarding.slide1Title"),
+      description: t("onboarding.slide1Desc"),
+      accent: "from-primary/30 via-primary/10 to-transparent",
+    },
+    {
+      pose: "fly",
+      animate: "float",
+      badge: t("onboarding.badge.voyageur"),
+      title: t("onboarding.slide2Title"),
+      description: t("onboarding.slide2Desc"),
+      accent: "from-accent/30 via-accent/10 to-transparent",
+    },
+    {
+      pose: "celebrate",
+      animate: "bounce",
+      badge: t("onboarding.badge.needit"),
+      title: t("onboarding.slide3Title"),
+      description: t("onboarding.slide3Desc"),
+      accent: "from-secondary/30 via-secondary/10 to-transparent",
+    },
   ];
 
   const paginate = (dir: number) => {
@@ -42,22 +76,14 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     else if (info.offset.x > swipeThreshold) paginate(-1);
   };
 
-  // When the user finishes onboarding, mark it done, close the dialog
-  // (so focus can return to the Welcome CTA), then navigate.
   const finish = (path: string) => {
     localStorage.setItem("onboarding-done", "1");
     onComplete();
-    if (path !== "/") {
-      navigate(path);
-    }
+    if (path !== "/") navigate(path);
   };
 
   const variants = prefersReducedMotion
-    ? {
-        enter: { x: 0, opacity: 1 },
-        center: { x: 0, opacity: 1 },
-        exit: { x: 0, opacity: 1 },
-      }
+    ? { enter: { x: 0, opacity: 1 }, center: { x: 0, opacity: 1 }, exit: { x: 0, opacity: 1 } }
     : {
         enter: (d: number) => ({ x: d > 0 ? 300 : -300, opacity: 0 }),
         center: { x: 0, opacity: 1 },
@@ -76,8 +102,14 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
       aria-labelledby={titleId}
       aria-describedby={descId}
       data-testid="onboarding-dialog"
-      className="fixed inset-0 z-[100] flex flex-col bg-background outline-none"
+      className="fixed inset-0 z-[100] flex flex-col bg-background outline-none overflow-hidden"
     >
+      {/* Soft ambient gradient backdrop that morphs per slide */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-b ${slide.accent} transition-colors duration-700`}
+      />
+
       {!isLast && (
         <button
           type="button"
@@ -89,7 +121,8 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           {t("onboarding.skip")}
         </button>
       )}
-      <div className="flex-1 flex items-center justify-center overflow-hidden px-6">
+
+      <div className="relative flex-1 flex items-center justify-center overflow-hidden px-6">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={current}
@@ -98,26 +131,31 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={
-              prefersReducedMotion
-                ? { duration: 0 }
-                : { type: "spring", stiffness: 300, damping: 30 }
-            }
+            transition={prefersReducedMotion ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 30 }}
             drag={prefersReducedMotion ? false : "x"}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
             onDragEnd={handleDragEnd}
             className="flex flex-col items-center text-center max-w-sm w-full select-none"
           >
-            <div
-              aria-hidden="true"
-              className={`w-24 h-24 rounded-3xl bg-gradient-to-br ${slide.accent} flex items-center justify-center text-primary-foreground mb-8 shadow-lg`}
-            >
-              {slide.icon}
+            {/* Nido hero */}
+            <div className="mb-6">
+              <Nido
+                pose={slide.pose}
+                size="xl"
+                animate={slide.animate}
+                priority={current === 0}
+              />
             </div>
+
+            {/* Concept badge */}
+            <span className="inline-flex items-center gap-1.5 mb-4 px-3 py-1 rounded-full bg-card/80 backdrop-blur border border-border text-xs font-bold uppercase tracking-wider text-primary">
+              {slide.badge}
+            </span>
+
             <h2
               id={titleId}
-              className="text-2xl font-bold text-foreground whitespace-pre-line leading-tight mb-4"
+              className="text-2xl font-bold text-foreground whitespace-pre-line leading-tight mb-3"
             >
               {slide.title}
             </h2>
@@ -130,10 +168,11 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           </motion.div>
         </AnimatePresence>
       </div>
+
       <div
         role="tablist"
         aria-label="Onboarding progress"
-        className="flex justify-center gap-2 mb-6"
+        className="relative flex justify-center gap-2 mb-6"
       >
         {slides.map((_, i) => (
           <button
@@ -147,7 +186,8 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
           />
         ))}
       </div>
-      <div className="px-6 pb-10 space-y-3">
+
+      <div className="relative px-6 pb-10 space-y-3">
         {isLast ? (
           <>
             <button
