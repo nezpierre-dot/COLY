@@ -25,6 +25,7 @@ const Dashboard = lazy(() => import("./features/core/pages/Dashboard"));
 const HomePage = lazy(() => import("./features/core/pages/HomePage"));
 const SendColy = lazy(() => import("./features/shipment/pages/SendColy"));
 const SendChoice = lazy(() => import("./features/core/pages/SendChoice"));
+const SendWizard = lazy(() => import("./features/core/pages/SendWizard"));
 const Settings = lazy(() => import("./features/account/pages/Settings"));
 const MyAccount = lazy(() => import("./features/account/pages/MyAccount"));
 const NeeditMission = lazy(() => import("./features/needit/pages/NeeditMission"));
@@ -126,7 +127,8 @@ const App = () => {
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/dashboard" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
                     <Route path="/dashboard-classic" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                    <Route path="/send" element={<ProtectedRoute><SendChoice /></ProtectedRoute>} />
+                    <Route path="/send" element={<ProtectedRoute><SendWizard /></ProtectedRoute>} />
+                    <Route path="/send/quick" element={<ProtectedRoute><SendChoice /></ProtectedRoute>} />
                     <Route path="/send-coly" element={<ProtectedRoute><SendColy /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                     <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />

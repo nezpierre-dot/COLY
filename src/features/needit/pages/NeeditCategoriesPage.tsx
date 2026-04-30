@@ -1,34 +1,91 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, X, Sparkles, PenLine } from "lucide-react";
+import { Search, X, Sparkles, PenLine, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey } from "@/lib/categoryIcons";
 import NeeditPageHeader from "../components/NeeditPageHeader";
 import { useNeeditDraft } from "../hooks/useNeeditDraft";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/lib/analytics";
 import needitBagIllustration from "@/assets/illustrations/needit-bag.png";
 
 const NeeditCategoriesPage = () => {
   const navigate = useNavigate();
   const { update, reset } = useNeeditDraft();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
+  const [recentKeys, setRecentKeys] = useState<CategoryKey[]>([]);
+  const [recentLoading, setRecentLoading] = useState(true);
+
+  // Sécurise l'import (si pour une raison quelconque CATEGORIES est vide, on bascule en erreur)
+  const categoriesLoaded = Array.isArray(CATEGORIES) && CATEGORIES.length > 0;
+
+  useEffect(() => {
+    trackEvent("needit_categories_view", "navigation");
+  }, []);
+
+  // Récupère les 3 dernières catégories utilisées par le user (pour suggestions)
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!user) {
+        setRecentLoading(false);
+        return;
+      }
+      try {
+        const { data } = await supabase
+          .from("needit_missions" as any)
+          .select("category_key")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(10);
+        if (cancelled) return;
+        const keys = Array.from(
+          new Set(((data as any[]) || []).map((r) => r.category_key).filter(Boolean))
+        ).slice(0, 3) as CategoryKey[];
+        setRecentKeys(keys);
+      } catch {
+        if (!cancelled) setRecentKeys([]);
+      } finally {
+        if (!cancelled) setRecentLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const q = search.trim().toLowerCase();
 
   const filtered = useMemo(() => {
+    if (!categoriesLoaded) return [];
     if (!q) return CATEGORIES;
     return CATEGORIES.filter((c) => {
       if (c.label.toLowerCase().includes(q)) return true;
       return (c.children || []).some((child) => child.label.toLowerCase().includes(q));
     });
-  }, [q]);
+  }, [q, categoriesLoaded]);
 
   const popular = filtered.filter((c) => c.popular);
   const others = filtered.filter((c) => !c.popular).sort((a, b) => a.label.localeCompare(b.label));
 
-  const handlePick = (key: CategoryKey, label: string) => {
+  // Suggestions = catégories récemment utilisées, à défaut les 3 plus populaires
+  const suggestions = useMemo(() => {
+    if (!categoriesLoaded || q) return [];
+    const fromRecent = recentKeys
+      .map((k) => CATEGORIES.find((c) => c.key === k))
+      .filter(Boolean) as typeof CATEGORIES;
+    if (fromRecent.length > 0) return fromRecent;
+    return CATEGORIES.filter((c) => c.popular).slice(0, 3);
+  }, [categoriesLoaded, q, recentKeys]);
+
+  const handlePick = (key: CategoryKey, label: string, source: string) => {
+    trackEvent("needit_categories_pick", "engagement", { key, source });
     reset();
     update({ categoryKey: key, categoryLabel: label });
     if (BRAND_ENABLED_CATEGORIES.includes(key)) {
@@ -37,6 +94,45 @@ const NeeditCategoriesPage = () => {
       navigate("/needit-mission");
     }
   };
+
+  // -------- Fallback : catégories indisponibles -----------------------------
+  if (!categoriesLoaded) {
+    return (
+      <div className="min-h-screen bg-gradient-soft flex flex-col">
+        <NeeditPageHeader
+          title={t("needit.cat.title")}
+          subtitle={t("needit.cat.step")}
+          onBack={() => navigate("/dashboard")}
+        />
+        <main className="flex-1 px-4 pt-5 pb-32 max-w-2xl mx-auto w-full">
+          <div className="text-center rounded-3xl border border-dashed border-border bg-muted/30 p-8 mt-4">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-destructive/10 flex items-center justify-center">
+              <AlertTriangle className="text-destructive" size={28} />
+            </div>
+            <h3 className="text-base font-semibold text-foreground mb-1">
+              {t("needit.cat.errorTitle")}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-5">{t("needit.cat.errorDesc")}</p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+              >
+                <RefreshCw size={16} /> {t("needit.cat.retry")}
+              </button>
+              <button
+                onClick={() => navigate("/needit-mission")}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-muted text-foreground text-sm font-semibold hover:bg-muted/80 transition-colors"
+              >
+                {t("needit.cat.skipFreeform")}
+              </button>
+            </div>
+          </div>
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-soft flex flex-col">
@@ -75,6 +171,7 @@ const NeeditCategoriesPage = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("needit.cat.searchPh")}
+              aria-label={t("needit.cat.searchPh")}
               className="flex-1 bg-transparent text-base text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
             {search && (
@@ -89,6 +186,25 @@ const NeeditCategoriesPage = () => {
           </label>
         </div>
 
+        {/* Suggestions personnalisées */}
+        {!q && (
+          <Section
+            title={t("needit.cat.suggestionsTitle")}
+            icon={<Sparkles size={14} className="text-accent" />}
+          >
+            {recentLoading ? (
+              <SuggestionsSkeleton />
+            ) : suggestions.length > 0 ? (
+              <CategoryGrid
+                items={suggestions}
+                onPick={(k, l) => handlePick(k, l, "suggestion")}
+                accent
+                topLabel={t("needit.cat.top")}
+              />
+            ) : null}
+          </Section>
+        )}
+
         {filtered.length === 0 ? (
           <EmptyState search={search} onSkip={() => navigate("/needit-mission")} />
         ) : (
@@ -98,13 +214,22 @@ const NeeditCategoriesPage = () => {
                 title={t("needit.cat.popular")}
                 icon={<Sparkles size={14} className="text-accent" />}
               >
-                <CategoryGrid items={popular} onPick={handlePick} accent topLabel={t("needit.cat.top")} />
+                <CategoryGrid
+                  items={popular}
+                  onPick={(k, l) => handlePick(k, l, "popular")}
+                  accent
+                  topLabel={t("needit.cat.top")}
+                />
               </Section>
             )}
 
             {others.length > 0 && (
               <Section title={q ? t("needit.cat.results") : t("needit.cat.all")}>
-                <CategoryGrid items={others} onPick={handlePick} topLabel={t("needit.cat.top")} />
+                <CategoryGrid
+                  items={others}
+                  onPick={(k, l) => handlePick(k, l, q ? "search" : "all")}
+                  topLabel={t("needit.cat.top")}
+                />
               </Section>
             )}
           </>
@@ -154,7 +279,8 @@ const CategoryGrid = ({
         transition={{ delay: Math.min(i * 0.03, 0.25) }}
         whileTap={{ scale: 0.96 }}
         onClick={() => onPick(c.key, c.label)}
-        className={`relative flex flex-col items-center justify-center gap-3 p-5 aspect-[4/5] rounded-3xl bg-card border transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:shadow-sm ${
+        aria-label={c.label}
+        className={`relative flex flex-col items-center justify-center gap-3 p-5 aspect-[4/5] rounded-3xl bg-card border transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:shadow-sm focus-visible:ring-2 focus-visible:ring-primary outline-none ${
           accent ? "border-accent/30 bg-accent/[0.03]" : "border-border"
         }`}
       >
@@ -176,6 +302,17 @@ const CategoryGrid = ({
           {c.label}
         </span>
       </motion.button>
+    ))}
+  </div>
+);
+
+const SuggestionsSkeleton = () => (
+  <div className="grid grid-cols-2 gap-4" aria-hidden="true">
+    {[0, 1, 2].map((i) => (
+      <div
+        key={i}
+        className="aspect-[4/5] rounded-3xl bg-card border border-border animate-pulse"
+      />
     ))}
   </div>
 );
