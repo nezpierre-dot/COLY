@@ -13,19 +13,29 @@
   ],
   "resourceNeutralize": [
     {
-      "_comment": "Pages traitant explicitement de RDV / handover : on neutralise 'rendez-vous' uniquement ici",
-      "match": "src/features/(shipment|voyage|tracking|chat|support)/.*\\.tsx$",
+      "_comment": "Pages métier traitant explicitement de RDV / handover / planning : on neutralise 'rendez-vous'",
+      "match": "src/features/(shipment|voyage|tracking|chat|support|account|needit|matching|disputes)/.*\\.(tsx|ts)$",
       "patterns": ["rendez-vous", "rendezvous"]
     },
     {
+      "_comment": "FAQ & support : peuvent expliquer la mécanique 'rendez-vous', 'au-dessus' (positionnel UI), 'ci-dessus/dessous'",
+      "match": "src/features/support/.*\\.(tsx|ts)$",
+      "patterns": ["rendez-vous", "rendezvous", "au-dessus", "au-dessous", "ci-dessus", "ci-dessous"]
+    },
+    {
       "_comment": "Glossaire & onboarding peuvent expliquer 'au-dessus/au-dessous' (positionnel)",
-      "match": "src/components/(GlossaryDialog|CoachMarks|OnboardingFlow|DemandeurOnboarding|VoyageurOnboarding)\\.tsx$",
-      "patterns": ["au-dessus", "au-dessous"]
+      "match": "src/components/(GlossaryDialog|GlossaryButton|TermTooltip|CoachMarks|OnboardingFlow|DemandeurOnboarding|VoyageurOnboarding|StoryUseCases|Testimonials)\\.tsx$",
+      "patterns": ["au-dessus", "au-dessous", "ci-dessus", "ci-dessous", "rendez-vous"]
+    },
+    {
+      "_comment": "Pages légales (CGU, confidentialité) : composés lexicaux légitimes",
+      "match": "src/features/legal/.*\\.(tsx|ts)$",
+      "patterns": ["rendez-vous", "au-dessus", "au-dessous", "ci-dessus", "ci-dessous", "vis-à-vis"]
     },
     {
       "_comment": "i18n peut contenir tous les composés lexicaux légitimes",
       "match": "src/lib/i18n\\.ts$",
-      "patterns": ["rendez-vous", "rendezvous", "au-dessus", "au-dessous"]
+      "patterns": ["rendez-vous", "rendezvous", "au-dessus", "au-dessous", "ci-dessus", "ci-dessous", "vis-à-vis"]
     }
   ],
   "maxAmbiguous": 0
