@@ -50,11 +50,11 @@ const ReferralSection = () => {
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://nidit.fr";
   const inviteLink = `${baseUrl}/signup?ref=${referralCode}`;
-  const shareText = `🎁 Rejoins Nidit avec mon code ${referralCode} et reçois ${REFEREE_BONUS}€ offerts dès ton inscription ! Envoie ou ramène un colis dans le monde entier en toute confiance.`;
+  const shareText = `✨ Rejoins-moi sur Nidit ! Avec mon code ${referralCode} tu démarres avec ${REFEREE_POINTS} points fidélité — envoie ou ramène un colis dans le monde entier en toute confiance.`;
 
   const copyCode = () => {
     navigator.clipboard.writeText(referralCode);
-    toast.success("Code copié ! 🎁");
+    toast.success("Code copié ! ✨");
   };
 
   const copyLink = () => {
@@ -64,7 +64,7 @@ const ReferralSection = () => {
 
   const shareNative = () => {
     if (navigator.share) {
-      navigator.share({ title: "Nidit - 10€ offerts", text: shareText, url: inviteLink }).catch(() => {});
+      navigator.share({ title: "Rejoins-moi sur Nidit", text: shareText, url: inviteLink }).catch(() => {});
     } else {
       copyLink();
     }
@@ -75,7 +75,7 @@ const ReferralSection = () => {
   };
 
   const shareEmail = () => {
-    window.location.href = `mailto:?subject=${encodeURIComponent("10€ offerts sur Nidit 🎁")}&body=${encodeURIComponent(`${shareText}\n\n${inviteLink}`)}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent("Rejoins-moi sur Nidit ✨")}&body=${encodeURIComponent(`${shareText}\n\n${inviteLink}`)}`;
   };
 
   const validatedCount = referrals.filter(r => r.status === "credited").length;
