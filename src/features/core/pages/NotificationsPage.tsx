@@ -358,7 +358,7 @@ export default function NotificationsPage() {
             <div className="mt-8 w-full max-w-sm space-y-2.5">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-left">{t("notif.examples")}</p>
               {[
-                { icon: <CheckCircle2 size={16} className="text-emerald-400" />, title: "Voyageur Nidit accepté !", desc: "Un voyageur Nidit a pris en charge votre colis Paris → Dakar" },
+                { icon: <CheckCircle2 size={16} className="text-emerald-400" />, title: "Voyageur Nidit accepté !", desc: "Un voyageur Nidit a pris en charge ton colis Paris → Dakar" },
                 { icon: <Package size={16} className="text-primary" />, title: "Colis en transit", desc: "Ton envoi est en route vers sa destination" },
                 { icon: <ShoppingBag size={16} className="text-accent" />, title: "Mission NeedIt disponible", desc: "Une nouvelle mission correspond à ton trajet" },
                 { icon: <Star size={16} className="text-amber-400" />, title: "Nouvel avis reçu", desc: "Un membre t'a noté 5/5 — bravo !" },
