@@ -37,10 +37,20 @@ import {
   CheckCircle2,
   SkipForward,
   AlertCircle,
+  Loader2,
+  LocateFixed,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticLight } from "@/lib/haptics";
 import { trackEvent } from "@/lib/analytics";
+import {
+  searchPlaces,
+  reverseGeocode,
+  requestUserLocation,
+  normalizePlaceText,
+  type PlaceSuggestion,
+} from "@/lib/placeSearch";
+import { toast } from "sonner";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 
@@ -610,46 +620,328 @@ const CityCountryStep = ({
   setCity: (v: string) => void;
   countryErr: string | null;
   cityErr: string | null;
-}) => (
-  <div className="space-y-4">
-    <Field label={countryLabel} required error={countryErr} htmlFor="wiz-country">
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true">
-          {icon}
-        </span>
-        <input
-          id="wiz-country"
+}) => {
+  const { t } = useTranslation();
+  const [locating, setLocating] = useState(false);
+
+  // When user picks a suggestion: fill both fields atomically.
+  const applySuggestion = (s: PlaceSuggestion) => {
+    if (s.country) setCountry(s.country);
+    if (s.city) setCity(s.city);
+    hapticLight();
+  };
+
+  const handleUseCurrentLocation = async () => {
+    if (locating) return;
+    setLocating(true);
+    trackEvent("send_wizard_use_location", "navigation");
+    try {
+      const pos = await requestUserLocation();
+      const place = await reverseGeocode(pos.coords.longitude, pos.coords.latitude);
+      if (place && (place.city || place.country)) {
+        applySuggestion(place);
+        toast.success(
+          t("sendWizard.useLocationOk", { label: place.label || place.city }),
+        );
+      } else {
+        toast.error(t("sendWizard.useLocationFailed"));
+      }
+    } catch (err: any) {
+      const code = err?.code;
+      if (code === 1) toast.error(t("sendWizard.useLocationDenied"));
+      else if (err?.message === "geolocation_unavailable")
+        toast.error(t("sendWizard.useLocationUnavailable"));
+      else toast.error(t("sendWizard.useLocationFailed"));
+    } finally {
+      setLocating(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <button
+        type="button"
+        onClick={handleUseCurrentLocation}
+        disabled={locating}
+        className="inline-flex items-center gap-2 text-xs font-medium text-primary hover:underline disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-primary rounded-md px-1 py-0.5 outline-none"
+        aria-label={t("sendWizard.useLocation")}
+      >
+        {locating ? (
+          <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+        ) : (
+          <LocateFixed size={14} aria-hidden="true" />
+        )}
+        {locating ? t("sendWizard.useLocationLoading") : t("sendWizard.useLocation")}
+      </button>
+
+      <Field label={cityLabel} required error={cityErr} htmlFor="wiz-city">
+        <PlaceAutocompleteInput
+          id="wiz-city"
+          value={city}
+          onChange={(v) => setCity(v)}
+          onPick={applySuggestion}
+          placeholder={cityPh}
+          hasError={!!cityErr}
           autoFocus
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          placeholder={countryPh}
-          className={inputBase(!!countryErr) + " pl-10"}
-          aria-invalid={!!countryErr}
-          aria-required="true"
-          aria-describedby={countryErr ? "wiz-country-err" : undefined}
-          autoComplete="country-name"
-          maxLength={80}
+          autoComplete="address-level2"
           enterKeyHint="next"
+          countryFilter={country}
+          icon={icon}
         />
+      </Field>
+
+      <Field label={countryLabel} required error={countryErr} htmlFor="wiz-country">
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true">
+            {icon}
+          </span>
+          <input
+            id="wiz-country"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            onBlur={(e) => setCountry(normalizePlaceText(e.target.value))}
+            placeholder={countryPh}
+            className={inputBase(!!countryErr) + " pl-10"}
+            aria-invalid={!!countryErr}
+            aria-required="true"
+            aria-describedby={countryErr ? "wiz-country-err" : undefined}
+            autoComplete="country-name"
+            maxLength={80}
+            enterKeyHint="next"
+            spellCheck={false}
+          />
+        </div>
+      </Field>
+    </div>
+  );
+};
+
+/**
+ * PlaceAutocompleteInput
+ * - debounced Mapbox forward geocoding
+ * - WAI-ARIA combobox pattern (listbox + activedescendant)
+ * - keyboard nav: ArrowUp/ArrowDown, Enter to select, Escape to close
+ * - normalizes value on blur (trim + collapse spaces)
+ */
+const PlaceAutocompleteInput = ({
+  id,
+  value,
+  onChange,
+  onPick,
+  placeholder,
+  hasError,
+  autoFocus,
+  autoComplete,
+  enterKeyHint,
+  icon,
+  countryFilter,
+}: {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  onPick: (s: PlaceSuggestion) => void;
+  placeholder: string;
+  hasError: boolean;
+  autoFocus?: boolean;
+  autoComplete?: string;
+  enterKeyHint?: "next" | "done" | "go" | "search" | "send";
+  icon?: React.ReactNode;
+  countryFilter?: string;
+}) => {
+  const { t } = useTranslation();
+  const [items, setItems] = useState<PlaceSuggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [active, setActive] = useState(-1);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const lastQueryRef = useRef<string>("");
+  const justPickedRef = useRef(false);
+
+  // Debounced search effect
+  useEffect(() => {
+    const q = normalizePlaceText(value);
+    if (justPickedRef.current) {
+      justPickedRef.current = false;
+      return;
+    }
+    if (q.length < 2) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+    const ctrl = new AbortController();
+    setLoading(true);
+    const t = setTimeout(async () => {
+      lastQueryRef.current = q;
+      const results = await searchPlaces(q, { signal: ctrl.signal, limit: 6 });
+      // Light client-side bias by countryFilter (case-insensitive contains)
+      const filtered = countryFilter?.trim()
+        ? [
+            ...results.filter((r) =>
+              r.country?.toLowerCase().includes(countryFilter.trim().toLowerCase()),
+            ),
+            ...results.filter(
+              (r) => !r.country?.toLowerCase().includes(countryFilter.trim().toLowerCase()),
+            ),
+          ]
+        : results;
+      if (lastQueryRef.current === q) {
+        setItems(filtered);
+        setLoading(false);
+        setActive(filtered.length > 0 ? 0 : -1);
+      }
+    }, 220);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [value, countryFilter]);
+
+  // Close on outside click
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  const select = (idx: number) => {
+    const s = items[idx];
+    if (!s) return;
+    justPickedRef.current = true;
+    onPick(s);
+    setOpen(false);
+    setItems([]);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+      setOpen(true);
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((a) => Math.min(a + 1, items.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((a) => Math.max(a - 1, 0));
+    } else if (e.key === "Enter") {
+      if (open && active >= 0 && items[active]) {
+        e.preventDefault();
+        select(active);
+      }
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
+  const listboxId = `${id}-listbox`;
+  const showList = open && (loading || items.length > 0 || normalizePlaceText(value).length >= 2);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className="relative">
+        {icon && (
+          <span
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          >
+            {icon}
+          </span>
+        )}
+        <input
+          id={id}
+          autoFocus={autoFocus}
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={(e) => {
+            // Defer so a click on a suggestion can fire first
+            setTimeout(() => onChange(normalizePlaceText(e.target.value)), 120);
+          }}
+          onKeyDown={onKeyDown}
+          placeholder={placeholder}
+          className={inputBase(hasError) + (icon ? " pl-10" : "") + " pr-10"}
+          aria-invalid={hasError}
+          aria-required="true"
+          aria-describedby={hasError ? `${id}-err` : undefined}
+          autoComplete={autoComplete ?? "off"}
+          maxLength={80}
+          enterKeyHint={enterKeyHint}
+          spellCheck={false}
+          role="combobox"
+          aria-expanded={showList}
+          aria-controls={listboxId}
+          aria-autocomplete="list"
+          aria-activedescendant={
+            active >= 0 && items[active] ? `${id}-opt-${active}` : undefined
+          }
+        />
+        {loading && (
+          <Loader2
+            size={16}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground animate-spin"
+            aria-hidden="true"
+          />
+        )}
       </div>
-    </Field>
-    <Field label={cityLabel} required error={cityErr} htmlFor="wiz-city">
-      <input
-        id="wiz-city"
-        value={city}
-        onChange={(e) => setCity(e.target.value)}
-        placeholder={cityPh}
-        className={inputBase(!!cityErr)}
-        aria-invalid={!!cityErr}
-        aria-required="true"
-        aria-describedby={cityErr ? "wiz-city-err" : undefined}
-        autoComplete="address-level2"
-        maxLength={80}
-        enterKeyHint="next"
-      />
-    </Field>
-  </div>
-);
+
+      {showList && (
+        <ul
+          id={listboxId}
+          role="listbox"
+          aria-label={t("sendWizard.autocomplete.label")}
+          className="absolute z-20 left-0 right-0 mt-1 max-h-64 overflow-auto rounded-xl border border-border bg-popover shadow-lg text-sm"
+        >
+          {loading && items.length === 0 && (
+            <li className="px-3 py-2 text-muted-foreground" aria-disabled="true">
+              {t("sendWizard.autocomplete.loading")}
+            </li>
+          )}
+          {!loading && items.length === 0 && (
+            <li className="px-3 py-2 text-muted-foreground" aria-disabled="true">
+              {t("sendWizard.autocomplete.empty")}
+            </li>
+          )}
+          {items.map((s, i) => {
+            const isActive = i === active;
+            return (
+              <li
+                key={s.id}
+                id={`${id}-opt-${i}`}
+                role="option"
+                aria-selected={isActive}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  select(i);
+                }}
+                onMouseEnter={() => setActive(i)}
+                className={`px-3 py-2 cursor-pointer flex items-center gap-2 ${
+                  isActive ? "bg-primary/10 text-foreground" : "text-foreground"
+                }`}
+              >
+                <MapPin size={14} className="text-muted-foreground shrink-0" aria-hidden="true" />
+                <span className="truncate">
+                  <span className="font-medium">{s.city}</span>
+                  {s.region && (
+                    <span className="text-muted-foreground"> · {s.region}</span>
+                  )}
+                  {s.country && (
+                    <span className="text-muted-foreground"> · {s.country}</span>
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+};
 
 const DateStep = ({
   value,
