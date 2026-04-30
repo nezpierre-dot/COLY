@@ -892,6 +892,9 @@ const Dashboard = () => {
 
         <div className="px-5 pt-4 sm:px-8 relative z-10 space-y-5">
 
+        {/* Brouillon d'envoi en cours — reprise en 1 clic */}
+        <DraftResumeBannerSlot onResume={() => navigate("/send-coly")} />
+
         {/* PWA Install Banner */}
         <AnimatePresence>
           {showInstallBanner && (
