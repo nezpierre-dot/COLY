@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import PageTransition from "@/components/PageTransition";
+import CoachMarks, { leaderboardCoachSteps } from "@/components/CoachMarks";
 import { useTranslation } from "@/hooks/useTranslation";
 
 const PODIUM_STYLES = [
@@ -57,12 +58,13 @@ const LeaderboardPage = () => {
             <ArrowLeft size={18} className="text-foreground" />
           </button>
 
-          <div className="text-center mt-2">
+          <div className="text-center mt-2" data-coach="leaderboard-rank">
             <motion.div
               initial={{ scale: 0, rotate: -30 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 15 }}
               className="w-14 h-14 rounded-2xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center mx-auto mb-3"
+              data-coach="leaderboard-badges"
             >
               <Trophy size={28} className="text-amber-500" />
             </motion.div>
@@ -168,6 +170,7 @@ const LeaderboardPage = () => {
 
         <BottomNav />
       </div>
+      <CoachMarks steps={leaderboardCoachSteps} storageKey="coach-leaderboard-done" />
     </PageTransition>
   );
 };
