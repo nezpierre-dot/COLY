@@ -285,7 +285,7 @@ const SendWizard = () => {
               current: String(step),
               total: "4",
               label: STEP_LABELS[step - 1],
-            } as any)}
+            })}
           </p>
         </div>
 
