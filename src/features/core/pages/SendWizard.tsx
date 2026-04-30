@@ -37,10 +37,20 @@ import {
   CheckCircle2,
   SkipForward,
   AlertCircle,
+  Loader2,
+  LocateFixed,
 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticLight } from "@/lib/haptics";
 import { trackEvent } from "@/lib/analytics";
+import {
+  searchPlaces,
+  reverseGeocode,
+  requestUserLocation,
+  normalizePlaceText,
+  type PlaceSuggestion,
+} from "@/lib/placeSearch";
+import { toast } from "sonner";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
 
