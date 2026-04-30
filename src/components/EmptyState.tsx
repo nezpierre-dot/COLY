@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 import { ReactNode } from "react";
+import Nido, { NidoPose } from "@/components/Nido";
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -8,6 +9,8 @@ interface EmptyStateProps {
   description: string;
   action?: ReactNode;
   illustration?: string; // optional 3D illustration url; takes precedence over icon
+  /** When set, displays the Nido mascot in the chosen pose (takes precedence over illustration & icon) */
+  nido?: NidoPose;
 }
 
 const EmptyState = ({ icon: Icon, title, description, action, illustration }: EmptyStateProps) => (
