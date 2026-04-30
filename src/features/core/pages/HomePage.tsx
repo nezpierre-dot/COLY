@@ -295,7 +295,7 @@ const HomePage = () => {
     if (prefetchedRef.current.has(hub)) return;
     prefetchedRef.current.add(hub);
     prefetchHub(hub);
-    trackEvent("home_shortcut_prefetch", "performance", { shortcut: hub });
+    trackEvent("home_shortcut_prefetch", "engagement", { shortcut: hub });
   };
 
   return (
