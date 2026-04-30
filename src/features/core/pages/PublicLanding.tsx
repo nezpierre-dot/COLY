@@ -350,6 +350,9 @@ export default function PublicLanding() {
         </div>
       </section>
 
+      {/* Emotional storytelling — real-life use cases */}
+      <StoryUseCases />
+
       {/* Testimonials */}
       <Testimonials />
 
