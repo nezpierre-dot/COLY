@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Copy, Gift, Users, CheckCircle, Share2, Sparkles, Trophy, ArrowRight, Mail, MessageCircle } from "lucide-react";
+import { Copy, Gift, Users, CheckCircle, Share2, Sparkles, ArrowRight, Mail, MessageCircle, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
@@ -15,8 +15,8 @@ interface Referral {
   created_at: string;
 }
 
-const REFERRER_BONUS = 10;
-const REFEREE_BONUS = 10;
+const REFERRER_POINTS = 100;
+const REFEREE_POINTS = 50;
 
 const ReferralSection = () => {
   const { user } = useAuth();
@@ -50,11 +50,11 @@ const ReferralSection = () => {
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://nidit.fr";
   const inviteLink = `${baseUrl}/signup?ref=${referralCode}`;
-  const shareText = `🎁 Rejoins Nidit avec mon code ${referralCode} et reçois ${REFEREE_BONUS}€ offerts dès ton inscription ! Envoie ou ramène un colis dans le monde entier en toute confiance.`;
+  const shareText = `✨ Rejoins-moi sur Nidit ! Avec mon code ${referralCode} tu démarres avec ${REFEREE_POINTS} points fidélité — envoie ou ramène un colis dans le monde entier en toute confiance.`;
 
   const copyCode = () => {
     navigator.clipboard.writeText(referralCode);
-    toast.success("Code copié ! 🎁");
+    toast.success("Code copié ! ✨");
   };
 
   const copyLink = () => {
@@ -64,7 +64,7 @@ const ReferralSection = () => {
 
   const shareNative = () => {
     if (navigator.share) {
-      navigator.share({ title: "Nidit - 10€ offerts", text: shareText, url: inviteLink }).catch(() => {});
+      navigator.share({ title: "Rejoins-moi sur Nidit", text: shareText, url: inviteLink }).catch(() => {});
     } else {
       copyLink();
     }
@@ -75,7 +75,7 @@ const ReferralSection = () => {
   };
 
   const shareEmail = () => {
-    window.location.href = `mailto:?subject=${encodeURIComponent("10€ offerts sur Nidit 🎁")}&body=${encodeURIComponent(`${shareText}\n\n${inviteLink}`)}`;
+    window.location.href = `mailto:?subject=${encodeURIComponent("Rejoins-moi sur Nidit ✨")}&body=${encodeURIComponent(`${shareText}\n\n${inviteLink}`)}`;
   };
 
   const validatedCount = referrals.filter(r => r.status === "credited").length;
@@ -95,27 +95,33 @@ const ReferralSection = () => {
             <div className="rounded-xl bg-primary/20 p-2 text-primary">
               <Gift size={18} />
             </div>
-            <h3 className="text-base font-bold">Parraine & gagne</h3>
+            <h3 className="text-base font-bold">Parraine & monte en niveau</h3>
             <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
-              <Sparkles size={10} /> Double bonus
+              <Sparkles size={10} /> Programme fidélité
             </span>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-2xl bg-background/60 p-3 backdrop-blur">
               <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tu reçois</div>
-              <div className="mt-1 text-2xl font-extrabold text-success">+{REFERRER_BONUS}€</div>
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-2xl font-extrabold text-success">+{REFERRER_POINTS}</span>
+                <span className="text-xs font-semibold text-success">pts</span>
+              </div>
               <div className="mt-0.5 text-[11px] text-muted-foreground">par filleul actif</div>
             </div>
             <div className="rounded-2xl bg-background/60 p-3 backdrop-blur">
               <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Ton ami reçoit</div>
-              <div className="mt-1 text-2xl font-extrabold text-primary">+{REFEREE_BONUS}€</div>
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-2xl font-extrabold text-primary">+{REFEREE_POINTS}</span>
+                <span className="text-xs font-semibold text-primary">pts</span>
+              </div>
               <div className="mt-0.5 text-[11px] text-muted-foreground">à l'inscription</div>
             </div>
           </div>
 
           <p className="mt-3 text-xs text-muted-foreground">
-            🚀 <span className="font-semibold text-foreground">Sans plafond.</span> Plus tu parraines, plus tu gagnes — utilisable sur tes envois ou retirable.
+            🚀 <span className="font-semibold text-foreground">Sans plafond.</span> Tes points débloquent des badges, priorité de matching et le statut Diamant.
           </p>
         </div>
       </div>
@@ -166,9 +172,9 @@ const ReferralSection = () => {
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Validés</p>
         </div>
         <div className="rounded-2xl bg-card border border-border p-3 text-center">
-          <Trophy size={16} className="text-amber-500 mx-auto mb-1" />
-          <p className="text-lg font-bold">{totalBonus}€</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Gagnés</p>
+          <Star size={16} className="text-amber-500 mx-auto mb-1 fill-amber-500" />
+          <p className="text-lg font-bold">{validatedCount * REFERRER_POINTS}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Points</p>
         </div>
       </div>
 
@@ -206,7 +212,7 @@ const ReferralSection = () => {
                 <span className="text-xs">Filleul inscrit</span>
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-bold ${r.status === "credited" ? "text-success" : "text-amber-500"}`}>
-                    {r.status === "credited" ? `+${REFERRER_BONUS}€` : "En attente"}
+                    {r.status === "credited" ? `+${REFERRER_POINTS} pts` : "En attente"}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
                     {new Date(r.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
