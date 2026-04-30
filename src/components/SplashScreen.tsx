@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import logo from "@/assets/logo-full.png";
+import Nido from "@/components/Nido";
 
 const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
   const [visible, setVisible] = useState(true);
@@ -35,14 +36,24 @@ const SplashScreen = ({ onFinished }: { onFinished: () => void }) => {
 
           {/* Centered content */}
           <div className="flex-1 flex flex-col items-center justify-center">
-            {/* Logo icon */}
+            {/* Nido mascot */}
             <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
+              initial={{ scale: 0.5, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-              className="mb-8"
+              className="mb-4"
             >
-              <img src={logo} alt="Nidit" className="w-60 h-60 object-contain" />
+              <Nido pose="hello" size="xl" animate="float" priority />
+            </motion.div>
+
+            {/* Logo wordmark */}
+            <motion.div
+              initial={{ y: 15, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="mb-4"
+            >
+              <img src={logo} alt="Nidit" className="h-16 object-contain" />
             </motion.div>
 
             {/* Tagline */}
