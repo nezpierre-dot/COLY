@@ -1647,6 +1647,12 @@ const fr: TranslationDict = {
   "compta.empty": "Aucun relevé pour le moment",
   "compta.addRib": "Ajouter RIB",
 
+  // ─── Drafts (auto-save) ───
+  "draft.resumeTitle": "Reprendre votre {{label}} ?",
+  "draft.savedAt": "Sauvegardé le {{when}}",
+  "draft.resumeCta": "Continuer",
+  "draft.defaultLabel": "brouillon",
+  "draft.sendColyLabel": "envoi",
 };
 
 const en: TranslationDict = {
@@ -3262,6 +3268,12 @@ const en: TranslationDict = {
   "compta.empty": "No statements yet",
   "compta.addRib": "Add bank details",
 
+  // ─── Drafts (auto-save) ───
+  "draft.resumeTitle": "Resume your {{label}}?",
+  "draft.savedAt": "Saved on {{when}}",
+  "draft.resumeCta": "Continue",
+  "draft.defaultLabel": "draft",
+  "draft.sendColyLabel": "shipment",
 };
 
 const es: TranslationDict = {
@@ -3918,6 +3930,12 @@ const es: TranslationDict = {
   "compta.empty": "Aún no hay extractos",
   "compta.addRib": "Añadir IBAN",
 
+  // ─── Drafts (auto-save) ───
+  "draft.resumeTitle": "¿Continuar tu {{label}}?",
+  "draft.savedAt": "Guardado el {{when}}",
+  "draft.resumeCta": "Continuar",
+  "draft.defaultLabel": "borrador",
+  "draft.sendColyLabel": "envío",
 };
 
 const de: TranslationDict = {
@@ -4524,6 +4542,12 @@ const de: TranslationDict = {
   "compta.empty": "Noch keine Auszüge",
   "compta.addRib": "Bankverbindung hinzufügen",
 
+  // ─── Drafts (auto-save) ───
+  "draft.resumeTitle": "{{label}} fortsetzen?",
+  "draft.savedAt": "Gespeichert am {{when}}",
+  "draft.resumeCta": "Fortfahren",
+  "draft.defaultLabel": "Entwurf",
+  "draft.sendColyLabel": "Sendung",
 };
 
 // Partial dicts for pt, it, ar – they fall back to fr for missing keys
@@ -5092,6 +5116,12 @@ const pt: TranslationDict = {
   "compta.empty": "Ainda sem extratos",
   "compta.addRib": "Adicionar IBAN",
 
+  // ─── Drafts (auto-save) ───
+  "draft.resumeTitle": "Retomar o seu {{label}}?",
+  "draft.savedAt": "Guardado em {{when}}",
+  "draft.resumeCta": "Continuar",
+  "draft.defaultLabel": "rascunho",
+  "draft.sendColyLabel": "envio",
 };
 
 const it: TranslationDict = {
@@ -5659,6 +5689,12 @@ const it: TranslationDict = {
   "compta.empty": "Nessun estratto al momento",
   "compta.addRib": "Aggiungi IBAN",
 
+  // ─── Drafts (auto-save) ───
+  "draft.resumeTitle": "Riprendere la tua {{label}}?",
+  "draft.savedAt": "Salvato il {{when}}",
+  "draft.resumeCta": "Continua",
+  "draft.defaultLabel": "bozza",
+  "draft.sendColyLabel": "spedizione",
 };
 
 const ar: TranslationDict = {
@@ -6226,6 +6262,12 @@ const ar: TranslationDict = {
   "compta.empty": "لا توجد كشوف حتى الآن",
   "compta.addRib": "إضافة IBAN",
 
+  // ─── Drafts (auto-save) ───
+  "draft.resumeTitle": "هل تريد متابعة {{label}}؟",
+  "draft.savedAt": "تم الحفظ في {{when}}",
+  "draft.resumeCta": "متابعة",
+  "draft.defaultLabel": "مسودة",
+  "draft.sendColyLabel": "شحنة",
 };
 
 export const dictionaries: Record<AppLocale, TranslationDict> = { fr, en, es, de, pt, it, ar };
