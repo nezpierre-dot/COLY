@@ -250,8 +250,9 @@ function checkComponents() {
 
       const snippet = trimmed.slice(0, 160);
 
+      const cleaned = neutralize(ln);
       for (const re of HARD_VOUVOIEMENT) {
-        if (re.test(ln)) {
+        if (re.test(cleaned)) {
           pushViolation(hardViolations, {
             file: rel, line: i + 1, value: snippet, reason: `vouvoiement (${re})`,
           });
@@ -259,14 +260,14 @@ function checkComponents() {
         }
       }
       for (const { re, msg } of FORBIDDEN_TERMS) {
-        if (re.test(ln)) {
+        if (re.test(cleaned)) {
           pushViolation(hardViolations, {
             file: rel, line: i + 1, value: snippet, reason: msg,
           });
         }
       }
       for (const { re, msg, name } of AMBIGUOUS_PATTERNS) {
-        if (re.test(ln)) {
+        if (re.test(cleaned)) {
           pushViolation(ambiguousViolations, {
             file: rel, line: i + 1, value: snippet, reason: `[${name}] ${msg}`,
           });
