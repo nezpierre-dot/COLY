@@ -189,12 +189,12 @@ const MyAccount = () => {
       ],
     },
     {
-      id: "history-stats",
+      id: "activity",
       icon: BarChart3,
-      label: "Historique & Stats",
+      label: t("account.myActivity") || "Mon activité",
       items: [
-        { label: "Historique complet", onClick: () => navigate("/history/all") },
-        { label: "Statistiques personnelles", onClick: () => navigate("/history/voyageur") },
+        { label: t("account.activityHub") || "Historique & favoris", onClick: () => navigate("/activity") },
+        { label: t("account.progressionHub") || "Progression (stats, classement, badges)", onClick: () => navigate("/progression") },
       ],
     },
     {
@@ -211,7 +211,7 @@ const MyAccount = () => {
       icon: CreditCard,
       label: t("account.finance"),
       items: [
-        { label: "Wallet Nidit", onClick: () => navigate("/solde") },
+        { label: t("account.walletHub") || "Portefeuille (solde, transactions, factures)", onClick: () => navigate("/wallet") },
         { label: t("account.accounting"), onClick: () => navigate("/comptabilite") },
       ],
     },
