@@ -14,7 +14,7 @@
   "resourceNeutralize": [
     {
       "_comment": "Pages traitant explicitement de RDV / handover : on neutralise 'rendez-vous' uniquement ici",
-      "match": "src/features/(shipment|voyage|tracking|chat)/.*\\.tsx$",
+      "match": "src/features/(shipment|voyage|tracking|chat|support)/.*\\.tsx$",
       "patterns": ["rendez-vous", "rendezvous"]
     },
     {
