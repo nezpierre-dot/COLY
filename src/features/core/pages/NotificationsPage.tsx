@@ -321,6 +321,7 @@ export default function NotificationsPage() {
         ) : filtered.length === 0 && notifications.length > 0 ? (
           <EmptyState
             icon={Bell}
+            nido="search"
             title="Rien à afficher dans ce filtre"
             description="Aucune notification ne correspond aux filtres sélectionnés. Réinitialisez pour voir tout."
             action={

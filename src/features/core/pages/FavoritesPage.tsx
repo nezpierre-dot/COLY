@@ -73,7 +73,7 @@ const FavoritesPage = () => {
             {loadingRoutes ? (
               <ListItemSkeleton count={3} />
             ) : routes.length === 0 ? (
-              <EmptyState icon={MapPin} title={t("favorites.noRoutes")} description={t("favorites.noRoutesDesc")} />
+              <EmptyState icon={MapPin} nido="sleep" title={t("favorites.noRoutes")} description={t("favorites.noRoutesDesc")} />
             ) : (
               <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-3">
                 {routes.map((r) => (
@@ -105,7 +105,7 @@ const FavoritesPage = () => {
             {loadingProducts ? (
               <ListItemSkeleton count={3} />
             ) : products.length === 0 ? (
-              <EmptyState icon={Package} title={t("favorites.noProducts")} description={t("favorites.noProductsDesc")} />
+              <EmptyState icon={Package} nido="sleep" title={t("favorites.noProducts")} description={t("favorites.noProductsDesc")} />
             ) : (
               <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-3">
                 {products.map((p) => (

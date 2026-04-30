@@ -339,6 +339,7 @@ const VoyageurSearch = () => {
           ) : filtered.length === 0 ? (
             <EmptyState
               icon={Search}
+              nido="search"
               title={t("search.noResults")}
               description={destQuery || originQuery ? t("search.noResultsDesc") : t("search.noActive")}
             />
