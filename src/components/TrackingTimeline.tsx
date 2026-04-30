@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Check, Clock, Truck, Package, MapPin, XCircle } from "lucide-react";
+import Nido from "@/components/Nido";
 
 interface TrackingEvent {
   id: string;
@@ -33,8 +34,27 @@ const TrackingTimeline = ({ events }: TrackingTimelineProps) => {
     return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   };
 
+  // Most recent event drives the contextual mascot pose
+  const currentStatus = events[0]?.status;
+  const isInTransit = currentStatus === "in_transit" || currentStatus === "picked_up";
+  const isDelivered = currentStatus === "delivered";
+
   return (
     <div className="relative">
+      {(isInTransit || isDelivered) && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-4 flex items-center justify-center"
+        >
+          <Nido
+            pose={isDelivered ? "celebrate" : "fly"}
+            size="md"
+            animate={isDelivered ? "bounce" : "float"}
+          />
+        </motion.div>
+      )}
       {events.map((event, index) => {
         const config = statusConfig[event.status] || statusConfig.pending;
         const Icon = config.icon;

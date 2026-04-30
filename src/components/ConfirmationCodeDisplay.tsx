@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Key, Copy, CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import Nido from "@/components/Nido";
 
 interface ConfirmationCodeDisplayProps {
   itemId: string;
@@ -64,7 +65,10 @@ const ConfirmationCodeDisplay = ({ itemId, itemType }: ConfirmationCodeDisplayPr
   }
 
   return (
-    <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-5 space-y-3">
+    <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-5 space-y-3 overflow-hidden">
+      <div className="pointer-events-none absolute -top-3 -right-3 opacity-90">
+        <Nido pose="celebrate" size="sm" animate="wiggle" />
+      </div>
       <div className="flex items-center gap-2">
         <Key size={16} className="text-amber-600" />
         <h3 className="text-sm font-bold text-foreground">Code de confirmation</h3>
