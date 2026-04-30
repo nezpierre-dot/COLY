@@ -264,11 +264,22 @@ const AiChatWidget = () => {
       // Send the rich prompt to the AI but display the friendly label to the user
       const apiMessages = [...messages, { role: "user" as const, content: q.prompt }];
 
+      // Get the current user's access token (NOT the anon publishable key)
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        toast({ title: "Session expirée", description: "Reconnecte-toi pour utiliser l'assistant.", variant: "destructive" });
+        setMessages((prev) => prev.slice(0, -1));
+        setIsStreaming(false);
+        return;
+      }
+
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ messages: apiMessages }),
         signal: controller.signal,
