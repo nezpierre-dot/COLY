@@ -384,6 +384,9 @@ export default function PublicLanding() {
         <Link to="/confidentialite" className="hover:underline">
           {t("publicFooter.privacy")}
         </Link>
+        <div className="mt-3 flex justify-center">
+          <GlossaryButton variant="subtle" />
+        </div>
       </footer>
     </div>
   );

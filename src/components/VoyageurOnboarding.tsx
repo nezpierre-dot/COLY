@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Plane, Package, Shield, ArrowRight, X, SlidersHorizontal, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import GlossaryButton from "@/components/GlossaryButton";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface VoyageurOnboardingProps {
@@ -139,17 +140,20 @@ const VoyageurOnboarding = ({ onComplete }: VoyageurOnboardingProps) => {
 
   return (
     <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex flex-col">
-      {/* Header: step indicator + skip */}
+      {/* Header: step indicator + glossary + skip */}
       <div className="flex items-center justify-between px-5 pt-5">
         <span className="text-xs font-semibold text-muted-foreground bg-muted/60 px-3 py-1 rounded-full">
           {stepLabel}
         </span>
-        <button
-          onClick={handleFinish}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-        >
-          {t("tutVoy.skip")} <X size={14} />
-        </button>
+        <div className="flex items-center gap-3">
+          <GlossaryButton variant="ghost" />
+          <button
+            onClick={handleFinish}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            {t("tutVoy.skip")} <X size={14} />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
