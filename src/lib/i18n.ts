@@ -57,7 +57,7 @@ const fr: TranslationDict = {
   "nav.profile": "Profil",
 
   // ─── Welcome / Auth ───
-  "welcome.tagline": "Partage le trajet,\nfacilitez tes\néchanges.",
+  "welcome.tagline": "Partage le trajet,\nfacilite tes\néchanges.",
   "welcome.haveAccount": "J'ai déjà un compte",
   "welcome.signup": "Inscription",
   "login.title": "Content de te revoir !",
