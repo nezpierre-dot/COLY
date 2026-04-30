@@ -54,6 +54,15 @@ const ALLOWED_LITERALS = [
   /Rendez-vous/i, // nom commun
 ];
 
+// Clés i18n autorisées à mentionner les termes historiques (glossaire pédagogique).
+const ALLOWED_KEYS = new Set([
+  "glossary.demandeur.short",
+  "glossary.voyageur.short",
+  "glossary.escrow.short",
+  "glossary.kyc.short",
+]);
+
+
 const violations = [];
 
 // ---- 1) Bloc FR de i18n.ts -------------------------------------------------
@@ -74,7 +83,8 @@ function checkI18n() {
   for (let i = frStart; i < frEnd; i++) {
     const m = lines[i].match(lineRe);
     if (!m) continue;
-    const [, , value] = m;
+    const [, key, value] = m;
+    if (ALLOWED_KEYS.has(key)) continue;
     if (ALLOWED_LITERALS.some((re) => re.test(value))) continue;
     for (const re of VOUVOIEMENT_PATTERNS) {
       if (re.test(value)) {
