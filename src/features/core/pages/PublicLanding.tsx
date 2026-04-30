@@ -5,6 +5,8 @@ import { ArrowRight, Plane, Search, Sparkles, ShieldCheck, Globe2, Package, Wall
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import Testimonials from "@/components/Testimonials";
+import LiveStatsBar from "@/components/LiveStatsBar";
+import StoryUseCases from "@/components/StoryUseCases";
 import Nido from "@/components/Nido";
 import GlossaryButton from "@/components/GlossaryButton";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -199,6 +201,9 @@ export default function PublicLanding() {
         </div>
       </section>
 
+      {/* Live stats — social proof */}
+      <LiveStatsBar />
+
       {/* Trust */}
       <section className="border-y border-border/50 bg-card/50">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-10 md:grid-cols-3">
@@ -344,6 +349,9 @@ export default function PublicLanding() {
           </div>
         </div>
       </section>
+
+      {/* Emotional storytelling — real-life use cases */}
+      <StoryUseCases />
 
       {/* Testimonials */}
       <Testimonials />
