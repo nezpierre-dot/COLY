@@ -133,6 +133,35 @@ const NeeditCategoriesPage = () => {
     }
   };
 
+  const dismissSuggestion = (key: CategoryKey, reason: SuggestionReason) => {
+    setDismissed((prev) => {
+      if (prev.includes(key)) return prev;
+      const next = [...prev, key];
+      writeDismissed(next);
+      return next;
+    });
+    trackEvent("needit_suggestion_dismiss", "engagement", { key, reason });
+    toast(t("needit.cat.suggestionDismissed"), {
+      action: {
+        label: t("needit.cat.undo"),
+        onClick: () => {
+          setDismissed((prev) => {
+            const next = prev.filter((k) => k !== key);
+            writeDismissed(next);
+            return next;
+          });
+          trackEvent("needit_suggestion_dismiss_undo", "engagement", { key });
+        },
+      },
+    });
+  };
+
+  const resetDismissed = () => {
+    setDismissed([]);
+    writeDismissed([]);
+    trackEvent("needit_suggestion_dismiss_reset", "engagement");
+  };
+
   // -------- Fallback : catégories indisponibles -----------------------------
   if (!categoriesLoaded) {
     return (
