@@ -65,6 +65,10 @@ const BrowseMissions = lazy(() => import("./features/matching/pages/BrowseMissio
 const EmailPreferences = lazy(() => import("./features/account/pages/EmailPreferences"));
 const ManageEanProducts = lazy(() => import("./features/account/pages/ManageEanProducts"));
 const TestLiveLocation = lazy(() => import("./pages/TestLiveLocation"));
+// --- Hubs (regroupent plusieurs pages avec onglets pour réduire la densité) ---
+const WalletHub = lazy(() => import("./features/core/pages/WalletHub"));
+const ProgressionHub = lazy(() => import("./features/core/pages/ProgressionHub"));
+const ActivityHub = lazy(() => import("./features/core/pages/ActivityHub"));
 // --- Public (guest mode) pages ---
 const PublicLanding = lazy(() => import("./features/core/pages/PublicLanding"));
 const PublicExplore = lazy(() => import("./features/core/pages/PublicExplore"));
@@ -162,6 +166,10 @@ const App = () => {
                     <Route path="/email-preferences" element={<ProtectedRoute><EmailPreferences /></ProtectedRoute>} />
                     <Route path="/manage-ean" element={<ProtectedRoute><ManageEanProducts /></ProtectedRoute>} />
                     <Route path="/test-live-location" element={<ProtectedRoute><TestLiveLocation /></ProtectedRoute>} />
+                    {/* --- Hubs : regroupent plusieurs pages pour réduire la densité --- */}
+                    <Route path="/wallet" element={<ProtectedRoute><WalletHub /></ProtectedRoute>} />
+                    <Route path="/progression" element={<ProtectedRoute><ProgressionHub /></ProtectedRoute>} />
+                    <Route path="/activity" element={<ProtectedRoute><ActivityHub /></ProtectedRoute>} />
                     {/* --- Public guest mode (no login required) --- */}
                     <Route path="/decouvrir" element={<PublicLanding />} />
                     <Route path="/comment-ca-marche" element={<HowItWorks />} />
