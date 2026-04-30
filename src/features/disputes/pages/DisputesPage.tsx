@@ -248,7 +248,7 @@ const DisputesPage = () => {
 
   const handleSubmit = async () => {
     if (!user || !selectedShipment || !reason || !description.trim()) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
+      toast.error("Merci de remplir tous les champs obligatoires");
       return;
     }
     setSubmitting(true);
@@ -501,7 +501,7 @@ const DisputesPage = () => {
         )}
         {(d.status === "resolved" || d.status === "refunded") && myRatings[d.id] && (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Star size={12} className="text-amber-500" fill="currentColor" /> Votre note : {myRatings[d.id]}/5
+            <Star size={12} className="text-amber-500" fill="currentColor" /> Ta note : {myRatings[d.id]}/5
           </div>
         )}
 
@@ -531,7 +531,7 @@ const DisputesPage = () => {
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className={`font-semibold ${msg.sender_role === "admin" ? "text-primary" : msg.sender_role === "voyageur" ? "text-accent-foreground" : "text-foreground"}`}>
-                            {msg.sender_role === "admin" ? "🛡️ Support Nidit" : msg.sender_role === "voyageur" ? "🚀 Voyageur Nidit" : (d.user_id === user?.id ? "Vous" : "Membre")}
+                            {msg.sender_role === "admin" ? "🛡️ Support Nidit" : msg.sender_role === "voyageur" ? "🚀 Voyageur Nidit" : (d.user_id === user?.id ? "Toi" : "Membre")}
                           </span>
                           <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                             <Clock size={9} /> {formatTime(msg.created_at)}
@@ -742,7 +742,7 @@ const DisputesPage = () => {
           <EmptyState
             icon={<ShieldAlert size={28} className="text-muted-foreground" />}
             title="Aucun litige"
-            desc="Vous n'avez ouvert aucun litige pour le moment. Utilisez le bouton ci-dessus si besoin."
+            desc="Tu n'as ouvert aucun litige pour le moment. Utilise le bouton ci-dessus si besoin."
           />
         ) : (
           <Tabs defaultValue="active" className="w-full">
@@ -784,7 +784,7 @@ const DisputesPage = () => {
                 <EmptyState
                   icon={<Clock size={28} className="text-muted-foreground" />}
                   title="Aucun litige traité"
-                  desc="Vos litiges résolus apparaîtront ici."
+                  desc="Tes litiges résolus apparaîtront ici."
                 />
               ) : (
                 resolvedDisputes.map(renderDisputeCard)

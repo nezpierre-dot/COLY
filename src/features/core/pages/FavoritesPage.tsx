@@ -54,7 +54,7 @@ const FavoritesPage = () => {
             {t("favorites.title")}
           </span>
           <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
-            Vos coups<br />
+            Tes coups<br />
             <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">de cœur ❤️</span>
           </h1>
           <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">

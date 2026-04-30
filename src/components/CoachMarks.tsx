@@ -273,7 +273,7 @@ const CoachMarks = ({ steps, storageKey, onComplete, delay = 600 }: CoachMarksPr
 export const dashboardCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='wallet']",
-    title: "Votre portefeuille",
+    title: "Ton portefeuille",
     description: "Suivez votre solde, rechargez en un clin d'œil et gérez vos paiements depuis ici.",
     icon: <Wallet size={18} />,
   },
@@ -301,8 +301,8 @@ export const newTripCoachSteps: CoachStep[] = [
   },
   {
     selector: "[data-coach='trip-capacity']",
-    title: "Votre capacité",
-    description: "Indiquez le poids et le nombre de colis que vous pouvez transporter. Vous recevrez les demandes correspondantes.",
+    title: "Ta capacité",
+    description: "Indique le poids et le nombre de colis que tu peux transporter. Tu recevras les demandes correspondantes.",
     icon: <ListChecks size={18} />,
   },
   {
@@ -317,7 +317,7 @@ export const newTripCoachSteps: CoachStep[] = [
 export const walletCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='wallet-balance']",
-    title: "Votre solde",
+    title: "Ton solde",
     description: "C'est l'argent disponible : gains de transport encaissés moins vos dépenses d'envoi.",
     icon: <Coins size={18} />,
   },
@@ -333,7 +333,7 @@ export const walletCoachSteps: CoachStep[] = [
 export const leaderboardCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='leaderboard-rank']",
-    title: "Votre classement",
+    title: "Ton classement",
     description: "Plus vous transportez et plus votre note grimpe, plus vous montez dans le classement Voyageurs.",
     icon: <Trophy size={18} />,
   },
@@ -349,7 +349,7 @@ export const leaderboardCoachSteps: CoachStep[] = [
 export const loyaltyCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='loyalty-tier']",
-    title: "Votre niveau de fidélité",
+    title: "Ton niveau de fidélité",
     description: "Vert, Bronze, Argent, Or, Diamant : chaque niveau débloque des avantages (priorité, frais réduits…).",
     icon: <Star size={18} />,
   },
@@ -365,7 +365,7 @@ export const loyaltyCoachSteps: CoachStep[] = [
 export const favoritesCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='favorites-list']",
-    title: "Vos favoris",
+    title: "Tes favoris",
     description: "Retrouvez ici vos trajets et produits NeedIt favoris. Un tap pour relancer une recherche similaire.",
     icon: <Heart size={18} />,
   },
@@ -376,7 +376,7 @@ export const disputesCoachSteps: CoachStep[] = [
   {
     selector: "[data-coach='disputes-list']",
     title: "Litiges & escalade",
-    description: "Si quelque chose tourne mal, ouvrez un litige depuis la mission. Vous avez 72h pour escalader si besoin.",
+    description: "Si quelque chose tourne mal, ouvre un litige depuis la mission. Tu as 72h pour escalader si besoin.",
     icon: <Scale size={18} />,
   },
 ];

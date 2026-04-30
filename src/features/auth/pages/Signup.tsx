@@ -191,7 +191,7 @@ const Signup = () => {
     }
 
     if (!form.nom.trim() || !form.prenom.trim() || !form.email.trim()) {
-      toast.error("Veuillez remplir vos informations personnelles");
+      toast.error("Merci de remplir tes informations personnelles");
       setStep(1);
       return;
     }
@@ -249,7 +249,7 @@ const Signup = () => {
                     Bonjour ${form.prenom},
                   </p>
                   <p style="font-size:14px;color:#374151;line-height:1.6;">
-                    Merci de rejoindre la communauté Nidit ! Vous pouvez maintenant envoyer des colis, créer des missions NeedIt ou devenir voyageur.
+                    Merci de rejoindre la communauté Nidit ! Tu peux maintenant envoyer des colis, créer des missions NeedIt ou devenir voyageur.
                   </p>
                   <p style="font-size:14px;color:#374151;line-height:1.6;">
                     Vérifiez votre email pour activer votre compte, puis connectez-vous pour commencer.

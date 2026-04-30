@@ -21,7 +21,7 @@ export default function FaqPage() {
       items: [
         { q: "Comment fonctionne l'application ?", a: "Notre application connecte les voyageurs et les expéditeurs. Les voyageurs proposent leurs trajets et transportent des colis pour les expéditeurs. Les demandeurs peuvent aussi créer des missions NeedIt pour qu'un voyageur achète un produit à l'étranger." },
         { q: "Est-ce légal ?", a: "Oui, le transport de colis entre particuliers est légal tant que les produits respectent la réglementation douanière et les lois en vigueur. Nous vérifions l'identité des utilisateurs (KYC) pour garantir la sécurité." },
-        { q: "Dans quels pays le service est-il disponible ?", a: "Le service est disponible dans le monde entier. Vous pouvez envoyer des colis ou créer des missions NeedIt vers n'importe quelle destination où un voyageur propose un trajet." },
+        { q: "Dans quels pays le service est-il disponible ?", a: "Le service est disponible dans le monde entier. Tu peux envoyer des colis ou créer des missions NeedIt vers n'importe quelle destination où un voyageur propose un trajet." },
       ],
     },
     {
@@ -30,7 +30,7 @@ export default function FaqPage() {
         { q: "Comment envoyer un colis ?", a: "Rendez-vous dans ton espace, cliquez sur 'Envoyer un coly', remplissez les informations (destination, taille, tarif proposé) et attendez qu'un voyageur Nidit accepte votre envoi." },
         { q: "Quelle taille de colis puis-je envoyer ?", a: "Les tailles vont de S (petit, type enveloppe) à XL (grand, type valise). Chaque voyageur décide des tailles qu'il peut transporter selon son espace disponible." },
         { q: "Que se passe-t-il si mon colis est endommagé ?", a: "Si vous avez souscrit l'option d'assurance lors de l'envoi, vous êtes couvert. Contactez notre support avec la preuve de livraison et les photos du dommage pour lancer une réclamation." },
-        { q: "Comment suivre mon colis ?", a: "Chaque envoi dispose d'un suivi en temps réel. Vous recevez des notifications à chaque étape : acceptation, prise en charge, en transit, et livraison avec preuve photo." },
+        { q: "Comment suivre mon colis ?", a: "Chaque envoi dispose d'un suivi en temps réel. Tu reçois des notifications à chaque étape : acceptation, prise en charge, en transit, et livraison avec preuve photo." },
       ],
     },
     {
@@ -45,7 +45,7 @@ export default function FaqPage() {
       id: "needit", icon: ShoppingCart, label: t("faq.cat.needit"),
       items: [
         { q: "Qu'est-ce qu'une mission NeedIt ?", a: "NeedIt permet de demander à un voyageur d'acheter un produit spécifique à l'étranger." },
-        { q: "Comment fixer le prix maximum ?", a: "Le prix max inclut le prix du produit + la commission du voyageur. Vous pouvez scanner le code-barres (EAN) pour vérifier le prix." },
+        { q: "Comment fixer le prix maximum ?", a: "Le prix max inclut le prix du produit + la commission du voyageur. Tu peux scanner le code-barres (EAN) pour vérifier le prix." },
         { q: "Et si le produit n'est pas disponible ?", a: "Le voyageur vous contactera via la messagerie intégrée pour proposer une alternative ou annuler la mission." },
       ],
     },
@@ -61,7 +61,7 @@ export default function FaqPage() {
       id: "securite", icon: Shield, label: t("faq.cat.securite"),
       items: [
         { q: "Pourquoi dois-je vérifier mon identité (KYC) ?", a: "La vérification d'identité protège tous les utilisateurs contre la fraude." },
-        { q: "Mes données sont-elles protégées ?", a: "Vos données personnelles sont chiffrées et stockées conformément au RGPD." },
+        { q: "Mes données sont-elles protégées ?", a: "Tes données personnelles sont chiffrées et stockées conformément au RGPD." },
         { q: "Comment signaler un problème ?", a: "Utilisez la section Aide > Contacter le support. Notre équipe traite chaque signalement sous 24h." },
       ],
     },

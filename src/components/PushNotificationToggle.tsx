@@ -28,7 +28,7 @@ export default function PushNotificationToggle() {
   if (permission === "denied") {
     return (
       <div className="text-sm text-destructive">
-        Vous avez bloqué les notifications. Réautorisez-les dans les réglages du navigateur.
+        Tu as bloqué les notifications. Réautorise-les dans les réglages du navigateur.
       </div>
     );
   }
