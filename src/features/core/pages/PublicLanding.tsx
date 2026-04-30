@@ -5,6 +5,8 @@ import { ArrowRight, Plane, Search, Sparkles, ShieldCheck, Globe2, Package, Wall
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import Testimonials from "@/components/Testimonials";
+import LiveStatsBar from "@/components/LiveStatsBar";
+import StoryUseCases from "@/components/StoryUseCases";
 import Nido from "@/components/Nido";
 import GlossaryButton from "@/components/GlossaryButton";
 import { useTranslation } from "@/hooks/useTranslation";
