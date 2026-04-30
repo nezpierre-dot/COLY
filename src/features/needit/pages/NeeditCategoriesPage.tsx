@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, X, Sparkles, PenLine, AlertTriangle, RefreshCw, Loader2, History, TrendingUp, EyeOff, Info } from "lucide-react";
+import { Search, X, Sparkles, PenLine, AlertTriangle, RefreshCw, History, TrendingUp, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { CATEGORIES, BRAND_ENABLED_CATEGORIES, type CategoryKey, type CategoryDef } from "@/lib/categoryIcons";
