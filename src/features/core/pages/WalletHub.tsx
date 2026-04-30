@@ -29,10 +29,17 @@ const WalletHub = () => {
   const [params, setParams] = useSearchParams();
   const [tab, setTab] = useState(() => params.get("tab") || "balance");
 
+  // Track hub mount once
+  useEffect(() => {
+    trackEvent("hub_click", "navigation", { hub: "wallet" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     const next = new URLSearchParams(params);
     next.set("tab", tab);
     setParams(next, { replace: true });
+    trackEvent("hub_tab_change", "navigation", { hub: "wallet", tab });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -55,15 +62,15 @@ const WalletHub = () => {
           </div>
 
           <Tabs value={tab} onValueChange={setTab} className="w-full">
-            <TabsList className="w-full justify-start gap-1 px-3 pb-2 bg-transparent">
+            <TabsList className="w-full justify-start gap-1 px-3 pb-2 bg-transparent" aria-label={t("hub.wallet.title") || "Portefeuille"}>
               <TabsTrigger value="balance" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-                <WalletIcon size={14} /> {t("hub.wallet.balance") || "Solde"}
+                <WalletIcon size={14} aria-hidden="true" /> {t("hub.wallet.balance") || "Solde"}
               </TabsTrigger>
               <TabsTrigger value="transactions" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-                <ListOrdered size={14} /> {t("hub.wallet.transactions") || "Transactions"}
+                <ListOrdered size={14} aria-hidden="true" /> {t("hub.wallet.transactions") || "Transactions"}
               </TabsTrigger>
               <TabsTrigger value="invoices" className="gap-1.5 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-                <Receipt size={14} /> {t("hub.wallet.invoices") || "Factures"}
+                <Receipt size={14} aria-hidden="true" /> {t("hub.wallet.invoices") || "Factures"}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -71,17 +78,17 @@ const WalletHub = () => {
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsContent value="balance" className="mt-0">
-            <Suspense fallback={<TabFallback />}>
+            <Suspense fallback={<WalletHubSkeleton />}>
               <SoldePage />
             </Suspense>
           </TabsContent>
           <TabsContent value="transactions" className="mt-0">
-            <Suspense fallback={<TabFallback />}>
+            <Suspense fallback={<WalletHubSkeleton />}>
               <HistoryPage />
             </Suspense>
           </TabsContent>
           <TabsContent value="invoices" className="mt-0">
-            <Suspense fallback={<TabFallback />}>
+            <Suspense fallback={<WalletHubSkeleton />}>
               <FacturationPage />
             </Suspense>
           </TabsContent>
