@@ -142,10 +142,20 @@ const SendWizard = () => {
       4: { date },
     } as const;
     const result = schemaMap[target].safeParse(dataMap[target]);
-    if (result.success) return {};
     const next: FieldErrors = {};
-    for (const issue of result.error.issues) {
-      next[String(issue.path[0])] = issue.message;
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const key = String(issue.path[0]);
+        // Garde la 1ʳᵉ erreur par champ (ordre des refinements = ordre de priorité)
+        if (!next[key]) next[key] = issue.message;
+      }
+    }
+    // Cross-validation à l'étape 3 : origine ≠ destination
+    if (target === 3 && departCity.trim() && arrCity.trim() && departCountry.trim() && arrCountry.trim()) {
+      const same =
+        departCity.trim().toLowerCase() === arrCity.trim().toLowerCase() &&
+        departCountry.trim().toLowerCase() === arrCountry.trim().toLowerCase();
+      if (same && !next.arrCity) next.arrCity = "sameAsOrigin";
     }
     return next;
   };
