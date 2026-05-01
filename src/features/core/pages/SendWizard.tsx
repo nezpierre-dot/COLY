@@ -723,7 +723,7 @@ const CityCountryStep = ({
  * - keyboard nav: ArrowUp/ArrowDown, Enter to select, Escape to close
  * - normalizes value on blur (trim + collapse spaces)
  */
-const PlaceAutocompleteInput = ({
+export const PlaceAutocompleteInput = ({
   id,
   value,
   onChange,
