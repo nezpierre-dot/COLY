@@ -596,7 +596,7 @@ const inputBase = (hasErr: boolean) =>
       : "border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
   }`;
 
-const CityCountryStep = ({
+export const CityCountryStep = ({
   icon,
   countryLabel,
   cityLabel,
