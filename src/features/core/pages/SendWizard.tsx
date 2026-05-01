@@ -596,7 +596,7 @@ const inputBase = (hasErr: boolean) =>
       : "border-border focus:border-primary focus:ring-1 focus:ring-primary/30"
   }`;
 
-const CityCountryStep = ({
+export const CityCountryStep = ({
   icon,
   countryLabel,
   cityLabel,
@@ -723,7 +723,7 @@ const CityCountryStep = ({
  * - keyboard nav: ArrowUp/ArrowDown, Enter to select, Escape to close
  * - normalizes value on blur (trim + collapse spaces)
  */
-const PlaceAutocompleteInput = ({
+export const PlaceAutocompleteInput = ({
   id,
   value,
   onChange,
