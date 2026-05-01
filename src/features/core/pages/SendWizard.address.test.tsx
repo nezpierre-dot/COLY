@@ -123,7 +123,11 @@ describe("PlaceAutocompleteInput — keyboard navigation", () => {
     render(<Wrapped />);
     const input = screen.getByRole("combobox") as HTMLInputElement;
     await userEvent.type(input, "par");
-    await screen.findByRole("listbox");
+    // Wait for the search to resolve and Paris to appear (active=0 is set then)
+    await screen.findByText("Paris", {}, { timeout: 2000 });
+    await waitFor(() =>
+      expect(input.getAttribute("aria-activedescendant")).toBe("t-opt-0"),
+    );
     return input;
   }
 
