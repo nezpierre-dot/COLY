@@ -42,26 +42,8 @@ export default function BlogIndex() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Blog",
-    name: "Blog Nidit — Guides envoi de colis international",
-    url: "https://nidit.fr/blog",
-    blogPost: BLOG_POSTS.map((p) => ({
-      "@type": "BlogPosting",
-      headline: p.title,
-      description: p.description,
-      datePublished: p.publishedAt,
-      dateModified: p.updatedAt ?? p.publishedAt,
-      url: `https://nidit.fr/blog/${p.slug}`,
-    })),
-  };
-
-  const seoTitle = activeCategory
-    ? `Blog Nidit — ${BLOG_CATEGORY_LABELS[activeCategory]}${safePage > 1 ? ` (page ${safePage})` : ""}`
-    : `Blog Nidit — Guides pour envoyer un colis à l'international${safePage > 1 ? ` (page ${safePage})` : ""}`;
-
   // Build canonical/prev/next that preserve cat + page (rel="prev"/"next" SEO).
+  const SITE = "https://nidit.fr";
   const buildPath = (p: number) => {
     const params = new URLSearchParams();
     if (activeCategory) params.set("cat", activeCategory);
@@ -72,7 +54,44 @@ export default function BlogIndex() {
   const canonicalPath = buildPath(safePage);
   const prevPath = safePage > 1 ? buildPath(safePage - 1) : null;
   const nextPath = safePage < totalPages ? buildPath(safePage + 1) : null;
-  const SITE = "https://nidit.fr";
+
+  const jsonLd: Array<Record<string, unknown>> = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      name: "Blog Nidit — Guides envoi de colis international",
+      url: "https://nidit.fr/blog",
+      blogPost: BLOG_POSTS.map((p) => ({
+        "@type": "BlogPosting",
+        headline: p.title,
+        description: p.description,
+        datePublished: p.publishedAt,
+        dateModified: p.updatedAt ?? p.publishedAt,
+        url: `https://nidit.fr/blog/${p.slug}`,
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: activeCategory
+        ? `Articles — ${BLOG_CATEGORY_LABELS[activeCategory]}${safePage > 1 ? ` (page ${safePage})` : ""}`
+        : `Articles du blog Nidit${safePage > 1 ? ` (page ${safePage})` : ""}`,
+      url: `${SITE}${canonicalPath}`,
+      numberOfItems: paged.length,
+      itemListOrder: "https://schema.org/ItemListOrderDescending",
+      itemListElement: paged.map((p, idx) => ({
+        "@type": "ListItem",
+        position: (safePage - 1) * PAGE_SIZE + idx + 1,
+        url: `${SITE}/blog/${p.slug}`,
+        name: p.title,
+      })),
+    },
+  ];
+
+  const seoTitle = activeCategory
+    ? `Blog Nidit — ${BLOG_CATEGORY_LABELS[activeCategory]}${safePage > 1 ? ` (page ${safePage})` : ""}`
+    : `Blog Nidit — Guides pour envoyer un colis à l'international${safePage > 1 ? ` (page ${safePage})` : ""}`;
+
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
   return (
