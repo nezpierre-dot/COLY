@@ -15,25 +15,24 @@ const ConfirmationCodeDisplay = ({ itemId, itemType }: ConfirmationCodeDisplayPr
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const loadOrGenerate = async () => {
-      // Check if code already exists
-      if (itemType === "shipment") {
-        const { data } = await supabase.from("shipments").select("confirmation_code").eq("id", itemId).maybeSingle();
-        if (data?.confirmation_code) {
-          setCode(data.confirmation_code);
-          setLoading(false);
-          return;
-        }
-      } else {
-        const { data } = await supabase.from("needit_missions").select("confirmation_code" as any).eq("id", itemId).maybeSingle();
-        if ((data as any)?.confirmation_code) {
-          setCode((data as any).confirmation_code);
-          setLoading(false);
-          return;
-        }
+    const generate = async () => {
+      // For security, the plaintext code is never stored — it is generated server-side
+      // and returned only once to the owner. If the user reloads, a new code is issued.
+      const table = itemType === "shipment" ? "shipments" : "needit_missions";
+      const { data: existing } = await supabase
+        .from(table as any)
+        .select("confirmation_code_hash, status")
+        .eq("id", itemId)
+        .maybeSingle();
+
+      // If status already finalized, no code needed
+      const status = (existing as any)?.status;
+      if (status === "delivered" || status === "completed") {
+        setCode(null);
+        setLoading(false);
+        return;
       }
 
-      // Generate new code
       const { data: codeData, error } = await supabase.rpc("generate_confirmation_code" as any, {
         _item_id: itemId,
         _item_type: itemType,
@@ -45,7 +44,7 @@ const ConfirmationCodeDisplay = ({ itemId, itemType }: ConfirmationCodeDisplayPr
       }
       setLoading(false);
     };
-    loadOrGenerate();
+    generate();
   }, [itemId, itemType]);
 
   const handleCopy = async () => {
