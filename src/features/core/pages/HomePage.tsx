@@ -364,7 +364,7 @@ const HomePage = () => {
               <motion.button
                 onClick={handleSend}
                 whileTap={{ scale: 0.98 }}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 h-full flex"
                 aria-label={t("home.ctaSendAria")}
               >
                 <div aria-hidden="true" className="absolute -right-6 -top-6 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white/15" />
@@ -393,7 +393,7 @@ const HomePage = () => {
                   navigate("/needit/categories");
                 }}
                 whileTap={{ scale: 0.98 }}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary to-secondary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary to-secondary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 h-full flex"
                 aria-label="Demander un produit à un Voyageur Nidit"
               >
                 <div aria-hidden="true" className="absolute -right-6 -top-6 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white/15" />
@@ -426,7 +426,7 @@ const HomePage = () => {
                 aria-disabled={switching}
                 aria-busy={switching}
                 whileTap={{ scale: switching ? 1 : 0.98 }}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background aria-disabled:opacity-70 aria-disabled:cursor-progress h-full flex"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 aria-disabled:opacity-70 aria-disabled:cursor-progress h-full flex"
                 aria-label={
                   isVoyageur
                     ? t("home.ctaTransportAria")
