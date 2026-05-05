@@ -211,6 +211,20 @@ export default function BlogPost() {
           {post.blocks.map((b, i) => renderBlock(b, i))}
         </div>
 
+        {post.faq && post.faq.length > 0 && (
+          <section className="mt-10 rounded-3xl border border-border bg-card p-5" aria-labelledby="faq-heading">
+            <h2 id="faq-heading" className="text-lg font-bold">Questions fréquentes</h2>
+            <dl className="mt-3 space-y-4">
+              {post.faq.map((f, i) => (
+                <div key={i}>
+                  <dt className="text-sm font-semibold">{f.q}</dt>
+                  <dd className="mt-1 text-sm text-muted-foreground">{f.a}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+
         {relatedRouteEntries.length > 0 && (
           <section className="mt-10 rounded-3xl border border-border bg-card p-5">
             <h2 className="text-lg font-bold">Trajets liés à cet article</h2>
