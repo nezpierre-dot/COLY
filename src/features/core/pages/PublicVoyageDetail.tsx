@@ -66,22 +66,69 @@ export default function PublicVoyageDetail() {
 
   const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
 
-  const seoTitle = `${v.departure_city} → ${v.arrival_city} le ${new Date(v.departure_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })} | Nidit`;
-  const seoDesc = `Trajet ${v.transport_method} de ${v.departure_city} (${v.departure_country}) vers ${v.arrival_city} (${v.arrival_country}). Envoyez votre colis avec un voyageur Nidit vérifié.`;
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "TravelAction",
-    name: `${v.departure_city} → ${v.arrival_city}`,
-    fromLocation: { "@type": "City", name: v.departure_city, address: { "@type": "PostalAddress", addressCountry: v.departure_country } },
-    toLocation: { "@type": "City", name: v.arrival_city, address: { "@type": "PostalAddress", addressCountry: v.arrival_country } },
-    startTime: v.departure_date,
-    endTime: v.arrival_date || undefined,
-    provider: { "@type": "Organization", name: "Nidit", url: "https://nidit.fr" },
-  };
+  const dateLong = new Date(v.departure_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  const seoTitle = `Envoyer un colis ${v.departure_city} → ${v.arrival_city} le ${dateLong} | Nidit`;
+  const seoDesc = `Trajet ${v.transport_method} de ${v.departure_city} (${v.departure_country}) vers ${v.arrival_city} (${v.arrival_country}) le ${dateLong}. Envoie ton colis avec un voyageur Nidit vérifié, paiement protégé jusqu'à la livraison.`;
+  const canonical = `/trajet/${v.id}`;
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "TravelAction",
+      name: `${v.departure_city} → ${v.arrival_city}`,
+      fromLocation: { "@type": "City", name: v.departure_city, address: { "@type": "PostalAddress", addressCountry: v.departure_country } },
+      toLocation: { "@type": "City", name: v.arrival_city, address: { "@type": "PostalAddress", addressCountry: v.arrival_country } },
+      startTime: v.departure_date,
+      endTime: v.arrival_date || undefined,
+      provider: { "@type": "Organization", name: "Nidit", url: "https://nidit.fr" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      serviceType: "Transport de colis entre particuliers",
+      name: `Envoi de colis ${v.departure_city} → ${v.arrival_city}`,
+      description: seoDesc,
+      areaServed: [
+        { "@type": "City", name: v.departure_city },
+        { "@type": "City", name: v.arrival_city },
+      ],
+      provider: { "@type": "Organization", name: "Nidit", url: "https://nidit.fr" },
+      offers: { "@type": "Offer", availability: "https://schema.org/InStock", priceCurrency: "EUR" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Accueil", item: "https://nidit.fr/" },
+        { "@type": "ListItem", position: 2, name: "Trajets", item: "https://nidit.fr/explore" },
+        { "@type": "ListItem", position: 3, name: `${v.departure_city} → ${v.arrival_city}`, item: `https://nidit.fr${canonical}` },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: `Comment envoyer un colis de ${v.departure_city} à ${v.arrival_city} ?`,
+          acceptedAnswer: { "@type": "Answer", text: `Crée ton compte Nidit, publie ton colis ${v.departure_city} → ${v.arrival_city}, choisis un voyageur vérifié et règle en paiement protégé. Le voyageur récupère ton colis et le remet à destination contre code OTP.` },
+        },
+        {
+          "@type": "Question",
+          name: `Quel est le prix d'envoi ${v.departure_city} → ${v.arrival_city} ?`,
+          acceptedAnswer: { "@type": "Answer", text: `Le tarif est fixé librement entre membre et voyageur Nidit. Il dépend du poids, du volume et de la nature du colis. Souvent moins cher que la poste classique.` },
+        },
+        {
+          "@type": "Question",
+          name: "Mon colis est-il assuré ?",
+          acceptedAnswer: { "@type": "Answer", text: "Le paiement est bloqué (escrow) jusqu'à la confirmation de livraison via OTP et photo. En cas de litige, l'équipe Nidit intervient sous 72 h." },
+        },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Seo title={seoTitle} description={seoDesc} canonical={`/trajet/${v.id}`} jsonLd={jsonLd} />
+      <Seo title={seoTitle} description={seoDesc} canonical={canonical} jsonLd={jsonLd} />
       <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
