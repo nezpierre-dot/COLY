@@ -87,7 +87,7 @@ async function sendMatchEmail(
   matchType: "shipment" | "needit" | "voyage",
   userId: string,
 ) {
-  const unsubscribeUrl = getUnsubscribeUrl(supabaseUrl, userId);
+  const unsubscribeUrl = await getUnsubscribeUrl(supabaseUrl, userId);
   const { subject, html } = buildMatchEmailHtml(userName, destination, matchType, unsubscribeUrl);
 
   try {
