@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
+import { compressImage } from "@/lib/compressImage";
 import { useTranslation } from "@/hooks/useTranslation";
 import PresenceBadge from "@/components/PresenceBadge";
 
