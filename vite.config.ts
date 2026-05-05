@@ -91,39 +91,9 @@ export default defineConfig(({ mode }) => ({
     }),
   ].filter(Boolean),
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          // IMPORTANT: do NOT manually split node_modules.
-          // Splitting React/Radix/etc. into sibling chunks creates load-order
-          // races where a chunk runs `React.createContext` / `React.forwardRef`
-          // before the React chunk has executed (different browsers, different
-          // network ordering). Let Rollup compute the dependency graph itself —
-          // it will hoist React into a shared chunk that is guaranteed to load
-          // before any consumer. We only split heavy, independent libs that
-          // don't depend on React at module-init time.
-          if (id.includes("node_modules")) {
-            if (id.includes("mapbox-gl")) return "vendor-mapbox";
-            if (id.includes("recharts")) return "vendor-charts";
-            return undefined;
-          }
-          // Feature-based chunks (loaded only when needed)
-          if (id.includes("/features/admin/")) return "feature-admin";
-          if (id.includes("/features/finance/")) return "feature-finance";
-          if (id.includes("/features/needit/")) return "feature-needit";
-          if (id.includes("/features/voyage/")) return "feature-voyage";
-          if (id.includes("/features/shipment/")) return "feature-shipment";
-          if (id.includes("/features/chat/")) return "feature-chat";
-          if (id.includes("/features/tracking/")) return "feature-tracking";
-          if (id.includes("/features/disputes/")) return "feature-disputes";
-          if (id.includes("/features/support/")) return "feature-support";
-          if (id.includes("/features/legal/")) return "feature-legal";
-          if (id.includes("/features/auth/")) return "feature-auth";
-          if (id.includes("/features/account/")) return "feature-account";
-        },
-      },
-    },
-    // Larger threshold to silence warnings for our intentional vendor splits
+    // No manual chunks: React-dependent modules must keep Rollup's natural
+    // execution order, otherwise some browsers can execute route chunks before
+    // React is initialized (`createContext` / `forwardRef` undefined).
     chunkSizeWarningLimit: 800,
   },
   resolve: {
