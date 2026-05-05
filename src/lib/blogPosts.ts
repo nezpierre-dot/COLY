@@ -290,6 +290,11 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: "p", text: "Pour les colis lourds (>10 kg) ou volumineux (meubles, électroménager léger), un voyageur Nidit qui prend le ferry Marseille → Alger est imbattable côté tarif. Pour les colis urgents et légers, l'avion reste roi." },
       { type: "cta", text: "Voir les voyageurs Paris → Alger", href: "/explore/paris_alger", label: "Trouver un voyageur" },
     ],
+    faq: [
+      { q: "Quels documents pour la douane algérienne ?", a: "Une déclaration de contenu détaillée et la valeur réelle des objets. Pour les neufs, garde la facture." },
+      { q: "Le ferry est-il plus économique que l'avion ?", a: "Pour les colis lourds ou volumineux, oui — un voyageur Nidit qui prend le Marseille → Alger en ferry peut accepter beaucoup plus de poids à faible coût." },
+      { q: "Puis-je envoyer un téléphone neuf en Algérie ?", a: "Oui, mais il sera probablement taxé à la douane (droits + TVA). Déclare-le avec sa vraie valeur." },
+    ],
   },
 ];
 
