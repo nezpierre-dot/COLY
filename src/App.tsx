@@ -82,6 +82,8 @@ const PublicMissionDetail = lazy(() => import("./features/core/pages/PublicMissi
 const PublicShipmentDetail = lazy(() => import("./features/core/pages/PublicShipmentDetail"));
 const PublicRoutePage = lazy(() => import("./features/core/pages/PublicRoutePage"));
 const HowItWorks = lazy(() => import("./features/core/pages/HowItWorks"));
+const BlogIndex = lazy(() => import("./features/core/pages/BlogIndex"));
+const BlogPost = lazy(() => import("./features/core/pages/BlogPost"));
 
 const queryClient = new QueryClient();
 
@@ -189,6 +191,8 @@ const App = () => {
                     <Route path="/t/:id" element={<ShortVoyageRedirect />} />
                     <Route path="/needit/:id" element={<PublicMissionDetail />} />
                     <Route path="/colis/:id" element={<PublicShipmentDetail />} />
+                    <Route path="/blog" element={<BlogIndex />} />
+                    <Route path="/blog/:slug" element={<BlogPost />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>

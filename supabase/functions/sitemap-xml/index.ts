@@ -23,9 +23,19 @@ const STATIC_PATHS: Array<{ path: string; priority: string; changefreq: string }
   { path: "/decouvrir", priority: "0.8", changefreq: "weekly" },
   { path: "/explore", priority: "0.8", changefreq: "daily" },
   { path: "/comment-ca-marche", priority: "0.7", changefreq: "monthly" },
+  { path: "/blog", priority: "0.8", changefreq: "weekly" },
   { path: "/faq", priority: "0.6", changefreq: "monthly" },
   { path: "/aide", priority: "0.6", changefreq: "monthly" },
   { path: "/terms", priority: "0.3", changefreq: "yearly" },
+];
+
+// Blog posts (kept in sync with src/lib/blogPosts.ts).
+const BLOG_POSTS: Array<{ slug: string; updatedAt: string }> = [
+  { slug: "envoyer-colis-maroc-pas-cher", updatedAt: "2026-05-05" },
+  { slug: "comparatif-envoi-colis-international-2025", updatedAt: "2026-05-05" },
+  { slug: "envoyer-colis-senegal-dakar", updatedAt: "2026-05-05" },
+  { slug: "astuces-emballage-colis-international", updatedAt: "2026-05-05" },
+  { slug: "envoyer-colis-algerie", updatedAt: "2026-05-05" },
 ];
 
 const POPULAR_ROUTES: Array<[string, string]> = [
@@ -92,6 +102,7 @@ Deno.serve(async (req) => {
       wrapIndex([
         sitemapEntry(`${FN_BASE}?type=static`, now),
         sitemapEntry(`${FN_BASE}?type=routes`, now),
+        sitemapEntry(`${FN_BASE}?type=blog`, now),
         sitemapEntry(`${FN_BASE}?type=voyages`, now),
         sitemapEntry(`${FN_BASE}?type=missions`, now),
       ]),
@@ -109,6 +120,14 @@ Deno.serve(async (req) => {
   if (type === "routes") {
     const urls = POPULAR_ROUTES.map(([from, to]) =>
       urlEntry(`${SITE_URL}/explore/${routeSlug(from, to)}`, undefined, "0.7", "weekly"),
+    );
+    return xmlResponse(wrapUrlset(urls), 86400);
+  }
+
+  // ---- BLOG ----
+  if (type === "blog") {
+    const urls = BLOG_POSTS.map((p) =>
+      urlEntry(`${SITE_URL}/blog/${p.slug}`, p.updatedAt, "0.7", "monthly"),
     );
     return xmlResponse(wrapUrlset(urls), 86400);
   }
