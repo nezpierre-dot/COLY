@@ -1,5 +1,10 @@
 // Génère une description de mission NeedIt claire et chaleureuse à partir
-// des infos brutes saisies par l'utilisateur. Public (verify_jwt = false).
+// des infos brutes saisies par l'utilisateur. JWT requis (validé en code) + rate limit.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_WINDOW_SEC = 60;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
