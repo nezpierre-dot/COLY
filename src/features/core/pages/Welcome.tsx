@@ -246,6 +246,15 @@ const Welcome = () => {
             <ArrowRight size={18} aria-hidden="true" />
           </button>
 
+          <button
+            type="button"
+            onClick={() => navigate("/explore")}
+            data-testid="cta-explore"
+            className={`mt-3 w-full py-3.5 rounded-2xl border border-border bg-white/40 backdrop-blur-md text-foreground text-sm font-semibold hover:bg-white/60 transition-all ${focusRing}`}
+          >
+            Voir les trajets sans compte
+          </button>
+
           <div className="mt-5 text-center">
             <span className="text-sm text-foreground/60">Déjà inscrit ? </span>
             <button
