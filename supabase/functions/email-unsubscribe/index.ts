@@ -84,12 +84,14 @@ Deno.serve(async (req) => {
               ? `<p>Vous recevez actuellement les emails de matching Nidit.</p>
                  <form method="POST">
                    <input type="hidden" name="user_id" value="${userId}">
+                   <input type="hidden" name="token" value="${token}">
                    <input type="hidden" name="action" value="unsubscribe">
                    <button type="submit" class="btn btn-unsub">Se désinscrire</button>
                  </form>`
               : `<p>Vous êtes désabonné(e) des emails de matching.</p>
                  <form method="POST">
                    <input type="hidden" name="user_id" value="${userId}">
+                   <input type="hidden" name="token" value="${token}">
                    <input type="hidden" name="action" value="resubscribe">
                    <button type="submit" class="btn btn-resub">Se réabonner</button>
                  </form>`
