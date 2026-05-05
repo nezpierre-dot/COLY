@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import appLogo from "@/assets/logo.png";
 
 import { useNavigate } from "react-router-dom";
