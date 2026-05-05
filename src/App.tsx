@@ -181,6 +181,7 @@ const App = () => {
                     <Route path="/comment-ca-marche" element={<HowItWorks />} />
                     <Route path="/explore" element={<PublicExplore />} />
                     <Route path="/trajet/:id" element={<PublicVoyageDetail />} />
+                    <Route path="/t/:id" element={<ShortVoyageRedirect />} />
                     <Route path="/needit/:id" element={<PublicMissionDetail />} />
                     <Route path="/colis/:id" element={<PublicShipmentDetail />} />
                     <Route path="*" element={<NotFound />} />
