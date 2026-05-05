@@ -231,8 +231,9 @@ const SendColy = () => {
 
   const uploadPhoto = async (): Promise<string | null> => {
     if (!photoFile || !user) return null;
-    const path = `${user.id}/${Date.now()}-${photoFile.name}`;
-    const { error } = await supabase.storage.from("shipment-photos").upload(path, photoFile);
+    const compressed = await compressImage(photoFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
+    const path = `${user.id}/${Date.now()}-${compressed.name}`;
+    const { error } = await supabase.storage.from("shipment-photos").upload(path, compressed);
     if (error) return null;
     const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
     return data?.signedUrl ?? null;
