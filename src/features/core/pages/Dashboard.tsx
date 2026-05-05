@@ -1,8 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import appLogo from "@/assets/logo.png";
-import parcelRouteIllustration from "@/assets/illustrations/parcel-route.png";
-import parcelFutureHero from "@/assets/illustrations/parcel-future-hero.png";
-import planeIllustration from "@/assets/illustrations/traveler-plane.png";
 import waveHandIllustration from "@/assets/illustrations/wave-hand.png";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, LogOut, Search, Filter, MapPin, Clock, Plane, Map, Heart, Sparkles, Star, TrendingUp, Package, ShoppingBag, Zap, Calendar, Users, Plus, Send, Receipt, Wallet, ChevronRight, X, Download, BarChart3, Pencil, SlidersHorizontal, Shield, Trash2, Archive, ArrowUpDown, Trophy } from "lucide-react";
