@@ -8,6 +8,28 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+type LogLevel = "info" | "warn" | "error";
+function log(level: LogLevel, message: string, ctx: Record<string, unknown> = {}) {
+  const entry = {
+    level,
+    scope: "stripe-webhook",
+    message,
+    ts: new Date().toISOString(),
+    ...ctx,
+  };
+  const line = JSON.stringify(entry);
+  if (level === "error") console.error(line);
+  else if (level === "warn") console.warn(line);
+  else console.log(line);
+}
+
+function jsonResponse(status: number, body: Record<string, unknown>) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -23,38 +45,61 @@ serve(async (req) => {
     { auth: { persistSession: false } }
   );
 
+  // 1. Header check (must come before reading the body)
+  const signature = req.headers.get("stripe-signature");
+  if (!signature) {
+    log("warn", "missing_signature_header", { ip: req.headers.get("x-forwarded-for") });
+    return jsonResponse(400, { error: "Missing stripe-signature header" });
+  }
+
+  // 2. Webhook secret config
+  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  if (!webhookSecret) {
+    log("error", "missing_webhook_secret_env");
+    return jsonResponse(500, { error: "Webhook secret not configured" });
+  }
+
+  // 3. Read RAW body unmodified (must be the original bytes Stripe signed).
+  // We use req.text() before any parsing — do NOT call req.json() first.
+  let rawBody: string;
   try {
-    const signature = req.headers.get("stripe-signature");
-    if (!signature) {
-      return new Response(JSON.stringify({ error: "Missing stripe-signature header" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    rawBody = await req.text();
+  } catch (err) {
+    log("error", "raw_body_read_failed", { err: (err as Error).message });
+    return jsonResponse(400, { error: "Unable to read request body" });
+  }
+
+  // 4. Signature verification
+  let event: Stripe.Event;
+  try {
+    event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
+  } catch (err) {
+    log("warn", "invalid_signature", { err: (err as Error).message });
+    return jsonResponse(400, { error: "Invalid signature" });
+  }
+
+  // 5. Idempotence: skip if event.id was already processed
+  try {
+    const { data: existing, error: lookupError } = await supabaseAdmin
+      .from("stripe_webhook_events")
+      .select("event_id")
+      .eq("event_id", event.id)
+      .maybeSingle();
+
+    if (lookupError) {
+      log("error", "idempotence_lookup_failed", { event_id: event.id, err: lookupError.message });
+      // Continue: better to risk a replay than to silently drop a real event
+    } else if (existing) {
+      log("info", "duplicate_event_skipped", { event_id: event.id, event_type: event.type });
+      return jsonResponse(200, { received: true, duplicate: true });
     }
+  } catch (err) {
+    log("error", "idempotence_check_exception", { err: (err as Error).message });
+  }
 
-    const body = await req.text();
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-    if (!webhookSecret) {
-      console.error("STRIPE_WEBHOOK_SECRET not configured");
-      return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+  log("info", "event_received", { event_id: event.id, event_type: event.type });
 
-    let event: Stripe.Event;
-    try {
-      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
-    } catch (err) {
-      console.error("Webhook signature verification failed:", err.message);
-      return new Response(JSON.stringify({ error: "Invalid signature" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    console.log(`[STRIPE-WEBHOOK] Event received: ${event.type}`);
-
+  try {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
       const metadata = session.metadata;
@@ -63,9 +108,8 @@ serve(async (req) => {
         const userId = metadata.user_id;
         const amount = parseFloat(metadata.amount);
 
-        console.log(`[STRIPE-WEBHOOK] Processing wallet topup: user=${userId}, amount=${amount}€`);
+        log("info", "wallet_topup_processing", { event_id: event.id, user_id: userId, amount });
 
-        // Get or create wallet
         let { data: wallet, error: walletError } = await supabaseAdmin
           .from("wallets")
           .select("id, balance")
@@ -82,7 +126,6 @@ serve(async (req) => {
           wallet = newWallet;
         }
 
-        // Credit the wallet
         const newBalance = (wallet.balance || 0) + amount;
         const { error: updateError } = await supabaseAdmin
           .from("wallets")
@@ -91,7 +134,6 @@ serve(async (req) => {
 
         if (updateError) throw updateError;
 
-        // Record the transaction
         const { error: txError } = await supabaseAdmin
           .from("wallet_transactions")
           .insert({
@@ -104,9 +146,8 @@ serve(async (req) => {
             reference_id: session.id as any,
           });
 
-        if (txError) console.error("[STRIPE-WEBHOOK] Transaction insert error:", txError);
+        if (txError) log("error", "wallet_transaction_insert_failed", { err: txError.message });
 
-        // Send notification
         await supabaseAdmin
           .from("notifications")
           .insert({
@@ -116,19 +157,35 @@ serve(async (req) => {
             type: "wallet_topup",
           });
 
-        console.log(`[STRIPE-WEBHOOK] Wallet credited successfully: +${amount}€, new balance: ${newBalance}€`);
+        log("info", "wallet_topup_credited", {
+          event_id: event.id,
+          user_id: userId,
+          amount,
+          new_balance: newBalance,
+        });
       }
     }
 
-    return new Response(JSON.stringify({ received: true }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // 6. Mark event as processed (idempotence sentinel)
+    const { error: insertError } = await supabaseAdmin
+      .from("stripe_webhook_events")
+      .insert({
+        event_id: event.id,
+        event_type: event.type,
+        payload: event as unknown as Record<string, unknown>,
+      });
+    if (insertError && insertError.code !== "23505") {
+      // 23505 = unique_violation (race with concurrent delivery) → fine
+      log("error", "idempotence_insert_failed", { event_id: event.id, err: insertError.message });
+    }
+
+    return jsonResponse(200, { received: true });
   } catch (error) {
-    console.error("[STRIPE-WEBHOOK] Error:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    log("error", "handler_exception", {
+      event_id: event.id,
+      event_type: event.type,
+      err: (error as Error).message,
     });
+    return jsonResponse(500, { error: (error as Error).message });
   }
 });
