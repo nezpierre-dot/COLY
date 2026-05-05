@@ -15,6 +15,9 @@ import { Slider } from "@/components/ui/slider";
 import { hapticLight, hapticMedium } from "@/lib/haptics";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
 import { useTranslation } from "@/hooks/useTranslation";
+import { VirtualList } from "@/components/VirtualList";
+
+const VIRTUALIZE_THRESHOLD = 30;
 
 interface Voyage {
   id: string;
