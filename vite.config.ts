@@ -96,13 +96,22 @@ export default defineConfig(({ mode }) => ({
         manualChunks(id) {
           // Vendor chunks
           if (id.includes("node_modules")) {
-            if (id.includes("react-router") || id.includes("/react/") || id.includes("/react-dom/")) return "vendor-react";
+            // CRITICAL: keep React + react-dom + Radix + react-router in the SAME chunk.
+            // Radix calls React.forwardRef at module init — if React loads in a separate
+            // chunk it can be `undefined` on some browsers due to load ordering.
+            if (
+              id.includes("/react/") ||
+              id.includes("/react-dom/") ||
+              id.includes("react-router") ||
+              id.includes("@radix-ui") ||
+              id.includes("scheduler") ||
+              id.includes("/use-sync-external-store/")
+            ) return "vendor-react";
             if (id.includes("@tanstack")) return "vendor-query";
             if (id.includes("@supabase")) return "vendor-supabase";
             if (id.includes("framer-motion")) return "vendor-motion";
             if (id.includes("recharts")) return "vendor-charts";
             if (id.includes("mapbox-gl") || id.includes("react-map-gl")) return "vendor-map";
-            if (id.includes("@radix-ui")) return "vendor-radix";
             if (id.includes("date-fns")) return "vendor-dates";
             if (id.includes("lucide-react")) return "vendor-icons";
             if (id.includes("sonner")) return "vendor-toast";
