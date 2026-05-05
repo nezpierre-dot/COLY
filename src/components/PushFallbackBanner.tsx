@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BellOff, Mail, X, Share } from "lucide-react";
+import { BellOff, Mail, X, Share, Settings as SettingsIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const DISMISS_KEY = "nidit:push-fallback-banner-dismissed";
