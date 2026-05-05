@@ -239,9 +239,10 @@ const DisputesPage = () => {
 
   const uploadPhoto = async (file: File): Promise<string | null> => {
     if (!user) return null;
-    const ext = file.name.split(".").pop();
+    const compressed = await compressImage(file, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
+    const ext = compressed.name.split(".").pop();
     const path = `disputes/${user.id}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("shipment-photos").upload(path, file);
+    const { error } = await supabase.storage.from("shipment-photos").upload(path, compressed);
     if (error) return null;
     const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 365);
     return data?.signedUrl ?? null;
