@@ -816,13 +816,15 @@ const PostMatchActions = ({
       )}
 
       {voyageurId && ["accepted", "picked_up", "in_transit"].includes(normalizedStatus) && !compact && (
-        <LiveLocationSharing
-          itemId={shipmentId}
-          voyageurId={voyageurId}
-          isVoyageur={isVoyageur}
-          autoStart
-          destination={destinationCoords}
-        />
+        <Suspense fallback={<MapSkeleton height="h-64" />}>
+          <LiveLocationSharing
+            itemId={shipmentId}
+            voyageurId={voyageurId}
+            isVoyageur={isVoyageur}
+            autoStart
+            destination={destinationCoords}
+          />
+        </Suspense>
       )}
     </div>
   );
