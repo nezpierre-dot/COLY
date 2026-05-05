@@ -1693,6 +1693,87 @@ export type Database = {
         }
         Relationships: []
       }
+      voyages_public: {
+        Row: {
+          accept_needit: boolean | null
+          arrival_city: string | null
+          arrival_country: string | null
+          arrival_date: string | null
+          arrival_time: string | null
+          can_move: boolean | null
+          can_pickup: boolean | null
+          capacity_dimensions: string | null
+          capacity_volume_liters: number | null
+          created_at: string | null
+          cutoff_hours: number | null
+          deliver_to_address: boolean | null
+          departure_city: string | null
+          departure_country: string | null
+          departure_date: string | null
+          departure_time: string | null
+          id: string | null
+          max_items: number | null
+          max_weight_kg: number | null
+          needit_budget: string | null
+          status: string | null
+          transport_method: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accept_needit?: boolean | null
+          arrival_city?: string | null
+          arrival_country?: string | null
+          arrival_date?: string | null
+          arrival_time?: string | null
+          can_move?: boolean | null
+          can_pickup?: boolean | null
+          capacity_dimensions?: string | null
+          capacity_volume_liters?: number | null
+          created_at?: string | null
+          cutoff_hours?: number | null
+          deliver_to_address?: boolean | null
+          departure_city?: string | null
+          departure_country?: string | null
+          departure_date?: string | null
+          departure_time?: string | null
+          id?: string | null
+          max_items?: number | null
+          max_weight_kg?: number | null
+          needit_budget?: string | null
+          status?: string | null
+          transport_method?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accept_needit?: boolean | null
+          arrival_city?: string | null
+          arrival_country?: string | null
+          arrival_date?: string | null
+          arrival_time?: string | null
+          can_move?: boolean | null
+          can_pickup?: boolean | null
+          capacity_dimensions?: string | null
+          capacity_volume_liters?: number | null
+          created_at?: string | null
+          cutoff_hours?: number | null
+          deliver_to_address?: boolean | null
+          departure_city?: string | null
+          departure_country?: string | null
+          departure_date?: string | null
+          departure_time?: string | null
+          id?: string | null
+          max_items?: number | null
+          max_weight_kg?: number | null
+          needit_budget?: string | null
+          status?: string | null
+          transport_method?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_needit_mission: { Args: { _mission_id: string }; Returns: string }
