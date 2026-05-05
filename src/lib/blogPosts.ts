@@ -26,7 +26,23 @@ export interface BlogPost {
   /** Related route slugs (links to /explore/:slug) */
   relatedRoutes?: string[];
   category: "guide" | "comparatif" | "destination" | "astuces";
+  /** Optional FAQ block — rendered at the bottom and emitted as FAQPage JSON-LD */
+  faq?: Array<{ q: string; a: string }>;
 }
+
+export const BLOG_CATEGORIES: Array<BlogPost["category"]> = [
+  "guide",
+  "comparatif",
+  "destination",
+  "astuces",
+];
+
+export const BLOG_CATEGORY_LABELS: Record<BlogPost["category"], string> = {
+  guide: "Guide",
+  comparatif: "Comparatif",
+  destination: "Destination",
+  astuces: "Astuces",
+};
 
 export type BlogBlock =
   | { type: "p"; text: string }
