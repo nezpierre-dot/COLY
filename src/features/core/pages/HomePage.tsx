@@ -308,41 +308,43 @@ const HomePage = () => {
         {t("home.skipToMain")}
       </a>
 
-      <div className="min-h-screen bg-background pb-24">
-        {/* Header */}
-        <header className="px-5 pt-5 pb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <img src={appLogo} alt="" aria-hidden="true" className="w-9 h-9 rounded-xl" />
-            <div>
-              <p className="text-xs text-muted-foreground leading-none">{greeting}</p>
-              <p className="text-base font-semibold text-foreground leading-tight">
-                {firstName || t("home.welcomeFallback")}
-              </p>
+      <div className="page-shell pb-24">
+        {/* ─── Header Future (aligné Missions/Messages/Profil) ─── */}
+        <header className="page-header-soft">
+          <div className="page-content">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <img src={appLogo} alt="" aria-hidden="true" className="w-10 h-10 rounded-xl object-contain" />
+                <NotificationBell />
+              </div>
+              <button
+                onClick={() => navigate("/my-account")}
+                aria-label={t("home.openAccount")}
+                className="icon-btn-soft"
+              >
+                <span className="text-sm font-semibold text-foreground" aria-hidden="true">
+                  {firstName ? firstName[0]?.toUpperCase() : "·"}
+                </span>
+              </button>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-            <button
-              onClick={() => navigate("/my-account")}
-              aria-label={t("home.openAccount")}
-              className="w-9 h-9 rounded-full bg-muted hover:bg-muted/80 transition flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              <span className="text-sm font-semibold text-foreground" aria-hidden="true">
-                {firstName ? firstName[0]?.toUpperCase() : "·"}
+
+            <span className="greeting-bubble-xl mb-3">
+              <Sparkles size={18} className="text-primary" />
+              {greeting}{firstName ? `, ${firstName}` : ""}
+            </span>
+            <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+              {t("home.question")}<br />
+              <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
+                en un tap ✨
               </span>
-            </button>
+            </h1>
+            <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
+              {t("home.subtitle")}
+            </p>
           </div>
         </header>
 
-        <main id="home-main">
-          {/* Question principale */}
-          <section className="px-5 pt-2 pb-5">
-            <h1 className="text-2xl font-bold text-foreground leading-tight">
-              {t("home.question")}
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">{t("home.subtitle")}</p>
-          </section>
-
+        <main id="home-main" className="page-content pt-4 space-y-6">
           {/* Live region pour annoncer le toggle de rôle */}
           <div className="sr-only" role="status" aria-live="polite">
             {switching ? t("home.switching") : ""}
@@ -350,7 +352,6 @@ const HomePage = () => {
 
           {/* 2 gros CTA */}
           <section
-            className="px-5"
             role="group"
             aria-labelledby="home-cta-label"
           >
@@ -448,7 +449,6 @@ const HomePage = () => {
 
           {/* Section contextuelle */}
           <section
-            className="px-5 mt-6"
             aria-busy={loading}
             aria-label={t("home.contextualAria")}
           >
@@ -520,7 +520,7 @@ const HomePage = () => {
           </section>
 
           {/* Raccourcis discrets — prefetch au hover/focus */}
-          <section className="px-5 mt-6" aria-label={t("home.shortcutsAria")}>
+          <section aria-label={t("home.shortcutsAria")}>
             <div className="grid grid-cols-3 gap-2">
               {shortcuts.map((s) => (
                 <button
@@ -543,7 +543,7 @@ const HomePage = () => {
           </section>
 
           {/* Lien discret vers l'ancien tableau de bord */}
-          <div className="px-5 mt-6 text-center">
+          <div className="text-center">
             <button
               onClick={() => navigate("/dashboard-classic")}
               className="text-xs text-muted-foreground hover:text-foreground transition outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1"
