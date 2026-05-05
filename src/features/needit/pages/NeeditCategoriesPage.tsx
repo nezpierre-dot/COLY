@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 import needitBagIllustration from "@/assets/illustrations/needit-bag.png";
+import ScanEanQuickStart from "../components/ScanEanQuickStart";
 
 type SuggestionReason = "recent" | "popular";
 type Suggestion = { cat: CategoryDef; reason: SuggestionReason; count?: number };
@@ -252,6 +253,13 @@ const NeeditCategoriesPage = () => {
             )}
           </label>
         </div>
+
+        {/* Quick start : scan EAN */}
+        {!q && (
+          <div className="mb-6">
+            <ScanEanQuickStart />
+          </div>
+        )}
 
         {/* Suggestions personnalisées — explicables et ignorables */}
         {!q && (

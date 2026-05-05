@@ -22,6 +22,8 @@ export interface NeeditDraft {
   pays?: string;
   ville?: string;
   pickupAddress?: string;
+  // Pré-remplissage via scan EAN
+  eanCode?: string;
 }
 
 const STORAGE_KEY = "nidit:needit:draft";
