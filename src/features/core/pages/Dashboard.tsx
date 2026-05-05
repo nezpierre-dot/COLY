@@ -742,7 +742,7 @@ const Dashboard = () => {
     {!showVoyageurOnboarding && !showDemandeurOnboarding && (
       <CoachMarks steps={dashboardCoachSteps} storageKey="dashboard-coach-done" delay={900} />
     )}
-    <div className="min-h-screen bg-gradient-soft pb-24">
+    <div className="page-shell">
       <PullToRefresh onRefresh={handleRefresh}>
       <PageTransition>
       <main className="px-0 pt-0" id="main-content" role="main">
@@ -754,14 +754,8 @@ const Dashboard = () => {
           className="relative"
         >
 
-          <div className={`${isVoyageur ? "bg-gradient-hero" : "bg-gradient-hero-bright"} px-5 pt-6 pb-10 sm:px-8 sm:pt-8 sm:pb-14 rounded-b-[2.75rem] shadow-soft relative overflow-hidden`}>
-            {/* Decorative aura blobs for "Future" feel */}
-            <div aria-hidden className="pointer-events-none absolute -top-24 -right-16 w-80 h-80 rounded-full bg-secondary/30 blur-3xl" />
-            <div aria-hidden className="pointer-events-none absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-primary/25 blur-3xl" />
-            {!isVoyageur && (
-              <div aria-hidden className="pointer-events-none absolute top-1/3 left-1/2 w-40 h-40 rounded-full bg-accent/20 blur-3xl" />
-            )}
-
+          <header className="page-header-soft">
+            <div className="page-content">
             <div className="relative flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
                 <img src={appLogo} alt="Nidit" className="w-10 h-10 object-contain" />
@@ -782,10 +776,10 @@ const Dashboard = () => {
             </div>
 
             {isVoyageur ? (
-              /* ---------- Voyageur header (compact, unchanged spirit) ---------- */
+              /* ---------- Voyageur header ---------- */
               <div className="relative flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <span className="greeting-bubble mb-3">
+                  <span className="greeting-bubble-xl mb-3">
                     <img src={waveHandIllustration} alt="" aria-hidden="true" className="w-5 h-5 object-contain" />
                     Bonjour !
                   </span>
