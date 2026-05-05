@@ -1947,7 +1947,9 @@ const Dashboard = () => {
 
               {/* ---- Carte tab (demandeur) ---- */}
               <TabsContent value="carte" className="mt-0">
-                <PublicMissionsMap />
+                <Suspense fallback={<MapSkeleton height="h-72" />}>
+                  <PublicMissionsMap />
+                </Suspense>
               </TabsContent>
 
               {/* ---- Actions tab ---- */}
