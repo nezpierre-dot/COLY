@@ -367,8 +367,8 @@ const HomePage = () => {
                 <motion.button
                   type="button"
                   onClick={handleSend}
-                  whileTap={{ scale: 0.98 }}
-                  className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 h-full flex"
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                  className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex ${prefersReducedMotion ? "" : "hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200"}`}
                   aria-labelledby="cta-send-title"
                   aria-describedby="cta-send-desc"
                 >
@@ -400,8 +400,8 @@ const HomePage = () => {
                     trackEvent("home_cta_click", "navigation", { action: "needit" });
                     navigate("/needit/categories");
                   }}
-                  whileTap={{ scale: 0.98 }}
-                  className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary to-secondary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 h-full flex"
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+                  className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary to-secondary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex ${prefersReducedMotion ? "" : "hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200"}`}
                   aria-labelledby="cta-needit-title"
                   aria-describedby="cta-needit-desc cta-needit-badge"
                 >
@@ -449,8 +449,8 @@ const HomePage = () => {
                   disabled={switching}
                   aria-disabled={switching}
                   aria-busy={switching}
-                  whileTap={{ scale: switching ? 1 : 0.98 }}
-                  className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 disabled:opacity-70 disabled:cursor-progress disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:active:scale-100 h-full flex"
+                  whileTap={prefersReducedMotion || switching ? undefined : { scale: 0.98 }}
+                  className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-70 disabled:cursor-progress h-full flex ${prefersReducedMotion || switching ? "" : "hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200"}`}
                   aria-labelledby="cta-transport-title"
                   aria-describedby={switching ? "cta-transport-status" : "cta-transport-desc"}
                 >
@@ -460,7 +460,7 @@ const HomePage = () => {
                     <div className="flex-1 min-w-0 flex flex-col">
                       <div aria-hidden="true" className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 sm:mb-3">
                         {switching ? (
-                          <Loader2 className="text-white w-5 h-5 sm:w-[22px] sm:h-[22px] animate-spin" />
+                          <Loader2 className={`text-white w-5 h-5 sm:w-[22px] sm:h-[22px] ${prefersReducedMotion ? "" : "animate-spin"}`} />
                         ) : (
                           <Plane className="text-white w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                         )}
