@@ -4,6 +4,7 @@ import { ArrowRight, Plane, Calendar, Package2, Shield, Sparkles } from "lucide-
 import { supabase } from "@/integrations/supabase/client";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
+import { parseRouteSlug } from "@/lib/popularRoutes";
 
 interface RouteVoyage {
   id: string;
@@ -16,13 +17,9 @@ interface RouteVoyage {
   transport_method: string;
 }
 
-// Convert "paris-dakar" → ["Paris", "Dakar"]
-function parseSlug(slug: string): { from: string; to: string } | null {
-  const parts = slug.split("-");
-  if (parts.length < 2) return null;
-  // Simple split on first hyphen — "saint-denis-paris" not yet supported
-  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-  return { from: cap(parts[0]), to: cap(parts.slice(1).join(" ")) };
+// Slug format: "paris_dakar" (slugified, "_" separates from/to).
+function parseSlug(slug: string) {
+  return parseRouteSlug(slug);
 }
 
 export default function PublicRoutePage() {

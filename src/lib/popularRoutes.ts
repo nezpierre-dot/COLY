@@ -43,11 +43,24 @@ export const POPULAR_ROUTES: Array<[string, string]> = [
   ["Londres", "Casablanca"],
 ];
 
-export function routeSlug(from: string, to: string): string {
-  return `${from}-${to}`
+function slugify(s: string): string {
+  return s
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+export function routeSlug(from: string, to: string): string {
+  return `${slugify(from)}_${slugify(to)}`;
+}
+
+export function parseRouteSlug(slug: string): { from: string; to: string } | null {
+  const [a, b] = slug.split("_");
+  if (!a || !b) return null;
+  const cap = (s: string) =>
+    s.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join("-");
+  return { from: cap(a), to: cap(b) };
+}
+
