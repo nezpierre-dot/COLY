@@ -37,6 +37,7 @@ import {
   Sparkles,
   ListChecks,
   Package,
+  ShoppingBag,
   AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -359,89 +360,97 @@ const HomePage = () => {
               {t("home.ctaGroupAria")}
             </span>
             <div className="grid grid-cols-1 gap-3">
+              {/* CTA 1 — Envoyer un colis (bleu primary) */}
               <motion.button
                 onClick={handleSend}
                 whileTap={{ scale: 0.98 }}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary/80 p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/70 p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 aria-label={t("home.ctaSendAria")}
               >
-                <div
-                  aria-hidden="true"
-                  className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-primary-foreground/10"
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute -right-2 bottom-0 w-20 h-20 rounded-full bg-primary-foreground/5"
-                />
+                <div aria-hidden="true" className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
+                <div aria-hidden="true" className="absolute -right-2 bottom-0 w-20 h-20 rounded-full bg-white/10" />
                 <div className="relative flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <div
-                      aria-hidden="true"
-                      className="w-11 h-11 rounded-2xl bg-primary-foreground/15 flex items-center justify-center mb-3"
-                    >
-                      <Send size={22} className="text-primary-foreground" />
+                    <div aria-hidden="true" className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3">
+                      <Send size={22} className="text-white" />
                     </div>
-                    <p className="text-xl font-bold text-primary-foreground">
+                    <p className="text-xl font-bold text-white">
                       {t("home.ctaSendTitle")}
                     </p>
-                    <p className="text-sm text-primary-foreground/80 mt-0.5">
+                    <p className="text-sm text-white/85 mt-0.5">
                       {t("home.ctaSendSubtitle")}
                     </p>
                   </div>
-                  <ArrowRight
-                    aria-hidden="true"
-                    size={22}
-                    className="text-primary-foreground/80 group-hover:translate-x-1 transition-transform shrink-0 mt-1"
-                  />
+                  <ArrowRight aria-hidden="true" size={22} className="text-white/85 group-hover:translate-x-1 transition-transform shrink-0 mt-1" />
                 </div>
               </motion.button>
 
+              {/* CTA 2 — Demander un produit / NeedIt (violet secondary) */}
+              <motion.button
+                onClick={() => {
+                  hapticLight();
+                  trackEvent("home_cta_click", "navigation", { action: "needit" });
+                  navigate("/needit/categories");
+                }}
+                whileTap={{ scale: 0.98 }}
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary to-secondary/70 p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                aria-label="Demander un produit à un Voyageur Nidit"
+              >
+                <div aria-hidden="true" className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
+                <div aria-hidden="true" className="absolute -right-2 bottom-0 w-20 h-20 rounded-full bg-white/10" />
+                <div className="relative flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div aria-hidden="true" className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3">
+                      <ShoppingBag size={22} className="text-white" />
+                    </div>
+                    <p className="text-xl font-bold text-white">
+                      Demander un produit
+                    </p>
+                    <p className="text-sm text-white/85 mt-0.5">
+                      Fais ramener ton produit préféré de l'étranger
+                    </p>
+                    <span className="inline-flex items-center gap-1 mt-2 text-[11px] font-semibold text-white bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
+                      <Sparkles size={10} aria-hidden="true" /> NeedIt
+                    </span>
+                  </div>
+                  <ArrowRight aria-hidden="true" size={22} className="text-white/85 group-hover:translate-x-1 transition-transform shrink-0 mt-1" />
+                </div>
+              </motion.button>
+
+              {/* CTA 3 — Transporter (orange accent) */}
               <motion.button
                 ref={transportBtnRef}
                 onClick={handleTransport}
                 aria-disabled={switching}
                 aria-busy={switching}
                 whileTap={{ scale: switching ? 1 : 0.98 }}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent to-accent/80 p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background aria-disabled:opacity-70 aria-disabled:cursor-progress"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background aria-disabled:opacity-70 aria-disabled:cursor-progress"
                 aria-label={
                   isVoyageur
                     ? t("home.ctaTransportAria")
                     : t("home.ctaTransportSwitchAria")
                 }
               >
-                <div
-                  aria-hidden="true"
-                  className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-accent-foreground/10"
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute -right-2 bottom-0 w-20 h-20 rounded-full bg-accent-foreground/5"
-                />
+                <div aria-hidden="true" className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
+                <div aria-hidden="true" className="absolute -right-2 bottom-0 w-20 h-20 rounded-full bg-white/10" />
                 <div className="relative flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <div
-                      aria-hidden="true"
-                      className="w-11 h-11 rounded-2xl bg-accent-foreground/15 flex items-center justify-center mb-3"
-                    >
-                      <Plane size={22} className="text-accent-foreground" />
+                    <div aria-hidden="true" className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3">
+                      <Plane size={22} className="text-white" />
                     </div>
-                    <p className="text-xl font-bold text-accent-foreground">
+                    <p className="text-xl font-bold text-white">
                       {t("home.ctaTransportTitle")}
                     </p>
-                    <p className="text-sm text-accent-foreground/80 mt-0.5">
+                    <p className="text-sm text-white/85 mt-0.5">
                       {switching ? t("home.switching") : t("home.ctaTransportSubtitle")}
                     </p>
                     {!isVoyageur && !switching && (
-                      <span className="inline-flex items-center gap-1 mt-2 text-[11px] font-medium text-accent-foreground/90 bg-accent-foreground/10 rounded-full px-2 py-0.5">
+                      <span className="inline-flex items-center gap-1 mt-2 text-[11px] font-semibold text-white bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
                         <Sparkles size={10} aria-hidden="true" /> {t("home.autoSwitchHint")}
                       </span>
                     )}
                   </div>
-                  <ArrowRight
-                    aria-hidden="true"
-                    size={22}
-                    className="text-accent-foreground/80 group-hover:translate-x-1 transition-transform shrink-0 mt-1"
-                  />
+                  <ArrowRight aria-hidden="true" size={22} className="text-white/85 group-hover:translate-x-1 transition-transform shrink-0 mt-1" />
                 </div>
               </motion.button>
             </div>
