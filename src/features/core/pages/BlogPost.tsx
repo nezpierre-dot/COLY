@@ -143,6 +143,18 @@ export default function BlogPost() {
     },
   ];
 
+  if (post.faq && post.faq.length > 0) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: post.faq.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    });
+  }
+
   const relatedRouteEntries = (post.relatedRoutes ?? [])
     .map((s) => {
       const match = POPULAR_ROUTES.find(([from, to]) => routeSlug(from, to) === s);
