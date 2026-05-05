@@ -34,13 +34,21 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
 
-    // GET: check unsubscribe status by user_id
+    // GET: check unsubscribe status by user_id (HMAC token required)
     if (req.method === "GET") {
       const userId = url.searchParams.get("user_id");
+      const token = url.searchParams.get("token") ?? "";
       if (!userId) {
         return new Response(JSON.stringify({ error: "Missing user_id" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const expected = await expectedToken(userId);
+      if (!safeEqual(token, expected)) {
+        return new Response("Lien invalide ou expiré.", {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "text/plain; charset=utf-8" },
         });
       }
 
