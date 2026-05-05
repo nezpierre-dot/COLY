@@ -114,7 +114,7 @@ export default function BlogPost() {
   const canonical = `/blog/${post.slug}`;
   const related = getRelatedPosts(post.slug, 3);
 
-  const jsonLd = [
+  const jsonLd: Array<Record<string, unknown>> = [
     {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
