@@ -52,6 +52,7 @@ import GettingStartedChecklist from "@/components/GettingStartedChecklist";
 import PageTransition from "@/components/PageTransition";
 import { prefetchAllHubsOnIdle, prefetchHub } from "@/features/core/hubs/prefetch";
 import { toast } from "sonner";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import appLogo from "@/assets/logo.png";
 
 type ActiveStatus = "live" | "expired";
