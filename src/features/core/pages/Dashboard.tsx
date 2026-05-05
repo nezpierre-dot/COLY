@@ -884,10 +884,11 @@ const Dashboard = () => {
                 </motion.div>
               </div>
             )}
-          </div>
+            </div>
+          </header>
         </motion.div>
 
-        <div className="px-5 pt-4 sm:px-8 relative z-10 space-y-5">
+        <div className="page-content pt-4 relative z-10 space-y-5">
 
         {/* Brouillon d'envoi en cours — reprise en 1 clic */}
         <SendDraftResumeSlot onResume={() => navigate("/send-coly")} />
