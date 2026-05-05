@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar, Plane, Package2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import ShareButton from "@/components/ShareButton";
+import Seo from "@/components/Seo";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface PublicVoyageDetail {
@@ -65,8 +66,22 @@ export default function PublicVoyageDetail() {
 
   const localeTag = language === "ar" ? "ar" : `${language}-${language.toUpperCase()}`;
 
+  const seoTitle = `${v.departure_city} → ${v.arrival_city} le ${new Date(v.departure_date).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })} | Nidit`;
+  const seoDesc = `Trajet ${v.transport_method} de ${v.departure_city} (${v.departure_country}) vers ${v.arrival_city} (${v.arrival_country}). Envoyez votre colis avec un voyageur Nidit vérifié.`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TravelAction",
+    name: `${v.departure_city} → ${v.arrival_city}`,
+    fromLocation: { "@type": "City", name: v.departure_city, address: { "@type": "PostalAddress", addressCountry: v.departure_country } },
+    toLocation: { "@type": "City", name: v.arrival_city, address: { "@type": "PostalAddress", addressCountry: v.arrival_country } },
+    startTime: v.departure_date,
+    endTime: v.arrival_date || undefined,
+    provider: { "@type": "Organization", name: "Nidit", url: "https://nidit.fr" },
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <Seo title={seoTitle} description={seoDesc} canonical={`/trajet/${v.id}`} jsonLd={jsonLd} />
       <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
