@@ -85,6 +85,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Verify caller is a party to the shipment/mission
+    if (user.id !== voyageurId && user.id !== demandeurId) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Determine who opened the dispute and who should be notified
     const isOpenedByVoyageur = user.id === voyageurId;
     const targetUserId = isOpenedByVoyageur ? demandeurId : voyageurId;

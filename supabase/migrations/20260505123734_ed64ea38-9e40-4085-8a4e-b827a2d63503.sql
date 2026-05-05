@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Anyone can view user badges" ON public.user_points;
