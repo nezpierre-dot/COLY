@@ -1100,12 +1100,22 @@ const AdminDashboard = () => {
                             onClick={async () => {
                               setMatchAssigning(v.id);
                               try {
-                                if (matchSelectedItem.type === "shipment") {
-                                  const { error } = await supabase.from("shipments").update({ voyageur_id: v.user_id, status: "accepted" }).eq("id", matchSelectedItem.id);
-                                  if (error) throw error;
-                                } else {
-                                  const { error } = await supabase.from("needit_missions").update({ voyageur_id: v.user_id, status: "accepted" }).eq("id", matchSelectedItem.id);
-                                  if (error) throw error;
+                                const table = matchSelectedItem.type === "shipment" ? "shipments" : "needit_missions";
+                                // Update atomique gardé : status='pending' ET voyageur_id IS NULL — empêche d'écraser une assignation concurrente
+                                const { data: updated, error } = await supabase
+                                  .from(table)
+                                  .update({ voyageur_id: v.user_id, status: "accepted" })
+                                  .eq("id", matchSelectedItem.id)
+                                  .eq("status", "pending")
+                                  .is("voyageur_id", null)
+                                  .select("id");
+                                if (error) throw error;
+                                if (!updated || updated.length === 0) {
+                                  toast.error("Déjà accepté par un autre voyageur. Rafraîchissement du tableau de bord…");
+                                  setMatchSelectedItem(null);
+                                  setMatchSearchQuery("");
+                                  await loadAll();
+                                  return;
                                 }
                                 // Create notification for both parties
                                 await supabase.from("notifications").insert([
