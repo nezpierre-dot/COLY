@@ -124,6 +124,10 @@ Deno.serve(async (req) => {
     let emailFallback: { attempted: boolean; sent?: boolean; reason?: string } = { attempted: false };
     if (sent === 0) {
       emailFallback = await maybeSendEmailFallback(supabase, user_id, type, title, message);
+      await logFallback(supabase, {
+        user_id, type, notification_id, title, message,
+        push_subs_count: subs.length, push_sent: 0, fallback: emailFallback,
+      });
     }
 
     return new Response(JSON.stringify({ sent, removed, email_fallback: emailFallback }), {
