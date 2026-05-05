@@ -68,13 +68,20 @@ Deno.serve(async (req) => {
     if (type === "shipment") {
       const { data: shipment } = await supabase
         .from("shipments")
-        .select("user_id, departure_city, arrival_city, arrival_country")
+        .select("user_id, voyageur_id, departure_city, arrival_city, arrival_country")
         .eq("id", item_id)
         .single();
 
       if (!shipment) {
         return new Response(JSON.stringify({ error: "Shipment not found" }), {
           status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (shipment.voyageur_id !== voyageurId) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -86,13 +93,20 @@ Deno.serve(async (req) => {
     } else if (type === "needit") {
       const { data: mission } = await supabase
         .from("needit_missions")
-        .select("user_id, product_name, country, city")
+        .select("user_id, voyageur_id, product_name, country, city")
         .eq("id", item_id)
         .single();
 
       if (!mission) {
         return new Response(JSON.stringify({ error: "Mission not found" }), {
           status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (mission.voyageur_id !== voyageurId) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
