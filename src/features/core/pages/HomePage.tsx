@@ -359,29 +359,29 @@ const HomePage = () => {
             <span id="home-cta-label" className="sr-only">
               {t("home.ctaGroupAria")}
             </span>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4 auto-rows-fr">
               {/* CTA 1 — Envoyer un colis (bleu primary) */}
               <motion.button
                 onClick={handleSend}
                 whileTap={{ scale: 0.98 }}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/70 p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex"
                 aria-label={t("home.ctaSendAria")}
               >
-                <div aria-hidden="true" className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
-                <div aria-hidden="true" className="absolute -right-2 bottom-0 w-20 h-20 rounded-full bg-white/10" />
-                <div className="relative flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div aria-hidden="true" className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3">
-                      <Send size={22} className="text-white" />
+                <div aria-hidden="true" className="absolute -right-6 -top-6 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white/15" />
+                <div aria-hidden="true" className="absolute -right-2 bottom-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10" />
+                <div className="relative flex items-start justify-between gap-2 w-full">
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <div aria-hidden="true" className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 sm:mb-3">
+                      <Send className="text-white w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                     </div>
-                    <p className="text-xl font-bold text-white">
+                    <p className="text-base sm:text-lg lg:text-xl font-bold text-white leading-tight">
                       {t("home.ctaSendTitle")}
                     </p>
-                    <p className="text-sm text-white/85 mt-0.5">
+                    <p className="text-xs sm:text-sm text-white/85 mt-1 leading-snug">
                       {t("home.ctaSendSubtitle")}
                     </p>
                   </div>
-                  <ArrowRight aria-hidden="true" size={22} className="text-white/85 group-hover:translate-x-1 transition-transform shrink-0 mt-1" />
+                  <ArrowRight aria-hidden="true" className="text-white/85 group-hover:translate-x-1 transition-transform shrink-0 mt-1 w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                 </div>
               </motion.button>
 
@@ -393,27 +393,29 @@ const HomePage = () => {
                   navigate("/needit/categories");
                 }}
                 whileTap={{ scale: 0.98 }}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary to-secondary/70 p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary to-secondary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex"
                 aria-label="Demander un produit à un Voyageur Nidit"
               >
-                <div aria-hidden="true" className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
-                <div aria-hidden="true" className="absolute -right-2 bottom-0 w-20 h-20 rounded-full bg-white/10" />
-                <div className="relative flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div aria-hidden="true" className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3">
-                      <ShoppingBag size={22} className="text-white" />
+                <div aria-hidden="true" className="absolute -right-6 -top-6 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white/15" />
+                <div aria-hidden="true" className="absolute -right-2 bottom-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10" />
+                <div className="relative flex items-start justify-between gap-2 w-full">
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <div aria-hidden="true" className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 sm:mb-3">
+                      <ShoppingBag className="text-white w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                     </div>
-                    <p className="text-xl font-bold text-white">
+                    <p className="text-base sm:text-lg lg:text-xl font-bold text-white leading-tight">
                       Demander un produit
                     </p>
-                    <p className="text-sm text-white/85 mt-0.5">
+                    <p className="text-xs sm:text-sm text-white/85 mt-1 leading-snug">
                       Fais ramener ton produit préféré de l'étranger
                     </p>
-                    <span className="inline-flex items-center gap-1 mt-2 text-[11px] font-semibold text-white bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
-                      <Sparkles size={10} aria-hidden="true" /> NeedIt
+                    <span className="inline-flex items-center gap-1 mt-auto pt-2 text-[11px] font-semibold text-white">
+                      <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
+                        <Sparkles size={10} aria-hidden="true" /> NeedIt
+                      </span>
                     </span>
                   </div>
-                  <ArrowRight aria-hidden="true" size={22} className="text-white/85 group-hover:translate-x-1 transition-transform shrink-0 mt-1" />
+                  <ArrowRight aria-hidden="true" className="text-white/85 group-hover:translate-x-1 transition-transform shrink-0 mt-1 w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                 </div>
               </motion.button>
 
@@ -424,33 +426,35 @@ const HomePage = () => {
                 aria-disabled={switching}
                 aria-busy={switching}
                 whileTap={{ scale: switching ? 1 : 0.98 }}
-                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background aria-disabled:opacity-70 aria-disabled:cursor-progress"
+                className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background aria-disabled:opacity-70 aria-disabled:cursor-progress h-full flex"
                 aria-label={
                   isVoyageur
                     ? t("home.ctaTransportAria")
                     : t("home.ctaTransportSwitchAria")
                 }
               >
-                <div aria-hidden="true" className="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/15" />
-                <div aria-hidden="true" className="absolute -right-2 bottom-0 w-20 h-20 rounded-full bg-white/10" />
-                <div className="relative flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div aria-hidden="true" className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3">
-                      <Plane size={22} className="text-white" />
+                <div aria-hidden="true" className="absolute -right-6 -top-6 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white/15" />
+                <div aria-hidden="true" className="absolute -right-2 bottom-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10" />
+                <div className="relative flex items-start justify-between gap-2 w-full">
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <div aria-hidden="true" className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 sm:mb-3">
+                      <Plane className="text-white w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                     </div>
-                    <p className="text-xl font-bold text-white">
+                    <p className="text-base sm:text-lg lg:text-xl font-bold text-white leading-tight">
                       {t("home.ctaTransportTitle")}
                     </p>
-                    <p className="text-sm text-white/85 mt-0.5">
+                    <p className="text-xs sm:text-sm text-white/85 mt-1 leading-snug">
                       {switching ? t("home.switching") : t("home.ctaTransportSubtitle")}
                     </p>
                     {!isVoyageur && !switching && (
-                      <span className="inline-flex items-center gap-1 mt-2 text-[11px] font-semibold text-white bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
-                        <Sparkles size={10} aria-hidden="true" /> {t("home.autoSwitchHint")}
+                      <span className="inline-flex items-center gap-1 mt-auto pt-2 text-[11px] font-semibold text-white">
+                        <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
+                          <Sparkles size={10} aria-hidden="true" /> {t("home.autoSwitchHint")}
+                        </span>
                       </span>
                     )}
                   </div>
-                  <ArrowRight aria-hidden="true" size={22} className="text-white/85 group-hover:translate-x-1 transition-transform shrink-0 mt-1" />
+                  <ArrowRight aria-hidden="true" className="text-white/85 group-hover:translate-x-1 transition-transform shrink-0 mt-1 w-5 h-5 sm:w-[22px] sm:h-[22px]" />
                 </div>
               </motion.button>
             </div>
