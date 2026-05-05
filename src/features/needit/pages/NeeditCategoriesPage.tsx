@@ -254,6 +254,13 @@ const NeeditCategoriesPage = () => {
           </label>
         </div>
 
+        {/* Quick start : scan EAN */}
+        {!q && (
+          <div className="mb-6">
+            <ScanEanQuickStart />
+          </div>
+        )}
+
         {/* Suggestions personnalisées — explicables et ignorables */}
         {!q && (
           <Section
