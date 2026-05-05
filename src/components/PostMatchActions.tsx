@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { Camera as CameraIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
