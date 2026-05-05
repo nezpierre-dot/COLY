@@ -383,8 +383,8 @@ const HomePage = () => {
                 <motion.button
                   type="button"
                   onClick={handleSend}
-                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                  className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex ${prefersReducedMotion ? "" : "hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200"}`}
+                  {...ctaMotion()}
+                  className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary to-primary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex ${ctaMotion().motionClass}`}
                   aria-labelledby="cta-send-title"
                   aria-describedby="cta-send-desc"
                 >
@@ -416,8 +416,8 @@ const HomePage = () => {
                     trackEvent("home_cta_click", "navigation", { action: "needit" });
                     navigate("/needit/categories");
                   }}
-                  whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                  className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary to-secondary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex ${prefersReducedMotion ? "" : "hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200"}`}
+                  {...ctaMotion()}
+                  className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-secondary to-secondary/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background h-full flex ${ctaMotion().motionClass}`}
                   aria-labelledby="cta-needit-title"
                   aria-describedby="cta-needit-desc cta-needit-badge"
                 >
@@ -465,8 +465,8 @@ const HomePage = () => {
                   disabled={switching}
                   aria-disabled={switching}
                   aria-busy={switching}
-                  whileTap={prefersReducedMotion || switching ? undefined : { scale: 0.98 }}
-                  className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-70 disabled:cursor-progress h-full flex ${prefersReducedMotion || switching ? "" : "hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200"}`}
+                  {...ctaMotion(switching)}
+                  className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-70 disabled:cursor-progress h-full flex ${ctaMotion(switching).motionClass}`}
                   aria-labelledby="cta-transport-title"
                   aria-describedby={switching ? "cta-transport-status" : "cta-transport-desc"}
                 >
