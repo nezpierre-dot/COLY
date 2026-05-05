@@ -241,3 +241,52 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+/**
+ * Extract a related task/entity ID from the notification type string.
+ * E.g. "accepted:shipment:abc-123" → "abc-123", "reminder:departure:xyz" → "xyz".
+ */
+function extractRelatedTaskId(type: string | null | undefined): string | null {
+  if (!type) return null;
+  const parts = type.split(":");
+  return parts.length >= 2 ? parts[parts.length - 1] : null;
+}
+
+async function logFallback(
+  supabase: any,
+  args: {
+    user_id: string;
+    type: string | null | undefined;
+    notification_id: string | null | undefined;
+    title: string;
+    message: string | null | undefined;
+    push_subs_count: number;
+    push_sent: number;
+    fallback: { attempted: boolean; sent?: boolean; reason?: string };
+  },
+) {
+  try {
+    await supabase.from("push_fallback_log").insert({
+      user_id: args.user_id,
+      event_type: args.type ?? null,
+      notification_id: args.notification_id ?? null,
+      related_task_id: extractRelatedTaskId(args.type),
+      push_subs_count: args.push_subs_count,
+      push_sent: args.push_sent,
+      email_attempted: !!args.fallback.attempted,
+      email_sent: !!args.fallback.sent,
+      reason: args.fallback.reason ?? null,
+      title: args.title,
+    });
+    console.log("[send-push] fallback logged", {
+      user: args.user_id,
+      event: args.type,
+      task: extractRelatedTaskId(args.type),
+      attempted: args.fallback.attempted,
+      sent: args.fallback.sent,
+      reason: args.fallback.reason,
+    });
+  } catch (e) {
+    console.warn("[send-push] failed to log fallback", e);
+  }
+}
