@@ -116,7 +116,13 @@ Deno.serve(async (req) => {
       }),
     );
 
-    return new Response(JSON.stringify({ sent, removed }), {
+    // If no push reached the device (all subs expired/failed), try email fallback for critical events
+    let emailFallback: { attempted: boolean; sent?: boolean; reason?: string } = { attempted: false };
+    if (sent === 0) {
+      emailFallback = await maybeSendEmailFallback(supabase, user_id, type, title, message);
+    }
+
+    return new Response(JSON.stringify({ sent, removed, email_fallback: emailFallback }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
