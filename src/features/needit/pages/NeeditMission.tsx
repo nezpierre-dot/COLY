@@ -270,8 +270,9 @@ const NeeditMission = () => {
       try {
         let photo_url: string | null = null;
         if (photoFile) {
-          const ext = photoFile.name.split(".").pop(); const path = `${user.id}/${Date.now()}.${ext}`;
-          const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, photoFile);
+          const compressed = await compressImage(photoFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
+          const ext = compressed.name.split(".").pop(); const path = `${user.id}/${Date.now()}.${ext}`;
+          const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, compressed);
           if (!uploadErr) { const { data } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90); photo_url = data?.signedUrl ?? null; }
         }
         const pathLabels = categoryPath.map((n) => n.label);
