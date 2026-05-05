@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
 import SuccessCheck from "@/components/SuccessCheck";
+import { compressImage } from "@/lib/compressImage";
 
 interface RatingDialogProps {
   open: boolean;
