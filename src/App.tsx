@@ -80,6 +80,7 @@ const PublicVoyageDetail = lazy(() => import("./features/core/pages/PublicVoyage
 const ShortVoyageRedirect = lazy(() => import("./features/core/pages/ShortVoyageRedirect"));
 const PublicMissionDetail = lazy(() => import("./features/core/pages/PublicMissionDetail"));
 const PublicShipmentDetail = lazy(() => import("./features/core/pages/PublicShipmentDetail"));
+const PublicRoutePage = lazy(() => import("./features/core/pages/PublicRoutePage"));
 const HowItWorks = lazy(() => import("./features/core/pages/HowItWorks"));
 
 const queryClient = new QueryClient();
@@ -183,6 +184,7 @@ const App = () => {
                     <Route path="/decouvrir" element={<PublicLanding />} />
                     <Route path="/comment-ca-marche" element={<HowItWorks />} />
                     <Route path="/explore" element={<PublicExplore />} />
+                    <Route path="/explore/:slug" element={<PublicRoutePage />} />
                     <Route path="/trajet/:id" element={<PublicVoyageDetail />} />
                     <Route path="/t/:id" element={<ShortVoyageRedirect />} />
                     <Route path="/needit/:id" element={<PublicMissionDetail />} />
