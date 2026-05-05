@@ -494,6 +494,7 @@ export type Database = {
       email_preferences: {
         Row: {
           created_at: string
+          critical_email_fallback: boolean
           id: string
           match_emails: boolean
           updated_at: string
@@ -501,6 +502,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          critical_email_fallback?: boolean
           id?: string
           match_emails?: boolean
           updated_at?: string
@@ -508,6 +510,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          critical_email_fallback?: boolean
           id?: string
           match_emails?: boolean
           updated_at?: string
