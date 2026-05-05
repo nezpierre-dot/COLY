@@ -114,6 +114,13 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: "h3", text: "Puis-je envoyer de la nourriture au Maroc ?" },
       { type: "p", text: "Oui pour l'alimentaire sec et emballé d'origine. Les produits frais ou périssables sont déconseillés (douane et conditions de transport)." },
     ],
+    faq: [
+      { q: "Combien de temps pour envoyer un colis au Maroc avec Nidit ?", a: "Entre 24 h et 4 jours selon le trajet et le mode de transport choisi par le voyageur (avion, voiture, bateau)." },
+      { q: "Le paiement est-il sécurisé ?", a: "Oui : ton paiement est bloqué (paiement protégé) jusqu'à la remise du colis confirmée par code OTP et photo." },
+      { q: "Puis-je envoyer des produits cosmétiques au Maroc ?", a: "Oui, en quantité personnelle raisonnable. Au-delà, la douane peut considérer l'envoi comme commercial et appliquer des taxes." },
+      { q: "Comment fonctionne la remise OTP ?", a: "Le destinataire reçoit un code à 6 chiffres qu'il communique au voyageur Nidit lors de la remise. C'est ce code qui débloque le paiement." },
+      { q: "Que faire en cas de litige ?", a: "Tu peux ouvrir un litige depuis la fiche du colis. L'équipe Nidit traite chaque dossier sous 72 h maximum." },
+    ],
   },
   {
     slug: "comparatif-envoi-colis-international-2025",
