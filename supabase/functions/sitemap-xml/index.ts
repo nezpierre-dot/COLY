@@ -128,9 +128,17 @@ Deno.serve(async (req) => {
 
   // ---- BLOG ----
   if (type === "blog") {
-    const urls = BLOG_POSTS.map((p) =>
-      urlEntry(`${SITE_URL}/blog/${p.slug}`, p.updatedAt, "0.7", "monthly"),
-    );
+    const urls: string[] = [];
+    // Index page
+    urls.push(urlEntry(`${SITE_URL}/blog`, undefined, "0.8", "weekly"));
+    // Category index pages
+    for (const cat of BLOG_CATEGORIES) {
+      urls.push(urlEntry(`${SITE_URL}/blog?cat=${cat}`, undefined, "0.6", "weekly"));
+    }
+    // Each post
+    for (const p of BLOG_POSTS) {
+      urls.push(urlEntry(`${SITE_URL}/blog/${p.slug}`, p.updatedAt, "0.7", "monthly"));
+    }
     return xmlResponse(wrapUrlset(urls), 86400);
   }
 
