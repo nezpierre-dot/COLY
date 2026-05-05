@@ -101,6 +101,22 @@ const HomePage = () => {
   const isVoyageur = roles.includes("voyageur");
   const prefersReducedMotion = useReducedMotion();
 
+  /**
+   * Helper partagé pour les bulles CTA :
+   * - désactive whileTap si reduced-motion ou si le bouton est inactif (loading)
+   * - retire les classes hover/active/transition dans les mêmes conditions
+   * @param inactive — true si le bouton est en chargement / désactivé
+   */
+  const ctaMotion = (inactive = false) => {
+    const off = prefersReducedMotion || inactive;
+    return {
+      whileTap: off ? undefined : { scale: 0.98 },
+      motionClass: off
+        ? ""
+        : "hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200",
+    };
+  };
+
   const [firstName, setFirstName] = useState<string>("");
   const [active, setActive] = useState<ActiveItem | null>(null);
   const [loading, setLoading] = useState(true);
