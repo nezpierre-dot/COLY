@@ -270,7 +270,8 @@ const Signup = () => {
         // Silently fail — welcome email is non-critical
       }
       toast.success(t("signup.checkEmail"));
-      navigate("/login");
+      // Post-inscription: envoyer vers la marketplace pour réduire la friction d'onboarding
+      navigate("/explore");
     }
   };
 
