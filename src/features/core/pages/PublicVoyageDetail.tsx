@@ -107,23 +107,11 @@ export default function PublicVoyageDetail() {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: `Comment envoyer un colis de ${v.departure_city} à ${v.arrival_city} ?`,
-          acceptedAnswer: { "@type": "Answer", text: `Crée ton compte Nidit, publie ton colis ${v.departure_city} → ${v.arrival_city}, choisis un voyageur vérifié et règle en paiement protégé. Le voyageur récupère ton colis et le remet à destination contre code OTP.` },
-        },
-        {
-          "@type": "Question",
-          name: `Quel est le prix d'envoi ${v.departure_city} → ${v.arrival_city} ?`,
-          acceptedAnswer: { "@type": "Answer", text: `Le tarif est fixé librement entre membre et voyageur Nidit. Il dépend du poids, du volume et de la nature du colis. Souvent moins cher que la poste classique.` },
-        },
-        {
-          "@type": "Question",
-          name: "Mon colis est-il assuré ?",
-          acceptedAnswer: { "@type": "Answer", text: "Le paiement est bloqué (escrow) jusqu'à la confirmation de livraison via OTP et photo. En cas de litige, l'équipe Nidit intervient sous 72 h." },
-        },
-      ],
+      mainEntity: faqItems.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
     },
   ];
 
