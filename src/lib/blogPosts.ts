@@ -248,6 +248,11 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: "quote", text: "Un colis bien emballé est un colis qui arrive entier — c'est ta responsabilité, pas celle du transporteur." },
       { type: "cta", text: "Publie ton colis sur Nidit", href: "/signup", label: "Créer un compte" },
     ],
+    faq: [
+      { q: "Quel matériel d'emballage utiliser ?", a: "Un carton double cannelure, du papier bulle ou des chips de calage, et du scotch large d'emballage." },
+      { q: "Faut-il déclarer le contenu ?", a: "Oui, toujours — la liste détaillée du contenu doit accompagner le colis pour la douane et facilite le travail du voyageur Nidit." },
+      { q: "Comment éviter la casse en avion ?", a: "Laisse au moins 5 cm de calage entre l'objet et les parois, emballe individuellement chaque pièce fragile, et renforce les coins du carton." },
+    ],
   },
   {
     slug: "envoyer-colis-algerie",
