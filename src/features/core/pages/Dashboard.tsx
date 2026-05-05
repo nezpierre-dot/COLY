@@ -776,112 +776,40 @@ const Dashboard = () => {
             </div>
 
             {isVoyageur ? (
-              /* ---------- Voyageur header ---------- */
-              <div className="relative flex items-start justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <span className="greeting-bubble-xl mb-3">
-                    <img src={waveHandIllustration} alt="" aria-hidden="true" className="w-5 h-5 object-contain" />
-                    Bonjour !
+              /* ---------- Voyageur header (aligned to Future pattern) ---------- */
+              <div className="min-w-0">
+                <span className="greeting-bubble-xl mb-3">
+                  <Plane size={18} className="text-primary" />
+                  Bonjour !
+                </span>
+                <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+                  Prêt pour un nouveau<br />
+                  <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
+                    voyage ? ✨
                   </span>
-                  <h1 className="text-[clamp(1.85rem,5.5vw,2.5rem)] font-bold leading-[1.1] tracking-tight text-foreground">
-                    Prêt pour un nouveau voyage ?
-                  </h1>
-                  <UserLevelBadge variant="full" className="mt-3" />
-                </div>
-                <img
-                  src={planeIllustration}
-                  alt=""
-                  aria-hidden="true"
-                  className="w-28 h-28 sm:w-36 sm:h-36 object-contain shrink-0 drop-shadow-[0_15px_25px_rgba(255,150,80,0.25)]"
-                />
+                </h1>
+                <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
+                  Trouve tes prochains colis et missions en quelques secondes.
+                </p>
+                <UserLevelBadge variant="full" className="mt-3" />
               </div>
             ) : (
-              /* ---------- Demandeur header — épuré, lumineux ---------- */
-              <div className="relative grid grid-cols-[1fr_auto] items-start gap-3 sm:gap-5">
-                <div className="min-w-0 pt-1">
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: 0.05 }}
-                    className="flex items-center gap-1.5 mb-2.5 text-sm font-semibold text-foreground/75"
-                  >
-                    <motion.img
-                      src={waveHandIllustration}
-                      alt=""
-                      aria-hidden="true"
-                      className="w-5 h-5 object-contain"
-                      animate={{ rotate: [0, 18, -8, 14, 0] }}
-                      transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 2.4, ease: "easeInOut" }}
-                    />
-                    <span>Bonjour{firstName ? `, ${firstName}` : ""} !</span>
-                  </motion.div>
-                  <motion.h1
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.45, delay: 0.1 }}
-                    className="text-[clamp(1.7rem,5.6vw,2.4rem)] font-extrabold leading-[1.08] tracking-tight text-foreground"
-                  >
-                    Suis tes envois{" "}
-                    <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">en un coup d'œil.</span>
-                  </motion.h1>
-                  <motion.p
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.45, delay: 0.18 }}
-                    className="mt-2.5 text-[13.5px] sm:text-sm text-muted-foreground font-medium max-w-[280px] leading-snug"
-                  >
-                    Chaque colis, chaque étape — en toute sérénité ✨
-                  </motion.p>
-                  <UserLevelBadge variant="full" className="mt-3" />
-                </div>
-
-                {/* Dominant 3D parcel illustration with route + pin */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.7, rotate: -10 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 180, damping: 16, delay: 0.05 }}
-                  className="relative shrink-0 w-[110px] h-[110px] sm:w-[150px] sm:h-[150px] mt-2 sm:mt-0 -mr-1 self-start"
-                >
-                  {/* Soft glow under parcel */}
-                  <div aria-hidden className="absolute inset-2 rounded-full bg-gradient-to-br from-orange-300/40 via-pink-300/30 to-transparent blur-2xl" />
-                  {/* Animated dotted route SVG */}
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 200 200"
-                    className="absolute inset-0 w-full h-full pointer-events-none"
-                  >
-                    <path
-                      d="M 25 165 Q 50 90, 110 70 T 180 25"
-                      fill="none"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      className="route-dash-anim opacity-70"
-                    />
-                  </svg>
-                  {/* Parcel image — dominant */}
-                  <motion.img
-                    src={parcelFutureHero}
-                    alt=""
-                    aria-hidden="true"
-                    loading="eager"
-                    className="relative w-full h-full object-contain drop-shadow-[0_22px_30px_rgba(255,130,60,0.35)]"
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  {/* Floating location pin badge — top right of illustration */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.4, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ type: "spring", stiffness: 320, damping: 18, delay: 0.5 }}
-                    className="absolute -top-1 -right-1 sm:top-2 sm:right-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-card shadow-elevated border border-border/60"
-                  >
-                    <span className="w-6 h-6 rounded-xl bg-gradient-primary flex items-center justify-center">
-                      <MapPin size={12} className="text-primary-foreground" strokeWidth={2.6} />
-                    </span>
-                    <span className="text-[10px] font-bold text-foreground hidden sm:inline">En route</span>
-                  </motion.div>
-                </motion.div>
+              /* ---------- Demandeur header (aligned to Future pattern) ---------- */
+              <div className="min-w-0">
+                <span className="greeting-bubble-xl mb-3">
+                  <Package size={18} className="text-primary" />
+                  Bonjour{firstName ? `, ${firstName}` : ""} !
+                </span>
+                <h1 className="text-[clamp(1.85rem,5.5vw,2.4rem)] font-extrabold leading-[1.05] tracking-tight text-foreground">
+                  Suis tes envois<br />
+                  <span className="bg-gradient-to-r from-primary via-primary to-secondary bg-clip-text text-transparent">
+                    en un coup d'œil. ✨
+                  </span>
+                </h1>
+                <p className="mt-3 text-sm text-muted-foreground font-medium max-w-[280px]">
+                  Chaque colis, chaque étape — en toute sérénité.
+                </p>
+                <UserLevelBadge variant="full" className="mt-3" />
               </div>
             )}
             </div>
