@@ -330,6 +330,16 @@ const SendColy = () => {
     clearError("tarifFixe");
   };
 
+  // Auto-apply suggested price on first arrival at step 3 to reduce friction
+  const [autoPriceApplied, setAutoPriceApplied] = useState(false);
+  useEffect(() => {
+    if (step === 3 && priceSuggestion && !tarif && !autoPriceApplied) {
+      setTarif("fixe");
+      setTarifFixe(priceSuggestion.price.toFixed(0));
+      setAutoPriceApplied(true);
+    }
+  }, [step, priceSuggestion, tarif, autoPriceApplied]);
+
   const renderStep = () => {
     switch (step) {
       case 1: return (
