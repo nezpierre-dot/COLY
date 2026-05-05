@@ -115,7 +115,4 @@ export default function PushFallbackBanner() {
     </AnimatePresence>
   );
 }
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+
