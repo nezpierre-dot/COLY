@@ -2161,6 +2161,20 @@ export type Database = {
           transport_method: string
         }[]
       }
+      get_public_voyages_by_route: {
+        Args: { _from: string; _limit?: number; _to: string }
+        Returns: {
+          arrival_city: string
+          arrival_country: string
+          departure_city: string
+          departure_country: string
+          departure_date: string
+          id: string
+          max_weight_kg: number
+          ref_number: string
+          transport_method: string
+        }[]
+      }
       get_user_rating: {
         Args: { _user_id: string }
         Returns: {
