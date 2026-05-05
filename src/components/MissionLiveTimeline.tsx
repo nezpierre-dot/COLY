@@ -60,7 +60,6 @@ const MissionLiveTimeline = ({
   const [pickup, setPickup] = useState<Proof | null>(null);
   const [delivery, setDelivery] = useState<Proof | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lightbox, setLightbox] = useState<string | null>(null);
 
   // Initial load + subscribe to realtime updates
   useEffect(() => {
@@ -226,22 +225,21 @@ const MissionLiveTimeline = ({
 
                   {/* Proof thumbnail */}
                   {proof && (
-                    <button
-                      type="button"
-                      onClick={() => setLightbox(proof.photo_url)}
-                      aria-label={`Voir la preuve photo (${step.label})`}
-                      className="mt-2 group relative block overflow-hidden rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      <img
-                        src={proof.photo_url}
-                        alt={`Preuve ${step.label}`}
-                        loading="lazy"
-                        className="h-24 w-full object-cover transition-transform group-hover:scale-[1.02]"
-                      />
-                      <span className="absolute bottom-1 right-1 inline-flex items-center gap-1 rounded-md bg-background/85 px-1.5 py-0.5 text-[10px] font-bold text-foreground backdrop-blur">
-                        <Camera size={10} aria-hidden="true" /> Preuve
-                      </span>
-                    </button>
+                    <div className="mt-2">
+                      <PhotoLightbox src={proof.photo_url} alt={`Preuve ${step.label}`}>
+                        <div className="relative overflow-hidden rounded-xl border border-border">
+                          <img
+                            src={proof.photo_url}
+                            alt={`Preuve ${step.label}`}
+                            loading="lazy"
+                            className="h-24 w-full object-cover"
+                          />
+                          <span className="absolute bottom-1 right-1 inline-flex items-center gap-1 rounded-md bg-background/85 px-1.5 py-0.5 text-[10px] font-bold text-foreground backdrop-blur">
+                            <Camera size={10} aria-hidden="true" /> Preuve
+                          </span>
+                        </div>
+                      </PhotoLightbox>
+                    </div>
                   )}
 
                   {isCurrent && idx === STEPS.length - 1 && (
@@ -254,10 +252,6 @@ const MissionLiveTimeline = ({
             );
           })}
         </ol>
-      )}
-
-      {lightbox && (
-        <PhotoLightbox photoUrl={lightbox} onClose={() => setLightbox(null)} />
       )}
     </section>
   );
