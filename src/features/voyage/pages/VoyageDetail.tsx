@@ -157,8 +157,9 @@ const VoyageDetail = () => {
         lng = pos.coords.longitude;
       } catch {}
 
-      const path = `pickup-proofs/${capturingMissionId}/${Date.now()}-${previewFile.name}`;
-      const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, previewFile);
+      const compressedPreview = await compressImage(previewFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
+      const path = `pickup-proofs/${capturingMissionId}/${Date.now()}-${compressedPreview.name}`;
+      const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, compressedPreview);
       if (uploadErr) throw uploadErr;
 
       const { data: signed } = await supabase.storage.from("shipment-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
