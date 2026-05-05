@@ -322,6 +322,7 @@ const NeeditCreatePage = () => {
           prix_max: finalPrixMax,
           auto_accept: autoAccept,
           pickup_address: pickupAddress || null,
+          ...(draft.eanCode ? { ean_code: draft.eanCode } : {}),
         } as never)
         .select("id")
         .single();
