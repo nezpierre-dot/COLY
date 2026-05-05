@@ -70,6 +70,15 @@ export default function BlogIndex() {
         jsonLd={jsonLd}
       />
 
+      <Helmet>
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title="Blog Nidit (RSS)"
+          href={`https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/rss-xml`}
+        />
+      </Helmet>
+
       <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Retour">
@@ -79,6 +88,17 @@ export default function BlogIndex() {
             <BookOpen className="h-4 w-4 text-primary" />
             Blog Nidit
           </div>
+          <div className="flex-1" />
+          <a
+            href={`https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/rss-xml`}
+            target="_blank"
+            rel="noopener"
+            aria-label="Flux RSS du blog Nidit"
+            className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-muted-foreground hover:border-primary/50 hover:text-primary"
+          >
+            <Rss className="h-3.5 w-3.5" />
+            RSS
+          </a>
         </div>
       </header>
 
