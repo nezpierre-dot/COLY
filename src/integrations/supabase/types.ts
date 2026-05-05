@@ -1889,6 +1889,20 @@ export type Database = {
         Args: { _action: string; _reason?: string; _target_user_id: string }
         Returns: string
       }
+      archive_cancelled_match: {
+        Args: {
+          _arrival_city: string
+          _arrival_country: string
+          _departure_city: string
+          _item_id: string
+          _item_type: string
+          _original_status: string
+          _reason?: string
+          _tarif: string
+          _voyageur_id: string
+        }
+        Returns: string
+      }
       award_points: {
         Args: {
           _points: number
