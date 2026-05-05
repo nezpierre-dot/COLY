@@ -38,6 +38,21 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Verify shared secret (header or ?secret= query param) to ensure caller is IDnow
+  const expectedSecret = Deno.env.get("IDNOW_WEBHOOK_SECRET") ?? "";
+  const url = new URL(req.url);
+  const provided = req.headers.get("x-webhook-secret")
+    || req.headers.get("x-idnow-signature")
+    || url.searchParams.get("secret")
+    || "";
+  if (!expectedSecret || provided !== expectedSecret) {
+    console.warn("idnow-webhook: rejected unauthenticated call");
+    return new Response(JSON.stringify({ ok: false }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   // IDnow requires HTTP 200 within 3 seconds – respond quickly
   try {
     const body = await req.json();
