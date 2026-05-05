@@ -1287,13 +1287,15 @@ const Dashboard = () => {
 
               {/* ---- Carte tab ---- */}
               <TabsContent value="carte" className="space-y-3 mt-0">
-                <VoyageMap
-                  voyages={voyages}
-                  selectedVoyageId={selectedVoyage}
-                  onSelectVoyage={setSelectedVoyage}
-                  pendingShipments={pendingShipments}
-                  pendingMissions={needitMissions}
-                />
+                <Suspense fallback={<MapSkeleton height="h-72" />}>
+                  <VoyageMap
+                    voyages={voyages}
+                    selectedVoyageId={selectedVoyage}
+                    onSelectVoyage={setSelectedVoyage}
+                    pendingShipments={pendingShipments}
+                    pendingMissions={needitMissions}
+                  />
+                </Suspense>
                 {currentVoyage && (
                   <div className="bg-card rounded-xl border border-border p-3 shadow-sm">
                     <div className="flex items-center justify-between">
