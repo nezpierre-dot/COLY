@@ -449,7 +449,6 @@ const HomePage = () => {
 
           {/* Section contextuelle */}
           <section
-            className="px-5 mt-6"
             aria-busy={loading}
             aria-label={t("home.contextualAria")}
           >
@@ -521,7 +520,7 @@ const HomePage = () => {
           </section>
 
           {/* Raccourcis discrets — prefetch au hover/focus */}
-          <section className="px-5 mt-6" aria-label={t("home.shortcutsAria")}>
+          <section aria-label={t("home.shortcutsAria")}>
             <div className="grid grid-cols-3 gap-2">
               {shortcuts.map((s) => (
                 <button
@@ -544,7 +543,7 @@ const HomePage = () => {
           </section>
 
           {/* Lien discret vers l'ancien tableau de bord */}
-          <div className="px-5 mt-6 text-center">
+          <div className="text-center">
             <button
               onClick={() => navigate("/dashboard-classic")}
               className="text-xs text-muted-foreground hover:text-foreground transition outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-2 py-1"
