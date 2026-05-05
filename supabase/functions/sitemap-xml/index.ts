@@ -30,13 +30,15 @@ const STATIC_PATHS: Array<{ path: string; priority: string; changefreq: string }
 ];
 
 // Blog posts (kept in sync with src/lib/blogPosts.ts).
-const BLOG_POSTS: Array<{ slug: string; updatedAt: string }> = [
-  { slug: "envoyer-colis-maroc-pas-cher", updatedAt: "2026-05-05" },
-  { slug: "comparatif-envoi-colis-international-2025", updatedAt: "2026-05-05" },
-  { slug: "envoyer-colis-senegal-dakar", updatedAt: "2026-05-05" },
-  { slug: "astuces-emballage-colis-international", updatedAt: "2026-05-05" },
-  { slug: "envoyer-colis-algerie", updatedAt: "2026-05-05" },
+const BLOG_POSTS: Array<{ slug: string; updatedAt: string; category: string }> = [
+  { slug: "envoyer-colis-maroc-pas-cher", updatedAt: "2026-05-05", category: "guide" },
+  { slug: "comparatif-envoi-colis-international-2025", updatedAt: "2026-05-05", category: "comparatif" },
+  { slug: "envoyer-colis-senegal-dakar", updatedAt: "2026-05-05", category: "destination" },
+  { slug: "astuces-emballage-colis-international", updatedAt: "2026-05-05", category: "astuces" },
+  { slug: "envoyer-colis-algerie", updatedAt: "2026-05-05", category: "destination" },
 ];
+
+const BLOG_CATEGORIES = ["guide", "comparatif", "destination", "astuces"] as const;
 
 const POPULAR_ROUTES: Array<[string, string]> = [
   ["Paris", "Dakar"], ["Paris", "Abidjan"], ["Paris", "Alger"], ["Paris", "Casablanca"],
@@ -126,9 +128,17 @@ Deno.serve(async (req) => {
 
   // ---- BLOG ----
   if (type === "blog") {
-    const urls = BLOG_POSTS.map((p) =>
-      urlEntry(`${SITE_URL}/blog/${p.slug}`, p.updatedAt, "0.7", "monthly"),
-    );
+    const urls: string[] = [];
+    // Index page
+    urls.push(urlEntry(`${SITE_URL}/blog`, undefined, "0.8", "weekly"));
+    // Category index pages
+    for (const cat of BLOG_CATEGORIES) {
+      urls.push(urlEntry(`${SITE_URL}/blog?cat=${cat}`, undefined, "0.6", "weekly"));
+    }
+    // Each post
+    for (const p of BLOG_POSTS) {
+      urls.push(urlEntry(`${SITE_URL}/blog/${p.slug}`, p.updatedAt, "0.7", "monthly"));
+    }
     return xmlResponse(wrapUrlset(urls), 86400);
   }
 

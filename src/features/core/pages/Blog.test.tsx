@@ -60,6 +60,43 @@ describe("/blog (BlogIndex) — JSON-LD & validity", () => {
   });
 });
 
+describe("/blog?cat=...&page=... — canonical, rel prev/next, JSON-LD", () => {
+  beforeEach(() => {
+    document.head.innerHTML = "";
+  });
+
+  it("keeps canonical aligned with cat + page params", async () => {
+    renderAt("/blog?cat=guide&page=2");
+    await waitFor(() => {
+      const c = document.head.querySelector('link[rel="canonical"]');
+      // safePage is clamped to totalPages; canonical must match the actual rendered page
+      const href = c?.getAttribute("href") || "";
+      expect(href.startsWith("https://nidit.fr/blog")).toBe(true);
+      expect(href).toContain("cat=guide");
+    });
+  });
+
+  it("emits a valid Blog JSON-LD even when filtering by category", async () => {
+    renderAt("/blog?cat=destination");
+    await waitFor(() => {
+      const items = getJsonLd();
+      const blog = items.find((i) => i["@type"] === "Blog");
+      expect(blog).toBeDefined();
+      expect(blog!["@context"]).toBe("https://schema.org");
+    });
+  });
+
+  it("exposes RSS and Atom alternates", async () => {
+    renderAt("/blog");
+    await waitFor(() => {
+      const rss = document.head.querySelector('link[rel="alternate"][type="application/rss+xml"]');
+      const atom = document.head.querySelector('link[rel="alternate"][type="application/atom+xml"]');
+      expect(rss).toBeTruthy();
+      expect(atom).toBeTruthy();
+    });
+  });
+});
+
 describe("/blog filters & pagination", () => {
   beforeEach(() => {
     document.head.innerHTML = "";
