@@ -99,6 +99,7 @@ const HomePage = () => {
   const { user, roles, refresh } = useAuth();
   const { t } = useTranslation();
   const isVoyageur = roles.includes("voyageur");
+  const prefersReducedMotion = useReducedMotion();
 
   const [firstName, setFirstName] = useState<string>("");
   const [active, setActive] = useState<ActiveItem | null>(null);
