@@ -74,7 +74,8 @@ Deno.serve(async (req) => {
 
     if (error) throw error;
     if (!subs || subs.length === 0) {
-      return new Response(JSON.stringify({ sent: 0 }), {
+      const fallback = await maybeSendEmailFallback(supabase, user_id, type, title, message);
+      return new Response(JSON.stringify({ sent: 0, email_fallback: fallback }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
