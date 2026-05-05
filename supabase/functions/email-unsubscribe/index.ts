@@ -111,21 +111,32 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       let userId: string;
       let action: string;
+      let postToken: string;
 
       const contentType = req.headers.get("content-type") || "";
-      if (contentType.includes("application/x-www-form-urlencoded")) {
+      if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
         const formData = await req.formData();
         userId = formData.get("user_id") as string;
         action = formData.get("action") as string;
+        postToken = (formData.get("token") as string) ?? "";
       } else {
         const body = await req.json();
         userId = body.user_id;
         action = body.action;
+        postToken = body.token ?? "";
       }
 
       if (!userId || !action) {
         return new Response(JSON.stringify({ error: "Missing user_id or action" }), {
           status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const expectedPost = await expectedToken(userId);
+      if (!safeEqual(postToken, expectedPost)) {
+        return new Response(JSON.stringify({ error: "Invalid token" }), {
+          status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
