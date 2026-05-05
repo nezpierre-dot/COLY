@@ -138,15 +138,15 @@ const PostMatchActions = ({
     });
   }, [shipmentId, normalizedStatus]);
 
-  const parseOtpCodes = (raw: string | null) => {
+  const parseOtpCodes = (raw: any) => {
     try {
-      const codes = JSON.parse(raw || "{}");
+      const codes = typeof raw === "string" ? JSON.parse(raw || "{}") : (raw || {});
       setPickupOtp(codes.pickup || null);
       setDeliveryOtp(codes.delivery || null);
       setPickupOtpCreatedAt(codes.pickupCreatedAt || null);
       setDeliveryOtpCreatedAt(codes.deliveryCreatedAt || null);
     } catch {
-      setPickupOtp(raw || null);
+      setPickupOtp(null);
       setDeliveryOtp(null);
       setPickupOtpCreatedAt(null);
       setDeliveryOtpCreatedAt(null);
