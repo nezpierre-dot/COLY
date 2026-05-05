@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, BookOpen, Clock } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { ArrowLeft, BookOpen, Clock, Rss } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Seo from "@/components/Seo";
 import { BLOG_POSTS, BLOG_CATEGORIES, BLOG_CATEGORY_LABELS, type BlogPost } from "@/lib/blogPosts";
