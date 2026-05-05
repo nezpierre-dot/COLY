@@ -142,9 +142,10 @@ const ChatPage = () => {
     if (!user || !conversationId) return;
     setUploadingPhoto(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
+      const compressed = await compressImage(file, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
+      const ext = compressed.name.split(".").pop() || "jpg";
       const path = `${user.id}/${conversationId}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("chat-photos").upload(path, file, { upsert: false });
+      const { error: upErr } = await supabase.storage.from("chat-photos").upload(path, compressed, { upsert: false });
       if (upErr) throw upErr;
       const { data: signedData } = await supabase.storage.from("chat-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
       const photoUrl = signedData?.signedUrl ?? "";
