@@ -3,6 +3,7 @@ import { fetchCitiesByCountry, getCountryISO } from "@/lib/citySearch";
 import { getPopularCities } from "@/lib/popularCities";
 import MatchingSuggestions from "@/features/matching/components/MatchingSuggestions";
 import { calculateSuggestedPrice, type PriceSuggestion } from "@/lib/priceSuggestion";
+import { compressImage } from "@/lib/compressImage";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, ArrowLeft, Camera, CheckCircle2, Calendar, MapPin, Package, Image, Ruler, CreditCard, Shield, Sparkles, Truck, AlertTriangle, Globe, Info, X, ShieldCheck, Lock, Loader2, ChevronDown, Star, Heart } from "lucide-react";
