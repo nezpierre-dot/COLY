@@ -110,17 +110,16 @@ const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
         className={`pointer-events-none absolute inset-0 bg-gradient-to-b ${slide.accent} transition-colors duration-700`}
       />
 
-      {!isLast && (
-        <button
-          type="button"
-          onClick={() => finish("/")}
-          aria-label={t("onboarding.skip")}
-          data-testid="onboarding-skip"
-          className="absolute top-6 right-6 z-10 text-sm text-foreground/60 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md px-2 py-1"
-        >
-          {t("onboarding.skip")}
-        </button>
-      )}
+      {/* Skip available on every slide so users reach the marketplace in <60s */}
+      <button
+        type="button"
+        onClick={() => finish("/explore")}
+        aria-label={t("onboarding.skip")}
+        data-testid="onboarding-skip"
+        className="absolute top-6 right-6 z-10 text-sm text-foreground/60 hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md px-2 py-1"
+      >
+        {t("onboarding.skip")}
+      </button>
 
       <div className="relative flex-1 flex items-center justify-center overflow-hidden px-6">
         <AnimatePresence custom={direction} mode="wait">
