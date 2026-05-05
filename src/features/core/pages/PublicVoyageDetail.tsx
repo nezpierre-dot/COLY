@@ -71,6 +71,8 @@ export default function PublicVoyageDetail() {
   const seoTitle = `Envoyer un colis ${v.departure_city} → ${v.arrival_city} le ${dateLong} | Nidit`;
   const seoDesc = `Trajet ${v.transport_method} de ${v.departure_city} (${v.departure_country}) vers ${v.arrival_city} (${v.arrival_country}) le ${dateLong}. Envoie ton colis avec un voyageur Nidit vérifié, paiement protégé jusqu'à la livraison.`;
   const canonical = `/trajet/${v.id}`;
+  const transportKind = detectTransport(v.transport_method);
+  const faqItems = buildTransportFaq({ from: v.departure_city, to: v.arrival_city, method: v.transport_method });
   const jsonLd = [
     {
       "@context": "https://schema.org",
