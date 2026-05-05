@@ -39,6 +39,7 @@ import {
   Package,
   ShoppingBag,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -431,30 +432,55 @@ const HomePage = () => {
                 <motion.button
                   type="button"
                   ref={transportBtnRef}
-                  onClick={handleTransport}
+                  onClick={(e) => {
+                    if (switching) {
+                      e.preventDefault();
+                      return;
+                    }
+                    handleTransport();
+                  }}
+                  onKeyDown={(e) => {
+                    if (switching && (e.key === "Enter" || e.key === " ")) {
+                      e.preventDefault();
+                    }
+                  }}
+                  disabled={switching}
                   aria-disabled={switching}
                   aria-busy={switching}
                   whileTap={{ scale: switching ? 1 : 0.98 }}
-                  className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 aria-disabled:opacity-70 aria-disabled:cursor-progress h-full flex"
+                  className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent via-accent to-accent/70 p-4 sm:p-5 text-left shadow-lg outline-none focus-visible:ring-4 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:shadow-md transition-all duration-200 disabled:opacity-70 disabled:cursor-progress disabled:hover:translate-y-0 disabled:hover:shadow-lg disabled:active:scale-100 h-full flex"
                   aria-labelledby="cta-transport-title"
-                  aria-describedby="cta-transport-desc"
+                  aria-describedby={switching ? "cta-transport-status" : "cta-transport-desc"}
                 >
                   <div aria-hidden="true" className="absolute -right-6 -top-6 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-white/15" />
                   <div aria-hidden="true" className="absolute -right-2 bottom-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/10" />
                   <div className="relative flex items-start justify-between gap-2 w-full">
                     <div className="flex-1 min-w-0 flex flex-col">
                       <div aria-hidden="true" className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2 sm:mb-3">
-                        <Plane className="text-white w-5 h-5 sm:w-[22px] sm:h-[22px]" />
+                        {switching ? (
+                          <Loader2 className="text-white w-5 h-5 sm:w-[22px] sm:h-[22px] animate-spin" />
+                        ) : (
+                          <Plane className="text-white w-5 h-5 sm:w-[22px] sm:h-[22px]" />
+                        )}
                       </div>
                       <h3 id="cta-transport-title" className="text-base sm:text-lg lg:text-xl font-bold text-white leading-tight">
                         {t("home.ctaTransportTitle")}
-                        {!isVoyageur && (
+                        {!isVoyageur && !switching && (
                           <span className="sr-only"> — {t("home.ctaTransportSwitchAria")}</span>
                         )}
                       </h3>
                       <p id="cta-transport-desc" className="text-xs sm:text-sm text-white/85 mt-1 leading-snug">
                         {switching ? t("home.switching") : t("home.ctaTransportSubtitle")}
                       </p>
+                      {/* Statut live annoncé pendant le switching */}
+                      <span
+                        id="cta-transport-status"
+                        role="status"
+                        aria-live="polite"
+                        className="sr-only"
+                      >
+                        {switching ? t("home.switching") : ""}
+                      </span>
                       {!isVoyageur && !switching && (
                         <span className="inline-flex items-center gap-1 mt-auto pt-2 text-xs font-semibold text-white">
                           <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
