@@ -114,7 +114,7 @@ export default function BlogPost() {
   const canonical = `/blog/${post.slug}`;
   const related = getRelatedPosts(post.slug, 3);
 
-  const jsonLd = [
+  const jsonLd: Array<Record<string, unknown>> = [
     {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
@@ -142,6 +142,18 @@ export default function BlogPost() {
       ],
     },
   ];
+
+  if (post.faq && post.faq.length > 0) {
+    jsonLd.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: post.faq.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    });
+  }
 
   const relatedRouteEntries = (post.relatedRoutes ?? [])
     .map((s) => {
@@ -198,6 +210,20 @@ export default function BlogPost() {
         <div className="mt-6">
           {post.blocks.map((b, i) => renderBlock(b, i))}
         </div>
+
+        {post.faq && post.faq.length > 0 && (
+          <section className="mt-10 rounded-3xl border border-border bg-card p-5" aria-labelledby="faq-heading">
+            <h2 id="faq-heading" className="text-lg font-bold">Questions fréquentes</h2>
+            <dl className="mt-3 space-y-4">
+              {post.faq.map((f, i) => (
+                <div key={i}>
+                  <dt className="text-sm font-semibold">{f.q}</dt>
+                  <dd className="mt-1 text-sm text-muted-foreground">{f.a}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
 
         {relatedRouteEntries.length > 0 && (
           <section className="mt-10 rounded-3xl border border-border bg-card p-5">

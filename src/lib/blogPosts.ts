@@ -26,7 +26,23 @@ export interface BlogPost {
   /** Related route slugs (links to /explore/:slug) */
   relatedRoutes?: string[];
   category: "guide" | "comparatif" | "destination" | "astuces";
+  /** Optional FAQ block — rendered at the bottom and emitted as FAQPage JSON-LD */
+  faq?: Array<{ q: string; a: string }>;
 }
+
+export const BLOG_CATEGORIES: Array<BlogPost["category"]> = [
+  "guide",
+  "comparatif",
+  "destination",
+  "astuces",
+];
+
+export const BLOG_CATEGORY_LABELS: Record<BlogPost["category"], string> = {
+  guide: "Guide",
+  comparatif: "Comparatif",
+  destination: "Destination",
+  astuces: "Astuces",
+};
 
 export type BlogBlock =
   | { type: "p"; text: string }
@@ -98,6 +114,13 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: "h3", text: "Puis-je envoyer de la nourriture au Maroc ?" },
       { type: "p", text: "Oui pour l'alimentaire sec et emballé d'origine. Les produits frais ou périssables sont déconseillés (douane et conditions de transport)." },
     ],
+    faq: [
+      { q: "Combien de temps pour envoyer un colis au Maroc avec Nidit ?", a: "Entre 24 h et 4 jours selon le trajet et le mode de transport choisi par le voyageur (avion, voiture, bateau)." },
+      { q: "Le paiement est-il sécurisé ?", a: "Oui : ton paiement est bloqué (paiement protégé) jusqu'à la remise du colis confirmée par code OTP et photo." },
+      { q: "Puis-je envoyer des produits cosmétiques au Maroc ?", a: "Oui, en quantité personnelle raisonnable. Au-delà, la douane peut considérer l'envoi comme commercial et appliquer des taxes." },
+      { q: "Comment fonctionne la remise OTP ?", a: "Le destinataire reçoit un code à 6 chiffres qu'il communique au voyageur Nidit lors de la remise. C'est ce code qui débloque le paiement." },
+      { q: "Que faire en cas de litige ?", a: "Tu peux ouvrir un litige depuis la fiche du colis. L'équipe Nidit traite chaque dossier sous 72 h maximum." },
+    ],
   },
   {
     slug: "comparatif-envoi-colis-international-2025",
@@ -150,6 +173,12 @@ export const BLOG_POSTS: BlogPost[] = [
       ] },
       { type: "cta", text: "Trouve un voyageur sur ta route", href: "/explore", label: "Explorer les trajets disponibles" },
     ],
+    faq: [
+      { q: "Quel est le service le moins cher pour envoyer un colis à l'international ?", a: "Pour les particuliers, le cotransportage via un voyageur Nidit est généralement 30 à 60 % moins cher que les transporteurs classiques." },
+      { q: "Quel transporteur est le plus rapide ?", a: "DHL Express et Chronopost International offrent les délais les plus courts (2–3 j) sur la majorité des destinations, mais à un tarif élevé." },
+      { q: "Le suivi GPS est-il fiable chez Nidit ?", a: "Oui, le voyageur partage sa position en temps réel et tu reçois une alerte à 5 km puis à 1 km du destinataire." },
+      { q: "Que se passe-t-il si le colis n'arrive pas ?", a: "Tant que le code OTP n'est pas saisi, ton paiement reste bloqué. Tu peux ouvrir un litige et l'équipe Nidit le traite sous 72 h." },
+    ],
   },
   {
     slug: "envoyer-colis-senegal-dakar",
@@ -183,6 +212,11 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: "p", text: "La diaspora sénégalaise en France, Belgique et Italie envoie en permanence des colis à la famille. Avec Nidit, tu trouves quasiment chaque jour un voyageur Paris → Dakar, Lyon → Dakar ou Marseille → Dakar." },
       { type: "cta", text: "Voir les voyageurs Paris → Dakar", href: "/explore/paris_dakar", label: "Trouver un voyageur" },
     ],
+    faq: [
+      { q: "Combien coûte un colis Paris → Dakar via Nidit ?", a: "Généralement entre 20 et 50 € pour 2 kg, négociés directement avec le voyageur." },
+      { q: "Combien de temps pour livrer à Dakar ?", a: "24 à 48 h après l'arrivée du voyageur en avion." },
+      { q: "Puis-je envoyer des médicaments au Sénégal ?", a: "Uniquement les médicaments sans ordonnance, en quantité personnelle raisonnable, et déclarés à la douane si nécessaire." },
+    ],
   },
   {
     slug: "astuces-emballage-colis-international",
@@ -213,6 +247,11 @@ export const BLOG_POSTS: BlogPost[] = [
       ] },
       { type: "quote", text: "Un colis bien emballé est un colis qui arrive entier — c'est ta responsabilité, pas celle du transporteur." },
       { type: "cta", text: "Publie ton colis sur Nidit", href: "/signup", label: "Créer un compte" },
+    ],
+    faq: [
+      { q: "Quel matériel d'emballage utiliser ?", a: "Un carton double cannelure, du papier bulle ou des chips de calage, et du scotch large d'emballage." },
+      { q: "Faut-il déclarer le contenu ?", a: "Oui, toujours — la liste détaillée du contenu doit accompagner le colis pour la douane et facilite le travail du voyageur Nidit." },
+      { q: "Comment éviter la casse en avion ?", a: "Laisse au moins 5 cm de calage entre l'objet et les parois, emballe individuellement chaque pièce fragile, et renforce les coins du carton." },
     ],
   },
   {
@@ -250,6 +289,11 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: "h2", text: "Bateau ou avion : que choisir ?" },
       { type: "p", text: "Pour les colis lourds (>10 kg) ou volumineux (meubles, électroménager léger), un voyageur Nidit qui prend le ferry Marseille → Alger est imbattable côté tarif. Pour les colis urgents et légers, l'avion reste roi." },
       { type: "cta", text: "Voir les voyageurs Paris → Alger", href: "/explore/paris_alger", label: "Trouver un voyageur" },
+    ],
+    faq: [
+      { q: "Quels documents pour la douane algérienne ?", a: "Une déclaration de contenu détaillée et la valeur réelle des objets. Pour les neufs, garde la facture." },
+      { q: "Le ferry est-il plus économique que l'avion ?", a: "Pour les colis lourds ou volumineux, oui — un voyageur Nidit qui prend le Marseille → Alger en ferry peut accepter beaucoup plus de poids à faible coût." },
+      { q: "Puis-je envoyer un téléphone neuf en Algérie ?", a: "Oui, mais il sera probablement taxé à la douane (droits + TVA). Déclare-le avec sa vraie valeur." },
     ],
   },
 ];
