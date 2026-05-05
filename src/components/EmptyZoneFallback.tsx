@@ -100,7 +100,7 @@ const EmptyZoneFallback = ({
   const handleItemClick = (item: FallbackItem) => {
     if (onItemClick) onItemClick(item);
     else if (kind === "voyages") navigate(`/trajet/${item.id}`);
-    else navigate(`/mission/${item.id}`);
+    else navigate(`/needit/${item.id}`);
   };
 
   return (
