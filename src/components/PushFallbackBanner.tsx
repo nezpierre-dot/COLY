@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BellOff, Mail, X, Share } from "lucide-react";
+import { BellOff, Mail, X, Share, Settings as SettingsIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 const DISMISS_KEY = "nidit:push-fallback-banner-dismissed";
@@ -102,9 +103,16 @@ export default function PushFallbackBanner() {
                 <Share className="h-3.5 w-3.5" /> Safari → Partager → Ajouter à l'écran d'accueil
               </p>
             )}
+            <Link
+              to="/email-preferences"
+              className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+            >
+              <SettingsIcon className="h-3 w-3" /> Gérer l'email de secours
+            </Link>
           </div>
         </div>
       </motion.div>
     </AnimatePresence>
   );
 }
+

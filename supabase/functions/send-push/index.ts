@@ -75,6 +75,10 @@ Deno.serve(async (req) => {
     if (error) throw error;
     if (!subs || subs.length === 0) {
       const fallback = await maybeSendEmailFallback(supabase, user_id, type, title, message);
+      await logFallback(supabase, {
+        user_id, type, notification_id, title, message,
+        push_subs_count: 0, push_sent: 0, fallback,
+      });
       return new Response(JSON.stringify({ sent: 0, email_fallback: fallback }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -120,6 +124,10 @@ Deno.serve(async (req) => {
     let emailFallback: { attempted: boolean; sent?: boolean; reason?: string } = { attempted: false };
     if (sent === 0) {
       emailFallback = await maybeSendEmailFallback(supabase, user_id, type, title, message);
+      await logFallback(supabase, {
+        user_id, type, notification_id, title, message,
+        push_subs_count: subs.length, push_sent: 0, fallback: emailFallback,
+      });
     }
 
     return new Response(JSON.stringify({ sent, removed, email_fallback: emailFallback }), {
@@ -232,4 +240,53 @@ function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+/**
+ * Extract a related task/entity ID from the notification type string.
+ * E.g. "accepted:shipment:abc-123" → "abc-123", "reminder:departure:xyz" → "xyz".
+ */
+function extractRelatedTaskId(type: string | null | undefined): string | null {
+  if (!type) return null;
+  const parts = type.split(":");
+  return parts.length >= 2 ? parts[parts.length - 1] : null;
+}
+
+async function logFallback(
+  supabase: any,
+  args: {
+    user_id: string;
+    type: string | null | undefined;
+    notification_id: string | null | undefined;
+    title: string;
+    message: string | null | undefined;
+    push_subs_count: number;
+    push_sent: number;
+    fallback: { attempted: boolean; sent?: boolean; reason?: string };
+  },
+) {
+  try {
+    await supabase.from("push_fallback_log").insert({
+      user_id: args.user_id,
+      event_type: args.type ?? null,
+      notification_id: args.notification_id ?? null,
+      related_task_id: extractRelatedTaskId(args.type),
+      push_subs_count: args.push_subs_count,
+      push_sent: args.push_sent,
+      email_attempted: !!args.fallback.attempted,
+      email_sent: !!args.fallback.sent,
+      reason: args.fallback.reason ?? null,
+      title: args.title,
+    });
+    console.log("[send-push] fallback logged", {
+      user: args.user_id,
+      event: args.type,
+      task: extractRelatedTaskId(args.type),
+      attempted: args.fallback.attempted,
+      sent: args.fallback.sent,
+      reason: args.fallback.reason,
+    });
+  } catch (e) {
+    console.warn("[send-push] failed to log fallback", e);
+  }
 }

@@ -1027,6 +1027,51 @@ export type Database = {
         }
         Relationships: []
       }
+      push_fallback_log: {
+        Row: {
+          created_at: string
+          email_attempted: boolean
+          email_sent: boolean
+          event_type: string | null
+          id: string
+          notification_id: string | null
+          push_sent: number
+          push_subs_count: number
+          reason: string | null
+          related_task_id: string | null
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_attempted?: boolean
+          email_sent?: boolean
+          event_type?: string | null
+          id?: string
+          notification_id?: string | null
+          push_sent?: number
+          push_subs_count?: number
+          reason?: string | null
+          related_task_id?: string | null
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_attempted?: boolean
+          email_sent?: boolean
+          event_type?: string | null
+          id?: string
+          notification_id?: string | null
+          push_sent?: number
+          push_subs_count?: number
+          reason?: string | null
+          related_task_id?: string | null
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string | null
