@@ -1314,6 +1314,27 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_webhook_events: {
+        Row: {
+          event_id: string
+          event_type: string
+          payload: Json | null
+          processed_at: string
+        }
+        Insert: {
+          event_id: string
+          event_type: string
+          payload?: Json | null
+          processed_at?: string
+        }
+        Update: {
+          event_id?: string
+          event_type?: string
+          payload?: Json | null
+          processed_at?: string
+        }
+        Relationships: []
+      }
       support_tickets: {
         Row: {
           admin_reply: string | null
