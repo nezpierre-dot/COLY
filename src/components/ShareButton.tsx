@@ -35,7 +35,9 @@ export default function ShareButton({
   ogId,
 }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
-  const fullUrl = url.startsWith("http") ? url : `${window.location.origin}${url}`;
+  // Short link for voyages: nidit.fr/t/<id> (great for WhatsApp/Telegram).
+  const shortPath = ogType === "voyage" && ogId ? `/t/${ogId}` : url;
+  const fullUrl = shortPath.startsWith("http") ? shortPath : `${window.location.origin}${shortPath}`;
   // For social shares, use the og-meta endpoint so crawlers get rich previews.
   const socialUrl = ogType && ogId ? `${OG_META_BASE}/${ogType}/${ogId}` : fullUrl;
 
