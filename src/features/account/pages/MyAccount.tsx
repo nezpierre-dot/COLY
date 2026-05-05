@@ -131,9 +131,10 @@ const MyAccount = () => {
     reader.onload = () => setAvatar(reader.result as string);
     reader.readAsDataURL(file);
 
-    const ext = file.name.split(".").pop();
+    const compressedAvatar = await compressImage(file, { maxSizeMB: 0.3, maxWidthOrHeight: 512 });
+    const ext = compressedAvatar.name.split(".").pop() || "jpg";
     const path = `${user.id}/avatar.${ext}`;
-    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, compressedAvatar, { upsert: true });
     if (uploadError) { toast.error(t("account.uploadError")); return; }
 
     const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
