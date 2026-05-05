@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 import PageTransition, { staggerContainer, staggerItem } from "@/components/PageTransition";
 import EmptyState from "@/components/EmptyState";
+import EmptyZoneFallback from "@/components/EmptyZoneFallback";
 import DraftResumeBanner from "@/components/DraftResumeBanner";
 import SendDraftResumeSlot from "@/components/SendDraftResumeSlot";
 import GettingStartedChecklist from "@/components/GettingStartedChecklist";
@@ -1273,10 +1274,12 @@ const Dashboard = () => {
                 )}
 
                 {pendingShipments.length === 0 && (
-                  <EmptyState
-                    icon={Package}
+                  <EmptyZoneFallback
+                    kind="voyages"
                     title={t("dashboard.noColisAvailable")}
                     description={t("dashboard.noColisAvailableDesc")}
+                    ctaLabel={t("dashboard.addTrip")}
+                    ctaTo="/new-trip"
                   />
                 )}
               </TabsContent>
@@ -1410,10 +1413,12 @@ const Dashboard = () => {
                 )}
 
                 {needitMissions.length === 0 && (
-                  <EmptyState
-                    icon={ShoppingBag}
+                  <EmptyZoneFallback
+                    kind="missions"
                     title={t("dashboard.noMissionAvailable")}
                     description={t("dashboard.noMissionAvailableDesc")}
+                    ctaLabel={t("dashboard.addTrip")}
+                    ctaTo="/new-trip"
                   />
                 )}
               </TabsContent>

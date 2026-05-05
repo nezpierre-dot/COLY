@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import EmptyState from "@/components/EmptyState";
+import EmptyZoneFallback from "@/components/EmptyZoneFallback";
 import StarRating from "@/components/StarRating";
 import PullToRefresh from "@/components/PullToRefresh";
 import { Slider } from "@/components/ui/slider";
@@ -337,11 +338,12 @@ const VoyageurSearch = () => {
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <EmptyState
-              icon={Search}
-              nido="search"
+            <EmptyZoneFallback
+              kind="voyages"
               title={t("search.noResults")}
               description={destQuery || originQuery ? t("search.noResultsDesc") : t("search.noActive")}
+              ctaLabel="Proposer un trajet"
+              ctaTo="/new-trip"
             />
           ) : (
             <motion.div
