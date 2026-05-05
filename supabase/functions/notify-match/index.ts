@@ -10,9 +10,16 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_CALLS = 5;
 const MAX_EMAILS_PER_CALL = 10;
 
-/** Build unsubscribe URL for a user */
-function getUnsubscribeUrl(supabaseUrl: string, userId: string): string {
-  return `${supabaseUrl}/functions/v1/email-unsubscribe?user_id=${userId}`;
+/** Build HMAC-signed unsubscribe URL for a user */
+async function getUnsubscribeUrl(supabaseUrl: string, userId: string): Promise<string> {
+  const secret = Deno.env.get("UNSUBSCRIBE_SECRET") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(userId));
+  const token = Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `${supabaseUrl}/functions/v1/email-unsubscribe?user_id=${userId}&token=${token}`;
 }
 
 /** Build match email HTML */
