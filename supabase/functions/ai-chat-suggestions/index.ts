@@ -1,6 +1,11 @@
 // Suggestions de réponses rapides dans la messagerie Nidit.
 // Génère 3 suggestions courtes et naturelles (FR) selon le contexte.
-// Public (verify_jwt = false).
+// JWT requis (validé en code) + rate limit par utilisateur.
+
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const RATE_LIMIT_MAX = 30;
+const RATE_LIMIT_WINDOW_SEC = 60;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
