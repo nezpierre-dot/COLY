@@ -5,6 +5,23 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function expectedToken(userId: string): Promise<string> {
+  const secret = Deno.env.get("UNSUBSCRIBE_SECRET") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(userId));
+  return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -17,13 +34,21 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
 
-    // GET: check unsubscribe status by user_id
+    // GET: check unsubscribe status by user_id (HMAC token required)
     if (req.method === "GET") {
       const userId = url.searchParams.get("user_id");
+      const token = url.searchParams.get("token") ?? "";
       if (!userId) {
         return new Response(JSON.stringify({ error: "Missing user_id" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const expected = await expectedToken(userId);
+      if (!safeEqual(token, expected)) {
+        return new Response("Lien invalide ou expiré.", {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "text/plain; charset=utf-8" },
         });
       }
 
@@ -59,12 +84,14 @@ Deno.serve(async (req) => {
               ? `<p>Vous recevez actuellement les emails de matching Nidit.</p>
                  <form method="POST">
                    <input type="hidden" name="user_id" value="${userId}">
+                   <input type="hidden" name="token" value="${token}">
                    <input type="hidden" name="action" value="unsubscribe">
                    <button type="submit" class="btn btn-unsub">Se désinscrire</button>
                  </form>`
               : `<p>Vous êtes désabonné(e) des emails de matching.</p>
                  <form method="POST">
                    <input type="hidden" name="user_id" value="${userId}">
+                   <input type="hidden" name="token" value="${token}">
                    <input type="hidden" name="action" value="resubscribe">
                    <button type="submit" class="btn btn-resub">Se réabonner</button>
                  </form>`
@@ -84,21 +111,32 @@ Deno.serve(async (req) => {
     if (req.method === "POST") {
       let userId: string;
       let action: string;
+      let postToken: string;
 
       const contentType = req.headers.get("content-type") || "";
-      if (contentType.includes("application/x-www-form-urlencoded")) {
+      if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
         const formData = await req.formData();
         userId = formData.get("user_id") as string;
         action = formData.get("action") as string;
+        postToken = (formData.get("token") as string) ?? "";
       } else {
         const body = await req.json();
         userId = body.user_id;
         action = body.action;
+        postToken = body.token ?? "";
       }
 
       if (!userId || !action) {
         return new Response(JSON.stringify({ error: "Missing user_id or action" }), {
           status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const expectedPost = await expectedToken(userId);
+      if (!safeEqual(postToken, expectedPost)) {
+        return new Response(JSON.stringify({ error: "Invalid token" }), {
+          status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }

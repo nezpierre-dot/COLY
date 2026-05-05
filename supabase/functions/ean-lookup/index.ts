@@ -42,6 +42,18 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    // Mutation actions require admin role
+    const userId = claimsData.claims.sub as string;
+    if (action === 'manual_add' || action === 'delete' || action === 'bulk_add') {
+      const { data: isAdmin } = await supabase.rpc('has_role', { _user_id: userId, _role: 'admin' });
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: 'Forbidden: admin role required' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     // Manual add action
     if (action === 'manual_add') {
       const { product_name, brand, weight, category, image_url } = body;
