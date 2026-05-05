@@ -173,6 +173,12 @@ export const BLOG_POSTS: BlogPost[] = [
       ] },
       { type: "cta", text: "Trouve un voyageur sur ta route", href: "/explore", label: "Explorer les trajets disponibles" },
     ],
+    faq: [
+      { q: "Quel est le service le moins cher pour envoyer un colis à l'international ?", a: "Pour les particuliers, le cotransportage via un voyageur Nidit est généralement 30 à 60 % moins cher que les transporteurs classiques." },
+      { q: "Quel transporteur est le plus rapide ?", a: "DHL Express et Chronopost International offrent les délais les plus courts (2–3 j) sur la majorité des destinations, mais à un tarif élevé." },
+      { q: "Le suivi GPS est-il fiable chez Nidit ?", a: "Oui, le voyageur partage sa position en temps réel et tu reçois une alerte à 5 km puis à 1 km du destinataire." },
+      { q: "Que se passe-t-il si le colis n'arrive pas ?", a: "Tant que le code OTP n'est pas saisi, ton paiement reste bloqué. Tu peux ouvrir un litige et l'équipe Nidit le traite sous 72 h." },
+    ],
   },
   {
     slug: "envoyer-colis-senegal-dakar",
