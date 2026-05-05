@@ -158,11 +158,11 @@ const PostMatchActions = ({
     setOtpLoading(true);
     const { data } = await supabase
       .from(tableName as any)
-      .select("confirmation_code, status")
+      .select("otp_codes, status")
       .eq("id", shipmentId)
       .maybeSingle();
     if (data) {
-      parseOtpCodes((data as any).confirmation_code);
+      parseOtpCodes((data as any).otp_codes);
     }
     setOtpLoading(false);
   }, [shipmentId, tableName]);
@@ -185,7 +185,7 @@ const PostMatchActions = ({
         if (row.status !== shipmentStatus) {
           onStatusChange?.(row.status);
         }
-        parseOtpCodes(row.confirmation_code);
+        parseOtpCodes(row.otp_codes);
       })
       .subscribe();
 
@@ -250,15 +250,15 @@ const PostMatchActions = ({
     pickupTs?: number | null,
     deliveryTs?: number | null
   ) => {
-    const codes = JSON.stringify({
+    const codes = {
       pickup,
       delivery,
       pickupCreatedAt: pickupTs !== undefined ? pickupTs : pickupOtpCreatedAt,
       deliveryCreatedAt: deliveryTs !== undefined ? deliveryTs : deliveryOtpCreatedAt,
-    });
+    };
     await supabase
       .from(tableName as any)
-      .update({ confirmation_code: codes } as any)
+      .update({ otp_codes: codes } as any)
       .eq("id", shipmentId);
   };
 
