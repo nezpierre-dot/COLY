@@ -58,24 +58,46 @@ export default function BlogIndex() {
   };
 
   const seoTitle = activeCategory
-    ? `Blog Nidit — ${BLOG_CATEGORY_LABELS[activeCategory]}`
-    : "Blog Nidit — Guides pour envoyer un colis à l'international";
+    ? `Blog Nidit — ${BLOG_CATEGORY_LABELS[activeCategory]}${safePage > 1 ? ` (page ${safePage})` : ""}`
+    : `Blog Nidit — Guides pour envoyer un colis à l'international${safePage > 1 ? ` (page ${safePage})` : ""}`;
+
+  // Build canonical/prev/next that preserve cat + page (rel="prev"/"next" SEO).
+  const buildPath = (p: number) => {
+    const params = new URLSearchParams();
+    if (activeCategory) params.set("cat", activeCategory);
+    if (p > 1) params.set("page", String(p));
+    const qs = params.toString();
+    return qs ? `/blog?${qs}` : "/blog";
+  };
+  const canonicalPath = buildPath(safePage);
+  const prevPath = safePage > 1 ? buildPath(safePage - 1) : null;
+  const nextPath = safePage < totalPages ? buildPath(safePage + 1) : null;
+  const SITE = "https://nidit.fr";
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Seo
         title={seoTitle}
         description="Guides pratiques, comparatifs et astuces pour envoyer un colis à l'international moins cher : Maroc, Sénégal, Algérie, Tunisie, Canada, et plus."
-        canonical="/blog"
+        canonical={canonicalPath}
         jsonLd={jsonLd}
       />
 
       <Helmet>
+        {prevPath && <link rel="prev" href={`${SITE}${prevPath}`} />}
+        {nextPath && <link rel="next" href={`${SITE}${nextPath}`} />}
         <link
           rel="alternate"
           type="application/rss+xml"
           title="Blog Nidit (RSS)"
-          href={`https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/rss-xml`}
+          href={`https://${projectId}.supabase.co/functions/v1/rss-xml`}
+        />
+        <link
+          rel="alternate"
+          type="application/atom+xml"
+          title="Blog Nidit (Atom)"
+          href={`https://${projectId}.supabase.co/functions/v1/atom-xml`}
         />
       </Helmet>
 
