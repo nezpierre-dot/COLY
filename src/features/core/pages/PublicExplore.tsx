@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/hooks/useTranslation";
+import EmptyZoneFallback from "@/components/EmptyZoneFallback";
 
 interface PublicVoyage {
   id: string;
@@ -82,12 +83,13 @@ export default function PublicExplore() {
             ))}
           </div>
         ) : voyages.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-card p-10 text-center">
-            <p className="text-muted-foreground">{t("publicExplore.noTrips")}</p>
-            <Button onClick={() => setSearchParams({})} variant="outline" className="mt-4">
-              {t("publicExplore.showAll")}
-            </Button>
-          </div>
+          <EmptyZoneFallback
+            kind="voyages"
+            title={t("publicExplore.noTrips")}
+            description="Sois le premier à proposer un trajet ici. En attendant, voici les trajets actifs ailleurs."
+            ctaLabel={t("publicCommon.signUp")}
+            ctaTo="/signup"
+          />
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {voyages.map((v) => (
