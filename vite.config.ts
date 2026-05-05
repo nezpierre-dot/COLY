@@ -94,28 +94,18 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Vendor chunks
+          // IMPORTANT: do NOT manually split node_modules.
+          // Splitting React/Radix/etc. into sibling chunks creates load-order
+          // races where a chunk runs `React.createContext` / `React.forwardRef`
+          // before the React chunk has executed (different browsers, different
+          // network ordering). Let Rollup compute the dependency graph itself —
+          // it will hoist React into a shared chunk that is guaranteed to load
+          // before any consumer. We only split heavy, independent libs that
+          // don't depend on React at module-init time.
           if (id.includes("node_modules")) {
-            // CRITICAL: keep React + react-dom + Radix + react-router in the SAME chunk.
-            // Radix calls React.forwardRef at module init — if React loads in a separate
-            // chunk it can be `undefined` on some browsers due to load ordering.
-            if (
-              id.includes("/react/") ||
-              id.includes("/react-dom/") ||
-              id.includes("react-router") ||
-              id.includes("@radix-ui") ||
-              id.includes("scheduler") ||
-              id.includes("/use-sync-external-store/")
-            ) return "vendor-react";
-            if (id.includes("@tanstack")) return "vendor-query";
-            if (id.includes("@supabase")) return "vendor-supabase";
-            if (id.includes("framer-motion")) return "vendor-motion";
+            if (id.includes("mapbox-gl")) return "vendor-mapbox";
             if (id.includes("recharts")) return "vendor-charts";
-            if (id.includes("mapbox-gl") || id.includes("react-map-gl")) return "vendor-map";
-            if (id.includes("date-fns")) return "vendor-dates";
-            if (id.includes("lucide-react")) return "vendor-icons";
-            if (id.includes("sonner")) return "vendor-toast";
-            return "vendor";
+            return undefined;
           }
           // Feature-based chunks (loaded only when needed)
           if (id.includes("/features/admin/")) return "feature-admin";
