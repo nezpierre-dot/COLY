@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
 import { addWatermark } from "@/lib/watermark";
+import { compressImage } from "@/lib/compressImage";
 
 interface PickupProofUploadProps {
   itemId: string;
@@ -44,7 +45,8 @@ const PickupProofUpload = ({ itemId, itemType, onProofUploaded }: PickupProofUpl
     if (!photo || !user) return;
     setUploading(true);
     try {
-      const { file: watermarked, proofId } = await addWatermark(photo, coords);
+      const compressed = await compressImage(photo, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
+      const { file: watermarked, proofId } = await addWatermark(compressed, coords);
       const path = `pickup-proofs/${itemId}/${Date.now()}-${photo.name}`;
       const { error: uploadErr } = await supabase.storage.from("shipment-photos").upload(path, watermarked);
       if (uploadErr) throw uploadErr;

@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
+import { compressImage } from "@/lib/compressImage";
 import { useTranslation } from "@/hooks/useTranslation";
 import PresenceBadge from "@/components/PresenceBadge";
 
@@ -141,9 +142,10 @@ const ChatPage = () => {
     if (!user || !conversationId) return;
     setUploadingPhoto(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
+      const compressed = await compressImage(file, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
+      const ext = compressed.name.split(".").pop() || "jpg";
       const path = `${user.id}/${conversationId}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("chat-photos").upload(path, file, { upsert: false });
+      const { error: upErr } = await supabase.storage.from("chat-photos").upload(path, compressed, { upsert: false });
       if (upErr) throw upErr;
       const { data: signedData } = await supabase.storage.from("chat-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
       const photoUrl = signedData?.signedUrl ?? "";
@@ -174,9 +176,10 @@ const ChatPage = () => {
     if (!proofFile || !user || !conversationId) return;
     setUploadingProof(true);
     try {
-      const ext = proofFile.name.split(".").pop() || "jpg";
+      const compressedProof = await compressImage(proofFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
+      const ext = compressedProof.name.split(".").pop() || "jpg";
       const path = `${user.id}/${conversationId}/proof-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("chat-photos").upload(path, proofFile, { upsert: false });
+      const { error: upErr } = await supabase.storage.from("chat-photos").upload(path, compressedProof, { upsert: false });
       if (upErr) throw upErr;
       const { data: signedData } = await supabase.storage.from("chat-photos").createSignedUrl(path, 60 * 60 * 24 * 90);
       const photoUrl = signedData?.signedUrl ?? "";

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { hapticLight, hapticSuccess } from "@/lib/haptics";
 import SuccessCheck from "@/components/SuccessCheck";
+import { compressImage } from "@/lib/compressImage";
 
 interface RatingDialogProps {
   open: boolean;
@@ -69,7 +70,8 @@ const RatingDialog = ({ open, onClose, shipmentId, ratedUserId, raterRole }: Rat
   const uploadPhotos = async (): Promise<string[]> => {
     if (!user || photos.length === 0) return [];
     const urls: string[] = [];
-    for (const file of photos) {
+    for (const original of photos) {
+      const file = await compressImage(original, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
       const path = `${user.id}/${shipmentId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error: upErr } = await supabase.storage
