@@ -55,12 +55,14 @@ const TestLiveLocation = () => {
       </div>
 
       {/* Live Location Component */}
-      <LiveLocationSharing
-        itemId={demoItemId}
-        voyageurId={voyageurId}
-        isVoyageur={viewAs === "voyageur"}
-        autoStart={false}
-      />
+      <Suspense fallback={<MapSkeleton height="h-64" />}>
+        <LiveLocationSharing
+          itemId={demoItemId}
+          voyageurId={voyageurId}
+          isVoyageur={viewAs === "voyageur"}
+          autoStart={false}
+        />
+      </Suspense>
 
       {/* Info */}
       <div className="bg-muted/50 rounded-xl p-4 space-y-2">
