@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Seo from "@/components/Seo";
 import ShareButton from "@/components/ShareButton";
 import { BLOG_POSTS, getBlogPost, getRelatedPosts, type BlogBlock } from "@/lib/blogPosts";
-import { POPULAR_ROUTES } from "@/lib/popularRoutes";
+import { POPULAR_ROUTES, routeSlug } from "@/lib/popularRoutes";
 
 function renderBlock(block: BlogBlock, idx: number) {
   switch (block.type) {
@@ -144,8 +144,11 @@ export default function BlogPost() {
   ];
 
   const relatedRouteEntries = (post.relatedRoutes ?? [])
-    .map((s) => POPULAR_ROUTES.find((r) => r.slug === s))
-    .filter(Boolean);
+    .map((s) => {
+      const match = POPULAR_ROUTES.find(([from, to]) => routeSlug(from, to) === s);
+      return match ? { slug: s, from: match[0], to: match[1] } : null;
+    })
+    .filter((r): r is { slug: string; from: string; to: string } => r !== null);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -201,12 +204,12 @@ export default function BlogPost() {
             <h2 className="text-lg font-bold">Trajets liés à cet article</h2>
             <ul className="mt-3 flex flex-wrap gap-2">
               {relatedRouteEntries.map((r) => (
-                <li key={r!.slug}>
+                <li key={r.slug}>
                   <Link
-                    to={`/explore/${r!.slug}`}
+                    to={`/explore/${r.slug}`}
                     className="inline-flex items-center rounded-full border border-border bg-muted/30 px-3 py-1 text-sm font-medium hover:border-primary/50 hover:text-primary"
                   >
-                    {r!.from} → {r!.to}
+                    {r.from} → {r.to}
                   </Link>
                 </li>
               ))}
