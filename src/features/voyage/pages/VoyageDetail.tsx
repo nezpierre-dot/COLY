@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { localizeCity, localizeCountry } from "@/lib/geoLocalization";
+import { compressImage } from "@/lib/compressImage";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import {
