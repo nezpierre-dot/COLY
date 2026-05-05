@@ -103,8 +103,18 @@ export default function PushFallbackBanner() {
                 <Share className="h-3.5 w-3.5" /> Safari → Partager → Ajouter à l'écran d'accueil
               </p>
             )}
+            <Link
+              to="/email-preferences"
+              className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+            >
+              <SettingsIcon className="h-3 w-3" /> Gérer l'email de secours
+            </Link>
           </div>
         </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
       </motion.div>
     </AnimatePresence>
   );
