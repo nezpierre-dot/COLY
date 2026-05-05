@@ -212,6 +212,11 @@ export const BLOG_POSTS: BlogPost[] = [
       { type: "p", text: "La diaspora sénégalaise en France, Belgique et Italie envoie en permanence des colis à la famille. Avec Nidit, tu trouves quasiment chaque jour un voyageur Paris → Dakar, Lyon → Dakar ou Marseille → Dakar." },
       { type: "cta", text: "Voir les voyageurs Paris → Dakar", href: "/explore/paris_dakar", label: "Trouver un voyageur" },
     ],
+    faq: [
+      { q: "Combien coûte un colis Paris → Dakar via Nidit ?", a: "Généralement entre 20 et 50 € pour 2 kg, négociés directement avec le voyageur." },
+      { q: "Combien de temps pour livrer à Dakar ?", a: "24 à 48 h après l'arrivée du voyageur en avion." },
+      { q: "Puis-je envoyer des médicaments au Sénégal ?", a: "Uniquement les médicaments sans ordonnance, en quantité personnelle raisonnable, et déclarés à la douane si nécessaire." },
+    ],
   },
   {
     slug: "astuces-emballage-colis-international",
