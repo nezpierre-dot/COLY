@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, Plane, Package2, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar, Plane, Package2, MapPin, FileText, Search, ShieldCheck, Truck, KeyRound, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import ShareButton from "@/components/ShareButton";
 import Seo from "@/components/Seo";
 import { useTranslation } from "@/hooks/useTranslation";
+import { buildTransportFaq, detectTransport } from "@/lib/transportFaq";
 
 interface PublicVoyageDetail {
   id: string;
