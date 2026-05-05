@@ -348,19 +348,9 @@ const VoyageurSearch = () => {
               ctaLabel="Proposer un trajet"
               ctaTo="/new-trip"
             />
-          ) : (
-            <motion.div
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-              className="space-y-3"
-            >
-              {filtered.map((v) => (
-                <motion.div
-                  key={v.id}
-                  variants={staggerItem}
-                  className="bg-card rounded-2xl border border-border p-4 hover:shadow-md transition-shadow"
-                >
+          ) : (() => {
+              const renderRow = (v: Voyage) => (
+                <div className="bg-card rounded-2xl border border-border p-4 hover:shadow-md transition-shadow">
                   {/* Route */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
@@ -380,14 +370,12 @@ const VoyageurSearch = () => {
                     </div>
                   </div>
 
-                  {/* Rating */}
                   {(v.total_ratings ?? 0) > 0 && (
                     <div className="flex items-center gap-1.5 mb-3">
                       <StarRating score={v.avg_rating ?? 0} total={v.total_ratings ?? 0} size={14} />
                     </div>
                   )}
 
-                  {/* Options badges */}
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {v.accept_needit && (
                       <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-secondary/15 text-secondary flex items-center gap-1">
@@ -411,17 +399,44 @@ const VoyageurSearch = () => {
                     )}
                   </div>
 
-                  {/* CTA */}
                   <button
                     onClick={() => { hapticMedium(); navigate("/send-coly"); }}
                     className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity active:scale-[0.97] transition-all duration-150"
                   >
                     {t("search.sendWith")}
                   </button>
+                </div>
+              );
+
+              if (filtered.length > VIRTUALIZE_THRESHOLD) {
+                return (
+                  <VirtualList
+                    items={filtered}
+                    estimateSize={210}
+                    gap={12}
+                    getKey={(v) => v.id}
+                  >
+                    {(v) => renderRow(v)}
+                  </VirtualList>
+                );
+              }
+
+              return (
+                <motion.div
+                  variants={staggerContainer}
+                  initial="initial"
+                  animate="animate"
+                  className="space-y-3"
+                >
+                  {filtered.map((v) => (
+                    <motion.div key={v.id} variants={staggerItem}>
+                      {renderRow(v)}
+                    </motion.div>
+                  ))}
                 </motion.div>
-              ))}
-            </motion.div>
-          )}
+              );
+            })()
+          }
         </main>
       </PageTransition>
       </PullToRefresh>
