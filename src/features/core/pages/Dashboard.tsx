@@ -11,6 +11,7 @@ import EmptyState from "@/components/EmptyState";
 import DraftResumeBanner from "@/components/DraftResumeBanner";
 import SendDraftResumeSlot from "@/components/SendDraftResumeSlot";
 import GettingStartedChecklist from "@/components/GettingStartedChecklist";
+import PushFallbackBanner from "@/components/PushFallbackBanner";
 import { prefetchAllHubsOnIdle } from "@/features/core/hubs/prefetch";
 import { useDraft } from "@/hooks/useDraft";
 import NotificationBell from "@/components/NotificationBell";
