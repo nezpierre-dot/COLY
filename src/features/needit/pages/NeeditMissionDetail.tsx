@@ -11,6 +11,7 @@ import PhotoLightbox from "@/components/PhotoLightbox";
 import StarRating from "@/components/StarRating";
 import PageTransition from "@/components/PageTransition";
 import BottomNav from "@/components/BottomNav";
+import MissionLiveTimeline from "@/components/MissionLiveTimeline";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -282,6 +283,16 @@ const NeeditMissionDetail = () => {
                 </div>
               </div>
             </motion.div>
+          )}
+
+          {/* Live timeline — Récupéré → En route → Livré with realtime updates & photo proofs */}
+          {isAccepted && mission.status !== "cancelled" && (
+            <MissionLiveTimeline
+              itemId={mission.id}
+              initialStatus={mission.status}
+              source="needit_missions"
+              onStatusChange={(s) => setMission((m: any) => (m ? { ...m, status: s } : m))}
+            />
           )}
 
           {/* Product photo — full width */}
