@@ -1111,10 +1111,24 @@ const AdminDashboard = () => {
                                   .select("id");
                                 if (error) throw error;
                                 if (!updated || updated.length === 0) {
-                                  toast.error("Déjà accepté par un autre voyageur. Rafraîchissement du tableau de bord…");
+                                  // Conflit : déjà accepté par un autre voyageur — journaliser la tentative refusée
+                                  const { data: { user: adminUser } } = await supabase.auth.getUser();
+                                  if (adminUser) {
+                                    await supabase.from("admin_audit_log").insert({
+                                      admin_id: adminUser.id,
+                                      action: "match_conflict_rejected",
+                                      target_type: matchSelectedItem.type,
+                                      target_id: matchSelectedItem.id,
+                                      details: {
+                                        attempted_voyageur_id: v.user_id,
+                                        table,
+                                        reason: "already_accepted_or_assigned",
+                                      },
+                                    });
+                                  }
+                                  toast.error("Déjà accepté par un autre voyageur.");
                                   setMatchSelectedItem(null);
                                   setMatchSearchQuery("");
-                                  await loadAll();
                                   return;
                                 }
                                 // Create notification for both parties
