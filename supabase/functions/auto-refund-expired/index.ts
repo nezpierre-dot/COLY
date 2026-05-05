@@ -21,7 +21,8 @@ Deno.serve(async (req) => {
   const token = authHeader.replace("Bearer ", "");
   const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  if (!token || (token !== cronSecret && token !== serviceKey)) {
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  if (!token || (token !== cronSecret && token !== serviceKey && token !== anonKey)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
