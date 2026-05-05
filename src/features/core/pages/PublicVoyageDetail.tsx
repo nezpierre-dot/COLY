@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Calendar, Plane, Package2, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar, Plane, Package2, MapPin, FileText, Search, ShieldCheck, Truck, KeyRound, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import ShareButton from "@/components/ShareButton";
 import Seo from "@/components/Seo";
 import { useTranslation } from "@/hooks/useTranslation";
+import { buildTransportFaq, detectTransport } from "@/lib/transportFaq";
 
 interface PublicVoyageDetail {
   id: string;
@@ -70,6 +71,8 @@ export default function PublicVoyageDetail() {
   const seoTitle = `Envoyer un colis ${v.departure_city} → ${v.arrival_city} le ${dateLong} | Nidit`;
   const seoDesc = `Trajet ${v.transport_method} de ${v.departure_city} (${v.departure_country}) vers ${v.arrival_city} (${v.arrival_country}) le ${dateLong}. Envoie ton colis avec un voyageur Nidit vérifié, paiement protégé jusqu'à la livraison.`;
   const canonical = `/trajet/${v.id}`;
+  const transportKind = detectTransport(v.transport_method);
+  const faqItems = buildTransportFaq({ from: v.departure_city, to: v.arrival_city, method: v.transport_method });
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -106,23 +109,11 @@ export default function PublicVoyageDetail() {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: `Comment envoyer un colis de ${v.departure_city} à ${v.arrival_city} ?`,
-          acceptedAnswer: { "@type": "Answer", text: `Crée ton compte Nidit, publie ton colis ${v.departure_city} → ${v.arrival_city}, choisis un voyageur vérifié et règle en paiement protégé. Le voyageur récupère ton colis et le remet à destination contre code OTP.` },
-        },
-        {
-          "@type": "Question",
-          name: `Quel est le prix d'envoi ${v.departure_city} → ${v.arrival_city} ?`,
-          acceptedAnswer: { "@type": "Answer", text: `Le tarif est fixé librement entre membre et voyageur Nidit. Il dépend du poids, du volume et de la nature du colis. Souvent moins cher que la poste classique.` },
-        },
-        {
-          "@type": "Question",
-          name: "Mon colis est-il assuré ?",
-          acceptedAnswer: { "@type": "Answer", text: "Le paiement est bloqué (escrow) jusqu'à la confirmation de livraison via OTP et photo. En cas de litige, l'équipe Nidit intervient sous 72 h." },
-        },
-      ],
+      mainEntity: faqItems.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
     },
   ];
 
@@ -226,21 +217,63 @@ export default function PublicVoyageDetail() {
           </ol>
         </section>
 
-        <section className="mt-6 rounded-3xl border border-border bg-card p-6">
-          <h2 className="text-lg font-bold">Questions fréquentes</h2>
+        <section className="mt-6 rounded-3xl border border-border bg-card p-6" data-testid="seo-longtail">
+          <h2 className="text-lg font-bold">Envoi de colis {v.departure_city} → {v.arrival_city} : ce qu'il faut savoir</h2>
+          <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
+            <p>
+              Tu cherches comment <strong>envoyer un colis pas cher de {v.departure_city} à {v.arrival_city}</strong> ?
+              Nidit met en relation des particuliers et des <strong>voyageurs vérifiés</strong> qui font déjà ce trajet
+              en {v.transport_method}. C'est l'alternative économique et rapide à La Poste, Chronopost, DHL ou UPS pour la
+              ligne <strong>{v.departure_city} ⇄ {v.arrival_city}</strong>.
+            </p>
+            <p>
+              Que ce soit pour un <strong>colis urgent {v.departure_city} {v.arrival_city}</strong>, un cadeau famille,
+              des documents, des produits cosmétiques, du textile ou de la nourriture, tu peux confier ton envoi à un
+              voyageur Nidit en toute confiance grâce au <strong>paiement protégé (escrow)</strong>, à la
+              <strong> vérification d'identité (KYC)</strong> et au <strong>code OTP de remise</strong>.
+            </p>
+            <p>
+              Mots-clés couverts par cette page : envoi colis {v.departure_city} {v.arrival_city}, transport colis
+              {" "}{v.departure_city} vers {v.arrival_city}, livraison particulier à particulier {v.departure_country}
+              {" "}{v.arrival_country}, voyageur {v.departure_city} {v.arrival_city}, cotransportage {v.transport_method},
+              envoi colis entre particuliers, livraison collaborative, transport bagages {v.departure_city} {v.arrival_city}.
+            </p>
+          </div>
+        </section>
+
+        <section className="mt-6 rounded-3xl border border-border bg-card p-6" data-testid="steps-block">
+          <h2 className="text-lg font-bold">Étapes de l'envoi {v.departure_city} → {v.arrival_city}</h2>
+          <ol className="mt-4 grid gap-3 sm:grid-cols-2">
+            {[
+              { icon: FileText, title: "1. Création", desc: `Le voyageur publie son trajet ${v.transport_method} ${v.departure_city} → ${v.arrival_city}.` },
+              { icon: Search, title: "2. Mise en relation", desc: "Tu publies ton colis, le système propose les voyageurs compatibles." },
+              { icon: ShieldCheck, title: "3. Paiement protégé", desc: "Le règlement est bloqué chez Nidit jusqu'à la livraison (escrow)." },
+              { icon: Truck, title: "4. Pick-up + photo", desc: "Le voyageur récupère ton colis avec preuve photo et code OTP." },
+              { icon: KeyRound, title: "5. Remise OTP", desc: "À l'arrivée, le destinataire confirme la réception avec son code OTP." },
+              { icon: Wallet, title: "6. Paiement libéré", desc: "Une fois la livraison validée, le voyageur reçoit son paiement." },
+            ].map(({ icon: Icon, title, desc }) => (
+              <li key={title} className="flex gap-3 rounded-xl bg-muted/40 p-3">
+                <div className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-foreground">{title}</div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{desc}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="mt-6 rounded-3xl border border-border bg-card p-6" data-testid="faq-block" data-transport={transportKind}>
+          <h2 className="text-lg font-bold">Questions fréquentes — {v.departure_city} → {v.arrival_city} ({v.transport_method})</h2>
           <div className="mt-3 space-y-4 text-sm">
-            <div>
-              <h3 className="font-semibold">Combien coûte un envoi {v.departure_city} → {v.arrival_city} ?</h3>
-              <p className="mt-1 text-muted-foreground">Le tarif est fixé librement entre toi et le voyageur, selon poids, volume et nature du colis. Souvent moins cher qu'un envoi postal classique.</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Mon colis est-il protégé ?</h3>
-              <p className="mt-1 text-muted-foreground">Oui : paiement bloqué (escrow) jusqu'à confirmation de livraison, voyageurs vérifiés (KYC), litiges traités sous 72 h.</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Quels objets puis-je envoyer ?</h3>
-              <p className="mt-1 text-muted-foreground">La majorité des objets du quotidien : documents, vêtements, cosmétiques, électronique légère, cadeaux. Produits dangereux et substances interdites exclus.</p>
-            </div>
+            {faqItems.map((f) => (
+              <div key={f.q}>
+                <h3 className="font-semibold">{f.q}</h3>
+                <p className="mt-1 text-muted-foreground">{f.a}</p>
+              </div>
+            ))}
           </div>
         </section>
 
