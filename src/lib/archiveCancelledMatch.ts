@@ -14,23 +14,22 @@ interface ArchiveParams {
 
 /**
  * Archives a cancelled item that had a match (voyageur_id set) before cancellation.
- * Only archives if there was a voyageur match.
+ * Goes through a SECURITY DEFINER RPC that validates ownership server-side.
  */
 export const archiveCancelledMatch = async (params: ArchiveParams) => {
-  // Only archive if there was a match
   if (!params.voyageur_id) return;
 
   try {
-    await supabase.from("cancelled_matches_archive" as any).insert({
-      item_type: params.item_type,
-      item_id: params.item_id,
-      user_id: params.user_id,
-      voyageur_id: params.voyageur_id,
-      departure_city: params.departure_city ?? null,
-      arrival_city: params.arrival_city ?? null,
-      arrival_country: params.arrival_country ?? null,
-      tarif: params.tarif ?? null,
-      original_status: params.original_status ?? null,
+    await (supabase as any).rpc("archive_cancelled_match", {
+      _item_type: params.item_type,
+      _item_id: params.item_id,
+      _voyageur_id: params.voyageur_id,
+      _departure_city: params.departure_city ?? null,
+      _arrival_city: params.arrival_city ?? null,
+      _arrival_country: params.arrival_country ?? null,
+      _tarif: params.tarif ?? null,
+      _original_status: params.original_status ?? null,
+      _reason: null,
     });
   } catch {
     // Non-blocking: archive failure shouldn't prevent cancellation
