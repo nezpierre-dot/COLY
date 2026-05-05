@@ -723,7 +723,7 @@ export type Database = {
           auto_accept: boolean
           category_path: string[]
           city: string | null
-          confirmation_code: string | null
+          confirmation_code_hash: string | null
           country: string
           created_at: string
           dimension: string | null
@@ -731,6 +731,7 @@ export type Database = {
           ean_verified: boolean
           id: string
           is_unlisted: boolean
+          otp_codes: Json
           photo_url: string | null
           pickup_access_code: string | null
           pickup_address: string | null
@@ -748,7 +749,7 @@ export type Database = {
           auto_accept?: boolean
           category_path?: string[]
           city?: string | null
-          confirmation_code?: string | null
+          confirmation_code_hash?: string | null
           country: string
           created_at?: string
           dimension?: string | null
@@ -756,6 +757,7 @@ export type Database = {
           ean_verified?: boolean
           id?: string
           is_unlisted?: boolean
+          otp_codes?: Json
           photo_url?: string | null
           pickup_access_code?: string | null
           pickup_address?: string | null
@@ -773,7 +775,7 @@ export type Database = {
           auto_accept?: boolean
           category_path?: string[]
           city?: string | null
-          confirmation_code?: string | null
+          confirmation_code_hash?: string | null
           country?: string
           created_at?: string
           dimension?: string | null
@@ -781,6 +783,7 @@ export type Database = {
           ean_verified?: boolean
           id?: string
           is_unlisted?: boolean
+          otp_codes?: Json
           photo_url?: string | null
           pickup_access_code?: string | null
           pickup_address?: string | null
@@ -1219,7 +1222,7 @@ export type Database = {
         Row: {
           arrival_city: string
           arrival_country: string
-          confirmation_code: string | null
+          confirmation_code_hash: string | null
           contact_email: string | null
           contact_nom: string
           contact_prenom: string
@@ -1235,6 +1238,7 @@ export type Database = {
           id: string
           insured: boolean
           is_international: boolean
+          otp_codes: Json
           photo_url: string | null
           pickup_access_code: string | null
           pickup_address: string | null
@@ -1249,7 +1253,7 @@ export type Database = {
         Insert: {
           arrival_city: string
           arrival_country: string
-          confirmation_code?: string | null
+          confirmation_code_hash?: string | null
           contact_email?: string | null
           contact_nom: string
           contact_prenom: string
@@ -1265,6 +1269,7 @@ export type Database = {
           id?: string
           insured?: boolean
           is_international?: boolean
+          otp_codes?: Json
           photo_url?: string | null
           pickup_access_code?: string | null
           pickup_address?: string | null
@@ -1279,7 +1284,7 @@ export type Database = {
         Update: {
           arrival_city?: string
           arrival_country?: string
-          confirmation_code?: string | null
+          confirmation_code_hash?: string | null
           contact_email?: string | null
           contact_nom?: string
           contact_prenom?: string
@@ -1295,6 +1300,7 @@ export type Database = {
           id?: string
           insured?: boolean
           is_international?: boolean
+          otp_codes?: Json
           photo_url?: string | null
           pickup_access_code?: string | null
           pickup_address?: string | null
