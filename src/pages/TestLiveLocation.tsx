@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import LiveLocationSharing from "@/components/LiveLocationSharing";
+const LiveLocationSharing = lazy(() => import("@/components/LiveLocationSharing"));
+import MapSkeleton from "@/components/MapSkeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Eye, Navigation } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -54,12 +55,14 @@ const TestLiveLocation = () => {
       </div>
 
       {/* Live Location Component */}
-      <LiveLocationSharing
-        itemId={demoItemId}
-        voyageurId={voyageurId}
-        isVoyageur={viewAs === "voyageur"}
-        autoStart={false}
-      />
+      <Suspense fallback={<MapSkeleton height="h-64" />}>
+        <LiveLocationSharing
+          itemId={demoItemId}
+          voyageurId={voyageurId}
+          isVoyageur={viewAs === "voyageur"}
+          autoStart={false}
+        />
+      </Suspense>
 
       {/* Info */}
       <div className="bg-muted/50 rounded-xl p-4 space-y-2">

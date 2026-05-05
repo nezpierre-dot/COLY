@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import appLogo from "@/assets/logo.png";
 
 import { useNavigate } from "react-router-dom";
@@ -26,9 +26,10 @@ import { toast } from "sonner";
 import { getCurrencyForCountry } from "@/hooks/useLocaleUnits";
 import { getCurrencySymbol } from "@/hooks/useCurrencyPreference";
 import BottomNav from "@/components/BottomNav";
-import VoyageMap from "@/components/VoyageMap";
+const VoyageMap = lazy(() => import("@/components/VoyageMap"));
 import VoyageurAvailability from "@/components/VoyageurAvailability";
-import PublicMissionsMap from "@/components/PublicMissionsMap";
+const PublicMissionsMap = lazy(() => import("@/components/PublicMissionsMap"));
+import MapSkeleton from "@/components/MapSkeleton";
 import PullToRefresh from "@/components/PullToRefresh";
 import { hapticLight } from "@/lib/haptics";
 import { localizeCity, localizeCountry, localizeRoute } from "@/lib/geoLocalization";
@@ -1286,13 +1287,15 @@ const Dashboard = () => {
 
               {/* ---- Carte tab ---- */}
               <TabsContent value="carte" className="space-y-3 mt-0">
-                <VoyageMap
-                  voyages={voyages}
-                  selectedVoyageId={selectedVoyage}
-                  onSelectVoyage={setSelectedVoyage}
-                  pendingShipments={pendingShipments}
-                  pendingMissions={needitMissions}
-                />
+                <Suspense fallback={<MapSkeleton height="h-72" />}>
+                  <VoyageMap
+                    voyages={voyages}
+                    selectedVoyageId={selectedVoyage}
+                    onSelectVoyage={setSelectedVoyage}
+                    pendingShipments={pendingShipments}
+                    pendingMissions={needitMissions}
+                  />
+                </Suspense>
                 {currentVoyage && (
                   <div className="bg-card rounded-xl border border-border p-3 shadow-sm">
                     <div className="flex items-center justify-between">
@@ -1944,7 +1947,9 @@ const Dashboard = () => {
 
               {/* ---- Carte tab (demandeur) ---- */}
               <TabsContent value="carte" className="mt-0">
-                <PublicMissionsMap />
+                <Suspense fallback={<MapSkeleton height="h-72" />}>
+                  <PublicMissionsMap />
+                </Suspense>
               </TabsContent>
 
               {/* ---- Actions tab ---- */}

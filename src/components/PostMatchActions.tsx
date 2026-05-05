@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { Camera as CameraIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,7 +22,8 @@ import { successFeedback } from "@/lib/successFeedback";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
-import LiveLocationSharing from "@/components/LiveLocationSharing";
+const LiveLocationSharing = lazy(() => import("@/components/LiveLocationSharing"));
+import MapSkeleton from "@/components/MapSkeleton";
 import RatingDialog from "@/components/RatingDialog";
 import PickupProofUpload from "@/components/PickupProofUpload";
 import DeliveryProofUpload from "@/components/DeliveryProofUpload";
@@ -815,13 +816,15 @@ const PostMatchActions = ({
       )}
 
       {voyageurId && ["accepted", "picked_up", "in_transit"].includes(normalizedStatus) && !compact && (
-        <LiveLocationSharing
-          itemId={shipmentId}
-          voyageurId={voyageurId}
-          isVoyageur={isVoyageur}
-          autoStart
-          destination={destinationCoords}
-        />
+        <Suspense fallback={<MapSkeleton height="h-64" />}>
+          <LiveLocationSharing
+            itemId={shipmentId}
+            voyageurId={voyageurId}
+            isVoyageur={isVoyageur}
+            autoStart
+            destination={destinationCoords}
+          />
+        </Suspense>
       )}
     </div>
   );
