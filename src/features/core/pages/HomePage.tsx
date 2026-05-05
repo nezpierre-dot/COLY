@@ -409,7 +409,7 @@ const HomePage = () => {
                     <p className="text-xs sm:text-sm text-white/85 mt-1 leading-snug">
                       Fais ramener ton produit préféré de l'étranger
                     </p>
-                    <span className="inline-flex items-center gap-1 mt-auto pt-2 text-[11px] font-semibold text-white">
+                    <span className="inline-flex items-center gap-1 mt-auto pt-2 text-xs font-semibold text-white">
                       <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
                         <Sparkles size={10} aria-hidden="true" /> NeedIt
                       </span>
@@ -447,7 +447,7 @@ const HomePage = () => {
                       {switching ? t("home.switching") : t("home.ctaTransportSubtitle")}
                     </p>
                     {!isVoyageur && !switching && (
-                      <span className="inline-flex items-center gap-1 mt-auto pt-2 text-[11px] font-semibold text-white">
+                      <span className="inline-flex items-center gap-1 mt-auto pt-2 text-xs font-semibold text-white">
                         <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
                           <Sparkles size={10} aria-hidden="true" /> {t("home.autoSwitchHint")}
                         </span>
