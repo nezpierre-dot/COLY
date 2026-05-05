@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useTranslation";
 import { addWatermark } from "@/lib/watermark";
+import { compressImage } from "@/lib/compressImage";
 
 interface PickupProofUploadProps {
   itemId: string;
