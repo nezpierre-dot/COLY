@@ -76,6 +76,7 @@ const ActivityHub = lazy(() => import("./features/core/pages/ActivityHub"));
 const PublicLanding = lazy(() => import("./features/core/pages/PublicLanding"));
 const PublicExplore = lazy(() => import("./features/core/pages/PublicExplore"));
 const PublicVoyageDetail = lazy(() => import("./features/core/pages/PublicVoyageDetail"));
+const ShortVoyageRedirect = lazy(() => import("./features/core/pages/ShortVoyageRedirect"));
 const PublicMissionDetail = lazy(() => import("./features/core/pages/PublicMissionDetail"));
 const PublicShipmentDetail = lazy(() => import("./features/core/pages/PublicShipmentDetail"));
 const HowItWorks = lazy(() => import("./features/core/pages/HowItWorks"));
