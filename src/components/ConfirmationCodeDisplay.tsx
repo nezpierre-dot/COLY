@@ -117,6 +117,20 @@ const ConfirmationCodeDisplay = ({ itemId, itemType }: ConfirmationCodeDisplayPr
           {copied ? <CheckCircle size={18} /> : <Copy size={18} />}
         </button>
       </div>
+
+      {lockedUntil && lockedUntil.getTime() > Date.now() ? (
+        <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-2 text-[11px] text-destructive">
+          <Lock size={12} className="mt-0.5 shrink-0" />
+          <span>
+            Saisie côté voyageur bloquée — réessai possible dans {formatRemaining(lockedUntil)}.
+          </span>
+        </div>
+      ) : attempts > 0 ? (
+        <p className="text-[11px] text-amber-700 dark:text-amber-400 text-center">
+          {attempts} essai{attempts > 1 ? "s" : ""} échoué{attempts > 1 ? "s" : ""} côté voyageur · {MAX_ATTEMPTS - attempts} restant{MAX_ATTEMPTS - attempts > 1 ? "s" : ""}
+        </p>
+      ) : null}
+
       <p className="text-[10px] text-amber-600 dark:text-amber-400 text-center font-medium">
         ⚠️ Ne partagez ce code qu'au moment de la remise en main propre
       </p>
