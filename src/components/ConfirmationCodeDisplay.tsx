@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Key, Copy, CheckCircle, Loader2 } from "lucide-react";
+import { Key, Copy, CheckCircle, Loader2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Nido from "@/components/Nido";
@@ -9,28 +9,55 @@ interface ConfirmationCodeDisplayProps {
   itemType: "shipment" | "needit_mission";
 }
 
+const formatRemaining = (target: Date) => {
+  const ms = target.getTime() - Date.now();
+  if (ms <= 0) return null;
+  const totalSec = Math.ceil(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${m}m ${s.toString().padStart(2, "0")}s`;
+};
+
+const MAX_ATTEMPTS = 5;
+
 const ConfirmationCodeDisplay = ({ itemId, itemType }: ConfirmationCodeDisplayProps) => {
   const [code, setCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [attempts, setAttempts] = useState<number>(0);
+  const [lockedUntil, setLockedUntil] = useState<Date | null>(null);
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!lockedUntil) return;
+    const id = setInterval(() => {
+      if (lockedUntil.getTime() <= Date.now()) setLockedUntil(null);
+      setTick((t) => t + 1);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [lockedUntil]);
 
   useEffect(() => {
     const generate = async () => {
-      // For security, the plaintext code is never stored — it is generated server-side
-      // and returned only once to the owner. If the user reloads, a new code is issued.
       const table = itemType === "shipment" ? "shipments" : "needit_missions";
       const { data: existing } = await supabase
         .from(table as any)
-        .select("confirmation_code_hash, status")
+        .select("status, confirmation_attempts, confirmation_locked_until")
         .eq("id", itemId)
         .maybeSingle();
 
-      // If status already finalized, no code needed
       const status = (existing as any)?.status;
       if (status === "delivered" || status === "completed") {
         setCode(null);
         setLoading(false);
         return;
+      }
+
+      setAttempts((existing as any)?.confirmation_attempts ?? 0);
+      const lu = (existing as any)?.confirmation_locked_until;
+      if (lu) {
+        const d = new Date(lu);
+        if (d.getTime() > Date.now()) setLockedUntil(d);
       }
 
       const { data: codeData, error } = await supabase.rpc("generate_confirmation_code" as any, {
@@ -41,6 +68,9 @@ const ConfirmationCodeDisplay = ({ itemId, itemType }: ConfirmationCodeDisplayPr
         toast.error("Erreur lors de la génération du code");
       } else {
         setCode(codeData as string);
+        // Generation resets server-side counters
+        setAttempts(0);
+        setLockedUntil(null);
       }
       setLoading(false);
     };
