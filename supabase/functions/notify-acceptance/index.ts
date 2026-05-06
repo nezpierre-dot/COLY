@@ -60,6 +60,14 @@ Deno.serve(async (req) => {
 
     const voyageurName = voyageurProfile?.full_name || "Un voyageur";
 
+    const escapeHtml = (s: string): string =>
+      String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+
     let ownerId: string | null = null;
     let itemLabel = "";
     let detailPath = "";
@@ -151,11 +159,11 @@ Deno.serve(async (req) => {
     </div>
     <div style="padding: 32px 24px;">
       <p style="color: #334155; font-size: 16px; line-height: 1.6; margin: 0 0 16px;">
-        Bonne nouvelle ! <strong>${voyageurName}</strong> a accepté de prendre en charge votre ${typeLabel}.
+        Bonne nouvelle ! <strong>${escapeHtml(voyageurName)}</strong> a accepté de prendre en charge votre ${typeLabel}.
       </p>
       <div style="background: #f1f5f9; border-radius: 12px; padding: 16px; margin: 0 0 24px;">
         <p style="color: #64748b; font-size: 13px; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.5px;">Détails</p>
-        <p style="color: #1e293b; font-size: 15px; font-weight: 600; margin: 0;">${itemLabel}</p>
+        <p style="color: #1e293b; font-size: 15px; font-weight: 600; margin: 0;">${escapeHtml(itemLabel)}</p>
       </div>
       <p style="color: #334155; font-size: 14px; line-height: 1.6; margin: 0 0 24px;">
         Vous pouvez dès maintenant discuter avec le voyageur via le chat intégré pour coordonner la suite.

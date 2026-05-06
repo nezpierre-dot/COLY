@@ -402,9 +402,16 @@ const VoyageDetail = () => {
 
             // PDF export
             const handleExportPDF = () => {
+              const esc = (v: unknown): string =>
+                String(v ?? "")
+                  .replace(/&/g, "&amp;")
+                  .replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;")
+                  .replace(/'/g, "&#39;");
               const ref = `VOY-${voyage.id.slice(0, 8).toUpperCase()}`;
-              const dep = `${voyage.departure_city} (${voyage.departure_country})`;
-              const arr = `${voyage.arrival_city} (${voyage.arrival_country})`;
+              const dep = `${esc(voyage.departure_city)} (${esc(voyage.departure_country)})`;
+              const arr = `${esc(voyage.arrival_city)} (${esc(voyage.arrival_country)})`;
               const statusMap: Record<string, string> = {
                 accepted: "Accepté", picked_up: "Récupéré", in_transit: "En transit",
                 delivered: "Livré", completed: "Complété", pending: "En attente",
@@ -429,15 +436,15 @@ const VoyageDetail = () => {
               html += `<h1>📦 Récapitulatif Voyage</h1>`;
               html += `<p class="info"><strong>Référence:</strong> ${ref}</p>`;
               html += `<p class="info"><strong>Trajet:</strong> ${dep} → ${arr}</p>`;
-              html += `<p class="info"><strong>Date de départ:</strong> ${voyage.departure_date}${voyage.departure_time ? ` à ${voyage.departure_time}` : ""}</p>`;
-              html += `<p class="info"><strong>Transport:</strong> ${voyage.transport_method}</p>`;
-              html += `<p class="info"><strong>Statut:</strong> ${statusMap[voyage.status] || voyage.status}</p>`;
+              html += `<p class="info"><strong>Date de départ:</strong> ${esc(voyage.departure_date)}${voyage.departure_time ? ` à ${esc(voyage.departure_time)}` : ""}</p>`;
+              html += `<p class="info"><strong>Transport:</strong> ${esc(voyage.transport_method)}</p>`;
+              html += `<p class="info"><strong>Statut:</strong> ${esc(statusMap[voyage.status] || voyage.status)}</p>`;
 
               if (acceptedColis.length > 0) {
                 html += `<h2>📦 Colis (${acceptedColis.length})</h2><table><tr><th>Trajet</th><th>Taille</th><th>Tarif</th><th>Statut</th><th>Membre</th></tr>`;
                 acceptedColis.forEach(s => {
                   const cls = s.status === "delivered" ? "delivered" : s.status === "in_transit" ? "transit" : s.status === "picked_up" ? "pickup" : "accepted";
-                  html += `<tr><td>${s.departure_city || "—"} → ${s.arrival_city}</td><td>${s.size || "—"}</td><td>${s.tarif || "—"} €</td><td><span class="badge ${cls}">${statusMap[s.status] || s.status}</span></td><td>${demandeurNames[s.user_id] || "—"}</td></tr>`;
+                  html += `<tr><td>${esc(s.departure_city || "—")} → ${esc(s.arrival_city)}</td><td>${esc(s.size || "—")}</td><td>${esc(s.tarif || "—")} €</td><td><span class="badge ${cls}">${esc(statusMap[s.status] || s.status)}</span></td><td>${esc(demandeurNames[s.user_id] || "—")}</td></tr>`;
                 });
                 html += `</table>`;
               }
@@ -446,7 +453,7 @@ const VoyageDetail = () => {
                 html += `<h2>🛒 Missions NeedIt (${acceptedMissions.length})</h2><table><tr><th>Produit</th><th>Destination</th><th>Budget max</th><th>Statut</th><th>Membre</th></tr>`;
                 acceptedMissions.forEach(m => {
                   const cls = m.status === "completed" ? "delivered" : m.status === "in_transit" ? "transit" : m.status === "picked_up" ? "pickup" : "accepted";
-                  html += `<tr><td>${m.product_name || "—"}</td><td>${m.city || m.country}</td><td>${m.prix_max || "—"} €</td><td><span class="badge ${cls}">${statusMap[m.status] || m.status}</span></td><td>${demandeurNames[m.user_id] || "—"}</td></tr>`;
+                  html += `<tr><td>${esc(m.product_name || "—")}</td><td>${esc(m.city || m.country)}</td><td>${esc(m.prix_max || "—")} €</td><td><span class="badge ${cls}">${esc(statusMap[m.status] || m.status)}</span></td><td>${esc(demandeurNames[m.user_id] || "—")}</td></tr>`;
                 });
                 html += `</table>`;
               }
