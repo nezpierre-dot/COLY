@@ -726,7 +726,9 @@ export type Database = {
           auto_accept: boolean
           category_path: string[]
           city: string | null
+          confirmation_attempts: number
           confirmation_code_hash: string | null
+          confirmation_locked_until: string | null
           country: string
           created_at: string
           dimension: string | null
@@ -752,7 +754,9 @@ export type Database = {
           auto_accept?: boolean
           category_path?: string[]
           city?: string | null
+          confirmation_attempts?: number
           confirmation_code_hash?: string | null
+          confirmation_locked_until?: string | null
           country: string
           created_at?: string
           dimension?: string | null
@@ -778,7 +782,9 @@ export type Database = {
           auto_accept?: boolean
           category_path?: string[]
           city?: string | null
+          confirmation_attempts?: number
           confirmation_code_hash?: string | null
+          confirmation_locked_until?: string | null
           country?: string
           created_at?: string
           dimension?: string | null
@@ -1270,7 +1276,9 @@ export type Database = {
         Row: {
           arrival_city: string
           arrival_country: string
+          confirmation_attempts: number
           confirmation_code_hash: string | null
+          confirmation_locked_until: string | null
           contact_email: string | null
           contact_nom: string
           contact_prenom: string
@@ -1301,7 +1309,9 @@ export type Database = {
         Insert: {
           arrival_city: string
           arrival_country: string
+          confirmation_attempts?: number
           confirmation_code_hash?: string | null
+          confirmation_locked_until?: string | null
           contact_email?: string | null
           contact_nom: string
           contact_prenom: string
@@ -1332,7 +1342,9 @@ export type Database = {
         Update: {
           arrival_city?: string
           arrival_country?: string
+          confirmation_attempts?: number
           confirmation_code_hash?: string | null
+          confirmation_locked_until?: string | null
           contact_email?: string | null
           contact_nom?: string
           contact_prenom?: string
@@ -2204,7 +2216,7 @@ export type Database = {
       touch_last_seen: { Args: never; Returns: undefined }
       validate_confirmation_code: {
         Args: { _code: string; _item_id: string; _item_type: string }
-        Returns: boolean
+        Returns: Json
       }
     }
     Enums: {
