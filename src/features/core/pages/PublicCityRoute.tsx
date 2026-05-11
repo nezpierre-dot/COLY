@@ -1,15 +1,11 @@
 /**
  * PublicCityRoute — page programmatique SEO ville-à-ville.
  *
- * URL : /colis/:slug   où :slug = "paris-marseille", "lyon-casablanca", etc.
+ * URL : /envoyer-colis/:slug   où :slug = "paris-marseille", "lyon-casablanca", etc.
  *
- * À brancher dans App.tsx :
+ * Branché dans App.tsx :
  *   const PublicCityRoute = lazy(() => import("./features/core/pages/PublicCityRoute"));
- *   <Route path="/colis/:slug" element={<PublicCityRoute />} />
- *
- * Pourquoi : Google adore les pages ciblant des intentions précises type
- * "envoyer colis [ville A] [ville B]". Avec 100 paires de villes prioritaires,
- * tu gagnes 100 portes d'entrée SEO en quelques heures.
+ *   <Route path="/envoyer-colis/:slug" element={<PublicCityRoute />} />
  */
 
 import { useMemo } from "react";
@@ -25,11 +21,6 @@ import {
   type CityRoute,
 } from "@/lib/seo";
 
-/**
- * Catalogue des routes prioritaires (FR-FR + diaspora).
- * Étendre avec les paires les plus searchées dans Google Search Console.
- * Format : <slug>: { from, to, fromCountry, toCountry, averagePriceEUR, averageDurationHours }
- */
 const ROUTE_CATALOG: Record<string, CityRoute & { popular?: boolean }> = {
   "paris-marseille":   { from: "Paris",   to: "Marseille",   fromCountry: "France",  toCountry: "France",  averagePriceEUR: 9,  averageDurationHours: 36, popular: true },
   "paris-lyon":        { from: "Paris",   to: "Lyon",        fromCountry: "France",  toCountry: "France",  averagePriceEUR: 8,  averageDurationHours: 24, popular: true },
@@ -55,7 +46,6 @@ const ROUTE_CATALOG: Record<string, CityRoute & { popular?: boolean }> = {
   "geneve-paris":      { from: "Genève",  to: "Paris",       fromCountry: "Suisse",  toCountry: "France",  averagePriceEUR: 12, averageDurationHours: 14 },
 };
 
-/** Liste des slugs valides — utilisable pour générer le sitemap. */
 export const PUBLIC_CITY_ROUTES = Object.keys(ROUTE_CATALOG);
 
 function StatPill({ icon: Icon, label, value }: { icon: typeof Package; label: string; value: string }) {
@@ -76,12 +66,11 @@ export default function PublicCityRoute() {
   const { slug } = useParams<{ slug: string }>();
   const route = slug ? ROUTE_CATALOG[slug.toLowerCase()] : null;
 
-  // Slug invalide → redirige vers /explore (404 propre côté SEO via le router)
   if (!route) return <Navigate to="/explore" replace />;
 
   const title = `Envoyer un colis ${route.from} → ${route.to}`;
   const description = `Envoyez vos colis de ${route.from} à ${route.to} via un voyageur Nidit vérifié. À partir de ${route.averagePriceEUR} €, livré en ${route.averageDurationHours} h en moyenne. Plus humain, plus rapide, jusqu'à 50 % moins cher que la poste.`;
-  const canonical = `https://nidit.fr/colis/${slug}`;
+  const canonical = `https://nidit.fr/envoyer-colis/${slug}`;
 
   const faqItems = useMemo(() => ([
     {
@@ -105,7 +94,7 @@ export default function PublicCityRoute() {
   const breadcrumbs = [
     { name: "Accueil", url: "/" },
     { name: "Trajets", url: "/explore" },
-    { name: `${route.from} → ${route.to}`, url: `/colis/${slug}` },
+    { name: `${route.from} → ${route.to}`, url: `/envoyer-colis/${slug}` },
   ];
 
   return (
@@ -126,7 +115,6 @@ export default function PublicCityRoute() {
       <a href="#main" className="sr-skip-link">Aller au contenu principal</a>
 
       <div className="min-h-screen bg-background">
-        {/* Hero */}
         <section className="relative overflow-hidden page-header-bright">
           <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-8 pb-12">
             <nav aria-label="Fil d'Ariane" className="text-caption-base mb-5">
@@ -164,14 +152,12 @@ export default function PublicCityRoute() {
         </section>
 
         <main id="main" className="max-w-5xl mx-auto px-5 sm:px-8 py-12">
-          {/* Stats */}
           <div className="grid sm:grid-cols-3 gap-4 mb-12">
             <StatPill icon={Wallet} label="Prix moyen 2 kg" value={`${route.averagePriceEUR} €`} />
             <StatPill icon={Clock} label="Délai moyen" value={`${route.averageDurationHours} h`} />
             <StatPill icon={MapPin} label="Destination" value={`${route.toCountry ?? ""}`} />
           </div>
 
-          {/* Garanties (rappel) */}
           <section className="card-future-glow mb-12 p-8">
             <h2 className="text-title-lg font-bold mb-6">Tes garanties Nidit sur ce trajet</h2>
             <div className="grid sm:grid-cols-2 gap-5">
@@ -197,7 +183,6 @@ export default function PublicCityRoute() {
             </div>
           </section>
 
-          {/* FAQ contextualisée */}
           <section className="card-future" aria-labelledby="city-faq-title">
             <h2 id="city-faq-title" className="text-title-lg font-bold mb-6">Questions sur le trajet {route.from} → {route.to}</h2>
             <ul className="divide-y divide-border/50">
@@ -210,14 +195,13 @@ export default function PublicCityRoute() {
             </ul>
           </section>
 
-          {/* Cross-link autres trajets */}
           <section className="mt-12">
             <h2 className="text-title font-bold mb-5">Autres trajets populaires</h2>
             <div className="flex flex-wrap gap-2">
               {PUBLIC_CITY_ROUTES.filter((s) => s !== slug).slice(0, 12).map((s) => {
                 const r = ROUTE_CATALOG[s];
                 return (
-                  <Link key={s} to={`/colis/${s}`} className="chip-info hover:bg-primary/20 transition-colors">
+                  <Link key={s} to={`/envoyer-colis/${s}`} className="chip-info hover:bg-primary/20 transition-colors">
                     {r.from} → {r.to}
                     {r.popular ? <Sparkles className="w-3 h-3" aria-hidden="true" /> : null}
                   </Link>
@@ -226,7 +210,6 @@ export default function PublicCityRoute() {
             </div>
           </section>
 
-          {/* CTA bas de page */}
           <div className="mt-16 text-center">
             <h2 className="text-display-sm mb-3">Prêt à expédier {route.from} → {route.to} ?</h2>
             <p className="text-body-lg text-muted-foreground mb-6">À partir de {route.averagePriceEUR} €, livré en {route.averageDurationHours} h.</p>
