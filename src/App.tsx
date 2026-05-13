@@ -85,6 +85,8 @@ const HowItWorks = lazy(() => import("./features/core/pages/HowItWorks"));
 const BlogIndex = lazy(() => import("./features/core/pages/BlogIndex"));
 const BlogPost = lazy(() => import("./features/core/pages/BlogPost"));
 const PublicCityRoute = lazy(() => import("./features/core/pages/PublicCityRoute"));
+// --- V14 : Programme de parrainage ---
+const ReferralPage = lazy(() => import("./features/core/pages/ReferralPage"));
 
 const queryClient = new QueryClient();
 
@@ -95,11 +97,9 @@ const PageLoader = () => (
 );
 
 const AutoLogoutWrapper = ({ children }: { children: ReactNode }) => {
-  // Auto-logout désactivé sur demande utilisateur
   return <>{children}</>;
 };
 
-// Mounts the global Realtime presence tracker for the authenticated user.
 const PresenceTracker = () => {
   useGlobalPresenceTracker();
   return null;
@@ -127,14 +127,20 @@ const App = () => {
               <FavoritesProvider>
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
-                    <Route path="/" element={<Welcome />} />
+                    {/* V12 (D) : / sert maintenant le PublicLanding conversion-first.
+                        Welcome reste accessible sur /welcome pour rétrocompat. */}
+                    <Route path="/" element={<PublicLanding />} />
+                    <Route path="/welcome" element={<Welcome />} />
                     <Route path="/signup" element={<Signup />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/dashboard" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
                     <Route path="/dashboard-classic" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                    <Route path="/send" element={<ProtectedRoute><SendWizard /></ProtectedRoute>} />
+                    {/* V12 (A) : /send accessible en guest (compose sans compte).
+                        Le draft localStorage "nidit:draft:send-coly" est persistant.
+                        /send-coly reste ProtectedRoute — auth demandée seulement au paiement. */}
+                    <Route path="/send" element={<SendWizard />} />
                     <Route path="/send/quick" element={<ProtectedRoute><SendChoice /></ProtectedRoute>} />
                     <Route path="/send-coly" element={<ProtectedRoute><SendColy /></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
@@ -179,6 +185,8 @@ const App = () => {
                     <Route path="/email-preferences" element={<ProtectedRoute><EmailPreferences /></ProtectedRoute>} />
                     <Route path="/manage-ean" element={<ProtectedRoute><ManageEanProducts /></ProtectedRoute>} />
                     <Route path="/test-live-location" element={<ProtectedRoute><TestLiveLocation /></ProtectedRoute>} />
+                    {/* V14 : Programme de parrainage */}
+                    <Route path="/parrainage" element={<ProtectedRoute><ReferralPage /></ProtectedRoute>} />
                     {/* --- Hubs : regroupent plusieurs pages pour réduire la densité --- */}
                     <Route path="/wallet" element={<ProtectedRoute><WalletHub /></ProtectedRoute>} />
                     <Route path="/progression" element={<ProtectedRoute><ProgressionHub /></ProtectedRoute>} />
