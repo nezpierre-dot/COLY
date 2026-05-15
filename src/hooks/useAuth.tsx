@@ -45,6 +45,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         // Stamp analytics with current user id (RLS still enforces auth.uid() = user_id)
         import("@/lib/analytics").then(({ setAnalyticsUser }) => setAnalyticsUser(session?.user?.id ?? null));
+        // Redeem a pending referral code captured at signup (?ref=CODE)
+        if (_event === "SIGNED_IN" && session?.user) {
+          let pendingRef: string | null = null;
+          try { pendingRef = localStorage.getItem("nidit_ref"); } catch { /* ignore */ }
+          if (pendingRef) {
+            supabase.functions
+              .invoke("redeem-referral", { body: { code: pendingRef } })
+              .then(({ error }) => {
+                if (!error) { try { localStorage.removeItem("nidit_ref"); } catch { /* ignore */ } }
+              })
+              .catch(() => { /* keep code for a later retry */ });
+          }
+        }
         if (session?.user) {
           setTimeout(() => fetchRoles(session.user.id), 0);
         } else {
