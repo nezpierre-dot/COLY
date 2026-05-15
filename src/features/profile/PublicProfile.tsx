@@ -6,6 +6,7 @@ import { Star, MapPin, ArrowLeft, User, MessageSquare, Plane, Package, Shield, A
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TrustBadgesDisplay from "@/components/TrustBadgesDisplay";
 import VerifiedBadges from "@/components/VerifiedBadges";
+import VoyageurProfileBadges from "@/components/VoyageurProfileBadges";
 import { motion } from "framer-motion";
 import BottomNav from "@/components/BottomNav";
 import UserLevelBadge from "@/components/UserLevelBadge";
@@ -32,7 +33,7 @@ const PublicProfile = () => {
       setLoading(true);
 
       const [profileRes, ratingRes, badgesRes, reviewsRes, repliesRes, voyagesRes, deliveredRes] = await Promise.all([
-        supabase.from("profiles_public" as any).select("full_name, avatar_url, bio, trust_badges, kyc_status").eq("user_id", userId).single(),
+        supabase.from("profiles_public" as any).select("full_name, avatar_url, bio, trust_badges, kyc_status, created_at").eq("user_id", userId).single(),
         supabase.rpc("get_user_rating", { _user_id: userId }),
         supabase.rpc("compute_trust_badges", { _user_id: userId }),
         supabase.from("ratings").select("id, score, comment, rater_role, created_at, photo_urls").eq("rated_id", userId).order("created_at", { ascending: false }),
@@ -88,6 +89,7 @@ const PublicProfile = () => {
   }
 
   const userRef = `VOY-${userId?.slice(0, 8).toUpperCase()}`;
+  const kycVerified = profile.kyc_status === "verified" || profile.kyc_status === "approved";
 
   return (
     <div className="min-h-screen bg-gradient-soft" style={{ paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px) + 16px)" }}>
@@ -197,12 +199,22 @@ const PublicProfile = () => {
           </div>
         </div>
 
+        {/* Voyageur trust badges & signals (E - V13/V15) */}
+        <div className="mb-6">
+          <VoyageurProfileBadges
+            verifiedKyc={kycVerified}
+            verifiedSince={profile.created_at || undefined}
+            totalDeliveries={stats.delivered}
+            averageRating={rating?.average_score}
+          />
+        </div>
+
         {/* Verified signals — KYC, email */}
         <div className="mb-6">
           <VerifiedBadges
             variant="hero"
             signals={{
-              kyc: profile.kyc_status === "verified" || profile.kyc_status === "approved",
+              kyc: kycVerified,
               email: !!profile, // active account requires verified email
             }}
           />
