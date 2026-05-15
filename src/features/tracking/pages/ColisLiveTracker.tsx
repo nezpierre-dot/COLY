@@ -10,6 +10,7 @@ import { ArrowLeft, Navigation, MapPin, Clock, Package, Loader2, Radio, Timer } 
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import EmotionalTrackingTimeline, { type EmotionalTrackingStep } from "@/components/EmotionalTrackingTimeline";
 
 interface LocationData {
   lat: number;
@@ -21,6 +22,13 @@ interface ETAData {
   distanceKm: number;
   durationMin: number;
   routeGeoJson: GeoJSON.Feature | null;
+}
+
+interface VoyageurInfo {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  rating?: number;
 }
 
 /** Geocode a city name via Mapbox Geocoding API */
@@ -76,6 +84,70 @@ const formatETA = (minutes: number): string => {
   return m > 0 ? `${h}h ${m}min` : `${h}h`;
 };
 
+const fmtTime = (iso?: string | null): string | undefined => {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return undefined;
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+};
+
+/** Map a shipment row onto the 5 emotional tracking steps. */
+const buildTimelineSteps = (
+  shipment: any,
+  voyageur: VoyageurInfo | null,
+  etaLabel?: string
+): EmotionalTrackingStep[] => {
+  const rankByStatus: Record<string, number> = {
+    pending: 1,
+    accepted: 2,
+    picked_up: 3,
+    in_transit: 3,
+    delivered: 4,
+  };
+  // currentIdx = the step index that is currently "active"
+  const currentIdx = rankByStatus[shipment?.status as string] ?? 1;
+  const stepStatus = (idx: number): EmotionalTrackingStep["status"] =>
+    idx < currentIdx ? "done" : idx === currentIdx ? "current" : "pending";
+
+  const voyageurPayload = voyageur
+    ? { id: voyageur.id, name: voyageur.name, avatarUrl: voyageur.avatarUrl, rating: voyageur.rating }
+    : undefined;
+
+  return [
+    {
+      key: "created",
+      label: "Demande créée",
+      status: "done",
+      timestamp: fmtTime(shipment?.created_at),
+    },
+    {
+      key: "matched",
+      label: voyageur ? "Voyageur trouvé" : "En attente d'un voyageur",
+      status: stepStatus(1),
+      voyageur: currentIdx >= 2 ? voyageurPayload : undefined,
+    },
+    {
+      key: "pickedup",
+      label: "Colis pris en charge",
+      status: stepStatus(2),
+      photoUrl: currentIdx >= 3 ? shipment?.photo_url || undefined : undefined,
+    },
+    {
+      key: "enroute",
+      label: "En route vers la destination",
+      status: stepStatus(3),
+      eta: etaLabel,
+      voyageur: currentIdx >= 3 ? voyageurPayload : undefined,
+    },
+    {
+      key: "delivered",
+      label: "Colis livré",
+      status: stepStatus(4),
+      timestamp: shipment?.status === "delivered" ? fmtTime(shipment?.updated_at) : undefined,
+    },
+  ];
+};
+
 const ColisLiveTracker = () => {
   const navigate = useNavigate();
   const { colisId } = useParams<{ colisId: string }>();
@@ -91,6 +163,7 @@ const ColisLiveTracker = () => {
   const [watching, setWatching] = useState(false);
   const [eta, setEta] = useState<ETAData | null>(null);
   const [destination, setDestination] = useState<{ lng: number; lat: number } | null>(null);
+  const [voyageurInfo, setVoyageurInfo] = useState<VoyageurInfo | null>(null);
   const watchIdRef = useRef<number | null>(null);
   const mapRef = useRef<any>(null);
   const etaThrottleRef = useRef<number>(0);
@@ -110,6 +183,20 @@ const ColisLiveTracker = () => {
       if (ship) {
         setShipment(ship);
         setIsVoyageur(user?.id === ship.voyageur_id);
+
+        // Fetch the assigned voyageur's public profile + rating for the timeline
+        if (ship.voyageur_id) {
+          const [{ data: voyProfile }, { data: voyRating }] = await Promise.all([
+            supabase.from("profiles_public" as any).select("full_name, avatar_url").eq("user_id", ship.voyageur_id).maybeSingle(),
+            supabase.rpc("get_user_rating", { _user_id: ship.voyageur_id }),
+          ]);
+          setVoyageurInfo({
+            id: ship.voyageur_id,
+            name: (voyProfile as any)?.full_name || "Voyageur Nidit",
+            avatarUrl: (voyProfile as any)?.avatar_url || undefined,
+            rating: Array.isArray(voyRating) && voyRating.length > 0 ? voyRating[0].average_score : undefined,
+          });
+        }
       } else {
         // Try needit mission
         const { data: mis } = await supabase
@@ -313,6 +400,11 @@ const ColisLiveTracker = () => {
     ? { longitude: location.lng, latitude: location.lat }
     : { longitude: 2.3522, latitude: 48.8566 };
 
+  // Emotional timeline steps (shipments only — needit missions keep the simple view)
+  const timelineSteps = shipment
+    ? buildTimelineSteps(shipment, voyageurInfo, eta && isSharing ? formatETA(eta.durationMin) : undefined)
+    : null;
+
   return (
     <div className="min-h-screen bg-gradient-soft relative">
       {/* Full-screen map */}
@@ -432,7 +524,7 @@ const ColisLiveTracker = () => {
           transition={{ delay: 0.2, type: "spring", damping: 25 }}
           className="absolute bottom-0 left-0 right-0 z-10 px-4 pb-8"
         >
-          <div className="bg-card/95 backdrop-blur-md border border-border rounded-2xl p-5 shadow-2xl space-y-4">
+          <div className="bg-card/95 backdrop-blur-md border border-border rounded-2xl p-5 shadow-2xl space-y-4 max-h-[78vh] overflow-y-auto">
             {/* Status row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -518,6 +610,19 @@ const ColisLiveTracker = () => {
                   <Navigation size={14} className="mr-2" />
                   Centrer
                 </Button>
+              </div>
+            )}
+
+            {/* Emotional tracking timeline — étapes du colis */}
+            {timelineSteps && (
+              <div className="pt-2 border-t border-border/50">
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                  Étapes de la livraison
+                </h2>
+                <EmotionalTrackingTimeline
+                  steps={timelineSteps}
+                  onChatClick={() => navigate("/conversations")}
+                />
               </div>
             )}
           </div>
