@@ -197,6 +197,7 @@ const MyAccount = () => {
       items: [
         { label: t("account.activityHub") || "Historique & favoris", onClick: () => navigate("/activity") },
         { label: t("account.progressionHub") || "Progression (stats, classement, badges)", onClick: () => navigate("/progression") },
+        { label: "Parrainage — Inviter des amis", onClick: () => navigate("/parrainage") },
       ],
     },
     {
