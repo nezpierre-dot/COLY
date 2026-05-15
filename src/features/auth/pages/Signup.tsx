@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff, MapPin, Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -42,6 +42,14 @@ const Signup = () => {
 
   const update = (field: keyof FormData, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [field]: value }));
+
+  // Capture referral code from invite link (?ref=CODE) — redeemed post-signup in useAuth
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref && ref.trim()) {
+      try { localStorage.setItem("nidit_ref", ref.trim().toUpperCase()); } catch { /* ignore */ }
+    }
+  }, []);
 
   const inputClass = (value?: string) => {
     const isEmpty = triedNext && step === 1 && value !== undefined && !value.trim();
