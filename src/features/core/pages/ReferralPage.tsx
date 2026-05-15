@@ -1,71 +1,102 @@
 /**
- * ReferralPage — Programme de parrainage 2-sens (V14).
+ * ReferralPage — Programme de parrainage 2-sens (V14 → backend wiré V17).
  *
  * Route : /parrainage (ProtectedRoute)
  *
- * Mécanique :
- *  - Sender invite un ami → 10 € à chacun à son 1er colis envoyé
- *  - Voyageur invite un voyageur → 20 € à chacun au 1er transport
+ * Mécanique (modèle points, aligné sur ReferralSection + le backend) :
+ *  - Le parrain partage son code `profiles.referral_code`.
+ *  - Le filleul s'inscrit via /signup?ref=CODE → useAuth appelle l'edge
+ *    function `redeem-referral` → ligne `referrals` créée en statut 'pending'.
+ *  - Au 1er colis livré (ou mission NeedIt complétée) du filleul, le trigger
+ *    `release_referral_on_delivery` passe le parrainage en 'completed' :
+ *    parrain +100 pts, filleul +50 pts (award_points_on_referral).
  *
- * Backend à wirer (TODO côté user) :
- *  - Table `referrals` Supabase : { code, owner_id, redeemed_by, reward_eur, status, created_at }
- *  - Edge function `redeem-referral?code=...` qui crée la ligne et lock le bonus
- *  - Trigger Postgres sur `colis.delivered` qui libère le bonus dans le wallet
- *
- * Pour l'instant : génération de code déterministe depuis user.id (hash),
- * UI complète prête, mock des filleuls (sera remplacé par fetch Supabase).
+ * Backend : migration 20260515093000_referral_redeem_release.sql
+ *           + edge function supabase/functions/redeem-referral.
  */
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import {
-  Gift, Copy, Check, Share2, Mail, MessageCircle, Send,
+  Gift, Copy, Check, Share2, Mail, MessageCircle,
   Users, Wallet, Sparkles, ArrowLeft, Package, Plane,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import BottomNav from "@/components/BottomNav";
 import { haptic } from "@/hooks/useHaptic";
 
-// Génère un code de parrainage court et lisible depuis le user.id
-function generateReferralCode(userId: string | null | undefined): string {
-  if (!userId) return "NIDIT";
-  // Hash simple : prend les 6 premiers caractères alphanumériques uppercased
-  const hash = userId.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 6);
-  return hash || "NIDIT";
-}
+const REFERRER_POINTS = 100; // points crédités au parrain à la validation
+const REFEREE_POINTS = 50;   // points de bienvenue pour le filleul
 
-interface ReferralStats {
-  totalInvited: number;
-  activeReferrals: number;
-  earnedEUR: number;
-  pendingEUR: number;
-}
-
-interface Referral {
+interface ReferralRow {
   id: string;
-  initials: string;
-  firstName: string;
-  status: "pending" | "signed-up" | "first-shipment";
-  reward: number;
-  date: string;
+  referred_id: string;
+  status: string;
+  created_at: string;
 }
 
 export default function ReferralPage() {
   const { user } = useAuth();
-  const code = useMemo(() => generateReferralCode(user?.id), [user?.id]);
-  const referralUrl = `https://nidit.fr/signup?ref=${code}`;
+  const [code, setCode] = useState<string>("");
+  const [referrals, setReferrals] = useState<ReferralRow[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // TODO V14.1 : remplacer par fetch Supabase
-  const stats: ReferralStats = { totalInvited: 0, activeReferrals: 0, earnedEUR: 0, pendingEUR: 0 };
-  const referrals: Referral[] = [];
+  const referralUrl = code ? `https://nidit.fr/signup?ref=${code}` : "https://nidit.fr/signup";
 
   useEffect(() => {
     document.title = "Parrainage — Nidit";
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const load = async () => {
+      setLoading(true);
+
+      const [codeRes, refsRes] = await Promise.all([
+        supabase.from("profiles").select("referral_code").eq("user_id", user.id).maybeSingle(),
+        supabase
+          .from("referrals")
+          .select("id, referred_id, status, created_at")
+          .eq("referrer_id", user.id)
+          .order("created_at", { ascending: false }),
+      ]);
+
+      if (codeRes.data?.referral_code) setCode(codeRes.data.referral_code);
+
+      const rows = (refsRes.data || []) as ReferralRow[];
+      setReferrals(rows);
+
+      // Resolve referred users' display names (best-effort, non-blocking)
+      const ids = [...new Set(rows.map((r) => r.referred_id))];
+      if (ids.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles_public" as any)
+          .select("user_id, full_name")
+          .in("user_id", ids);
+        if (profs) {
+          const map: Record<string, string> = {};
+          (profs as any[]).forEach((p) => { map[p.user_id] = p.full_name || "Filleul"; });
+          setNames(map);
+        }
+      }
+
+      setLoading(false);
+    };
+
+    load();
+  }, [user]);
+
+  const isValidated = (s: string) => s === "completed" || s === "credited";
+  const validatedCount = referrals.filter((r) => isValidated(r.status)).length;
+  const pendingCount = referrals.length - validatedCount;
+  const earnedPoints = validatedCount * REFERRER_POINTS;
 
   const handleCopy = async () => {
     try {
@@ -79,7 +110,7 @@ export default function ReferralPage() {
     }
   };
 
-  const shareText = `Je te recommande Nidit pour envoyer tes colis via des voyageurs vérifiés. Tu obtiens 10 € sur ton 1er envoi avec mon code : ${code}\n${referralUrl}`;
+  const shareText = `Je te recommande Nidit pour envoyer tes colis via des voyageurs vérifiés. Avec mon code ${code} tu démarres avec ${REFEREE_POINTS} points fidélité.\n${referralUrl}`;
 
   const handleShareWhatsApp = () => {
     haptic("selection");
@@ -108,7 +139,7 @@ export default function ReferralPage() {
     <>
       <Helmet>
         <title>Parrainage — Nidit</title>
-        <meta name="description" content="Invite tes amis sur Nidit et gagnez chacun 10 €. Programme de parrainage 2-sens." />
+        <meta name="description" content="Invite tes amis sur Nidit : ton filleul démarre avec 50 points et tu gagnes 100 points à son 1er colis. Programme de parrainage 2-sens." />
       </Helmet>
 
       <div className="min-h-screen bg-background pb-28">
@@ -135,18 +166,20 @@ export default function ReferralPage() {
                 <Gift size={32} className="text-primary-foreground" aria-hidden="true" />
               </div>
               <span className="chip-info mb-4"><Sparkles className="w-3.5 h-3.5" aria-hidden="true" />Programme officiel</span>
-              <h2 id="referral-hero-title" className="text-title-lg font-bold mb-3">Invite tes amis,<br />gagnez chacun 10 € → 20 €</h2>
+              <h2 id="referral-hero-title" className="text-title-lg font-bold mb-3">Invite tes amis,<br />gagnez chacun des points fidélité</h2>
               <p className="text-body-base text-muted-foreground max-w-md mx-auto mb-6">
-                Sender qui invite un sender : <strong className="text-foreground">10 € à chacun</strong> au 1<sup>er</sup> envoi de ton filleul.<br />
-                Voyageur qui invite un voyageur : <strong className="text-foreground">20 € à chacun</strong> au 1<sup>er</sup> transport.
+                Ton filleul démarre avec <strong className="text-foreground">+{REFEREE_POINTS} points</strong> à l'inscription.<br />
+                Tu reçois <strong className="text-foreground">+{REFERRER_POINTS} points</strong> dès son 1<sup>er</sup> colis livré (ou 1<sup>er</sup> transport).
               </p>
 
               {/* Code & lien */}
               <div className="bg-card rounded-2xl border border-border/60 p-4 mb-5 text-left">
                 <div className="text-overline mb-2">Ton code de parrainage</div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-display-sm font-extrabold tracking-widest text-primary" style={{ fontFamily: "ui-monospace, monospace" }}>{code}</span>
-                  <button type="button" onClick={handleCopy} className="btn-cta-secondary text-sm h-10 px-4" aria-label="Copier le lien">
+                  <span className="text-display-sm font-extrabold tracking-widest text-primary" style={{ fontFamily: "ui-monospace, monospace" }}>
+                    {code || (loading ? "······" : "—")}
+                  </span>
+                  <button type="button" onClick={handleCopy} disabled={!code} className="btn-cta-secondary text-sm h-10 px-4 disabled:opacity-50" aria-label="Copier le lien">
                     {copied ? (<><Check size={16} aria-hidden="true" />Copié</>) : (<><Copy size={16} aria-hidden="true" />Copier</>)}
                   </button>
                 </div>
@@ -155,13 +188,13 @@ export default function ReferralPage() {
 
               {/* Share buttons */}
               <div className="flex flex-col sm:flex-row gap-2">
-                <button type="button" onClick={handleShareWhatsApp} className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full bg-[#25D366] text-white font-semibold hover:opacity-90 transition">
+                <button type="button" onClick={handleShareWhatsApp} disabled={!code} className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full bg-[#25D366] text-white font-semibold hover:opacity-90 transition disabled:opacity-50">
                   <MessageCircle size={18} aria-hidden="true" />WhatsApp
                 </button>
-                <button type="button" onClick={handleShareEmail} className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full bg-card border border-border font-semibold hover:bg-muted transition">
+                <button type="button" onClick={handleShareEmail} disabled={!code} className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full bg-card border border-border font-semibold hover:bg-muted transition disabled:opacity-50">
                   <Mail size={18} aria-hidden="true" />Email
                 </button>
-                <button type="button" onClick={handleNativeShare} className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full bg-card border border-border font-semibold hover:bg-muted transition">
+                <button type="button" onClick={handleNativeShare} disabled={!code} className="flex-1 inline-flex items-center justify-center gap-2 h-12 rounded-full bg-card border border-border font-semibold hover:bg-muted transition disabled:opacity-50">
                   <Share2 size={18} aria-hidden="true" />Partager
                 </button>
               </div>
@@ -173,12 +206,12 @@ export default function ReferralPage() {
             <div className="stat-card-future tone-primary">
               <div className="stat-icon"><Users size={20} aria-hidden="true" /></div>
               <span className="text-overline">Amis invités</span>
-              <span className="stat-number text-title">{stats.totalInvited}</span>
+              <span className="stat-number text-title">{referrals.length}</span>
             </div>
             <div className="stat-card-future tone-success">
               <div className="stat-icon"><Wallet size={20} aria-hidden="true" /></div>
-              <span className="text-overline">Gagné</span>
-              <span className="stat-number text-title">{stats.earnedEUR} €</span>
+              <span className="text-overline">Points gagnés</span>
+              <span className="stat-number text-title">{earnedPoints}</span>
             </div>
           </section>
 
@@ -188,8 +221,8 @@ export default function ReferralPage() {
             <ol className="space-y-3">
               {[
                 { n: "1", t: "Partage ton lien", d: "Envoie ton code à tes amis (WhatsApp, email, etc.)." },
-                { n: "2", t: "Ton ami s'inscrit", d: "Avec ton code, il bénéficie automatiquement de 10 € de bienvenue." },
-                { n: "3", t: "Premier envoi → 10 € pour toi", d: "Dès que ton filleul effectue son 1er envoi (ou 20 € s'il devient voyageur), tu reçois ton bonus." },
+                { n: "2", t: "Ton ami s'inscrit", d: `Avec ton code, il démarre avec +${REFEREE_POINTS} points fidélité.` },
+                { n: "3", t: `Premier colis livré → +${REFERRER_POINTS} points pour toi`, d: "Dès que ton filleul reçoit son 1er colis livré (ou complète son 1er transport), ton bonus est crédité automatiquement." },
               ].map((step) => (
                 <li key={step.n} className="card-future p-4 flex items-start gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -207,7 +240,9 @@ export default function ReferralPage() {
           {/* Filleuls */}
           <section className="mt-8" aria-labelledby="refs-title">
             <h3 id="refs-title" className="text-title font-bold mb-4">Mes filleuls</h3>
-            {referrals.length === 0 ? (
+            {loading ? (
+              <div className="card-future p-6 text-center text-body-small text-muted-foreground">Chargement…</div>
+            ) : referrals.length === 0 ? (
               <div className="card-future p-6 text-center">
                 <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
                   <Users size={20} className="text-muted-foreground" aria-hidden="true" />
@@ -217,17 +252,31 @@ export default function ReferralPage() {
               </div>
             ) : (
               <ul className="space-y-2">
-                {referrals.map((r) => (
-                  <li key={r.id} className="card-future p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">{r.initials}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-body-base font-semibold">{r.firstName}</div>
-                      <div className="text-caption-base">{r.status === "pending" ? "En attente d'inscription" : r.status === "signed-up" ? "Inscrit · pas encore d'envoi" : `1er envoi réalisé · +${r.reward} €`}</div>
-                    </div>
-                    {r.status === "first-shipment" && (<span className="chip-success"><Check size={12} aria-hidden="true" />Validé</span>)}
-                  </li>
-                ))}
+                {referrals.map((r) => {
+                  const name = names[r.referred_id] || "Filleul";
+                  const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "F";
+                  const validated = isValidated(r.status);
+                  return (
+                    <li key={r.id} className="card-future p-4 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">{initials}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-body-base font-semibold truncate">{name}</div>
+                        <div className="text-caption-base">
+                          {validated
+                            ? `1er colis livré · +${REFERRER_POINTS} pts`
+                            : "Inscrit · en attente du 1er colis"}
+                        </div>
+                      </div>
+                      {validated && (<span className="chip-success"><Check size={12} aria-hidden="true" />Validé</span>)}
+                    </li>
+                  );
+                })}
               </ul>
+            )}
+            {!loading && pendingCount > 0 && (
+              <p className="text-caption-base text-muted-foreground mt-2 italic">
+                {pendingCount} parrainage{pendingCount > 1 ? "s" : ""} en attente de validation (1er colis livré).
+              </p>
             )}
           </section>
 
@@ -244,14 +293,14 @@ export default function ReferralPage() {
               <div className="w-10 h-10 rounded-2xl bg-secondary/15 flex items-center justify-center shrink-0"><Plane size={18} className="text-secondary-foreground" aria-hidden="true" /></div>
               <div className="flex-1">
                 <div className="font-bold text-body-base">Publier un trajet</div>
-                <div className="text-caption-base">+20 € si ton filleul devient voyageur</div>
+                <div className="text-caption-base">Bonus aussi si ton filleul devient voyageur</div>
               </div>
             </Link>
           </section>
 
           {/* Footer note */}
           <p className="text-caption-base text-muted-foreground text-center mt-8 mb-4">
-            Les bonus sont crédités sur ton portefeuille Nidit dès validation. Voir <Link to="/terms" className="link-fancy">conditions du programme</Link>.
+            Les points sont crédités sur ton compte fidélité Nidit dès validation. Voir <Link to="/terms" className="link-fancy">conditions du programme</Link>.
           </p>
         </main>
 
