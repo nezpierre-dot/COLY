@@ -118,7 +118,7 @@ function StatsMarquee() {
       <div className={reduce ? "flex gap-12 px-5 py-4" : "marquee py-4"} aria-label="Statistiques Nidit">
         {items.map((s, i) => (
           <div key={i} className="flex items-baseline gap-2 whitespace-nowrap">
-            <span className="stat-number text-title text-primary">{s.value}</span>
+            <span className="stat-number text-title text-[hsl(220_90%_30%)] dark:text-[hsl(218_100%_75%)]">{s.value}</span>
             <span className="text-body-small text-muted-foreground">{s.label}</span>
             <span className="mx-6 text-border" aria-hidden="true">•</span>
           </div>
@@ -266,14 +266,14 @@ function ComparatorSection() {
         <div className="card-future overflow-hidden p-0">
           <div className="grid grid-cols-[1.2fr_1fr_1fr] gap-2 px-5 py-4 bg-gradient-soft border-b border-border/60">
             <span className="text-overline">Critère</span>
-            <span className="text-overline text-primary font-bold flex items-center gap-1"><Sparkles className="w-3 h-3" aria-hidden="true" />Nidit</span>
+            <span className="text-overline text-[hsl(220_90%_30%)] dark:text-[hsl(218_100%_75%)] font-bold flex items-center gap-1"><Sparkles className="w-3 h-3" aria-hidden="true" />Nidit</span>
             <span className="text-overline text-muted-foreground">Poste classique</span>
           </div>
           <ul className="divide-y divide-border/40">
             {COMPARISON_ROWS.map((r) => (
               <li key={r.label} className="grid grid-cols-[1.2fr_1fr_1fr] gap-2 px-5 py-4 items-center">
                 <span className="text-body-small font-medium">{r.label}</span>
-                <span className="text-body-base font-bold text-primary flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />{r.nidit}</span>
+                <span className="text-body-base font-bold text-[hsl(220_90%_30%)] dark:text-[hsl(218_100%_75%)] flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0" aria-hidden="true" />{r.nidit}</span>
                 <span className="text-body-small text-muted-foreground">{r.poste}</span>
               </li>
             ))}
@@ -334,7 +334,7 @@ function TestimonialsSection() {
         <div className="grid md:grid-cols-3 gap-5">
           {TESTIMONIALS.map((t, i) => (
             <motion.figure key={t.name} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.45, delay: i * 0.08 }} className="card-future hover-lift">
-              <div className="flex items-center gap-1 mb-4" aria-label={`Note ${t.rating} sur 5`}>{Array.from({ length: t.rating }).map((_, idx) => (<Star key={idx} className="w-4 h-4 fill-warning text-warning" aria-hidden="true" />))}</div>
+              <div className="flex items-center gap-1 mb-4" role="img" aria-label={`Note ${t.rating} sur 5`}>{Array.from({ length: t.rating }).map((_, idx) => (<Star key={idx} className="w-4 h-4 fill-warning text-warning" aria-hidden="true" />))}</div>
               <blockquote className="text-body-base mb-5">« {t.quote} »</blockquote>
               <figcaption className="flex items-center gap-3 pt-4 border-t border-border/40">
                 <img src={t.avatar} alt="" width={40} height={40} className="w-10 h-10 rounded-full" loading="lazy" aria-hidden="true" />
