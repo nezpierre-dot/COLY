@@ -45,10 +45,11 @@ const BottomNav = () => {
             return (
               <button
                 key={i}
+                type="button"
                 onClick={() => { hapticLight(); navigate(tab.path); }}
-                aria-label={tab.label}
+                aria-label={showBadge ? `${tab.label} — ${badgeCount} non lu${badgeCount > 1 ? "s" : ""}` : tab.label}
                 aria-current={active ? "page" : undefined}
-                className="flex flex-col items-center gap-0.5 px-5 py-1 transition-colors"
+                className="flex flex-col items-center gap-0.5 px-5 py-1 min-h-11 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
               >
                 <div
                   className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all relative ${
