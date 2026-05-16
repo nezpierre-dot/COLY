@@ -50,8 +50,11 @@ const AuthLayout = ({ title, subtitle, children }: AuthLayoutProps) => {
       </div>
 
       {/* Glass card */}
-      <div
-        className="relative z-10 flex-1 rounded-t-[2.5rem] px-6 pt-10 pb-10 border border-white/40"
+      <main
+        id="main-content"
+        tabIndex={-1}
+        aria-label={title || "Authentification"}
+        className="relative z-10 flex-1 rounded-t-[2.5rem] px-6 pt-10 pb-10 border border-white/40 focus:outline-none"
         style={{
           background: "hsl(var(--glass-bg))",
           backdropFilter: "blur(var(--glass-blur))",
@@ -60,9 +63,9 @@ const AuthLayout = ({ title, subtitle, children }: AuthLayoutProps) => {
         }}
       >
         {/* Top handle bar */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-muted-foreground/20" />
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 rounded-full bg-muted-foreground/20" aria-hidden="true" />
         {children}
-      </div>
+      </main>
     </div>
   );
 };
