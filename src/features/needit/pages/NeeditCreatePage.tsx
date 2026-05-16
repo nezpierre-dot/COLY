@@ -12,7 +12,12 @@ import {
   Package,
   Sparkles,
   X,
+  ShieldCheck,
+  Lock,
+  KeyRound,
+  Heart,
 } from "lucide-react";
+import { haptic as hapticV4 } from "@/hooks/useHaptic";
 import { toast } from "sonner";
 import { z } from "zod";
 import BottomNav from "@/components/BottomNav";
@@ -361,6 +366,7 @@ const NeeditCreatePage = () => {
       />
 
       <main className="flex-1 px-4 sm:px-5 pt-4 pb-40 max-w-2xl mx-auto w-full">
+        <TrustBar />
         {/* Hero photo + product info */}
         <section className="rounded-3xl border border-border bg-card p-5 shadow-sm mb-6">
           <div className="relative mx-auto mb-4 aspect-square max-w-[260px] rounded-3xl bg-gradient-to-b from-muted/40 to-muted/10 overflow-hidden flex items-center justify-center">
@@ -694,15 +700,17 @@ const NeeditCreatePage = () => {
           </div>
 
           <button
-            onClick={handleSubmit}
+            onClick={() => { try { hapticV4(canSubmit ? "success" : "warning"); } catch {} handleSubmit(); }}
             disabled={!canSubmit || submitting}
-            className="w-full h-14 rounded-2xl bg-primary text-primary-foreground text-base font-extrabold shadow-lg shadow-primary/25 hover:bg-primary/90 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            aria-label={t("needit.create.publish")}
+            className="w-full h-14 rounded-2xl text-primary-foreground text-base font-extrabold shadow-lg shadow-primary/25 hover:opacity-90 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            style={!canSubmit || submitting ? { background: "hsl(var(--primary))" } : { background: "var(--gradient-primary)" }}
           >
             {submitting ? (
-              <Loader2 size={20} className="animate-spin" />
+              <Loader2 size={20} className="animate-spin" aria-hidden="true" />
             ) : (
               <>
-                {t("needit.create.publish")} <ChevronRight size={20} />
+                {t("needit.create.publish")} <ChevronRight size={20} aria-hidden="true" />
               </>
             )}
           </button>
@@ -715,6 +723,30 @@ const NeeditCreatePage = () => {
 };
 
 /* ------------------------------------------------------------------ */
+
+const TRUST_PILLS = [
+  { icon: ShieldCheck, label: "KYC vérifié" },
+  { icon: Lock, label: "Paiement bloqué" },
+  { icon: KeyRound, label: "Code conf." },
+  { icon: Heart, label: "Assurance 500 €" },
+];
+
+const TrustBar = () => (
+  <section aria-label="Garanties Nidit" className="mt-2 mb-6 rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-3">
+    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2 text-center">Tes garanties Nidit</p>
+    <ul className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {TRUST_PILLS.map((p) => {
+        const Icon = p.icon;
+        return (
+          <li key={p.label} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-primary/5">
+            <Icon size={12} className="text-primary shrink-0" aria-hidden="true" />
+            <span className="text-[11px] font-medium text-foreground truncate">{p.label}</span>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+);
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <h3 className="text-sm font-bold text-foreground/80 uppercase tracking-wider mb-3 px-1">
