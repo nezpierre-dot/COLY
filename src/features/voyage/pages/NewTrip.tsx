@@ -3,7 +3,8 @@ import { fetchCitiesByCountry, getCountryISO } from "@/lib/citySearch";
 import { getPopularCities } from "@/lib/popularCities";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, Star } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plane, Train, Car, Bus, Ship, Bike, Check, Loader2, Star, ShieldCheck, Lock, KeyRound, Heart } from "lucide-react";
+import { haptic as hapticV4 } from "@/hooks/useHaptic";
 import { localizeCountry } from "@/lib/geoLocalization";
 import { useLanguagePreference } from "@/hooks/useLanguagePreference";
 import { useTransportFeasibility } from "@/hooks/useTransportFeasibility";
@@ -36,6 +37,30 @@ const getTransportMethods = (t: (k: string) => string) => [
   { value: "bateau", label: t("transport.bateau"), icon: Ship },
   { value: "velo", label: t("transport.velo"), icon: Bike },
 ];
+
+const TRUST_PILLS = [
+  { icon: ShieldCheck, label: "KYC vérifié" },
+  { icon: Lock, label: "Paiement bloqué" },
+  { icon: KeyRound, label: "Code conf." },
+  { icon: Heart, label: "Assurance 500 €" },
+];
+
+const TrustBar = () => (
+  <section aria-label="Garanties Nidit" className="mt-6 mx-1 rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-3">
+    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-2 text-center">Tes garanties Nidit</p>
+    <ul className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {TRUST_PILLS.map((p) => {
+        const Icon = p.icon;
+        return (
+          <li key={p.label} className="flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-primary/5">
+            <Icon size={12} className="text-primary shrink-0" aria-hidden="true" />
+            <span className="text-[11px] font-medium text-foreground truncate">{p.label}</span>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+);
 
 const CURRENCIES = [
   { code: "EUR", symbol: "€" },
@@ -252,9 +277,15 @@ const NewTrip = () => {
   };
 
   const handleNext = () => {
+    if (!canContinue()) { try { hapticV4("warning"); } catch {} return; }
     setDirection(1);
-    if (step < TOTAL_STEPS) setStep(step + 1);
-    else handleSubmit();
+    if (step < TOTAL_STEPS) {
+      try { hapticV4("selection"); } catch {}
+      setStep(step + 1);
+    } else {
+      try { hapticV4("success"); } catch {}
+      handleSubmit();
+    }
   };
 
   const handleBack = () => {
@@ -286,15 +317,17 @@ const NewTrip = () => {
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight whitespace-pre-line">
             {t("trip.shareTitle")}
           </h1>
-          <div className="flex gap-1.5 mt-5">
+          <div className="flex gap-1.5 mt-5" role="progressbar" aria-valuemin={1} aria-valuemax={TOTAL_STEPS} aria-valuenow={step} aria-label={`Étape ${step} sur ${TOTAL_STEPS}`}>
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
               <div
                 key={i}
                 className="h-1.5 flex-1 rounded-full transition-colors"
                 style={i < step ? { background: "var(--gradient-primary)" } : { background: "hsl(var(--foreground) / 0.1)" }}
+                aria-hidden="true"
               />
             ))}
           </div>
+          <p className="sr-only" aria-live="polite">Étape {step} sur {TOTAL_STEPS}</p>
         </div>
       </header>
 
@@ -678,20 +711,32 @@ const NewTrip = () => {
             </motion.div>
           </AnimatePresence>
         </div>
+
+        <TrustBar />
       </div>
 
-      {/* Footer nav */}
-      <div className="px-6 pt-4 flex items-center justify-between">
-        <button onClick={handleBack} className="text-muted-foreground font-medium text-sm">
-          Retour
+      {/* Sticky footer nav */}
+      <div
+        className="sticky bottom-0 left-0 right-0 z-20 px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] mt-2 bg-gradient-to-t from-background via-background to-background/0 flex items-center justify-between gap-3"
+      >
+        <button
+          type="button"
+          onClick={() => { try { hapticV4("selection"); } catch {} handleBack(); }}
+          className="text-muted-foreground font-medium text-sm min-h-11 px-2 inline-flex items-center gap-1"
+          aria-label={step === 1 ? "Retour au tableau de bord" : "Étape précédente"}
+        >
+          <ArrowLeft size={16} aria-hidden="true" /> Retour
         </button>
         <button
+          type="button"
           onClick={handleNext}
           disabled={!canContinue() || submitting}
-          className="bg-primary text-primary-foreground font-semibold px-8 py-3 rounded-full flex items-center gap-2 disabled:opacity-40 transition-opacity"
+          aria-label={step === TOTAL_STEPS ? "Publier mon voyage" : `Continuer vers l'étape ${step + 1}`}
+          className="font-semibold px-8 py-3 rounded-full flex items-center gap-2 transition-all min-h-12 shadow-lg shadow-primary/25 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+          style={!canContinue() || submitting ? undefined : { background: "var(--gradient-primary)", color: "hsl(var(--primary-foreground))" }}
         >
           {submitting ? <Loader2 size={18} className="animate-spin" /> : null}
-          {step === TOTAL_STEPS ? "Valider" : "Continuer"} {!submitting && <ArrowRight size={18} />}
+          {step === TOTAL_STEPS ? "Publier mon voyage" : "Continuer"} {!submitting && <ArrowRight size={18} aria-hidden="true" />}
         </button>
       </div>
 
