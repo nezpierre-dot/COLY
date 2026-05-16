@@ -683,7 +683,8 @@ a:focus-visible,
   .stat-number { font-variant-numeric: tabular-nums; font-weight: 800; letter-spacing: var(--tracking-display); line-height: 1; }
 
   /* Link fancy with animated underline */
-  .link-fancy { position: relative; color: hsl(var(--primary)); font-weight: 600; }
+  .link-fancy { position: relative; color: hsl(220 90% 30%); font-weight: 600; }
+  .dark .link-fancy { color: hsl(218 100% 75%); }
   .link-fancy::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; background: var(--gradient-primary); transform: scaleX(0); transform-origin: right; transition: transform var(--duration-base) var(--ease-out-quint); }
   .link-fancy:hover::after { transform: scaleX(1); transform-origin: left; }
 }
