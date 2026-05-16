@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense, type ReactNode } from "react";
+import { useState, useEffect, lazy, Suspense, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { useTranslation } from "@/hooks/useTranslation";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
@@ -105,6 +106,34 @@ const PresenceTracker = () => {
   return null;
 };
 
+/**
+ * Keep <html lang="..."> in sync with the current i18n language so screen readers
+ * announce content with the correct pronunciation. WCAG 2.1 SC 3.1.1.
+ */
+const LangSync = () => {
+  const { language } = useTranslation();
+  useEffect(() => {
+    if (typeof document !== "undefined" && language) {
+      document.documentElement.lang = language;
+      document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+    }
+  }, [language]);
+  return null;
+};
+
+/**
+ * "Skip to main content" link — visually hidden until focused, lets keyboard
+ * users jump past the chrome straight to the page body. WCAG 2.1 SC 2.4.1.
+ */
+const SkipLink = () => (
+  <a
+    href="#main-content"
+    className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-primary focus:text-primary-foreground focus:font-semibold focus:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+  >
+    Aller au contenu principal
+  </a>
+);
+
 const App = () => {
   const [splashDone, setSplashDone] = useState(() => {
     if (sessionStorage.getItem("splash-shown")) return true;
@@ -126,6 +155,8 @@ const App = () => {
               <AutoLogoutWrapper>
               <FavoritesProvider>
                 <Suspense fallback={<PageLoader />}>
+                  <SkipLink />
+                  <LangSync />
                   <Routes>
                     {/* V12 (D) : / sert maintenant le PublicLanding conversion-first.
                         Welcome reste accessible sur /welcome pour rétrocompat. */}
