@@ -40,7 +40,7 @@ const WhatsAppShareButton = ({
     return (
       <button
         onClick={handleShare}
-        className="w-8 h-8 rounded-xl bg-[#25D366]/10 flex items-center justify-center hover:bg-[#25D366]/20 transition-colors"
+        className="min-h-11 min-w-11 rounded-xl bg-[#25D366]/10 flex items-center justify-center hover:bg-[#25D366]/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         title="Partager sur WhatsApp"
       >
         <MessageCircle size={14} className="text-[#25D366]" />
