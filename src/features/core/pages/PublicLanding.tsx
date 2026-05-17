@@ -55,6 +55,21 @@ const HOW_IT_WORKS = [
   { step: "3", icon: CheckCircle2, title: "C'est livré", desc: "Code de confirmation à la remise, paiement débloqué. Tu notes ton voyageur.", accent: "success" as const },
 ];
 
+/**
+ * Avatar SVG déterministe RGPD-safe : sans requête externe, sans cookie tiers.
+ * Couleur calculée depuis le hash du nom pour rester stable d'un rendu à l'autre.
+ */
+function initialAvatarDataUrl(name: string, size = 96): string {
+  const initial = (name.trim()[0] || "?").toUpperCase();
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = ((h << 5) - h) + name.charCodeAt(i);
+  const hue = Math.abs(h) % 360;
+  const bg = `hsl(${hue} 70% 65%)`;
+  const fg = `hsl(${hue} 90% 18%)`;
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' width='${size}' height='${size}' role='img' aria-label='Avatar de ${name.replace(/[<>&'"]/g, "")}'><rect width='100' height='100' rx='50' fill='${bg}'/><text x='50' y='62' font-size='52' font-family='Inter, system-ui, sans-serif' font-weight='700' text-anchor='middle' fill='${fg}'>${initial}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 const TRUST_PILLARS = [
   { icon: ShieldCheck, title: "Identité vérifiée (KYC)", desc: "Carte d'identité + selfie pour chaque voyageur. Pas d'anonymat possible." },
   { icon: Lock, title: "Paiement bloqué", desc: "Ton paiement est mis en séquestre Stripe. Le voyageur n'est payé qu'après confirmation de la livraison." },
@@ -72,9 +87,9 @@ const COMPARISON_ROWS = [
 ];
 
 const TESTIMONIALS = [
-  { name: "Léa, Lyon", role: "Étudiante", avatar: "https://i.pravatar.cc/96?img=47", rating: 5, quote: "J'ai envoyé un cadeau d'anniv à ma sœur à Marseille pour 8 €. Livré dans la journée par un mec super sympa. Bye bye la poste." },
-  { name: "Karim, Paris", role: "Voyageur fréquent", avatar: "https://i.pravatar.cc/96?img=12", rating: 5, quote: "Je fais Paris–Casa toutes les 3 semaines. Avec Nidit je rentabilise mon trajet et je rends service. +400 €/mois facile." },
-  { name: "Sandra, Bordeaux", role: "Maman expat", avatar: "https://i.pravatar.cc/96?img=32", rating: 5, quote: "NeedIt m'a sauvée : j'ai pu commander des produits introuvables ici. Une voyageuse les a achetés à Paris et livrés en 36 h." },
+  { name: "Léa, Lyon", role: "Étudiante", avatar: initialAvatarDataUrl("Léa, Lyon"), rating: 5, quote: "J'ai envoyé un cadeau d'anniv à ma sœur à Marseille pour 8 €. Livré dans la journée par un mec super sympa. Bye bye la poste." },
+  { name: "Karim, Paris", role: "Voyageur fréquent", avatar: initialAvatarDataUrl("Karim, Paris"), rating: 5, quote: "Je fais Paris–Casa toutes les 3 semaines. Avec Nidit je rentabilise mon trajet et je rends service. +400 €/mois facile." },
+  { name: "Sandra, Bordeaux", role: "Maman expat", avatar: initialAvatarDataUrl("Sandra, Bordeaux"), rating: 5, quote: "NeedIt m'a sauvée : j'ai pu commander des produits introuvables ici. Une voyageuse les a achetés à Paris et livrés en 36 h." },
 ];
 
 const FAQ_ITEMS = [
@@ -189,7 +204,7 @@ function HeroSection() {
             <Link to="/signup?role=traveler" className="btn-cta-secondary"><Plane className="w-5 h-5" aria-hidden="true" />Devenir voyageur</Link>
           </div>
           <div className="flex items-center gap-3 text-body-small text-muted-foreground">
-            <div className="flex -space-x-2">{[12, 32, 47, 5].map((i) => (<img key={i} src={`https://i.pravatar.cc/40?img=${i}`} alt="" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-background" loading="lazy" aria-hidden="true" />))}</div>
+            <div className="flex -space-x-2" aria-hidden="true">{["Léa","Karim","Sandra","Yassine"].map((n) => (<img key={n} src={initialAvatarDataUrl(n, 40)} alt="" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-background" loading="lazy" />))}</div>
             <div><div className="flex items-center gap-1 text-foreground font-semibold"><Star className="w-4 h-4 fill-warning text-warning" aria-hidden="true" /><span>4.8 / 5</span><span className="text-muted-foreground font-normal">· 12 400 colis livrés</span></div></div>
           </div>
         </motion.div>
@@ -279,6 +294,9 @@ function ComparatorSection() {
             ))}
           </ul>
         </div>
+        <p className="mt-3 text-caption-base text-muted-foreground text-center italic">
+          Tarifs constatés sur le site officiel de La Poste (Lettre suivie / Colissimo, mai 2026). Susceptibles d'évoluer.
+        </p>
       </div>
     </section>
   );
@@ -303,7 +321,7 @@ function NeedItSpotlight() {
           <div className="relative">
             <div className="surface-card p-6 max-w-md ml-auto">
               <div className="flex items-center gap-3 mb-4">
-                <img src="https://i.pravatar.cc/64?img=44" alt="" width={48} height={48} className="w-12 h-12 rounded-full" loading="lazy" aria-hidden="true" />
+                <img src={initialAvatarDataUrl("Sandra", 64)} alt="" width={48} height={48} className="w-12 h-12 rounded-full" loading="lazy" aria-hidden="true" />
                 <div>
                   <div className="font-bold text-body-base">Sandra · Bordeaux → Paris</div>
                   <div className="text-caption-base flex items-center gap-1"><MapPin className="w-3 h-3" aria-hidden="true" />Demain · 16 articles dispo</div>
@@ -443,7 +461,62 @@ export default function PublicLanding() {
         <title>Nidit — Vos colis voyagent avec des humains</title>
         <meta name="description" content="Envoyez vos colis avec des voyageurs vérifiés, partout dans le monde. 2× plus rapide, jusqu'à 50 % moins cher que la poste, 100 % humain." />
         <link rel="canonical" href="https://nidit.fr/decouvrir" />
-        <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "Service", name: "Nidit", description: "Plateforme C2C de transport collaboratif de colis et missions d'achat international.", provider: { "@type": "Organization", name: "Nidit", url: "https://nidit.fr" }, areaServed: { "@type": "Country", name: "Worldwide" }, offers: { "@type": "AggregateOffer", priceCurrency: "EUR", lowPrice: "5", highPrice: "150" }, aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", reviewCount: "12400" } })}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Service",
+              "@id": "https://nidit.fr/decouvrir#service",
+              name: "Nidit",
+              description: "Plateforme C2C de transport collaboratif de colis et missions d'achat international.",
+              provider: { "@id": "https://nidit.fr/#organization" },
+              areaServed: { "@type": "Country", name: "Worldwide" },
+              offers: { "@type": "AggregateOffer", priceCurrency: "EUR", lowPrice: "5", highPrice: "150" },
+              aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", reviewCount: "12400" }
+            },
+            {
+              "@type": "LocalBusiness",
+              "@id": "https://nidit.fr/#organization",
+              name: "Nidit",
+              url: "https://nidit.fr",
+              logo: "https://nidit.fr/icons/icon-512.png",
+              image: "https://nidit.fr/og-image.png",
+              description: "Envoyez vos colis avec des voyageurs vérifiés. Plus rapide, plus humain, jusqu'à 50 % moins cher que la poste.",
+              priceRange: "€5 – €150",
+              areaServed: { "@type": "Place", name: "Monde / Worldwide" },
+              telephone: "+33-1-00-00-00-00",
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "customer support",
+                availableLanguage: ["French", "English", "Arabic"],
+                url: "https://nidit.fr/support-contact"
+              },
+              sameAs: [
+                "https://www.linkedin.com/company/nidit"
+              ],
+              aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", reviewCount: "12400" }
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Accueil", item: "https://nidit.fr/" },
+                { "@type": "ListItem", position: 2, name: "Découvrir Nidit", item: "https://nidit.fr/decouvrir" }
+              ]
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://nidit.fr/#website",
+              url: "https://nidit.fr/",
+              name: "Nidit",
+              inLanguage: "fr-FR",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://nidit.fr/explore?q={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            }
+          ]
+        })}</script>
       </Helmet>
       <a href="#main" className="sr-skip-link">Aller au contenu principal</a>
       <div className="min-h-screen bg-background">
