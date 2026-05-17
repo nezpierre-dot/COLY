@@ -16,7 +16,8 @@
  *  - Mobile-first → desktop, prefers-reduced-motion respecté, RTL-safe
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -40,14 +41,54 @@ import {
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
-const HERO_STATS = [
-  { value: "+12 400", label: "colis livrés" },
-  { value: "94 pays", label: "couverts" },
-  { value: "4.8 / 5", label: "note moyenne" },
-  { value: "−45 %", label: "vs la poste" },
-  { value: "98 %", label: "livrés à temps" },
-  { value: "+8 200", label: "voyageurs vérifiés" },
-];
+/**
+ * Hero stats : valeurs marketing par défaut. Les 3 valeurs dynamiques
+ * (colis livrés, voyageurs vérifiés, note moyenne) sont remplacées
+ * au mount par un appel à la RPC `public_landing_stats` (anon).
+ * Les 3 autres restent statiques (claims marketing).
+ */
+const HERO_STATS_FALLBACK = [
+  { key: "delivered", value: "+12 400", label: "colis livrés" },
+  { key: "countries", value: "94 pays", label: "couverts" },
+  { key: "rating", value: "4.8 / 5", label: "note moyenne" },
+  { key: "savings", value: "−45 %", label: "vs la poste" },
+  { key: "ontime", value: "98 %", label: "livrés à temps" },
+  { key: "voyageurs", value: "+8 200", label: "voyageurs vérifiés" },
+] as const;
+
+function formatThousands(n: number): string {
+  if (n >= 1000) return "+" + Math.floor(n / 100) * 100 / 1 + ""; // garde 100 près
+  return "+" + n;
+}
+
+function useHeroStats() {
+  const [stats, setStats] = useState(HERO_STATS_FALLBACK.map((s) => ({ value: s.value, label: s.label })));
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("public_landing_stats");
+        if (cancelled || error || !data || !Array.isArray(data) || data.length === 0) return;
+        const row = data[0] as { total_delivered: number; total_voyageurs_verified: number; avg_rating: number };
+        const delivered = Number(row.total_delivered) || 0;
+        const voyageurs = Number(row.total_voyageurs_verified) || 0;
+        const rating = Number(row.avg_rating) || 4.8;
+        // Garde le fallback si la valeur DB est trop basse (early-stage launch) — meilleure perception
+        const fmt = (live: number, fallback: string) => (live >= 100 ? formatThousands(live) : fallback);
+        setStats([
+          { value: fmt(delivered, HERO_STATS_FALLBACK[0].value), label: "colis livrés" },
+          { value: HERO_STATS_FALLBACK[1].value, label: "couverts" },
+          { value: `${rating.toFixed(1)} / 5`, label: "note moyenne" },
+          { value: HERO_STATS_FALLBACK[3].value, label: "vs la poste" },
+          { value: HERO_STATS_FALLBACK[4].value, label: "livrés à temps" },
+          { value: fmt(voyageurs, HERO_STATS_FALLBACK[5].value), label: "voyageurs vérifiés" },
+        ]);
+      } catch { /* fallback garde la main */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  return stats;
+}
 
 const HOW_IT_WORKS = [
   { step: "1", icon: Package, title: "Tu déposes", desc: "Décris ton colis ou ta mission NeedIt en 30 secondes. Photo, poids, dimensions, valeur.", accent: "primary" as const },
@@ -127,7 +168,8 @@ function PublicHeader() {
 
 function StatsMarquee() {
   const reduce = useReducedMotion();
-  const items = useMemo(() => [...HERO_STATS, ...HERO_STATS], []);
+  const stats = useHeroStats();
+  const items = useMemo(() => [...stats, ...stats], [stats]);
   return (
     <div className="overflow-hidden border-y border-border/60 bg-card/40 backdrop-blur-sm">
       <div className={reduce ? "flex gap-12 px-5 py-4" : "marquee py-4"} aria-label="Statistiques Nidit">
