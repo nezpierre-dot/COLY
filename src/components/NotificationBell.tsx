@@ -78,7 +78,7 @@ export default function NotificationBell() {
       <button
         ref={buttonRef}
         onClick={() => { hapticLight(); setOpen((o) => !o); setSelectedNotif(null); }}
-        className={`relative p-2 rounded-full hover:bg-muted transition-colors ${open ? "invisible" : ""}`}
+        className={`relative p-2.5 rounded-full hover:bg-muted transition-colors min-h-11 min-w-11 inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${open ? "invisible" : ""}`}
         aria-label="Notifications"
       >
         <Bell size={24} style={{ color: hasUnread ? "#FF453A" : "#64748B" }} />
