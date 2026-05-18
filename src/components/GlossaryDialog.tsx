@@ -78,7 +78,7 @@ const GlossaryDialogBase = ({ open, onClose }: GlossaryDialogProps) => {
           <button
             onClick={onClose}
             aria-label={t("common.close")}
-            className="shrink-0 rounded-xl p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition"
+            className="shrink-0 rounded-xl p-2.5 min-h-11 min-w-11 inline-flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <X size={18} />
           </button>
