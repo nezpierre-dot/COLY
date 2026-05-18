@@ -397,7 +397,7 @@ const LiveLocationSharing = ({
                 <Button
                   size="icon"
                   variant="secondary"
-                  className="absolute top-2 right-2 z-10 h-8 w-8 rounded-lg shadow-md"
+                  className="absolute top-2 right-2 z-10 min-h-11 min-w-11 rounded-lg shadow-md"
                   onClick={fitMapBounds}
                 >
                   <Maximize2 size={14} />
