@@ -98,7 +98,7 @@ const DeliveryProofUpload = ({ shipmentId, onProofUploaded, onDeliveryConfirmed 
         {preview ? (
           <div className="relative">
             <img src={preview} alt="Preuve" className="w-full object-cover rounded-xl" style={{ maxHeight: 200 }} />
-            <button onClick={(e) => { e.stopPropagation(); setPhoto(null); setPreview(null); }} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"><X size={12} /></button>
+            <button type="button" onClick={(e) => { e.stopPropagation(); setPhoto(null); setPreview(null); }} aria-label="Retirer la photo" className="absolute top-2 right-2 min-h-11 min-w-11 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><X size={14} aria-hidden="true" /></button>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-2 py-8 text-muted-foreground">
