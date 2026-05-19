@@ -107,6 +107,22 @@ const MyAccount = () => {
     });
   }, [user]);
 
+  // Compute current daily activity streak (consecutive days from today backwards)
+  const streakDays = useMemo(() => {
+    if (!activityDates.length) return 0;
+    const set = new Set(activityDates.map(d => (d || "").slice(0, 10)));
+    let streak = 0;
+    const today = new Date();
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      if (set.has(key)) streak++;
+      else if (i > 0) break; // permit 1 idle day (today) before breaking
+    }
+    return streak;
+  }, [activityDates]);
+
   // Activity chart data (last 30 days)
   const activityChartData = useMemo(() => {
     const now = new Date();
@@ -292,6 +308,12 @@ const MyAccount = () => {
               <p className="text-xs text-muted-foreground mt-1 font-medium">
                 N°{userId.toUpperCase()}
               </p>
+              {streakDays >= 2 && (
+                <span className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full bg-warning/15 border border-warning/30 text-warning-foreground text-xs font-semibold" aria-label={`Série de ${streakDays} jours d'activité`}>
+                  <span aria-hidden="true">🔥</span>
+                  <span>{streakDays} jours d'affilée — ne casse pas la série</span>
+                </span>
+              )}
 
               {bio && !editing && (
                 <p className="text-foreground/70 text-sm mt-2 line-clamp-2 italic">"{bio}"</p>
