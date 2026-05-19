@@ -40,6 +40,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 /**
  * Hero stats : valeurs marketing par défaut. Les 3 valeurs dynamiques
@@ -157,7 +158,8 @@ function PublicHeader() {
           <Link to="/explore" className="hover:text-primary transition-colors">Trajets disponibles</Link>
           <Link to="/blog" className="hover:text-primary transition-colors">Blog</Link>
         </nav>
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <LanguageSwitcher />
           <Link to="/login" className="hidden sm:inline-flex tap-target px-4 rounded-full text-sm font-semibold hover:bg-muted transition-colors">Se connecter</Link>
           <Link to="/signup" className="btn-cta-primary text-sm h-11 px-5">S'inscrire</Link>
         </div>
