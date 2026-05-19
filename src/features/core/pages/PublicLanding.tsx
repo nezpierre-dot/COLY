@@ -243,9 +243,15 @@ function HeroSection() {
           <span className="chip-info mb-5"><Sparkles className="w-3.5 h-3.5" aria-hidden="true" />La poste collaborative qui marche</span>
           <h1 className="text-display-lg mb-6">Vos colis voyagent <br className="hidden sm:block" /><span className="bg-clip-text text-transparent" style={{ backgroundImage: "var(--gradient-primary)" }}>avec des humains.</span></h1>
           <p className="text-body-lg text-muted-foreground max-w-xl mb-8">Envoyez un colis ou demandez un produit à l'étranger via un voyageur vérifié. <strong className="text-foreground">2 fois plus rapide</strong>, <strong className="text-foreground">jusqu'à 50 % moins cher</strong> que la poste, et <strong className="text-foreground">100 % humain</strong>.</p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
             <Link to="/signup?role=sender" className="btn-cta-primary"><Package className="w-5 h-5" aria-hidden="true" />Envoyer un colis<ArrowRight className="w-4 h-4" aria-hidden="true" /></Link>
             <Link to="/signup?role=traveler" className="btn-cta-secondary"><Plane className="w-5 h-5" aria-hidden="true" />Devenir voyageur</Link>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            <span className="chip-success" aria-label="Garantie premier envoi remboursé">
+              <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
+              <span><strong className="font-bold">Premier envoi 100 % remboursé</strong> si problème — sans question</span>
+            </span>
           </div>
           <div className="flex items-center gap-3 text-body-small text-muted-foreground">
             <div className="flex -space-x-2" aria-hidden="true">{["Léa","Karim","Sandra","Yassine"].map((n) => (<img key={n} src={initialAvatarDataUrl(n, 40)} alt="" width={32} height={32} className="w-8 h-8 rounded-full border-2 border-background" loading="lazy" />))}</div>
