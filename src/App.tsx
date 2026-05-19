@@ -3,6 +3,7 @@ import SplashScreen from "@/components/SplashScreen";
 import AiChatWidget from "@/components/AiChatWidget";
 import CommandPalette from "@/components/CommandPalette";
 import OfflineBanner from "@/components/OfflineBanner";
+import PushOnboardingPrompt from "@/components/PushOnboardingPrompt";
 import AppProviders from "@/AppProviders";
 import AppRoutes from "@/routes";
 
@@ -20,6 +21,7 @@ const App = () => {
       <AiChatWidget />
       <CommandPalette />
       <OfflineBanner />
+      <PushOnboardingPrompt />
     </AppProviders>
   );
 };
