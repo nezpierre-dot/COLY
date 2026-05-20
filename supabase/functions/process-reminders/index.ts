@@ -38,7 +38,18 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
-function buildReminderEmailHtml(title: string, body: string): string {
+function escapeHtml(s: string): string {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function buildReminderEmailHtml(rawTitle: string, rawBody: string): string {
+  const title = escapeHtml(rawTitle);
+  const body = escapeHtml(rawBody);
   return `
     <!DOCTYPE html>
     <html>

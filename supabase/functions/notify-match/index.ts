@@ -22,6 +22,16 @@ async function getUnsubscribeUrl(supabaseUrl: string, userId: string): Promise<s
   return `${supabaseUrl}/functions/v1/email-unsubscribe?user_id=${userId}&token=${token}`;
 }
 
+/** Escape HTML to prevent injection in email templates */
+function escapeHtml(s: string): string {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 /** Build match email HTML */
 function buildMatchEmailHtml(
   userName: string,
@@ -31,16 +41,18 @@ function buildMatchEmailHtml(
 ): { subject: string; html: string } {
   let subject: string;
   let bodyText: string;
+  const safeDestination = escapeHtml(destination);
+  const safeUserName = escapeHtml(userName);
 
   if (matchType === "shipment") {
     subject = "🎯 Un voyageur peut transporter votre colis !";
-    bodyText = `Un voyageur se rend à <strong>${destination}</strong> et peut transporter votre colis.`;
+    bodyText = `Un voyageur se rend à <strong>${safeDestination}</strong> et peut transporter votre colis.`;
   } else if (matchType === "needit") {
     subject = "🎯 Un voyageur peut réaliser votre mission NeedIt !";
-    bodyText = `Un voyageur se rend à <strong>${destination}</strong> et peut réaliser votre mission.`;
+    bodyText = `Un voyageur se rend à <strong>${safeDestination}</strong> et peut réaliser votre mission.`;
   } else {
     subject = "🎯 Un nouveau colis correspond à votre trajet !";
-    bodyText = `Un nouveau colis à destination de <strong>${destination}</strong> correspond à votre trajet.`;
+    bodyText = `Un nouveau colis à destination de <strong>${safeDestination}</strong> correspond à votre trajet.`;
   }
 
   const html = `

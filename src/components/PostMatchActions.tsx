@@ -16,6 +16,7 @@ import {
   Star,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { MAPBOX_TOKEN } from "@/lib/mapbox";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { successFeedback } from "@/lib/successFeedback";
@@ -111,7 +112,7 @@ const PostMatchActions = ({
       try {
         const query = encodeURIComponent(`${city}, ${country}`);
         const res = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN || "pk.eyJ1IjoibG92YWJsZS1kZXYiLCJhIjoiY20yazV0OHRtMGF3aDJtczhheXM3c3E2eiJ9.a3GEdBIt8b9S8JnhaRj1jA"}&limit=1`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${MAPBOX_TOKEN}&limit=1`
         );
         const geo = await res.json();
         if (geo.features?.length > 0) {
