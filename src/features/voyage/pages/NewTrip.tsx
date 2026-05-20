@@ -253,6 +253,7 @@ const NewTrip = () => {
       toast.error(t("trip.errorCreate"));
     } else {
       successFeedback(t("trip.published"), { description: t("trip.publishedDesc") });
+      try { localStorage.setItem("push:should-ask", "trip"); } catch {}
       // Trigger match notifications
       supabase.functions.invoke("notify-match", { body: { type: "voyage", record_id: data.id } }).catch(() => {});
 
