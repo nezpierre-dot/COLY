@@ -16,6 +16,7 @@ import {
   Star,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { MAPBOX_TOKEN } from "@/lib/mapbox";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { successFeedback } from "@/lib/successFeedback";
